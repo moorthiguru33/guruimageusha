@@ -160,42 +160,41 @@ jobs:
           ELAPSED=0
           POLL=120
           SEEN_RUNNING=false
-          RUNNING_FOR=0
 
           echo "Monitoring: $KERNEL"
           echo "Timeout: ${MAX}s (~4 hours)"
+          echo "════════════════════════════════════════"
 
           while [ $ELAPSED -lt $MAX ]; do
             FULL=$(kaggle kernels status "$KERNEL" 2>&1 || true)
             S=$(echo "$FULL" | grep -oiE 'complete|running|error|queued' | head -1 | tr '[:upper:]' '[:lower:]')
             MINS=$((ELAPSED / 60))
-            echo "[${MINS}m] Status: ${S:-unknown} | running_for=${RUNNING_FOR}s"
+            echo "[${MINS}m] Status: ${S:-unknown}"
 
             case "$S" in
               running)
                 SEEN_RUNNING=true
-                RUNNING_FOR=$((RUNNING_FOR + POLL))
                 ;;
               queued)
                 echo "  Waiting for GPU..."
                 ;;
               complete)
                 if [ "$SEEN_RUNNING" = true ] || [ $ELAPSED -ge 300 ]; then
-                  echo "KERNEL COMPLETED!"
+                  echo "════════════════════════════════════════"
+                  echo "✅ KERNEL COMPLETED!"
                   exit 0
                 else
-                  echo "  Stale complete - waiting for new run to start..."
+                  echo "  ⚠ Stale status — waiting for new run..."
                 fi
                 ;;
               error)
-                # FIX: Kaggle API briefly shows old run error when new run starts.
-                # Only fail if kernel actually ran for 5+ minutes before erroring.
-                if [ "$SEEN_RUNNING" = true ] && [ $RUNNING_FOR -ge 300 ]; then
-                  echo "KERNEL FAILED (ran ${RUNNING_FOR}s then errored)"
-                  echo "Check: https://www.kaggle.com -> Your Work -> Code"
+                if [ "$SEEN_RUNNING" = true ]; then
+                  echo "════════════════════════════════════════"
+                  echo "❌ KERNEL FAILED"
+                  echo "Check logs: https://www.kaggle.com → Your Work → Code"
                   exit 1
                 else
-                  echo "  Startup/stale error (running_for=${RUNNING_FOR}s) - ignoring..."
+                  echo "  ⚠ Stale error — waiting for new run..."
                 fi
                 ;;
             esac
@@ -204,7 +203,7 @@ jobs:
             ELAPSED=$((ELAPSED + POLL))
           done
 
-          echo "TIMEOUT"
+          echo "⏰ TIMEOUT"
           exit 1
 
       - name: Save Progress
