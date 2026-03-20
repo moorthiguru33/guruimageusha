@@ -83,47 +83,101 @@ jobs:
             "${{ secrets.GOOGLE_CLIENT_SECRET }}" \
             "${{ secrets.GOOGLE_REFRESH_TOKEN }}"
 
+      - name: Fix Kernel Metadata ID
+        run: |
+          # Ensure kernel-metadata.json uses the correct username from secrets
+          cd kaggle
+          sed -i "s|\"id\": \"[^\"]*\"|\"id\": \"${{ secrets.KAGGLE_USERNAME }}/notebook8c5ae1ecf2\"|" kernel-metadata.json
+          echo "Updated kernel-metadata.json:"
+          cat kernel-metadata.json
+
       - name: Push to Kaggle
         run: |
-          KERNEL="${{ secrets.KAGGLE_USERNAME }}/png-library-generator"
+          KERNEL="${{ secrets.KAGGLE_USERNAME }}/notebook8c5ae1ecf2"
+          SLUG="notebook8c5ae1ecf2"
 
-          # Check if kernel is currently running/queued/error — handle it first
-          echo "Checking current kernel status..."
-          CURRENT=$(kaggle kernels status $KERNEL 2>&1)
-          echo "Current status: $CURRENT"
+          echo "========================================"
+          echo "  STRATEGY: Poll → Pull-Sync → Push"
+          echo "========================================"
 
-          S=$(echo "$CURRENT" | grep -oiE 'running|queued|error' | head -1 | tr '[:upper:]' '[:lower:]')
+          # ── STEP 1: Wait until kernel is truly idle ──
+          echo "[Step 1] Waiting for kernel to become idle..."
+          MAX_WAIT=300
+          WAITED=0
+          while [ $WAITED -lt $MAX_WAIT ]; do
+            CURRENT=$(kaggle kernels status $KERNEL 2>&1)
+            S=$(echo "$CURRENT" | grep -oiE 'running|queued' | head -1 | tr '[:upper:]' '[:lower:]')
 
-          if [ "$S" = "running" ] || [ "$S" = "queued" ]; then
-            echo "Kernel is $S — cancelling before push..."
-            kaggle kernels cancel $KERNEL || echo "Cancel attempted"
-            echo "Waiting 60s for cancel to take effect..."
-            sleep 60
-          elif [ "$S" = "error" ]; then
-            echo "Kernel is in ERROR state — waiting 60s for Kaggle cleanup..."
-            sleep 60
+            if [ "$S" = "running" ] || [ "$S" = "queued" ]; then
+              echo "  [$WAITED s] Kernel is $S — cancelling..."
+              kaggle kernels cancel $KERNEL 2>/dev/null || true
+              sleep 30
+              WAITED=$((WAITED + 30))
+            else
+              echo "  Kernel is idle (status: $CURRENT)"
+              break
+            fi
+          done
+
+          # ── STEP 2: Pull latest version to sync metadata ──
+          echo ""
+          echo "[Step 2] Pulling latest kernel version to sync..."
+          mkdir -p /tmp/kaggle-sync
+          kaggle kernels pull $KERNEL -p /tmp/kaggle-sync -m 2>/dev/null || echo "  Pull failed (kernel may not exist yet — that's OK)"
+
+          # If pull succeeded, extract the version number and sync
+          if [ -f "/tmp/kaggle-sync/kernel-metadata.json" ]; then
+            echo "  Synced metadata from Kaggle"
+            cat /tmp/kaggle-sync/kernel-metadata.json
           fi
 
+          # ── STEP 3: Push with exponential backoff ──
+          echo ""
+          echo "[Step 3] Pushing kernel with retry..."
           cd kaggle
-
-          # Retry push up to 3 times with delay
-          MAX_RETRIES=3
+          MAX_RETRIES=5
           RETRY=0
+          DELAY=30
+
           while [ $RETRY -lt $MAX_RETRIES ]; do
-            echo "Push attempt $((RETRY + 1))/$MAX_RETRIES..."
-            if kaggle kernels push -p . 2>&1; then
-              echo "Pushed successfully!"
+            echo "  Attempt $((RETRY + 1))/$MAX_RETRIES (delay was ${DELAY}s)..."
+
+            OUTPUT=$(kaggle kernels push -p . 2>&1) && {
+              echo "  ✅ PUSHED SUCCESSFULLY!"
+              echo "  $OUTPUT"
               break
-            else
+            } || {
+              echo "  ❌ Failed: $OUTPUT"
               RETRY=$((RETRY + 1))
+
+              # If 409 conflict, try deleting and recreating on last attempts
+              if echo "$OUTPUT" | grep -q "409"; then
+                if [ $RETRY -ge 3 ]; then
+                  echo ""
+                  echo "  [Fallback] 409 persists — deleting kernel and recreating..."
+                  python3 -c "
+import json, os
+try:
+    os.system(f'kaggle kernels delete $KERNEL')
+    print('  Kernel deleted, waiting 30s...')
+except:
+    print('  Delete failed, continuing...')
+"
+                  sleep 30
+                fi
+              fi
+
               if [ $RETRY -lt $MAX_RETRIES ]; then
-                echo "Push failed — waiting 90s before retry..."
-                sleep 90
+                echo "  Waiting ${DELAY}s before retry..."
+                sleep $DELAY
+                DELAY=$((DELAY * 2))
               else
-                echo "All $MAX_RETRIES push attempts failed!"
+                echo ""
+                echo "  ❌ ALL $MAX_RETRIES ATTEMPTS FAILED"
+                echo "  Manual fix: Go to kaggle.com → Your Kernels → Delete '$SLUG' → Re-run this workflow"
                 exit 1
               fi
-            fi
+            }
           done
 
           echo "Waiting 60s for Kaggle to register..."
@@ -133,7 +187,7 @@ jobs:
         run: |
           MAX=14400
           W=0
-          KERNEL="${{ secrets.KAGGLE_USERNAME }}/png-library-generator"
+          KERNEL="${{ secrets.KAGGLE_USERNAME }}/notebook8c5ae1ecf2"
           echo "Monitoring kernel: $KERNEL"
           echo "Max wait: ${MAX}s (~4 hours)"
           echo "========================================"
