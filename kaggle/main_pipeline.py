@@ -224,19 +224,19 @@ if pending:
     print("Model freed\n")
 
 # ============================================================
-# STEP 2: BRIA-RMBG-2.0 — Background Removal
+# STEP 2: BRIA-RMBG-1.4 — Background Removal (non-gated)
 # ============================================================
 print("=" * 55)
-print("STEP 2: BRIA-RMBG-2.0 Background Removal")
+print("STEP 2: BRIA-RMBG-1.4 Background Removal")
 print("=" * 55)
 
 rmbg   = AutoModelForImageSegmentation.from_pretrained(
-    "briaai/RMBG-2.0", trust_remote_code=True
+    "briaai/RMBG-1.4", trust_remote_code=True
 )
 device = "cuda" if torch.cuda.is_available() else "cpu"
 rmbg   = rmbg.to(device)
 rmbg.eval()
-print(f"BRIA-RMBG-2.0 loaded on {device}")
+print(f"BRIA-RMBG-1.4 loaded on {device}")
 
 img_tf = transforms.Compose([
     transforms.Resize((1024, 1024)),
@@ -403,7 +403,7 @@ print(f"""
   Model      : FLUX.2 [klein] 4B (Apache 2.0)
   Released   : Jan 15, 2026 by Black Forest Labs
   Steps      : 4  |  CFG: 3.5  |  1024x1024
-  BG Removal : BRIA-RMBG-2.0 (pixel perfect)
+  BG Removal : BRIA-RMBG-1.4 (pixel perfect)
   Generated  : {total_gen} images
   Transparent: {total_trn} PNGs
   Batch      : {START_INDEX} - {END_INDEX}
