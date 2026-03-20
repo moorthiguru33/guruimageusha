@@ -18,9 +18,11 @@ from pathlib import Path
 
 BASE_SUFFIX = (
     "isolated on pure white background, product photography style, "
-    "8k uhd resolution, photorealistic, sharp focus, clean crisp edges, "
+    "hyperrealistic photography, DSLR photo, shot on Canon EOS R5, "
+    "photorealistic NOT ai generated, real life texture and material, "
+    "8k uhd resolution, sharp focus, clean crisp edges, "
     "professional studio lighting, no drop shadow, no gradient background, "
-    "centered composition"
+    "centered composition, raw photo quality"
 )
 
 # ─────────────────────────────────────────────
