@@ -1,5 +1,5 @@
 """
-PNG Library - Kaggle Pipeline
+PNG Library - Kaggle Pipeline V2
 =============================================================
 Model   : FLUX.2 [klein] 4B
 HF ID   : black-forest-labs/FLUX.2-klein-4B
@@ -9,6 +9,12 @@ Released: January 15, 2026 by Black Forest Labs
 Steps   : 4 steps (distilled - fast + good quality)
 Batch   : 800 images/run ~ 4hrs (safe within 30hr/week)
 =============================================================
+
+V2 CHANGES:
+  - Removed duplicate make_prompt() — V2 prompts are already complete
+  - Only adds category-specific texture hints (no duplicate keywords)
+  - Updated for 43,082 total prompts (was 46,502)
+  - offer_logos use vector style, everything else photorealistic
 """
 
 import os, sys, json, time, gc, subprocess
@@ -48,7 +54,7 @@ import requests as req
 WORKING_DIR     = Path("/kaggle/working")
 GENERATED_DIR   = WORKING_DIR / "generated_images"
 TRANSPARENT_DIR = WORKING_DIR / "transparent_pngs"
-PROMPTS_FILE    = WORKING_DIR / "all_prompts.json"
+PROMPTS_DIR     = WORKING_DIR / "prompts_splits"
 PROGRESS_DIR    = WORKING_DIR / "progress"
 PROJECT_DIR     = WORKING_DIR / "project"
 for d in [GENERATED_DIR, TRANSPARENT_DIR, PROGRESS_DIR]:
@@ -63,13 +69,14 @@ START_INDEX          = int(os.environ.get("START_INDEX", "0"))
 END_INDEX            = int(os.environ.get("END_INDEX", "800"))
 
 print("=" * 55)
-print("  PNG LIBRARY — FLUX.2 [klein] 4B")
+print("  PNG LIBRARY V2 — FLUX.2 [klein] 4B")
 print("  Apache 2.0 | ~8GB VRAM | T4 Confirmed")
+print("  43,082 Ultra-Realistic Prompts")
 print("=" * 55)
 print(f"  Batch  : {START_INDEX} -> {END_INDEX}  ({END_INDEX - START_INDEX} images)")
 if torch.cuda.is_available():
     p = torch.cuda.get_device_properties(0)
-    print(f"  GPU    : {p.name}  |  VRAM: {p.total_memory/1e9:.0f} GB")
+    print(f"  GPU    : {p.name}  |  VRAM: {p.total_mem/1e9:.0f} GB" if hasattr(p, 'total_mem') else f"  GPU    : {p.name}  |  VRAM: {p.total_memory/1e9:.0f} GB")
 print("=" * 55 + "\n")
 
 # ── Clone repo ────────────────────────────────────────────────
@@ -80,17 +87,33 @@ if GITHUB_REPO and not PROJECT_DIR.exists():
 
 # ── Load prompts ──────────────────────────────────────────────
 def load_or_generate_prompts():
-    if PROMPTS_FILE.exists():
-        with open(PROMPTS_FILE) as f:
-            data = json.load(f)
-        print(f"Loaded {len(data)} prompts")
-        return data
+    # Try loading from split files in repo (fast path)
+    repo_splits = PROJECT_DIR / "prompts" / "splits"
+    local_splits = PROMPTS_DIR
+
+    if repo_splits.exists() and any(repo_splits.glob("*.json")):
+        sys.path.insert(0, str(PROJECT_DIR))
+        from prompts.prompt_engine import load_all_prompts
+        prompts = load_all_prompts(str(repo_splits))
+        print(f"Loaded {len(prompts)} prompts from repo splits")
+        return prompts
+
+    if local_splits.exists() and any(local_splits.glob("*.json")):
+        sys.path.insert(0, str(PROJECT_DIR))
+        from prompts.prompt_engine import load_all_prompts
+        prompts = load_all_prompts(str(local_splits))
+        print(f"Loaded {len(prompts)} prompts from local splits")
+        return prompts
+
+    # Fallback: generate fresh and save as splits
     if PROJECT_DIR.exists():
         sys.path.insert(0, str(PROJECT_DIR))
     from prompts.prompt_engine import PromptEngine
-    prompts = PromptEngine().generate_all_prompts()
-    with open(PROMPTS_FILE, "w") as f:
-        json.dump(prompts, f, indent=2)
+    engine = PromptEngine()
+    local_splits.mkdir(parents=True, exist_ok=True)
+    engine.save_prompts(str(local_splits))
+    from prompts.prompt_engine import load_all_prompts
+    prompts = load_all_prompts(str(local_splits))
     print(f"Generated {len(prompts)} prompts")
     return prompts
 
@@ -111,6 +134,55 @@ done_set = set(progress["completed"])
 pending  = [p for p in batch_prompts if p["index"] not in done_set]
 print(f"Pending    : {len(pending)} images\n")
 
+# ─────────────────────────────────────────────────────────────
+# CATEGORY ENHANCERS (unique detail hints only)
+# ─────────────────────────────────────────────────────────────
+# V2 prompts already have: Canon EOS R5, 8k, photorealistic,
+# sharp focus, studio strobe, light grey bg.
+# We ONLY add category-specific texture hints here.
+VECTOR_CATEGORIES = {"offer_logos"}
+
+CATEGORY_ENHANCERS = {
+    "food/":         ", appetizing food styling, steam visible, glistening surface",
+    "fruits":        ", natural skin texture, juice droplets",
+    "vegetables":    ", natural surface texture, fresh harvest quality",
+    "flowers":       ", petal vein detail, natural color saturation",
+    "jewellery":     ", gem facet reflections, metal mirror finish",
+    "vehicles/":     ", automotive paint reflection, chrome detail",
+    "animals":       ", fur strand detail, catchlight in eyes",
+    "birds_insects": ", feather barb detail, catchlight in eyes",
+    "furniture":     ", wood grain visible, fabric weave texture",
+    "nature/":       ", bark texture, leaf vein detail",
+    "effects":       ", volumetric density, translucent edges",
+    "electronics":   ", screen reflection, anodized finish",
+    "spices":        ", granular texture, aromatic powder detail",
+    "beverages":     ", condensation droplets, liquid transparency",
+    "shoes":         ", leather grain, stitching detail",
+    "bags":          ", leather surface, hardware metal finish",
+    "cosmetics":     ", product sheen, packaging detail",
+    "sports":        ", material texture, grip pattern",
+    "music":         ", wood lacquer, string detail",
+    "pooja_items":   ", brass patina, devotional craftsmanship",
+    "clothing":      ", fabric weave, thread detail",
+    "medical":       ", clinical precision, sterile surface",
+    "stationery":    ", material texture, precision crafting",
+}
+
+
+def enhance_prompt(raw_prompt, category):
+    """Add only unique category hints. No duplicate keywords."""
+    if category in VECTOR_CATEGORIES:
+        return raw_prompt
+
+    extra = ""
+    for cat_key, enhancer in CATEGORY_ENHANCERS.items():
+        if category.startswith(cat_key):
+            extra = enhancer
+            break
+
+    return raw_prompt + extra
+
+
 # ============================================================
 # STEP 1: FLUX.2 [klein] 4B — Image Generation
 # ============================================================
@@ -121,7 +193,6 @@ if pending:
     print("Loading black-forest-labs/FLUX.2-klein-4B ...")
     print("(First run: downloads ~8GB — ~5 min)\n")
 
-    # Use Flux2KleinPipeline (official HuggingFace pipeline for FLUX.2 klein)
     from diffusers import Flux2KleinPipeline
     pipe = Flux2KleinPipeline.from_pretrained(
         "black-forest-labs/FLUX.2-klein-4B",
@@ -132,21 +203,13 @@ if pending:
     pipe.enable_model_cpu_offload()
     print(f"Model loaded! VRAM: {torch.cuda.memory_allocated()/1e9:.1f} GB\n")
 
-    def make_prompt(raw):
-        """Add realism boosters for PNG library quality"""
-        return (
-            raw +
-            ", hyperrealistic photography, shot on Canon EOS R5, "
-            "photorealistic, sharp focus, real life texture, "
-            "professional studio lighting, high resolution"
-        )
-
     def generate_image(item):
+        prompt = enhance_prompt(item["prompt"], item.get("category", ""))
         generator = torch.Generator(device="cpu").manual_seed(item["seed"])
         return pipe(
-            prompt=make_prompt(item["prompt"]),
-            num_inference_steps=4,     # klein distilled = 4 steps optimal
-            guidance_scale=1.0,        # klein uses 1.0 per HuggingFace docs
+            prompt=prompt,
+            num_inference_steps=4,
+            guidance_scale=1.0,
             height=1024,
             width=1024,
             generator=generator,
@@ -183,8 +246,10 @@ if pending:
             elapsed = time.time() - t0
             rate    = gen_count / elapsed
             eta     = (len(pending) - gen_count) / rate / 60 if rate > 0 else 0
-            print(f"  OK [{gen_count}/{len(pending)}] {item['filename']}"
-                  f" | {item['category']} | ETA {eta:.0f}min")
+            cat     = item.get("category", "")
+            mode    = "VEC" if cat in VECTOR_CATEGORIES else "PHO"
+            print(f"  ✅ [{gen_count}/{len(pending)}] {item['filename']}"
+                  f" | {cat} [{mode}] | ETA {eta:.0f}min")
 
             if gen_count % 100 == 0:
                 with open(pf, "w") as f: json.dump(progress, f)
@@ -195,9 +260,10 @@ if pending:
             print(f"  OOM — retrying {item['filename']} at 768x768")
             torch.cuda.empty_cache(); gc.collect()
             try:
+                prompt = enhance_prompt(item["prompt"], item.get("category", ""))
                 gen = torch.Generator(device="cpu").manual_seed(item["seed"])
                 img = pipe(
-                    prompt=make_prompt(item["prompt"]),
+                    prompt=prompt,
                     num_inference_steps=4,
                     guidance_scale=1.0,
                     height=768, width=768,
@@ -363,8 +429,8 @@ print(f"""
 {'='*55}
   BATCH COMPLETE!
   Model      : FLUX.2 [klein] 4B (Apache 2.0)
-  Released   : Jan 15, 2026 by Black Forest Labs
-  Steps      : 4  |  CFG: 3.5  |  1024x1024
+  Prompts    : V2 Ultra-Realistic (43,082 total)
+  Steps      : 4  |  CFG: 1.0  |  1024x1024
   BG Removal : rembg (U2Net)
   Generated  : {total_gen} images
   Transparent: {total_trn} PNGs

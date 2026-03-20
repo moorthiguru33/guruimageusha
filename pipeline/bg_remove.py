@@ -1,50 +1,42 @@
 """
-✂️ PNG Library - Background Remover
+PNG Library - Background Remover V2 (Clean)
 ═══════════════════════════════════════════════════════
-Model   : BRIA-RMBG-2.0  (best 2025 segmentation model)
-Handles : food, smoke, flowers, hair, fur, fine edges
+Model   : BRIA-RMBG-2.0
+Rule    : MODEL ONLY — zero post-processing
 ═══════════════════════════════════════════════════════
 
-FIX LOG (v2):
-  • REMOVED: _clean_background() — was deleting white/light-colored
-    subjects (white flowers, white objects, etc.) because it treated
-    any opaque white pixel as background. BRIA already handles this.
-  • FIXED:  _refine_edges() — now uses a gentler SMOOTH (not SMOOTH_MORE)
-    to avoid over-blurring fine edge detail.
-  • ADDED:  _gentle_edge_clean() — only removes pixels where alpha < 15
-    (near-invisible artifacts), never touches subject pixels.
-  • IMPROVED: smoke routing logic made more explicit.
+V2 CHANGES:
+  REMOVED: _refine_edges()      — was blurring alpha, softening edges
+  REMOVED: _gentle_edge_clean() — was modifying alpha pixels
+  REMOVED: remove_background_enhanced() — no more extra pipeline
+
+  NOW: BRIA model output → save directly. That's it.
+  The model is good enough. Extra processing was making it worse.
 """
 
 import torch
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image
 from pathlib import Path
-import os
 import gc
-from typing import Union
 
 
 # ─────────────────────────────────────────────────────────────
-# BRIA-RMBG-2.0
+# BRIA-RMBG-2.0 — Model Only
 # ─────────────────────────────────────────────────────────────
 class BackgroundRemover:
-    """
-    BRIA-RMBG-2.0 — state-of-the-art background removal.
-    Produces clean transparent PNGs for any subject type.
-    """
 
     def __init__(self):
         self.model     = None
         self.transform = None
         self.device    = "cuda" if torch.cuda.is_available() else "cpu"
-        print(f"🔧 Background Remover device: {self.device}")
+        print(f"BG Remover device: {self.device}")
 
     def load_model(self):
         from transformers import AutoModelForImageSegmentation
         from torchvision import transforms
 
-        print("📦 Loading BRIA-RMBG-2.0 ...")
+        print("Loading BRIA-RMBG-2.0 ...")
         self.model = AutoModelForImageSegmentation.from_pretrained(
             "briaai/RMBG-2.0",
             trust_remote_code=True
@@ -57,24 +49,22 @@ class BackgroundRemover:
             transforms.Normalize([0.485, 0.456, 0.406],
                                   [0.229, 0.224, 0.225]),
         ])
-        print("✅ BRIA-RMBG-2.0 loaded!\n")
+        print("BRIA-RMBG-2.0 loaded!\n")
         return self
 
-    # ── Core removal ──────────────────────────────────────────
     def remove_background(self, img: Image.Image) -> Image.Image:
         """
-        Core BRIA inference.
-        Returns RGBA with alpha = foreground mask.
+        BRIA model inference → RGBA output. Nothing else.
+        No edge smoothing. No alpha cleanup. No post-processing.
         """
         original_size = img.size
-        img_rgb       = img.convert("RGB")
+        img_rgb = img.convert("RGB")
 
         inp = self.transform(img_rgb).unsqueeze(0).to(self.device)
 
         with torch.no_grad():
             result = self.model(inp)
 
-        # Handle both list/tuple and direct tensor outputs
         mask = result[0][0] if isinstance(result, (list, tuple)) else result[0]
         if mask.dim() > 2:
             mask = mask.squeeze()
@@ -89,67 +79,14 @@ class BackgroundRemover:
         img_rgba.putalpha(mask_pil)
         return img_rgba
 
-    # ── Enhanced removal (with gentle post-processing) ────────
-    def remove_background_enhanced(self, img: Image.Image) -> Image.Image:
-        """
-        Full pipeline:
-          1. BRIA core removal
-          2. Gentle edge smoothing
-          3. Artifact-only cleanup  ← FIXED (was destroying white subjects)
-        """
-        result = self.remove_background(img)
-        result = self._refine_edges(result)
-        result = self._gentle_edge_clean(result)   # ✅ SAFE replacement
-        return result
-
-    # ── Edge refinement ───────────────────────────────────────
-    def _refine_edges(self, img_rgba: Image.Image) -> Image.Image:
-        """
-        Slight alpha smoothing to reduce jagged edges.
-        Uses SMOOTH (not SMOOTH_MORE) to preserve fine details
-        like hair, fur, flower petals.
-        """
-        r, g, b, a = img_rgba.split()
-        a_smooth   = a.filter(ImageFilter.SMOOTH)   # ✅ gentler than SMOOTH_MORE
-        return Image.merge("RGBA", (r, g, b, a_smooth))
-
-    # ── Artifact-only cleanup ─────────────────────────────────
-    def _gentle_edge_clean(self, img_rgba: Image.Image) -> Image.Image:
-        """
-        ✅ SAFE: Only removes near-invisible artifact pixels (alpha < 15).
-        Does NOT touch opaque/semi-opaque pixels regardless of color.
-
-        ❌ OLD _clean_background() removed opaque white pixels — this
-           destroyed white flowers, white objects, light-colored subjects.
-        """
-        data = np.array(img_rgba, dtype=np.uint8)
-
-        # Only fully erase pixels that are nearly invisible already
-        # These are edge artifacts from the segmentation mask, not subject pixels
-        near_invisible = data[:, :, 3] < 15
-        data[near_invisible, 3] = 0
-
-        return Image.fromarray(data, "RGBA")
-
-    # ── Single file ───────────────────────────────────────────
     def process_image_file(self, input_path: str, output_path: str) -> str:
-        img    = Image.open(input_path).convert("RGB")
-        result = self.remove_background_enhanced(img)
+        img = Image.open(input_path).convert("RGB")
+        result = self.remove_background(img)
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-        result.save(output_path, "PNG", optimize=True)
+        result.save(output_path, "PNG")
         return output_path
 
-    # ── Folder batch ──────────────────────────────────────────
-    def process_folder(
-        self,
-        input_folder:  str,
-        output_folder: str,
-        skip_existing: bool = True,
-    ) -> dict:
-        """
-        Process all images in a folder (maintains subfolder structure).
-        Routes smoke/effects images through SmokeEffectRemover.
-        """
+    def process_folder(self, input_folder: str, output_folder: str, skip_existing: bool = True) -> dict:
         input_path  = Path(input_folder)
         output_path = Path(output_folder)
 
@@ -158,11 +95,11 @@ class BackgroundRemover:
             + list(input_path.rglob("*.jpg"))
             + list(input_path.rglob("*.jpeg"))
         )
-        print(f"📂 Found {len(image_files)} images")
+        print(f"Found {len(image_files)} images")
 
         stats = {"processed": 0, "skipped": 0, "failed": 0}
 
-        for i, img_file in enumerate(image_files):
+        for img_file in image_files:
             rel      = img_file.relative_to(input_path)
             out_file = output_path / rel.with_suffix(".png")
 
@@ -171,32 +108,35 @@ class BackgroundRemover:
                 continue
 
             out_file.parent.mkdir(parents=True, exist_ok=True)
-
-            # Determine category from folder path
-            category = str(rel.parent)
+            category = str(rel.parent).lower()
 
             try:
-                img    = Image.open(str(img_file)).convert("RGB")
-                result = process_with_smart_routing(img, category, self)
-                result.save(str(out_file), "PNG", optimize=True)
+                img = Image.open(str(img_file)).convert("RGB")
+
+                # Smoke/fire/effects → luminosity method
+                # Everything else → BRIA model direct output
+                if is_smoke_category(category):
+                    result = SmokeEffectRemover.remove_background(img)
+                else:
+                    result = self.remove_background(img)
+
+                result.save(str(out_file), "PNG")
                 stats["processed"] += 1
 
                 if stats["processed"] % 50 == 0:
-                    print(f"  ✅ Processed: {stats['processed']}  "
-                          f"| Skipped: {stats['skipped']}  "
-                          f"| Failed: {stats['failed']}")
+                    print(f"  Done: {stats['processed']} | Skip: {stats['skipped']} | Fail: {stats['failed']}")
                     gc.collect()
                     if torch.cuda.is_available():
                         torch.cuda.empty_cache()
 
             except Exception as e:
-                print(f"  ❌ Failed: {img_file.name} — {e}")
+                print(f"  FAIL: {img_file.name} — {e}")
                 stats["failed"] += 1
 
-        print(f"\n🎉 Background removal complete!")
-        print(f"  ✅ Processed : {stats['processed']}")
-        print(f"  ⏭️  Skipped  : {stats['skipped']}")
-        print(f"  ❌ Failed   : {stats['failed']}")
+        print(f"\nBG removal complete!")
+        print(f"  Processed : {stats['processed']}")
+        print(f"  Skipped   : {stats['skipped']}")
+        print(f"  Failed    : {stats['failed']}")
         return stats
 
     def unload(self):
@@ -205,63 +145,41 @@ class BackgroundRemover:
         gc.collect()
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
-        print("🗑️  Background remover unloaded")
+        print("BG remover unloaded")
 
 
 # ─────────────────────────────────────────────────────────────
-# SMOKE / EFFECTS — special handler
+# SMOKE / EFFECTS — luminosity-based (no model needed)
 # ─────────────────────────────────────────────────────────────
+SMOKE_KEYWORDS = {"effects/smoke", "effects/colored_smoke", "effects/fire",
+                  "effects/sparkle", "smoke_effects", "fire_effects", "light_effects"}
+
+
+def is_smoke_category(category: str) -> bool:
+    return any(kw in category for kw in SMOKE_KEYWORDS)
+
+
 class SmokeEffectRemover:
-    """
-    For smoke, fire, light rays on WHITE backgrounds.
-    Luminosity-based: darker pixel = more opaque.
-    Do NOT use this for solid objects.
-    """
 
     @staticmethod
-    def remove_white_background(img: Image.Image) -> Image.Image:
+    def remove_background(img: Image.Image) -> Image.Image:
+        """Luminosity-based: lighter pixel = more transparent."""
         img_rgba = img.convert("RGBA")
-        data     = np.array(img_rgba, dtype=np.float32)
+        data = np.array(img_rgba, dtype=np.float32)
 
-        r, g, b = data[:,:,0], data[:,:,1], data[:,:,2]
+        r, g, b = data[:, :, 0], data[:, :, 1], data[:, :, 2]
+        lum = 0.299 * r + 0.587 * g + 0.114 * b
 
-        # Luminosity (ITU-R BT.601)
-        lum      = 0.299*r + 0.587*g + 0.114*b
-
-        # White → transparent, dark → opaque
         new_alpha = np.clip(255 - lum, 0, 255).astype(np.uint8)
-
-        # Hard threshold: near-white artifacts → fully transparent
         new_alpha[new_alpha < 12] = 0
 
-        result        = np.array(img_rgba, dtype=np.uint8)
-        result[:,:,3] = new_alpha
+        result = np.array(img_rgba, dtype=np.uint8)
+        result[:, :, 3] = new_alpha
         return Image.fromarray(result, "RGBA")
 
 
 # ─────────────────────────────────────────────────────────────
-# SMART ROUTING
-# ─────────────────────────────────────────────────────────────
-SMOKE_CATEGORIES = {"effects/smoke", "smoke_effects", "fire_effects", "light_effects"}
-
-def process_with_smart_routing(
-    img:      Image.Image,
-    category: str,
-    remover:  BackgroundRemover,
-) -> Image.Image:
-    """
-    Route each image to the correct removal method:
-      • Smoke / fire / light effects → luminosity method
-      • Everything else              → BRIA-RMBG-2.0
-    """
-    cat_lower = category.lower()
-    if any(s in cat_lower for s in SMOKE_CATEGORIES):
-        return SmokeEffectRemover.remove_white_background(img)
-    return remover.remove_background_enhanced(img)
-
-
-# ─────────────────────────────────────────────────────────────
-# STANDALONE USAGE
+# STANDALONE
 # ─────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     import sys
@@ -270,9 +188,7 @@ if __name__ == "__main__":
     remover.load_model()
 
     if len(sys.argv) >= 3:
-        input_dir  = sys.argv[1]
-        output_dir = sys.argv[2]
-        remover.process_folder(input_dir, output_dir)
+        remover.process_folder(sys.argv[1], sys.argv[2])
     else:
         remover.process_folder(
             "/kaggle/working/generated_images",

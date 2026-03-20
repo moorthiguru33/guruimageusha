@@ -1,0 +1,2306 @@
+[
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "bunch of yellow bananas, whole intact, front view, bright even fill lighting, ultra fine material detail, high-end advertising photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 173540,
+    "index": 287,
+    "filename": "img_000287.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "green pear ripe, with water droplets fresh, low angle heroic view, dramatic Rembrandt side lighting, every pore and grain visible, commercial product photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 218620,
+    "index": 513,
+    "filename": "img_000513.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "cut open passion fruit, with water droplets fresh, 45 degree angle view, high key bright studio lighting, lifelike realistic texture, commercial product photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 963150,
+    "index": 719,
+    "filename": "img_000719.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "sweet lime mosambi, with water droplets fresh, eye level straight on view, bright even fill lighting, every pore and grain visible, studio catalog photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 758288,
+    "index": 1582,
+    "filename": "img_001582.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "gooseberries green, with water droplets fresh, top-down flat lay view, bright even fill lighting, true-to-life material rendering, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 485249,
+    "index": 1700,
+    "filename": "img_001700.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "plump blueberries cluster, whole intact, eye level straight on view, dramatic Rembrandt side lighting, lifelike realistic texture, studio catalog photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 900626,
+    "index": 2237,
+    "filename": "img_002237.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "dragon fruit halved pink flesh, with water droplets fresh, eye level straight on view, rim light with soft fill, intricate surface texture visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 729878,
+    "index": 2378,
+    "filename": "img_002378.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "red apple shiny with water droplets, with water droplets fresh, side profile view, rim light with soft fill, tactile surface quality, editorial magazine photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 173305,
+    "index": 2478,
+    "filename": "img_002478.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "fresh red strawberries in heap, whole intact, 3/4 perspective view, dramatic Rembrandt side lighting, intricate surface texture visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 512090,
+    "index": 2567,
+    "filename": "img_002567.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "ripe raspberries pile, arranged in group pile, 45 degree angle view, warm key light with cool fill, true-to-life material rendering, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 53279,
+    "index": 2751,
+    "filename": "img_002751.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "ripe papaya half with seeds, arranged in group pile, close-up macro shot, rim light with soft fill, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 411148,
+    "index": 2877,
+    "filename": "img_002877.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "fresh pineapple with crown, sliced cross section showing inside, 45 degree angle view, warm key light with cool fill, every pore and grain visible, high-end advertising photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 345046,
+    "index": 3060,
+    "filename": "img_003060.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "watermelon slice triangular, whole intact, side profile view, high key bright studio lighting, every pore and grain visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 764191,
+    "index": 3101,
+    "filename": "img_003101.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "blackberries glistening, with water droplets fresh, 3/4 perspective view, rim light with soft fill, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 677349,
+    "index": 3371,
+    "filename": "img_003371.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "lime green fresh, whole intact, eye level straight on view, dramatic Rembrandt side lighting, lifelike realistic texture, high-end advertising photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 152653,
+    "index": 3518,
+    "filename": "img_003518.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "fresh red strawberries in heap, sliced cross section showing inside, top-down flat lay view, soft diffused studio strobe, true-to-life material rendering, high-end advertising photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 467371,
+    "index": 3919,
+    "filename": "img_003919.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "watermelon slice triangular, sliced cross section showing inside, 3/4 perspective view, rim light with soft fill, tactile surface quality, editorial magazine photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 889167,
+    "index": 3954,
+    "filename": "img_003954.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "ripe golden mango whole and sliced, sliced cross section showing inside, eye level straight on view, dramatic Rembrandt side lighting, ultra fine material detail, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 7878,
+    "index": 4402,
+    "filename": "img_004402.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "fresh red strawberries in heap, with water droplets fresh, close-up macro shot, warm key light with cool fill, tactile surface quality, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 306578,
+    "index": 4541,
+    "filename": "img_004541.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "lime green fresh, sliced cross section showing inside, front view, bright even fill lighting, ultra fine material detail, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 714403,
+    "index": 4736,
+    "filename": "img_004736.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "bunch of yellow bananas, arranged in group pile, low angle heroic view, warm key light with cool fill, true-to-life material rendering, high-end advertising photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 389190,
+    "index": 5135,
+    "filename": "img_005135.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "bunch of yellow bananas, sliced cross section showing inside, low angle heroic view, bright even fill lighting, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 435228,
+    "index": 5564,
+    "filename": "img_005564.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "grapefruit pink halved, sliced cross section showing inside, top-down flat lay view, dramatic Rembrandt side lighting, true-to-life material rendering, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 387138,
+    "index": 5594,
+    "filename": "img_005594.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "red apple shiny with water droplets, whole intact, low angle heroic view, soft diffused studio strobe, every pore and grain visible, high-end advertising photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 286865,
+    "index": 5643,
+    "filename": "img_005643.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "ripe golden mango whole and sliced, whole intact, 45 degree angle view, bright even fill lighting, true-to-life material rendering, commercial product photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 488996,
+    "index": 6120,
+    "filename": "img_006120.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "split open coconut with water, with water droplets fresh, eye level straight on view, rim light with soft fill, intricate surface texture visible, high-end advertising photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 927744,
+    "index": 6148,
+    "filename": "img_006148.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "orange sliced cross section juicy, arranged in group pile, eye level straight on view, dramatic Rembrandt side lighting, every pore and grain visible, studio catalog photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 493829,
+    "index": 6199,
+    "filename": "img_006199.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "cherries pair with stem, whole intact, front view, dramatic Rembrandt side lighting, ultra fine material detail, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 609747,
+    "index": 6515,
+    "filename": "img_006515.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "guava cut green pink, sliced cross section showing inside, close-up macro shot, high key bright studio lighting, true-to-life material rendering, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 352398,
+    "index": 6642,
+    "filename": "img_006642.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "orange sliced cross section juicy, with water droplets fresh, eye level straight on view, high key bright studio lighting, lifelike realistic texture, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 789529,
+    "index": 6836,
+    "filename": "img_006836.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "plump blueberries cluster, sliced cross section showing inside, side profile view, warm key light with cool fill, true-to-life material rendering, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 874063,
+    "index": 6930,
+    "filename": "img_006930.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "sweet lime mosambi, whole intact, low angle heroic view, rim light with soft fill, tactile surface quality, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 260401,
+    "index": 7284,
+    "filename": "img_007284.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "green pear ripe, arranged in group pile, low angle heroic view, bright even fill lighting, intricate surface texture visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 711792,
+    "index": 7748,
+    "filename": "img_007748.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "ripe raspberries pile, with water droplets fresh, close-up macro shot, rim light with soft fill, intricate surface texture visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 670393,
+    "index": 7883,
+    "filename": "img_007883.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "cut open passion fruit, whole intact, top-down flat lay view, high key bright studio lighting, lifelike realistic texture, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 92981,
+    "index": 8045,
+    "filename": "img_008045.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "ripe papaya half with seeds, sliced cross section showing inside, 45 degree angle view, soft diffused studio strobe, lifelike realistic texture, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 516063,
+    "index": 8321,
+    "filename": "img_008321.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "watermelon slice triangular, arranged in group pile, eye level straight on view, dramatic Rembrandt side lighting, lifelike realistic texture, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 908289,
+    "index": 8326,
+    "filename": "img_008326.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "guava cut green pink, with water droplets fresh, low angle heroic view, bright even fill lighting, tactile surface quality, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 303518,
+    "index": 8591,
+    "filename": "img_008591.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "blackberries glistening, whole intact, 45 degree angle view, bright even fill lighting, lifelike realistic texture, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 670656,
+    "index": 8623,
+    "filename": "img_008623.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "fresh pineapple with crown, with water droplets fresh, eye level straight on view, dramatic Rembrandt side lighting, ultra fine material detail, commercial product photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 501047,
+    "index": 8799,
+    "filename": "img_008799.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "dragon fruit halved pink flesh, with water droplets fresh, eye level straight on view, rim light with soft fill, intricate surface texture visible, commercial product photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 468503,
+    "index": 8846,
+    "filename": "img_008846.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "bunch of yellow bananas, with water droplets fresh, close-up macro shot, bright even fill lighting, ultra fine material detail, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 652121,
+    "index": 8874,
+    "filename": "img_008874.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "fresh red strawberries in heap, sliced cross section showing inside, top-down flat lay view, soft diffused studio strobe, true-to-life material rendering, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 329827,
+    "index": 8889,
+    "filename": "img_008889.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "green pear ripe, sliced cross section showing inside, 45 degree angle view, rim light with soft fill, every pore and grain visible, commercial product photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 703348,
+    "index": 8890,
+    "filename": "img_008890.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "ripe golden mango whole and sliced, arranged in group pile, 45 degree angle view, dramatic Rembrandt side lighting, every pore and grain visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 859937,
+    "index": 9274,
+    "filename": "img_009274.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "fresh pineapple with crown, arranged in group pile, top-down flat lay view, rim light with soft fill, intricate surface texture visible, studio catalog photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 846439,
+    "index": 9329,
+    "filename": "img_009329.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "lime green fresh, with water droplets fresh, 3/4 perspective view, warm key light with cool fill, ultra fine material detail, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 5022,
+    "index": 9366,
+    "filename": "img_009366.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "fig cut open revealing inside, with water droplets fresh, low angle heroic view, soft diffused studio strobe, ultra fine material detail, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 507102,
+    "index": 9822,
+    "filename": "img_009822.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "pomegranate cut open red seeds, arranged in group pile, 45 degree angle view, rim light with soft fill, tactile surface quality, commercial product photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 780488,
+    "index": 10032,
+    "filename": "img_010032.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "grapefruit pink halved, with water droplets fresh, eye level straight on view, soft diffused studio strobe, every pore and grain visible, editorial magazine photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 416620,
+    "index": 10312,
+    "filename": "img_010312.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "plum dark purple, with water droplets fresh, top-down flat lay view, rim light with soft fill, true-to-life material rendering, high-end advertising photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 788008,
+    "index": 10504,
+    "filename": "img_010504.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "jackfruit whole and opened, whole intact, front view, bright even fill lighting, intricate surface texture visible, commercial product photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 884304,
+    "index": 10557,
+    "filename": "img_010557.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "mixed berry assortment, whole intact, front view, dramatic Rembrandt side lighting, intricate surface texture visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 384546,
+    "index": 10571,
+    "filename": "img_010571.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "purple grapes bunch on vine, whole intact, close-up macro shot, warm key light with cool fill, intricate surface texture visible, high-end advertising photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 838017,
+    "index": 10573,
+    "filename": "img_010573.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "ripe golden mango whole and sliced, with water droplets fresh, side profile view, rim light with soft fill, every pore and grain visible, commercial product photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 543816,
+    "index": 10582,
+    "filename": "img_010582.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "split open coconut with water, whole intact, close-up macro shot, dramatic Rembrandt side lighting, true-to-life material rendering, editorial magazine photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 890857,
+    "index": 10790,
+    "filename": "img_010790.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "blackberries glistening, with water droplets fresh, 3/4 perspective view, rim light with soft fill, tactile surface quality, editorial magazine photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 321785,
+    "index": 10825,
+    "filename": "img_010825.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "red apple shiny with water droplets, with water droplets fresh, side profile view, rim light with soft fill, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 948665,
+    "index": 11031,
+    "filename": "img_011031.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "orange sliced cross section juicy, arranged in group pile, eye level straight on view, dramatic Rembrandt side lighting, every pore and grain visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 108671,
+    "index": 11179,
+    "filename": "img_011179.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "pomegranate cut open red seeds, whole intact, front view, bright even fill lighting, ultra fine material detail, studio catalog photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 656714,
+    "index": 11260,
+    "filename": "img_011260.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "dragon fruit halved pink flesh, whole intact, side profile view, warm key light with cool fill, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 321797,
+    "index": 11262,
+    "filename": "img_011262.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "pomegranate cut open red seeds, with water droplets fresh, 3/4 perspective view, high key bright studio lighting, lifelike realistic texture, high-end advertising photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 694746,
+    "index": 11743,
+    "filename": "img_011743.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "rambutan cluster red hairy, sliced cross section showing inside, low angle heroic view, rim light with soft fill, tactile surface quality, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 524826,
+    "index": 12027,
+    "filename": "img_012027.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "split open coconut with water, with water droplets fresh, eye level straight on view, rim light with soft fill, intricate surface texture visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 627067,
+    "index": 12127,
+    "filename": "img_012127.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "sweet lime mosambi, with water droplets fresh, eye level straight on view, bright even fill lighting, every pore and grain visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 85939,
+    "index": 12237,
+    "filename": "img_012237.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "fresh red strawberries in heap, arranged in group pile, top-down flat lay view, high key bright studio lighting, tactile surface quality, high-end advertising photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 906491,
+    "index": 12339,
+    "filename": "img_012339.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "mixed berry assortment, sliced cross section showing inside, low angle heroic view, warm key light with cool fill, intricate surface texture visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 568500,
+    "index": 12445,
+    "filename": "img_012445.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "green pear ripe, whole intact, eye level straight on view, rim light with soft fill, lifelike realistic texture, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 127981,
+    "index": 12788,
+    "filename": "img_012788.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "plump blueberries cluster, whole intact, eye level straight on view, dramatic Rembrandt side lighting, lifelike realistic texture, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 909847,
+    "index": 13028,
+    "filename": "img_013028.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "lime green fresh, sliced cross section showing inside, front view, bright even fill lighting, ultra fine material detail, editorial magazine photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 453240,
+    "index": 13210,
+    "filename": "img_013210.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "fig cut open revealing inside, arranged in group pile, 3/4 perspective view, high key bright studio lighting, intricate surface texture visible, commercial product photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 367070,
+    "index": 13302,
+    "filename": "img_013302.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "purple grapes bunch on vine, arranged in group pile, low angle heroic view, rim light with soft fill, intricate surface texture visible, high-end advertising photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 204718,
+    "index": 13366,
+    "filename": "img_013366.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "split open coconut with water, sliced cross section showing inside, eye level straight on view, dramatic Rembrandt side lighting, every pore and grain visible, studio catalog photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 350033,
+    "index": 13687,
+    "filename": "img_013687.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "blackberries glistening, arranged in group pile, side profile view, bright even fill lighting, intricate surface texture visible, editorial magazine photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 261385,
+    "index": 13906,
+    "filename": "img_013906.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "mixed berry assortment, arranged in group pile, 45 degree angle view, soft diffused studio strobe, intricate surface texture visible, studio catalog photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 942036,
+    "index": 13944,
+    "filename": "img_013944.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "cherries pair with stem, sliced cross section showing inside, 3/4 perspective view, dramatic Rembrandt side lighting, ultra fine material detail, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 226913,
+    "index": 13947,
+    "filename": "img_013947.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "fresh red strawberries in heap, arranged in group pile, top-down flat lay view, high key bright studio lighting, tactile surface quality, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 411354,
+    "index": 14004,
+    "filename": "img_014004.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "blackberries glistening, sliced cross section showing inside, low angle heroic view, bright even fill lighting, lifelike realistic texture, editorial magazine photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 385400,
+    "index": 14073,
+    "filename": "img_014073.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "purple grapes bunch on vine, with water droplets fresh, low angle heroic view, dramatic Rembrandt side lighting, every pore and grain visible, studio catalog photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 817766,
+    "index": 14106,
+    "filename": "img_014106.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "rambutan cluster red hairy, arranged in group pile, front view, dramatic Rembrandt side lighting, true-to-life material rendering, high-end advertising photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 471043,
+    "index": 14338,
+    "filename": "img_014338.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "rambutan cluster red hairy, whole intact, 3/4 perspective view, warm key light with cool fill, every pore and grain visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 982326,
+    "index": 14341,
+    "filename": "img_014341.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "ripe golden mango whole and sliced, arranged in group pile, 45 degree angle view, dramatic Rembrandt side lighting, every pore and grain visible, studio catalog photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 709368,
+    "index": 14506,
+    "filename": "img_014506.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "gooseberries green, with water droplets fresh, top-down flat lay view, bright even fill lighting, true-to-life material rendering, commercial product photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 608417,
+    "index": 14522,
+    "filename": "img_014522.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "fig cut open revealing inside, sliced cross section showing inside, low angle heroic view, bright even fill lighting, ultra fine material detail, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 876251,
+    "index": 14617,
+    "filename": "img_014617.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "fresh pineapple with crown, with water droplets fresh, eye level straight on view, dramatic Rembrandt side lighting, ultra fine material detail, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 300713,
+    "index": 14699,
+    "filename": "img_014699.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "plump blueberries cluster, with water droplets fresh, side profile view, bright even fill lighting, lifelike realistic texture, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 550356,
+    "index": 14726,
+    "filename": "img_014726.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "ripe papaya half with seeds, with water droplets fresh, top-down flat lay view, rim light with soft fill, every pore and grain visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 404984,
+    "index": 14977,
+    "filename": "img_014977.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "plump blueberries cluster, with water droplets fresh, side profile view, bright even fill lighting, lifelike realistic texture, high-end advertising photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 431779,
+    "index": 14991,
+    "filename": "img_014991.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "cut open passion fruit, sliced cross section showing inside, top-down flat lay view, high key bright studio lighting, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 563140,
+    "index": 15123,
+    "filename": "img_015123.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "orange sliced cross section juicy, with water droplets fresh, eye level straight on view, high key bright studio lighting, lifelike realistic texture, studio catalog photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 270868,
+    "index": 15660,
+    "filename": "img_015660.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "cut open passion fruit, sliced cross section showing inside, top-down flat lay view, high key bright studio lighting, tactile surface quality, editorial magazine photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 328645,
+    "index": 15730,
+    "filename": "img_015730.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "grapefruit pink halved, with water droplets fresh, eye level straight on view, soft diffused studio strobe, every pore and grain visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 713080,
+    "index": 15803,
+    "filename": "img_015803.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "orange sliced cross section juicy, sliced cross section showing inside, 45 degree angle view, high key bright studio lighting, ultra fine material detail, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 414599,
+    "index": 15878,
+    "filename": "img_015878.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "cut open passion fruit, arranged in group pile, eye level straight on view, high key bright studio lighting, true-to-life material rendering, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 157643,
+    "index": 15914,
+    "filename": "img_015914.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "kiwi halved green flesh, whole intact, low angle heroic view, rim light with soft fill, intricate surface texture visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 230173,
+    "index": 16094,
+    "filename": "img_016094.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "tangerine peeled segments, with water droplets fresh, close-up macro shot, soft diffused studio strobe, intricate surface texture visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 358120,
+    "index": 16124,
+    "filename": "img_016124.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "blackberries glistening, whole intact, 45 degree angle view, bright even fill lighting, lifelike realistic texture, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 626222,
+    "index": 16405,
+    "filename": "img_016405.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "pomegranate cut open red seeds, arranged in group pile, 45 degree angle view, rim light with soft fill, tactile surface quality, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 543338,
+    "index": 16622,
+    "filename": "img_016622.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "dragon fruit halved pink flesh, sliced cross section showing inside, front view, warm key light with cool fill, tactile surface quality, high-end advertising photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 418812,
+    "index": 16856,
+    "filename": "img_016856.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "kiwi halved green flesh, whole intact, low angle heroic view, rim light with soft fill, intricate surface texture visible, editorial magazine photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 823841,
+    "index": 17048,
+    "filename": "img_017048.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "jackfruit whole and opened, sliced cross section showing inside, close-up macro shot, rim light with soft fill, true-to-life material rendering, commercial product photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 212372,
+    "index": 17075,
+    "filename": "img_017075.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "plump blueberries cluster, sliced cross section showing inside, side profile view, warm key light with cool fill, true-to-life material rendering, commercial product photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 448132,
+    "index": 17103,
+    "filename": "img_017103.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "plump blueberries cluster, arranged in group pile, top-down flat lay view, rim light with soft fill, true-to-life material rendering, studio catalog photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 850057,
+    "index": 17372,
+    "filename": "img_017372.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "blackberries glistening, arranged in group pile, side profile view, bright even fill lighting, intricate surface texture visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 822478,
+    "index": 17528,
+    "filename": "img_017528.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "mixed berry assortment, with water droplets fresh, eye level straight on view, rim light with soft fill, every pore and grain visible, high-end advertising photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 238631,
+    "index": 17640,
+    "filename": "img_017640.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "dragon fruit halved pink flesh, sliced cross section showing inside, front view, warm key light with cool fill, tactile surface quality, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 409184,
+    "index": 17665,
+    "filename": "img_017665.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "lime green fresh, whole intact, eye level straight on view, dramatic Rembrandt side lighting, lifelike realistic texture, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 387999,
+    "index": 17686,
+    "filename": "img_017686.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "orange sliced cross section juicy, whole intact, top-down flat lay view, high key bright studio lighting, ultra fine material detail, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 349896,
+    "index": 17714,
+    "filename": "img_017714.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "orange sliced cross section juicy, sliced cross section showing inside, 45 degree angle view, high key bright studio lighting, ultra fine material detail, high-end advertising photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 659800,
+    "index": 17901,
+    "filename": "img_017901.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "lemon whole and halved, arranged in group pile, top-down flat lay view, bright even fill lighting, tactile surface quality, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 480925,
+    "index": 17930,
+    "filename": "img_017930.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "fresh pineapple with crown, whole intact, side profile view, rim light with soft fill, intricate surface texture visible, commercial product photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 418649,
+    "index": 18150,
+    "filename": "img_018150.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "fresh pineapple with crown, sliced cross section showing inside, 45 degree angle view, warm key light with cool fill, every pore and grain visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 55731,
+    "index": 18194,
+    "filename": "img_018194.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "watermelon slice triangular, whole intact, side profile view, high key bright studio lighting, every pore and grain visible, high-end advertising photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 528459,
+    "index": 18201,
+    "filename": "img_018201.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "peach fuzzy skin, with water droplets fresh, low angle heroic view, soft diffused studio strobe, true-to-life material rendering, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 689269,
+    "index": 18440,
+    "filename": "img_018440.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "grapefruit pink halved, whole intact, close-up macro shot, rim light with soft fill, true-to-life material rendering, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 416630,
+    "index": 18469,
+    "filename": "img_018469.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "ripe papaya half with seeds, arranged in group pile, close-up macro shot, rim light with soft fill, tactile surface quality, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 485772,
+    "index": 18654,
+    "filename": "img_018654.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "red apple shiny with water droplets, sliced cross section showing inside, side profile view, high key bright studio lighting, tactile surface quality, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 794295,
+    "index": 18687,
+    "filename": "img_018687.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "green pear ripe, whole intact, eye level straight on view, rim light with soft fill, lifelike realistic texture, editorial magazine photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 650686,
+    "index": 18690,
+    "filename": "img_018690.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "plum dark purple, arranged in group pile, low angle heroic view, warm key light with cool fill, intricate surface texture visible, editorial magazine photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 469034,
+    "index": 19045,
+    "filename": "img_019045.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "lemon whole and halved, with water droplets fresh, close-up macro shot, soft diffused studio strobe, lifelike realistic texture, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 225069,
+    "index": 19176,
+    "filename": "img_019176.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "cherries pair with stem, whole intact, front view, dramatic Rembrandt side lighting, ultra fine material detail, editorial magazine photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 411918,
+    "index": 19218,
+    "filename": "img_019218.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "kiwi halved green flesh, with water droplets fresh, close-up macro shot, soft diffused studio strobe, ultra fine material detail, high-end advertising photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 407636,
+    "index": 19276,
+    "filename": "img_019276.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "ripe raspberries pile, sliced cross section showing inside, front view, rim light with soft fill, true-to-life material rendering, editorial magazine photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 302191,
+    "index": 19574,
+    "filename": "img_019574.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "kiwi halved green flesh, with water droplets fresh, close-up macro shot, soft diffused studio strobe, ultra fine material detail, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 395958,
+    "index": 19600,
+    "filename": "img_019600.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "cherries pair with stem, sliced cross section showing inside, 3/4 perspective view, dramatic Rembrandt side lighting, ultra fine material detail, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 942400,
+    "index": 19636,
+    "filename": "img_019636.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "dragon fruit halved pink flesh, arranged in group pile, front view, warm key light with cool fill, true-to-life material rendering, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 67269,
+    "index": 19766,
+    "filename": "img_019766.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "fresh red strawberries in heap, with water droplets fresh, close-up macro shot, warm key light with cool fill, tactile surface quality, commercial product photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 933510,
+    "index": 20420,
+    "filename": "img_020420.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "purple grapes bunch on vine, sliced cross section showing inside, low angle heroic view, rim light with soft fill, every pore and grain visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 92502,
+    "index": 20786,
+    "filename": "img_020786.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "ripe raspberries pile, arranged in group pile, 45 degree angle view, warm key light with cool fill, true-to-life material rendering, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 800368,
+    "index": 20816,
+    "filename": "img_020816.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "fig cut open revealing inside, arranged in group pile, 3/4 perspective view, high key bright studio lighting, intricate surface texture visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 298798,
+    "index": 20917,
+    "filename": "img_020917.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "mixed berry assortment, sliced cross section showing inside, low angle heroic view, warm key light with cool fill, intricate surface texture visible, editorial magazine photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 144959,
+    "index": 21413,
+    "filename": "img_021413.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "gooseberries green, arranged in group pile, 45 degree angle view, soft diffused studio strobe, tactile surface quality, high-end advertising photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 459934,
+    "index": 21608,
+    "filename": "img_021608.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "watermelon slice triangular, with water droplets fresh, top-down flat lay view, high key bright studio lighting, ultra fine material detail, editorial magazine photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 485092,
+    "index": 22557,
+    "filename": "img_022557.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "guava cut green pink, arranged in group pile, low angle heroic view, rim light with soft fill, true-to-life material rendering, studio catalog photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 150648,
+    "index": 23084,
+    "filename": "img_023084.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "cut open passion fruit, whole intact, top-down flat lay view, high key bright studio lighting, lifelike realistic texture, commercial product photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 245353,
+    "index": 23222,
+    "filename": "img_023222.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "jackfruit whole and opened, with water droplets fresh, top-down flat lay view, bright even fill lighting, ultra fine material detail, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 72492,
+    "index": 23608,
+    "filename": "img_023608.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "split open coconut with water, sliced cross section showing inside, eye level straight on view, dramatic Rembrandt side lighting, every pore and grain visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 727758,
+    "index": 23878,
+    "filename": "img_023878.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "fresh red strawberries in heap, whole intact, 3/4 perspective view, dramatic Rembrandt side lighting, intricate surface texture visible, commercial product photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 292936,
+    "index": 23881,
+    "filename": "img_023881.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "kiwi halved green flesh, sliced cross section showing inside, top-down flat lay view, high key bright studio lighting, lifelike realistic texture, high-end advertising photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 891605,
+    "index": 24344,
+    "filename": "img_024344.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "lime green fresh, with water droplets fresh, 3/4 perspective view, warm key light with cool fill, ultra fine material detail, editorial magazine photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 986758,
+    "index": 25094,
+    "filename": "img_025094.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "rambutan cluster red hairy, sliced cross section showing inside, low angle heroic view, rim light with soft fill, tactile surface quality, studio catalog photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 527138,
+    "index": 25234,
+    "filename": "img_025234.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "bunch of yellow bananas, with water droplets fresh, close-up macro shot, bright even fill lighting, ultra fine material detail, studio catalog photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 835061,
+    "index": 25459,
+    "filename": "img_025459.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "purple grapes bunch on vine, sliced cross section showing inside, low angle heroic view, rim light with soft fill, every pore and grain visible, high-end advertising photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 742232,
+    "index": 25592,
+    "filename": "img_025592.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "fresh pineapple with crown, arranged in group pile, top-down flat lay view, rim light with soft fill, intricate surface texture visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 117032,
+    "index": 25738,
+    "filename": "img_025738.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "lemon whole and halved, whole intact, eye level straight on view, high key bright studio lighting, intricate surface texture visible, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 904067,
+    "index": 25747,
+    "filename": "img_025747.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "lime green fresh, arranged in group pile, 3/4 perspective view, soft diffused studio strobe, ultra fine material detail, studio catalog photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 732409,
+    "index": 25754,
+    "filename": "img_025754.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "guava cut green pink, whole intact, low angle heroic view, rim light with soft fill, true-to-life material rendering, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 850825,
+    "index": 25842,
+    "filename": "img_025842.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "ripe golden mango whole and sliced, with water droplets fresh, side profile view, rim light with soft fill, every pore and grain visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 593536,
+    "index": 25930,
+    "filename": "img_025930.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "orange sliced cross section juicy, whole intact, top-down flat lay view, high key bright studio lighting, ultra fine material detail, high-end advertising photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 280882,
+    "index": 26070,
+    "filename": "img_026070.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "ripe golden mango whole and sliced, sliced cross section showing inside, eye level straight on view, dramatic Rembrandt side lighting, ultra fine material detail, studio catalog photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 200115,
+    "index": 26095,
+    "filename": "img_026095.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "split open coconut with water, whole intact, close-up macro shot, dramatic Rembrandt side lighting, true-to-life material rendering, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 621446,
+    "index": 26279,
+    "filename": "img_026279.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "pomegranate cut open red seeds, whole intact, front view, bright even fill lighting, ultra fine material detail, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 34057,
+    "index": 26423,
+    "filename": "img_026423.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "split open coconut with water, arranged in group pile, 45 degree angle view, rim light with soft fill, ultra fine material detail, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 30407,
+    "index": 26847,
+    "filename": "img_026847.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "bunch of yellow bananas, arranged in group pile, low angle heroic view, warm key light with cool fill, true-to-life material rendering, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 894677,
+    "index": 27069,
+    "filename": "img_027069.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "cherries pair with stem, with water droplets fresh, eye level straight on view, high key bright studio lighting, lifelike realistic texture, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 462303,
+    "index": 27131,
+    "filename": "img_027131.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "rambutan cluster red hairy, arranged in group pile, front view, dramatic Rembrandt side lighting, true-to-life material rendering, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 966928,
+    "index": 27153,
+    "filename": "img_027153.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "gooseberries green, sliced cross section showing inside, 45 degree angle view, rim light with soft fill, intricate surface texture visible, editorial magazine photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 681237,
+    "index": 27378,
+    "filename": "img_027378.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "plum dark purple, with water droplets fresh, top-down flat lay view, rim light with soft fill, true-to-life material rendering, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 70079,
+    "index": 27443,
+    "filename": "img_027443.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "lime green fresh, arranged in group pile, 3/4 perspective view, soft diffused studio strobe, ultra fine material detail, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 97936,
+    "index": 27657,
+    "filename": "img_027657.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "cut open passion fruit, arranged in group pile, eye level straight on view, high key bright studio lighting, true-to-life material rendering, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 12579,
+    "index": 27769,
+    "filename": "img_027769.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "cherries pair with stem, arranged in group pile, eye level straight on view, high key bright studio lighting, ultra fine material detail, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 513114,
+    "index": 27869,
+    "filename": "img_027869.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "ripe raspberries pile, whole intact, low angle heroic view, warm key light with cool fill, intricate surface texture visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 704427,
+    "index": 27943,
+    "filename": "img_027943.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "fig cut open revealing inside, whole intact, 45 degree angle view, dramatic Rembrandt side lighting, lifelike realistic texture, high-end advertising photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 317694,
+    "index": 28121,
+    "filename": "img_028121.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "plum dark purple, whole intact, 3/4 perspective view, warm key light with cool fill, ultra fine material detail, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 84110,
+    "index": 28261,
+    "filename": "img_028261.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "tangerine peeled segments, arranged in group pile, top-down flat lay view, warm key light with cool fill, lifelike realistic texture, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 791463,
+    "index": 28559,
+    "filename": "img_028559.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "watermelon slice triangular, arranged in group pile, eye level straight on view, dramatic Rembrandt side lighting, lifelike realistic texture, studio catalog photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 918996,
+    "index": 28646,
+    "filename": "img_028646.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "watermelon slice triangular, sliced cross section showing inside, 3/4 perspective view, rim light with soft fill, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 351499,
+    "index": 28717,
+    "filename": "img_028717.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "red apple shiny with water droplets, whole intact, low angle heroic view, soft diffused studio strobe, every pore and grain visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 855695,
+    "index": 28735,
+    "filename": "img_028735.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "guava cut green pink, with water droplets fresh, low angle heroic view, bright even fill lighting, tactile surface quality, high-end advertising photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 261231,
+    "index": 28758,
+    "filename": "img_028758.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "sweet lime mosambi, arranged in group pile, front view, bright even fill lighting, true-to-life material rendering, commercial product photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 299085,
+    "index": 28878,
+    "filename": "img_028878.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "ripe papaya half with seeds, whole intact, low angle heroic view, soft diffused studio strobe, lifelike realistic texture, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 230139,
+    "index": 29056,
+    "filename": "img_029056.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "fig cut open revealing inside, with water droplets fresh, low angle heroic view, soft diffused studio strobe, ultra fine material detail, studio catalog photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 454926,
+    "index": 29076,
+    "filename": "img_029076.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "sweet lime mosambi, sliced cross section showing inside, low angle heroic view, bright even fill lighting, ultra fine material detail, studio catalog photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 630747,
+    "index": 29140,
+    "filename": "img_029140.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "plum dark purple, sliced cross section showing inside, side profile view, high key bright studio lighting, tactile surface quality, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 537437,
+    "index": 29372,
+    "filename": "img_029372.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "gooseberries green, sliced cross section showing inside, 45 degree angle view, rim light with soft fill, intricate surface texture visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 28359,
+    "index": 29886,
+    "filename": "img_029886.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "kiwi halved green flesh, sliced cross section showing inside, top-down flat lay view, high key bright studio lighting, lifelike realistic texture, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 44083,
+    "index": 30556,
+    "filename": "img_030556.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "sweet lime mosambi, sliced cross section showing inside, low angle heroic view, bright even fill lighting, ultra fine material detail, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 824936,
+    "index": 30638,
+    "filename": "img_030638.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "rambutan cluster red hairy, whole intact, 3/4 perspective view, warm key light with cool fill, every pore and grain visible, high-end advertising photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 970103,
+    "index": 30723,
+    "filename": "img_030723.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "pomegranate cut open red seeds, sliced cross section showing inside, 3/4 perspective view, rim light with soft fill, ultra fine material detail, high-end advertising photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 765383,
+    "index": 30780,
+    "filename": "img_030780.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "pomegranate cut open red seeds, with water droplets fresh, 3/4 perspective view, high key bright studio lighting, lifelike realistic texture, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 189939,
+    "index": 30796,
+    "filename": "img_030796.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "sweet lime mosambi, whole intact, low angle heroic view, rim light with soft fill, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 132817,
+    "index": 30953,
+    "filename": "img_030953.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "kiwi halved green flesh, arranged in group pile, eye level straight on view, warm key light with cool fill, true-to-life material rendering, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 400908,
+    "index": 30958,
+    "filename": "img_030958.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "purple grapes bunch on vine, arranged in group pile, low angle heroic view, rim light with soft fill, intricate surface texture visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 183265,
+    "index": 30980,
+    "filename": "img_030980.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "purple grapes bunch on vine, with water droplets fresh, low angle heroic view, dramatic Rembrandt side lighting, every pore and grain visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 530068,
+    "index": 31005,
+    "filename": "img_031005.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "bunch of yellow bananas, whole intact, front view, bright even fill lighting, ultra fine material detail, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 223926,
+    "index": 31115,
+    "filename": "img_031115.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "lemon whole and halved, sliced cross section showing inside, front view, rim light with soft fill, intricate surface texture visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 462956,
+    "index": 31331,
+    "filename": "img_031331.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "jackfruit whole and opened, whole intact, front view, bright even fill lighting, intricate surface texture visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 410988,
+    "index": 31393,
+    "filename": "img_031393.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "jackfruit whole and opened, arranged in group pile, low angle heroic view, warm key light with cool fill, every pore and grain visible, high-end advertising photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 202191,
+    "index": 31562,
+    "filename": "img_031562.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "fig cut open revealing inside, whole intact, 45 degree angle view, dramatic Rembrandt side lighting, lifelike realistic texture, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 349947,
+    "index": 31749,
+    "filename": "img_031749.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "ripe golden mango whole and sliced, whole intact, 45 degree angle view, bright even fill lighting, true-to-life material rendering, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 772711,
+    "index": 31920,
+    "filename": "img_031920.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "peach fuzzy skin, with water droplets fresh, low angle heroic view, soft diffused studio strobe, true-to-life material rendering, high-end advertising photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 389409,
+    "index": 31996,
+    "filename": "img_031996.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "lemon whole and halved, arranged in group pile, top-down flat lay view, bright even fill lighting, tactile surface quality, commercial product photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 928269,
+    "index": 32388,
+    "filename": "img_032388.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "guava cut green pink, arranged in group pile, low angle heroic view, rim light with soft fill, true-to-life material rendering, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 72115,
+    "index": 32473,
+    "filename": "img_032473.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "rambutan cluster red hairy, with water droplets fresh, eye level straight on view, warm key light with cool fill, every pore and grain visible, editorial magazine photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 559922,
+    "index": 32575,
+    "filename": "img_032575.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "fig cut open revealing inside, sliced cross section showing inside, low angle heroic view, bright even fill lighting, ultra fine material detail, studio catalog photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 732234,
+    "index": 33034,
+    "filename": "img_033034.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "kiwi halved green flesh, arranged in group pile, eye level straight on view, warm key light with cool fill, true-to-life material rendering, high-end advertising photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 839341,
+    "index": 33241,
+    "filename": "img_033241.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "ripe papaya half with seeds, sliced cross section showing inside, 45 degree angle view, soft diffused studio strobe, lifelike realistic texture, studio catalog photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 731396,
+    "index": 33455,
+    "filename": "img_033455.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "grapefruit pink halved, whole intact, close-up macro shot, rim light with soft fill, true-to-life material rendering, studio catalog photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 712971,
+    "index": 33652,
+    "filename": "img_033652.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "guava cut green pink, sliced cross section showing inside, close-up macro shot, high key bright studio lighting, true-to-life material rendering, studio catalog photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 199164,
+    "index": 33711,
+    "filename": "img_033711.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "green pear ripe, arranged in group pile, low angle heroic view, bright even fill lighting, intricate surface texture visible, commercial product photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 210821,
+    "index": 33760,
+    "filename": "img_033760.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "red apple shiny with water droplets, sliced cross section showing inside, side profile view, high key bright studio lighting, tactile surface quality, high-end advertising photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 153069,
+    "index": 33811,
+    "filename": "img_033811.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "mixed berry assortment, arranged in group pile, 45 degree angle view, soft diffused studio strobe, intricate surface texture visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 832058,
+    "index": 33947,
+    "filename": "img_033947.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "blackberries glistening, sliced cross section showing inside, low angle heroic view, bright even fill lighting, lifelike realistic texture, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 46064,
+    "index": 34078,
+    "filename": "img_034078.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "cherries pair with stem, arranged in group pile, eye level straight on view, high key bright studio lighting, ultra fine material detail, high-end advertising photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 455600,
+    "index": 34113,
+    "filename": "img_034113.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "purple grapes bunch on vine, whole intact, close-up macro shot, warm key light with cool fill, intricate surface texture visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 383181,
+    "index": 34157,
+    "filename": "img_034157.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "peach fuzzy skin, sliced cross section showing inside, 3/4 perspective view, bright even fill lighting, lifelike realistic texture, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 631861,
+    "index": 35039,
+    "filename": "img_035039.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "lemon whole and halved, whole intact, eye level straight on view, high key bright studio lighting, intricate surface texture visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 125878,
+    "index": 35041,
+    "filename": "img_035041.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "jackfruit whole and opened, arranged in group pile, low angle heroic view, warm key light with cool fill, every pore and grain visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 524357,
+    "index": 35337,
+    "filename": "img_035337.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "dragon fruit halved pink flesh, whole intact, side profile view, warm key light with cool fill, tactile surface quality, editorial magazine photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 594769,
+    "index": 35442,
+    "filename": "img_035442.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "green pear ripe, with water droplets fresh, low angle heroic view, dramatic Rembrandt side lighting, every pore and grain visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 319939,
+    "index": 35459,
+    "filename": "img_035459.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "dragon fruit halved pink flesh, arranged in group pile, front view, warm key light with cool fill, true-to-life material rendering, commercial product photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 202199,
+    "index": 35470,
+    "filename": "img_035470.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "red apple shiny with water droplets, arranged in group pile, low angle heroic view, high key bright studio lighting, true-to-life material rendering, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 425977,
+    "index": 35693,
+    "filename": "img_035693.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "watermelon slice triangular, with water droplets fresh, top-down flat lay view, high key bright studio lighting, ultra fine material detail, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 368016,
+    "index": 35802,
+    "filename": "img_035802.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "cherries pair with stem, with water droplets fresh, eye level straight on view, high key bright studio lighting, lifelike realistic texture, studio catalog photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 720360,
+    "index": 36068,
+    "filename": "img_036068.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "grapefruit pink halved, arranged in group pile, 3/4 perspective view, high key bright studio lighting, intricate surface texture visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 253538,
+    "index": 36168,
+    "filename": "img_036168.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "fresh pineapple with crown, whole intact, side profile view, rim light with soft fill, intricate surface texture visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 469026,
+    "index": 36421,
+    "filename": "img_036421.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "cut open passion fruit, with water droplets fresh, 45 degree angle view, high key bright studio lighting, lifelike realistic texture, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 333573,
+    "index": 36540,
+    "filename": "img_036540.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "gooseberries green, whole intact, low angle heroic view, rim light with soft fill, lifelike realistic texture, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 216570,
+    "index": 36557,
+    "filename": "img_036557.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "plum dark purple, arranged in group pile, low angle heroic view, warm key light with cool fill, intricate surface texture visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 849177,
+    "index": 36922,
+    "filename": "img_036922.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "jackfruit whole and opened, with water droplets fresh, top-down flat lay view, bright even fill lighting, ultra fine material detail, studio catalog photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 761977,
+    "index": 37122,
+    "filename": "img_037122.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "ripe raspberries pile, whole intact, low angle heroic view, warm key light with cool fill, intricate surface texture visible, commercial product photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 854789,
+    "index": 37325,
+    "filename": "img_037325.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "peach fuzzy skin, arranged in group pile, side profile view, warm key light with cool fill, intricate surface texture visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 721362,
+    "index": 37424,
+    "filename": "img_037424.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "tangerine peeled segments, whole intact, 45 degree angle view, rim light with soft fill, ultra fine material detail, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 545089,
+    "index": 37551,
+    "filename": "img_037551.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "split open coconut with water, arranged in group pile, 45 degree angle view, rim light with soft fill, ultra fine material detail, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 848753,
+    "index": 37874,
+    "filename": "img_037874.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "grapefruit pink halved, arranged in group pile, 3/4 perspective view, high key bright studio lighting, intricate surface texture visible, editorial magazine photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 631917,
+    "index": 37931,
+    "filename": "img_037931.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "lemon whole and halved, sliced cross section showing inside, front view, rim light with soft fill, intricate surface texture visible, commercial product photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 981332,
+    "index": 38382,
+    "filename": "img_038382.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "rambutan cluster red hairy, with water droplets fresh, eye level straight on view, warm key light with cool fill, every pore and grain visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 708916,
+    "index": 38504,
+    "filename": "img_038504.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "peach fuzzy skin, sliced cross section showing inside, 3/4 perspective view, bright even fill lighting, lifelike realistic texture, studio catalog photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 769055,
+    "index": 38552,
+    "filename": "img_038552.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "tangerine peeled segments, sliced cross section showing inside, 45 degree angle view, soft diffused studio strobe, tactile surface quality, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 990160,
+    "index": 38624,
+    "filename": "img_038624.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "tangerine peeled segments, sliced cross section showing inside, 45 degree angle view, soft diffused studio strobe, tactile surface quality, studio catalog photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 100867,
+    "index": 38720,
+    "filename": "img_038720.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "jackfruit whole and opened, sliced cross section showing inside, close-up macro shot, rim light with soft fill, true-to-life material rendering, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 982936,
+    "index": 39100,
+    "filename": "img_039100.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "guava cut green pink, whole intact, low angle heroic view, rim light with soft fill, true-to-life material rendering, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 464446,
+    "index": 39367,
+    "filename": "img_039367.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "ripe raspberries pile, sliced cross section showing inside, front view, rim light with soft fill, true-to-life material rendering, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 391352,
+    "index": 39412,
+    "filename": "img_039412.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "peach fuzzy skin, arranged in group pile, side profile view, warm key light with cool fill, intricate surface texture visible, high-end advertising photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 485297,
+    "index": 39765,
+    "filename": "img_039765.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "ripe raspberries pile, with water droplets fresh, close-up macro shot, rim light with soft fill, intricate surface texture visible, editorial magazine photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 585478,
+    "index": 39821,
+    "filename": "img_039821.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "sweet lime mosambi, arranged in group pile, front view, bright even fill lighting, true-to-life material rendering, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 960139,
+    "index": 39849,
+    "filename": "img_039849.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "tangerine peeled segments, arranged in group pile, top-down flat lay view, warm key light with cool fill, lifelike realistic texture, editorial magazine photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 842308,
+    "index": 39912,
+    "filename": "img_039912.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "peach fuzzy skin, whole intact, front view, dramatic Rembrandt side lighting, intricate surface texture visible, studio catalog photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 750828,
+    "index": 40339,
+    "filename": "img_040339.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "plum dark purple, whole intact, 3/4 perspective view, warm key light with cool fill, ultra fine material detail, high-end advertising photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 426367,
+    "index": 40475,
+    "filename": "img_040475.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "red apple shiny with water droplets, arranged in group pile, low angle heroic view, high key bright studio lighting, true-to-life material rendering, studio catalog photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 829619,
+    "index": 40577,
+    "filename": "img_040577.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "ripe papaya half with seeds, with water droplets fresh, top-down flat lay view, rim light with soft fill, every pore and grain visible, editorial magazine photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 152415,
+    "index": 40664,
+    "filename": "img_040664.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "gooseberries green, whole intact, low angle heroic view, rim light with soft fill, lifelike realistic texture, studio catalog photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 477847,
+    "index": 40677,
+    "filename": "img_040677.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "tangerine peeled segments, whole intact, 45 degree angle view, rim light with soft fill, ultra fine material detail, editorial magazine photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 326676,
+    "index": 40683,
+    "filename": "img_040683.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "grapefruit pink halved, sliced cross section showing inside, top-down flat lay view, dramatic Rembrandt side lighting, true-to-life material rendering, studio catalog photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 874440,
+    "index": 40799,
+    "filename": "img_040799.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "pomegranate cut open red seeds, sliced cross section showing inside, 3/4 perspective view, rim light with soft fill, ultra fine material detail, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 96422,
+    "index": 40884,
+    "filename": "img_040884.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "gooseberries green, arranged in group pile, 45 degree angle view, soft diffused studio strobe, tactile surface quality, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 577853,
+    "index": 41028,
+    "filename": "img_041028.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "green pear ripe, sliced cross section showing inside, 45 degree angle view, rim light with soft fill, every pore and grain visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 909586,
+    "index": 41093,
+    "filename": "img_041093.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "ripe papaya half with seeds, whole intact, low angle heroic view, soft diffused studio strobe, lifelike realistic texture, high-end advertising photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 504134,
+    "index": 41102,
+    "filename": "img_041102.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "mixed berry assortment, with water droplets fresh, eye level straight on view, rim light with soft fill, every pore and grain visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 287450,
+    "index": 41147,
+    "filename": "img_041147.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "lemon whole and halved, with water droplets fresh, close-up macro shot, soft diffused studio strobe, lifelike realistic texture, commercial product photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 555540,
+    "index": 41623,
+    "filename": "img_041623.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "citrus",
+    "prompt": "tangerine peeled segments, with water droplets fresh, close-up macro shot, soft diffused studio strobe, intricate surface texture visible, editorial magazine photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 184676,
+    "index": 41748,
+    "filename": "img_041748.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "mixed berry assortment, whole intact, front view, dramatic Rembrandt side lighting, intricate surface texture visible, commercial product photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 241173,
+    "index": 41982,
+    "filename": "img_041982.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "tropical",
+    "prompt": "bunch of yellow bananas, sliced cross section showing inside, low angle heroic view, bright even fill lighting, tactile surface quality, editorial magazine photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 444926,
+    "index": 42132,
+    "filename": "img_042132.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "berries",
+    "prompt": "plump blueberries cluster, arranged in group pile, top-down flat lay view, rim light with soft fill, true-to-life material rendering, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 60532,
+    "index": 42564,
+    "filename": "img_042564.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "peach fuzzy skin, whole intact, front view, dramatic Rembrandt side lighting, intricate surface texture visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 277311,
+    "index": 42645,
+    "filename": "img_042645.png",
+    "status": "pending"
+  },
+  {
+    "category": "fruits",
+    "subcategory": "common",
+    "prompt": "plum dark purple, sliced cross section showing inside, side profile view, high key bright studio lighting, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 416938,
+    "index": 43007,
+    "filename": "img_043007.png",
+    "status": "pending"
+  }
+]

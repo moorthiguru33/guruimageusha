@@ -1587,16 +1587,67 @@ class PromptEngine:
         print(f"\n🎯 TOTAL PROMPTS GENERATED: {len(all_prompts)}")
         return all_prompts
 
-    def save_prompts(self, output_path="prompts/all_prompts.json"):
-        """Save all prompts to JSON file"""
-        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+    def save_prompts(self, output_dir="prompts/splits"):
+        """
+        Save prompts split by category into prompts/splits/<category>.json
+        Each file is well under GitHub 100MB limit.
+        Use load_all_prompts() to reload them as a single list.
+        """
+        out = Path(output_dir)
+        out.mkdir(parents=True, exist_ok=True)
+
         prompts = self.generate_all_prompts()
-        with open(output_path, "w", encoding="utf-8") as f:
-            json.dump(prompts, f, indent=2, ensure_ascii=False)
-        print(f"✅ Saved {len(prompts)} prompts to {output_path}")
-        return output_path
+
+        # Group by category (replace / with _ for filenames)
+        by_cat = {}
+        for p in prompts:
+            key = p.get("category", "misc").replace("/", "_")
+            by_cat.setdefault(key, []).append(p)
+
+        saved_files = []
+        for cat, items in by_cat.items():
+            fpath = out / f"{cat}.json"
+            with open(fpath, "w", encoding="utf-8") as f:
+                json.dump(items, f, indent=2, ensure_ascii=False)
+            size_kb = fpath.stat().st_size / 1024
+            print(f"  💾 {cat}.json  →  {len(items)} prompts  ({size_kb:.1f} KB)")
+            saved_files.append(str(fpath))
+
+        # Write index so loaders know which files exist
+        index = {"total": len(prompts), "categories": list(by_cat.keys()),
+                 "files": [f"{c}.json" for c in by_cat]}
+        with open(out / "index.json", "w", encoding="utf-8") as f:
+            json.dump(index, f, indent=2, ensure_ascii=False)
+
+        print(f"\n✅ Saved {len(prompts)} prompts across {len(by_cat)} category files in '{output_dir}/'")
+        print("📋 index.json written — use load_all_prompts() to reload all.")
+        return output_dir
+
+
+def load_all_prompts(splits_dir="prompts/splits"):
+    """
+    Load all category split JSON files and return a single merged list.
+    Works as a drop-in replacement for json.load(open('all_prompts.json')).
+    """
+    splits = Path(splits_dir)
+    index_file = splits / "index.json"
+
+    if index_file.exists():
+        index = json.loads(index_file.read_text())
+        files = [splits / f for f in index["files"]]
+    else:
+        files = sorted(splits.glob("*.json"))
+        files = [f for f in files if f.name != "index.json"]
+
+    all_prompts = []
+    for fpath in files:
+        with open(fpath, encoding="utf-8") as f:
+            all_prompts.extend(json.load(f))
+
+    print(f"📦 Loaded {len(all_prompts)} prompts from {len(files)} split files.")
+    return all_prompts
 
 
 if __name__ == "__main__":
     engine = PromptEngine()
-    engine.save_prompts("prompts/all_prompts.json")
+    engine.save_prompts("prompts/splits")
