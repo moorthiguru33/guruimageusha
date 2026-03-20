@@ -18,6 +18,9 @@ V2 CHANGES:
 """
 
 import os, sys, json, time, gc, subprocess
+
+# ── Memory fragmentation fix (recommended by PyTorch) ─────────
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 from pathlib import Path
 
 # ── Install dependencies ──────────────────────────────────────
@@ -345,7 +348,7 @@ if pending:
     from diffusers import Flux2KleinPipeline
 
     num_gpus  = torch.cuda.device_count()
-    use_gpus  = min(num_gpus, 2)          # use at most 2 (T4 x2 on Kaggle)
+    use_gpus  = min(num_gpus, 2)
 
     print("=" * 55)
     print(f"STEP 1: FLUX.2 [klein] 4B  ——  {use_gpus}x Data Parallel")
@@ -353,18 +356,34 @@ if pending:
     print(f"Loading {use_gpus} independent pipelines ...")
     print("(First run: downloads ~8GB — ~5 min)\n")
 
-    # ── Load one full pipe per GPU ─────────────────────────────
-    pipes = {}
+    # ── Detect best resolution per GPU ────────────────────────
+    def get_best_resolution(gpu_id):
+        """Return (height, width) based on free VRAM after model load."""
+        free = torch.cuda.mem_get_info(gpu_id)[0] / 1e9
+        print(f"  GPU {gpu_id} free VRAM after load: {free:.1f} GB")
+        if free >= 3.5:
+            return 1536, 1536
+        elif free >= 2.0:
+            return 1024, 1024
+        else:
+            return 768, 768
+
+    # ── Load one full pipe per GPU with CPU offload ────────────
+    # enable_model_cpu_offload streams model layers to GPU one at a time
+    # — peak VRAM drops from 16GB to ~4GB, works on any T4/P100
+    pipes      = {}
+    resolutions = {}
     for _gi in range(use_gpus):
-        device = f"cuda:{_gi}"
-        print(f"  Loading pipe on {device} ...")
-        pipes[_gi] = Flux2KleinPipeline.from_pretrained(
+        print(f"  Loading pipe on GPU {_gi} (cpu_offload) ...")
+        _pipe = Flux2KleinPipeline.from_pretrained(
             "black-forest-labs/FLUX.2-klein-4B",
             torch_dtype=torch.bfloat16,
-        ).to(device)
-        pipes[_gi].set_progress_bar_config(disable=True)
-        _used = torch.cuda.memory_allocated(_gi) / 1e9
-        print(f"  GPU {_gi} ready — VRAM used: {_used:.1f} GB")
+        )
+        _pipe.enable_model_cpu_offload(gpu_id=_gi)
+        _pipe.set_progress_bar_config(disable=True)
+        resolutions[_gi] = get_best_resolution(_gi)
+        print(f"  GPU {_gi} ready — resolution: {resolutions[_gi][0]}x{resolutions[_gi][1]}")
+        pipes[_gi] = _pipe
 
     print(f"\nAll {use_gpus} pipelines loaded!\n")
 
@@ -386,31 +405,32 @@ if pending:
     def worker(gpu_id, items):
         """Each worker owns one GPU and processes its queue sequentially."""
         pipe_w = pipes[gpu_id]
-        device = f"cuda:{gpu_id}"
+        h, w   = resolutions[gpu_id]
 
         for item in items:
             try:
                 prompt    = enhance_prompt(item["prompt"], item.get("category", ""))
-                generator = torch.Generator(device=device).manual_seed(item["seed"])
+                # cpu_offload moves tensors — use cpu seed, pipe handles device
+                generator = torch.Generator(device="cpu").manual_seed(item["seed"])
 
                 img = pipe_w(
                     prompt=prompt,
                     num_inference_steps=4,
                     guidance_scale=1.0,
-                    height=1536,
-                    width=1536,
+                    height=h,
+                    width=w,
                     generator=generator,
                 ).images[0]
 
-                # Quality check + retry on same GPU
+                # Quality check + retry
                 if not is_good(img):
-                    retry_gen = torch.Generator(device=device).manual_seed(item["seed"] + 42)
+                    retry_gen = torch.Generator(device="cpu").manual_seed(item["seed"] + 42)
                     img = pipe_w(
                         prompt=prompt,
                         num_inference_steps=4,
                         guidance_scale=1.0,
-                        height=1536,
-                        width=1536,
+                        height=h,
+                        width=w,
                         generator=retry_gen,
                     ).images[0]
 
@@ -425,7 +445,7 @@ if pending:
                     cat     = item.get("category", "")
                     mode    = "VEC" if cat in VECTOR_CATEGORIES else "PHO"
                     print(f"  ✅ [GPU{gpu_id}] [{_counter[0]}/{total_pending}] {item['filename']}"
-                          f" | {cat} [{mode}] | ETA {eta:.0f}min")
+                          f" | {cat} [{mode}] | {h}x{w} | ETA {eta:.0f}min")
 
                     if _counter[0] % 100 == 0:
                         with open(pf, "w") as _f: json.dump(progress, _f)
@@ -437,16 +457,16 @@ if pending:
                         print(f"  [saved] GPU0: {_used0:.1f}GB | GPU1: {_used1:.1f}GB")
 
             except torch.cuda.OutOfMemoryError:
-                # OOM fallback: retry at 1024x1024 on same GPU
+                # OOM fallback: drop to 768x768
                 torch.cuda.empty_cache(); gc.collect()
                 try:
-                    print(f"  OOM GPU{gpu_id} — retrying {item['filename']} at 1024x1024")
-                    gen_fb = torch.Generator(device=device).manual_seed(item["seed"])
+                    print(f"  OOM GPU{gpu_id} — retrying {item['filename']} at 768x768")
+                    gen_fb = torch.Generator(device="cpu").manual_seed(item["seed"])
                     img = pipe_w(
                         prompt=enhance_prompt(item["prompt"], item.get("category", "")),
                         num_inference_steps=4,
                         guidance_scale=1.0,
-                        height=1024, width=1024,
+                        height=768, width=768,
                         generator=gen_fb,
                     ).images[0]
                     save_generated(img, item)
