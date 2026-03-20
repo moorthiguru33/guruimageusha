@@ -25,6 +25,9 @@ on:
 env:
   NOTEBOOK_SLUG: notebook8c5ae1ecf2
 
+permissions:
+  contents: write
+
 jobs:
 
   trigger-kaggle:
@@ -36,6 +39,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Python
         uses: actions/setup-python@v5
