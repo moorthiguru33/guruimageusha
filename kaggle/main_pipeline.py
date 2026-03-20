@@ -34,7 +34,10 @@ for pkg in pkgs:
         [sys.executable, "-m", "pip", "install", "-q", pkg],
         capture_output=True, text=True
     )
-    print(f"  {'OK  ' if r.returncode == 0 else 'WARN'} {pkg}")
+    if r.returncode != 0:
+        print(f"  WARN {pkg}: {r.stderr[:200]}")
+    else:
+        print(f"  OK   {pkg.split('/')[-1] if 'git+' in pkg else pkg}")
 print("Done!\n")
 
 import torch
@@ -130,7 +133,6 @@ if pending:
     print("Loaded with Flux2KleinPipeline")
 
     pipe.enable_model_cpu_offload()
-    pipe.enable_attention_slicing()
     print(f"Model loaded! VRAM: {torch.cuda.memory_allocated()/1e9:.1f} GB\n")
 
     def make_prompt(raw):
