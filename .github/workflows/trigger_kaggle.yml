@@ -1,0 +1,141 @@
+name: PNG Library Generator
+
+on:
+  workflow_dispatch:
+    inputs:
+      start_index:
+        description: 'Start index'
+        required: false
+        default: '0'
+      end_index:
+        description: 'End index'
+        required: false
+        default: '1500'
+      action:
+        description: 'Action'
+        required: false
+        default: 'generate'
+        type: choice
+        options:
+          - generate
+          - status_check
+
+  schedule:
+    - cron: '30 20 * * *'   # Every day 2 AM IST
+
+jobs:
+  trigger-kaggle:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Kaggle CLI
+        run: pip install kaggle
+
+      - name: Setup Kaggle Credentials
+        run: |
+          mkdir -p ~/.kaggle
+          echo '{"username":"guru","key":"KGAT_645bde86e2f85f7dd0e743032c2bd5de"}' > ~/.kaggle/kaggle.json
+          chmod 600 ~/.kaggle/kaggle.json
+          echo "Kaggle ready: guru"
+
+      - name: Calculate Batch
+        id: batch
+        run: |
+          START="${{ github.event.inputs.start_index }}"
+          END="${{ github.event.inputs.end_index }}"
+          if [ -z "$START" ]; then
+            if [ -f "progress/batch_tracker.txt" ]; then
+              LAST=$(cat progress/batch_tracker.txt)
+              START=$LAST
+              END=$((LAST + 1500))
+            else
+              START=0
+              END=1500
+            fi
+          fi
+          if [ "$END" -gt "46502" ]; then END=46502; fi
+          echo "start_index=$START" >> $GITHUB_OUTPUT
+          echo "end_index=$END"     >> $GITHUB_OUTPUT
+          echo "Batch: $START -> $END"
+
+      - name: Inject Credentials into Pipeline
+        run: |
+          cat > kaggle/env_inject.py << PYEOF
+import os
+os.environ["START_INDEX"]            = "${{ steps.batch.outputs.start_index }}"
+os.environ["END_INDEX"]              = "${{ steps.batch.outputs.end_index }}"
+os.environ["GITHUB_REPO"]            = "${{ github.repository }}"
+os.environ["GOOGLE_CLIENT_ID"]       = "308212866102-sd27dv5pjsr2bff3fioj4frr0ul58a1h.apps.googleusercontent.com"
+os.environ["GOOGLE_CLIENT_SECRET"]   = "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"
+os.environ["GOOGLE_REFRESH_TOKEN"]   = "1//0gxh2M3u4UXarCgYIARAAGBASNwF-L9IrlxhedoSItkoetIKk8OLpgyNGB-ZrwkCFI-qjTtZZ7ubfo6p7z5_RBsw2QmpXG4BuQn4"
+PYEOF
+          cat kaggle/env_inject.py kaggle/main_pipeline.py > kaggle/final_pipeline.py
+          cp kaggle/final_pipeline.py kaggle/main_pipeline.py
+          echo "Pipeline ready with credentials"
+
+      - name: Push Kernel to Kaggle
+        run: |
+          cd kaggle
+          kaggle kernels push -p .
+          echo "Kernel pushed!"
+          sleep 30
+
+      - name: Wait for Kaggle to Complete
+        run: |
+          echo "Waiting for kernel..."
+          MAX_WAIT=10800
+          WAITED=0
+          while [ $WAITED -lt $MAX_WAIT ]; do
+            STATUS=$(kaggle kernels status guru/png-library-generator 2>/dev/null \
+                     | grep -o 'complete\|running\|error\|queued' | head -1)
+            echo "  Status: $STATUS (${WAITED}s elapsed)"
+            if [ "$STATUS" = "complete" ]; then
+              echo "Done!"
+              break
+            elif [ "$STATUS" = "error" ]; then
+              echo "FAILED!"
+              exit 1
+            fi
+            sleep 120
+            WAITED=$((WAITED + 120))
+          done
+
+      - name: Update Batch Tracker
+        if: success()
+        run: |
+          echo "${{ steps.batch.outputs.end_index }}" > progress/batch_tracker.txt
+
+      - name: Commit Progress
+        if: success()
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Batch ${{ steps.batch.outputs.start_index }}-${{ steps.batch.outputs.end_index }} done"
+          file_pattern: 'progress/batch_tracker.txt'
+
+  status-check:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'status_check'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Show Progress
+        run: |
+          echo "================================"
+          echo "   PNG Library Progress"
+          echo "================================"
+          if [ -f "progress/batch_tracker.txt" ]; then
+            DONE=$(cat progress/batch_tracker.txt)
+            echo "Done      : $DONE / 46502"
+            echo "Remaining : $((46502 - DONE))"
+          else
+            echo "Not started yet!"
+          fi
+          echo "================================"
