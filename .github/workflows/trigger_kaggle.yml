@@ -45,7 +45,7 @@ jobs:
       - name: Setup Kaggle Credentials
         run: |
           mkdir -p ~/.kaggle
-          printf '%s' '{"username":"guru","key":"KGAT_645bde86e2f85f7dd0e743032c2bd5de"}' > ~/.kaggle/kaggle.json
+          printf '%s' '{"username":"${{ secrets.KAGGLE_USERNAME }}","key":"${{ secrets.KAGGLE_KEY }}"}' > ~/.kaggle/kaggle.json
           chmod 600 ~/.kaggle/kaggle.json
           kaggle --version
 
@@ -61,7 +61,7 @@ jobs:
               END=$((LAST + 800))
             else
               START=0
-              END=500
+              END=800
             fi
           fi
           if [ "$END" -gt "46502" ]; then END=46502; fi
@@ -75,7 +75,10 @@ jobs:
           python3 inject_creds.py \
             "${{ steps.batch.outputs.start_index }}" \
             "${{ steps.batch.outputs.end_index }}" \
-            "${{ github.repository }}"
+            "${{ github.repository }}" \
+            "${{ secrets.GOOGLE_CLIENT_ID }}" \
+            "${{ secrets.GOOGLE_CLIENT_SECRET }}" \
+            "${{ secrets.GOOGLE_REFRESH_TOKEN }}"
 
       - name: Push to Kaggle
         run: |
@@ -89,7 +92,7 @@ jobs:
           MAX=14400
           W=0
           while [ $W -lt $MAX ]; do
-            S=$(kaggle kernels status guru/png-library-generator 2>/dev/null | grep -oE 'complete|running|error|queued' | head -1)
+            S=$(kaggle kernels status ${{ secrets.KAGGLE_USERNAME }}/png-library-generator 2>/dev/null | grep -oE 'complete|running|error|queued' | head -1)
             echo "[${W}s] $S"
             if [ "$S" = "complete" ]; then echo "Done!"; break; fi
             if [ "$S" = "error" ]; then echo "FAILED!"; exit 1; fi
