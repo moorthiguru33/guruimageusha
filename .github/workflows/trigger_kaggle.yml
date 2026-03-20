@@ -1,4 +1,3 @@
-
 name: PNG Library Generator
 
 on:
@@ -86,6 +85,21 @@ jobs:
 
       - name: Push to Kaggle
         run: |
+          KERNEL="${{ secrets.KAGGLE_USERNAME }}/png-library-generator"
+
+          # Check if kernel is currently running/queued — cancel it first
+          echo "Checking current kernel status..."
+          CURRENT=$(kaggle kernels status $KERNEL 2>&1)
+          echo "Current status: $CURRENT"
+
+          S=$(echo "$CURRENT" | grep -oE 'running|queued' | head -1)
+          if [ "$S" = "running" ] || [ "$S" = "queued" ]; then
+            echo "Kernel is $S — cancelling before push..."
+            kaggle kernels cancel $KERNEL || echo "Cancel attempted"
+            echo "Waiting 30s for cancel to take effect..."
+            sleep 30
+          fi
+
           cd kaggle
           echo "Pushing kernel..."
           kaggle kernels push -p .
