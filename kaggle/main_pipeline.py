@@ -75,8 +75,12 @@ print("  43,082 Ultra-Realistic Prompts")
 print("=" * 55)
 print(f"  Batch  : {START_INDEX} -> {END_INDEX}  ({END_INDEX - START_INDEX} images)")
 if torch.cuda.is_available():
-    p = torch.cuda.get_device_properties(0)
-    print(f"  GPU    : {p.name}  |  VRAM: {p.total_mem/1e9:.0f} GB" if hasattr(p, 'total_mem') else f"  GPU    : {p.name}  |  VRAM: {p.total_memory/1e9:.0f} GB")
+    for _gi in range(torch.cuda.device_count()):
+        _p = torch.cuda.get_device_properties(_gi)
+        _vram = _p.total_mem/1e9 if hasattr(_p, 'total_mem') else _p.total_memory/1e9
+        print(f"  GPU {_gi}  : {_p.name}  |  VRAM: {_vram:.0f} GB")
+    _total = sum(torch.cuda.get_device_properties(i).total_memory/1e9 for i in range(torch.cuda.device_count()))
+    print(f"  Total  : {_total:.0f} GB across {torch.cuda.device_count()} GPUs")
 print("=" * 55 + "\n")
 
 # ── Clone repo ────────────────────────────────────────────────
@@ -316,109 +320,175 @@ def enhance_prompt(raw_prompt, category):
 
 
 # ============================================================
-# STEP 1: FLUX.2 [klein] 4B — Image Generation
+# STEP 1: FLUX.2 [klein] 4B — Image Generation (2x Data Parallel)
 # ============================================================
+# Strategy: FLUX.2 klein 4B is ~8GB — fits on one T4 (16GB).
+# Best method for 2x T4: load FULL model on EACH GPU independently,
+# split the pending list between them, run both in parallel threads.
+# This gives true 2x throughput with zero inter-GPU communication overhead.
+# ============================================================
+
+def save_generated(img, item):
+    folder = GENERATED_DIR / item["category"] / item.get("subcategory", "general")
+    folder.mkdir(parents=True, exist_ok=True)
+    path = folder / item["filename"]
+    img.save(str(path), "PNG")
+    return str(path)
+
+def is_good(img):
+    arr = np.array(img)
+    return arr.std() > 5 and (arr < 250).sum() > 1000
+
 if pending:
+    import threading
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    from diffusers import Flux2KleinPipeline
+
+    num_gpus  = torch.cuda.device_count()
+    use_gpus  = min(num_gpus, 2)          # use at most 2 (T4 x2 on Kaggle)
+
     print("=" * 55)
-    print("STEP 1: FLUX.2 [klein] 4B Generation")
+    print(f"STEP 1: FLUX.2 [klein] 4B  ——  {use_gpus}x Data Parallel")
     print("=" * 55)
-    print("Loading black-forest-labs/FLUX.2-klein-4B ...")
+    print(f"Loading {use_gpus} independent pipelines ...")
     print("(First run: downloads ~8GB — ~5 min)\n")
 
-    from diffusers import Flux2KleinPipeline
-    pipe = Flux2KleinPipeline.from_pretrained(
-        "black-forest-labs/FLUX.2-klein-4B",
-        torch_dtype=torch.bfloat16,
-    )
-    print("Loaded with Flux2KleinPipeline")
+    # ── Load one full pipe per GPU ─────────────────────────────
+    pipes = {}
+    for _gi in range(use_gpus):
+        device = f"cuda:{_gi}"
+        print(f"  Loading pipe on {device} ...")
+        pipes[_gi] = Flux2KleinPipeline.from_pretrained(
+            "black-forest-labs/FLUX.2-klein-4B",
+            torch_dtype=torch.bfloat16,
+        ).to(device)
+        pipes[_gi].set_progress_bar_config(disable=True)
+        _used = torch.cuda.memory_allocated(_gi) / 1e9
+        print(f"  GPU {_gi} ready — VRAM used: {_used:.1f} GB")
 
-    pipe.enable_model_cpu_offload()
-    print(f"Model loaded! VRAM: {torch.cuda.memory_allocated()/1e9:.1f} GB\n")
+    print(f"\nAll {use_gpus} pipelines loaded!\n")
 
-    def generate_image(item):
-        prompt = enhance_prompt(item["prompt"], item.get("category", ""))
-        generator = torch.Generator(device="cpu").manual_seed(item["seed"])
-        return pipe(
-            prompt=prompt,
-            num_inference_steps=4,
-            guidance_scale=1.0,
-            height=1536,
-            width=1536,
-            generator=generator,
-        ).images[0]
+    # ── Split pending items across GPUs ───────────────────────
+    # GPU 0 → even-indexed slots, GPU 1 → odd-indexed slots
+    gpu_queues = {i: [] for i in range(use_gpus)}
+    for idx, item in enumerate(pending):
+        gpu_queues[idx % use_gpus].append(item)
+    for _gi in range(use_gpus):
+        print(f"  GPU {_gi} queue: {len(gpu_queues[_gi])} images")
+    print()
 
-    def save_generated(img, item):
-        folder = GENERATED_DIR / item["category"] / item.get("subcategory", "general")
-        folder.mkdir(parents=True, exist_ok=True)
-        path = folder / item["filename"]
-        img.save(str(path), "PNG")
-        return str(path)
+    # ── Thread-safe shared state ──────────────────────────────
+    _lock        = threading.Lock()
+    gen_count    = 0
+    t0           = time.time()
+    total_pending = len(pending)
 
-    def is_good(img):
-        arr = np.array(img)
-        return arr.std() > 5 and (arr < 250).sum() > 1000
+    def worker(gpu_id, items):
+        """Each worker owns one GPU and processes its queue sequentially."""
+        nonlocal gen_count
+        pipe_w = pipes[gpu_id]
+        device = f"cuda:{gpu_id}"
 
-    gen_count = 0
-    t0 = time.time()
-    print(f"Generating {len(pending)} images...\n")
-
-    for item in pending:
-        try:
-            img = generate_image(item)
-
-            if not is_good(img):
-                print(f"  Retry {item['filename']}...")
-                retry = dict(item); retry["seed"] += 42
-                img = generate_image(retry)
-
-            save_generated(img, item)
-            progress["completed"].append(item["index"])
-            gen_count += 1
-
-            elapsed = time.time() - t0
-            rate    = gen_count / elapsed
-            eta     = (len(pending) - gen_count) / rate / 60 if rate > 0 else 0
-            cat     = item.get("category", "")
-            mode    = "VEC" if cat in VECTOR_CATEGORIES else "PHO"
-            print(f"  ✅ [{gen_count}/{len(pending)}] {item['filename']}"
-                  f" | {cat} [{mode}] | ETA {eta:.0f}min")
-
-            if gen_count % 100 == 0:
-                with open(pf, "w") as f: json.dump(progress, f)
-                save_progress_to_drive(progress, START_INDEX, END_INDEX)
-                gc.collect(); torch.cuda.empty_cache()
-                print(f"  [saved] VRAM: {torch.cuda.memory_allocated()/1e9:.1f}GB")
-
-        except torch.cuda.OutOfMemoryError:
-            print(f"  OOM — retrying {item['filename']} at 1024x1024")
-            torch.cuda.empty_cache(); gc.collect()
+        for item in items:
             try:
-                prompt = enhance_prompt(item["prompt"], item.get("category", ""))
-                gen = torch.Generator(device="cpu").manual_seed(item["seed"])
-                img = pipe(
+                prompt    = enhance_prompt(item["prompt"], item.get("category", ""))
+                generator = torch.Generator(device=device).manual_seed(item["seed"])
+
+                img = pipe_w(
                     prompt=prompt,
                     num_inference_steps=4,
                     guidance_scale=1.0,
-                    height=1024, width=1024,
-                    generator=gen,
+                    height=1536,
+                    width=1536,
+                    generator=generator,
                 ).images[0]
-                save_generated(img, item)
-                progress["completed"].append(item["index"])
-                gen_count += 1
-            except Exception as e2:
-                print(f"  FAIL: {e2}")
-                progress["failed"].append(item["index"])
 
-        except Exception as e:
-            print(f"  FAIL {item['filename']}: {e}")
-            progress["failed"].append(item["index"])
+                # Quality check + retry on same GPU
+                if not is_good(img):
+                    retry_gen = torch.Generator(device=device).manual_seed(item["seed"] + 42)
+                    img = pipe_w(
+                        prompt=prompt,
+                        num_inference_steps=4,
+                        guidance_scale=1.0,
+                        height=1536,
+                        width=1536,
+                        generator=retry_gen,
+                    ).images[0]
+
+                save_generated(img, item)
+
+                with _lock:
+                    progress["completed"].append(item["index"])
+                    gen_count += 1
+                    elapsed = time.time() - t0
+                    rate    = gen_count / elapsed
+                    eta     = (total_pending - gen_count) / rate / 60 if rate > 0 else 0
+                    cat     = item.get("category", "")
+                    mode    = "VEC" if cat in VECTOR_CATEGORIES else "PHO"
+                    print(f"  ✅ [GPU{gpu_id}] [{gen_count}/{total_pending}] {item['filename']}"
+                          f" | {cat} [{mode}] | ETA {eta:.0f}min")
+
+                    if gen_count % 100 == 0:
+                        with open(pf, "w") as _f: json.dump(progress, _f)
+                        save_progress_to_drive(progress, START_INDEX, END_INDEX)
+                        gc.collect()
+                        torch.cuda.empty_cache()
+                        _used0 = torch.cuda.memory_allocated(0) / 1e9
+                        _used1 = torch.cuda.memory_allocated(1) / 1e9 if use_gpus > 1 else 0
+                        print(f"  [saved] GPU0: {_used0:.1f}GB | GPU1: {_used1:.1f}GB")
+
+            except torch.cuda.OutOfMemoryError:
+                # OOM fallback: retry at 1024x1024 on same GPU
+                torch.cuda.empty_cache(); gc.collect()
+                try:
+                    print(f"  OOM GPU{gpu_id} — retrying {item['filename']} at 1024x1024")
+                    gen_fb = torch.Generator(device=device).manual_seed(item["seed"])
+                    img = pipe_w(
+                        prompt=enhance_prompt(item["prompt"], item.get("category", "")),
+                        num_inference_steps=4,
+                        guidance_scale=1.0,
+                        height=1024, width=1024,
+                        generator=gen_fb,
+                    ).images[0]
+                    save_generated(img, item)
+                    with _lock:
+                        progress["completed"].append(item["index"])
+                        gen_count += 1
+                except Exception as e2:
+                    print(f"  FAIL GPU{gpu_id}: {e2}")
+                    with _lock:
+                        progress["failed"].append(item["index"])
+
+            except Exception as e:
+                print(f"  FAIL GPU{gpu_id} {item['filename']}: {e}")
+                with _lock:
+                    progress["failed"].append(item["index"])
+
+    # ── Launch workers in parallel threads ────────────────────
+    print(f"Generating {total_pending} images across {use_gpus} GPUs in parallel...\n")
+    with ThreadPoolExecutor(max_workers=use_gpus) as executor:
+        futures = {executor.submit(worker, gi, gpu_queues[gi]): gi
+                   for gi in range(use_gpus)}
+        for future in as_completed(futures):
+            gi = futures[future]
+            try:
+                future.result()
+            except Exception as e:
+                print(f"  Worker GPU{gi} crashed: {e}")
 
     with open(pf, "w") as f: json.dump(progress, f)
     save_progress_to_drive(progress, START_INDEX, END_INDEX)
     print(f"\nGeneration : {gen_count} images in {(time.time()-t0)/60:.0f} min")
     print(f"Failed     : {len(progress['failed'])}")
-    del pipe; gc.collect(); torch.cuda.empty_cache()
-    print("Model freed\n")
+
+    # Free all pipes
+    for _gi in range(use_gpus):
+        del pipes[_gi]
+    del pipes
+    gc.collect()
+    for _gi in range(torch.cuda.device_count()):
+        torch.cuda.empty_cache()
+    print("Models freed\n")
 
 # ============================================================
 # STEP 2: Background Removal (rembg - U2Net)
@@ -447,12 +517,16 @@ for img_file in gen_files:
         bg_ok += 1
         if bg_ok % 50 == 0:
             print(f"  BG done: {bg_ok} | {bg_ok/(time.time()-t1):.2f}/s")
-            gc.collect(); torch.cuda.empty_cache()
+            gc.collect()
+            for _gi in range(torch.cuda.device_count()):
+                torch.cuda.empty_cache()
     except Exception as e:
         print(f"  BG FAIL {img_file.name}: {e}"); bg_fail += 1
 
 print(f"\nBG removal : {bg_ok} OK, {bg_fail} failed in {(time.time()-t1)/60:.0f} min")
-gc.collect(); torch.cuda.empty_cache()
+gc.collect()
+for _gi in range(torch.cuda.device_count()):
+    torch.cuda.empty_cache()
 print("BG done\n")
 
 # ============================================================
@@ -575,6 +649,7 @@ print(f"""
   Prompts    : V2 Ultra-Realistic (43,082 total)
   Steps      : 4  |  CFG: 1.0  |  1536x1536
   BG Removal : rembg (birefnet-general)
+  GPUs       : {torch.cuda.device_count()} x T4 (2x Data Parallel)
   Generated  : {total_gen} images
   Transparent: {total_trn} PNGs
   Batch      : {START_INDEX} - {END_INDEX}
