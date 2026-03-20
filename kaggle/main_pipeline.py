@@ -361,12 +361,10 @@ if pending:
         """Return (height, width) based on free VRAM after model load."""
         free = torch.cuda.mem_get_info(gpu_id)[0] / 1e9
         print(f"  GPU {gpu_id} free VRAM after load: {free:.1f} GB")
-        if free >= 3.5:
-            return 1536, 1536
-        elif free >= 2.0:
-            return 1024, 1024
+        if free >= 2.0:
+            return 1280, 1280
         else:
-            return 768, 768
+            return 1024, 1024
 
     # ── Load one full pipe per GPU with CPU offload ────────────
     # enable_model_cpu_offload streams model layers to GPU one at a time
@@ -666,7 +664,7 @@ print(f"""
   BATCH COMPLETE!
   Model      : FLUX.2 [klein] 4B (Apache 2.0)
   Prompts    : V2 Ultra-Realistic (43,082 total)
-  Steps      : 4  |  CFG: 1.0  |  1536x1536
+  Steps      : 4  |  CFG: 1.0  |  1280x1280
   BG Removal : rembg (birefnet-general)
   GPUs       : {torch.cuda.device_count()} x T4 (2x Data Parallel)
   Generated  : {total_gen} images
