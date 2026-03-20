@@ -18,7 +18,7 @@ from pathlib import Path
 print("=" * 55)
 print("Installing dependencies...")
 pkgs = [
-    "diffusers>=0.33.0",
+    "git+https://github.com/huggingface/diffusers.git",
     "transformers>=4.47.0",
     "accelerate>=0.28.0",
     "sentencepiece",
@@ -121,22 +121,13 @@ if pending:
     print("Loading black-forest-labs/FLUX.2-klein-4B ...")
     print("(First run: downloads ~8GB — ~5 min)\n")
 
-    # Try Flux2Pipeline first (new diffusers), fallback to FluxPipeline
-    try:
-        from diffusers import Flux2Pipeline
-        pipe = Flux2Pipeline.from_pretrained(
-            "black-forest-labs/FLUX.2-klein-4B",
-            torch_dtype=torch.bfloat16,
-        )
-        print("Loaded with Flux2Pipeline")
-    except (ImportError, Exception) as e:
-        print(f"Flux2Pipeline not available ({e}), using FluxPipeline...")
-        from diffusers import FluxPipeline
-        pipe = FluxPipeline.from_pretrained(
-            "black-forest-labs/FLUX.2-klein-4B",
-            torch_dtype=torch.bfloat16,
-        )
-        print("Loaded with FluxPipeline")
+    # Use Flux2KleinPipeline (official HuggingFace pipeline for FLUX.2 klein)
+    from diffusers import Flux2KleinPipeline
+    pipe = Flux2KleinPipeline.from_pretrained(
+        "black-forest-labs/FLUX.2-klein-4B",
+        torch_dtype=torch.bfloat16,
+    )
+    print("Loaded with Flux2KleinPipeline")
 
     pipe.enable_model_cpu_offload()
     pipe.enable_attention_slicing()
@@ -156,7 +147,7 @@ if pending:
         return pipe(
             prompt=make_prompt(item["prompt"]),
             num_inference_steps=4,     # klein distilled = 4 steps optimal
-            guidance_scale=3.5,
+            guidance_scale=1.0,        # klein uses 1.0 per HuggingFace docs
             height=1024,
             width=1024,
             generator=generator,
@@ -209,7 +200,7 @@ if pending:
                 img = pipe(
                     prompt=make_prompt(item["prompt"]),
                     num_inference_steps=4,
-                    guidance_scale=3.5,
+                    guidance_scale=1.0,
                     height=768, width=768,
                     generator=gen,
                 ).images[0]
