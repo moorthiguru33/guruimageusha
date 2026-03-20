@@ -25,8 +25,7 @@ pkgs = [
     "huggingface_hub",
     "Pillow",
     "numpy",
-    "timm",
-    "kornia",
+    "rembg[gpu]",
     "requests",
 ]
 for pkg in pkgs:
@@ -43,8 +42,6 @@ print("Done!\n")
 import torch
 import numpy as np
 from PIL import Image
-from transformers import AutoModelForImageSegmentation
-from torchvision import transforms
 import requests as req
 
 # ── Paths ─────────────────────────────────────────────────────
@@ -224,47 +221,14 @@ if pending:
     print("Model freed\n")
 
 # ============================================================
-# STEP 2: BRIA-RMBG-1.4 — Background Removal (non-gated)
+# STEP 2: Background Removal (rembg - U2Net)
 # ============================================================
 print("=" * 55)
-print("STEP 2: BRIA-RMBG-1.4 Background Removal")
+print("STEP 2: Background Removal (rembg)")
 print("=" * 55)
 
-rmbg   = AutoModelForImageSegmentation.from_pretrained(
-    "briaai/RMBG-1.4", trust_remote_code=True
-)
-device = "cuda" if torch.cuda.is_available() else "cpu"
-rmbg   = rmbg.to(device)
-rmbg.eval()
-print(f"BRIA-RMBG-1.4 loaded on {device}")
-
-img_tf = transforms.Compose([
-    transforms.Resize((1024, 1024)),
-    transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-])
-
-def remove_bg(img, category=""):
-    if any(k in category.lower() for k in ["smoke","effect","fire","sparkle","light"]):
-        d   = np.array(img.convert("RGBA"))
-        lum = (0.299*d[:,:,0] + 0.587*d[:,:,1] + 0.114*d[:,:,2]).astype(np.uint8)
-        d[:,:,3] = 255 - lum
-        d[d[:,:,3] < 10, 3] = 0
-        return Image.fromarray(d, "RGBA")
-    orig   = img.size
-    tensor = img_tf(img.convert("RGB")).unsqueeze(0).to(device)
-    with torch.no_grad():
-        result = rmbg(tensor)
-    mask = result[0][0] if isinstance(result, (list, tuple)) else result[0]
-    if mask.dim() > 2: mask = mask.squeeze()
-    mask_np  = (torch.sigmoid(mask).cpu().numpy() * 255).astype(np.uint8)
-    mask_pil = Image.fromarray(mask_np, "L").resize(orig, Image.LANCZOS)
-    out      = img.convert("RGB").convert("RGBA")
-    out.putalpha(mask_pil)
-    d  = np.array(out)
-    nw = (d[:,:,0]>240)&(d[:,:,1]>240)&(d[:,:,2]>240)&(d[:,:,3]>0)&(d[:,:,3]<200)
-    d[nw, 3] = 0
-    return Image.fromarray(d, "RGBA")
+from rembg import remove as rembg_remove
+print("rembg loaded successfully")
 
 gen_files = list(GENERATED_DIR.rglob("*.png"))
 print(f"Processing {len(gen_files)} images...\n")
@@ -276,21 +240,19 @@ for img_file in gen_files:
     if out.exists(): continue
     out.parent.mkdir(parents=True, exist_ok=True)
     try:
-        result = remove_bg(
-            Image.open(str(img_file)).convert("RGB"),
-            category=str(rel.parent)
-        )
+        img = Image.open(str(img_file)).convert("RGB")
+        result = rembg_remove(img)
         result.save(str(out), "PNG", optimize=True)
         bg_ok += 1
-        if bg_ok % 100 == 0:
+        if bg_ok % 50 == 0:
             print(f"  BG done: {bg_ok} | {bg_ok/(time.time()-t1):.2f}/s")
             gc.collect(); torch.cuda.empty_cache()
     except Exception as e:
         print(f"  BG FAIL {img_file.name}: {e}"); bg_fail += 1
 
 print(f"\nBG removal : {bg_ok} OK, {bg_fail} failed in {(time.time()-t1)/60:.0f} min")
-del rmbg; gc.collect(); torch.cuda.empty_cache()
-print("BG model freed\n")
+gc.collect(); torch.cuda.empty_cache()
+print("BG done\n")
 
 # ============================================================
 # STEP 3: Google Drive Upload
@@ -403,7 +365,7 @@ print(f"""
   Model      : FLUX.2 [klein] 4B (Apache 2.0)
   Released   : Jan 15, 2026 by Black Forest Labs
   Steps      : 4  |  CFG: 3.5  |  1024x1024
-  BG Removal : BRIA-RMBG-1.4 (pixel perfect)
+  BG Removal : rembg (U2Net)
   Generated  : {total_gen} images
   Transparent: {total_trn} PNGs
   Batch      : {START_INDEX} - {END_INDEX}
