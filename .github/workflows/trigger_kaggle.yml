@@ -96,7 +96,6 @@ jobs:
           cd kaggle
           KERNEL_ID="${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}"
 
-          # Force correct ID in metadata (overrides any hardcoded value)
           python3 -c "
           import json
           with open('kernel-metadata.json', 'r') as f:
@@ -104,7 +103,7 @@ jobs:
           meta['id'] = '${KERNEL_ID}'
           with open('kernel-metadata.json', 'w') as f:
               json.dump(meta, f, indent=2)
-          print('Kernel metadata updated:')
+          print('Kernel metadata:')
           print(json.dumps(meta, indent=2))
           "
 
@@ -139,11 +138,10 @@ jobs:
           STATUS=$(kaggle kernels status "$KERNEL" 2>&1 || true)
 
           if echo "$STATUS" | grep -qiE 'error'; then
-            echo "  Kernel stuck in ERROR state."
-            echo "  Attempting to clear by pulling latest version..."
+            echo "  Kernel in ERROR state — pulling to sync..."
             mkdir -p /tmp/ksync
             kaggle kernels pull "$KERNEL" -p /tmp/ksync -m 2>/dev/null || true
-            echo "  Waiting 30s for Kaggle to release lock..."
+            echo "  Waiting 30s for lock release..."
             sleep 30
           elif echo "$STATUS" | grep -qiE 'not found|404'; then
             echo "  Kernel doesn't exist yet — fresh push will create it."
@@ -151,7 +149,7 @@ jobs:
             echo "  Status OK: $STATUS"
           fi
 
-          # ━━━ STEP 3: Push with exponential backoff + nuclear fallback ━━━
+          # ━━━ STEP 3: Push with smart error detection ━━━
           echo ""
           echo "── Step 3: Push kernel ──"
           cd kaggle
@@ -164,48 +162,67 @@ jobs:
             echo ""
             echo "  ▶ Attempt $ATTEMPT/$MAX_RETRIES"
 
-            if kaggle kernels push -p . 2>&1; then
+            # Capture ALL output — Kaggle CLI sometimes returns 0 on soft errors!
+            OUTPUT=$(kaggle kernels push -p . 2>&1)
+            EXIT_CODE=$?
+            echo "  Output: $OUTPUT"
+            echo "  Exit code: $EXIT_CODE"
+
+            # ── REAL success: exit 0 AND no error keywords ──
+            if [ $EXIT_CODE -eq 0 ] && ! echo "$OUTPUT" | grep -qiE 'error|conflict|cannot change'; then
               echo ""
               echo "  ✅ PUSH SUCCESSFUL!"
               break
-            else
-              echo "  ❌ Push failed"
 
-              # ── Nuclear option: delete + recreate on attempt 4+ ──
-              if [ $ATTEMPT -ge 3 ]; then
-                echo ""
-                echo "  ⚠ 409 persists → deleting kernel to force fresh state..."
+            # ── Editor type mismatch: MUST delete + recreate ──
+            elif echo "$OUTPUT" | grep -qi 'cannot change the editor type'; then
+              echo "  ❌ Editor type mismatch (notebook vs script)"
+              echo "  → Deleting kernel to recreate with correct type..."
+              kaggle kernels delete "$KERNEL" 2>/dev/null && {
+                echo "  Deleted. Waiting 45s..."
+                sleep 45
+              } || {
+                echo "  Delete failed"
+                sleep 15
+              }
+
+            # ── 409 Conflict ──
+            elif echo "$OUTPUT" | grep -qi '409'; then
+              echo "  ❌ 409 Conflict"
+              if [ $ATTEMPT -ge 2 ]; then
+                echo "  → Deleting kernel to force fresh state..."
                 kaggle kernels delete "$KERNEL" 2>/dev/null && {
-                  echo "  Kernel deleted. Waiting 45s for Kaggle cleanup..."
+                  echo "  Deleted. Waiting 45s..."
                   sleep 45
                 } || {
-                  echo "  Delete command failed (kernel may already be gone)"
+                  echo "  Delete failed"
                   sleep 15
                 }
               fi
 
-              if [ $ATTEMPT -lt $MAX_RETRIES ]; then
-                echo "  Retrying in ${DELAY}s..."
-                sleep $DELAY
-                DELAY=$((DELAY * 2))
-              else
-                echo ""
-                echo "  ╔══════════════════════════════════════════════╗"
-                echo "  ║  ALL $MAX_RETRIES ATTEMPTS FAILED                    ║"
-                echo "  ║  Manual fix:                                 ║"
-                echo "  ║  1. Go to kaggle.com → Your Notebooks        ║"
-                echo "  ║  2. Delete '${{ env.NOTEBOOK_SLUG }}'        ║"
-                echo "  ║  3. Create new notebook with same name       ║"
-                echo "  ║  4. Re-run this workflow                     ║"
-                echo "  ╚══════════════════════════════════════════════╝"
-                exit 1
-              fi
+            # ── Other error ──
+            else
+              echo "  ❌ Push error"
+            fi
+
+            # Retry or give up
+            if [ $ATTEMPT -lt $MAX_RETRIES ]; then
+              echo "  Retrying in ${DELAY}s..."
+              sleep $DELAY
+              DELAY=$((DELAY * 2))
+            else
+              echo ""
+              echo "  ══════════════════════════════════════"
+              echo "  ALL $MAX_RETRIES ATTEMPTS FAILED"
+              echo "  Fix: kaggle.com → Delete notebook → Re-run"
+              echo "  ══════════════════════════════════════"
+              exit 1
             fi
           done
 
           echo ""
-          echo "Waiting 60s for Kaggle to register the kernel..."
-          sleep 60
+          echo "Waiting 90s for Kaggle to start the kernel..."
+          sleep 90
 
       - name: Wait for Kaggle Completion
         run: |
@@ -213,6 +230,7 @@ jobs:
           MAX=14400
           ELAPSED=0
           POLL=120
+          SEEN_RUNNING=false
 
           echo "Monitoring: $KERNEL"
           echo "Timeout: ${MAX}s (~4 hours) | Polling every ${POLL}s"
@@ -225,30 +243,45 @@ jobs:
             echo "[${MINS}m] Status: ${S:-unknown}"
 
             case "$S" in
+              running)
+                SEEN_RUNNING=true
+                ;;
+              queued)
+                echo "  Kernel queued, waiting for GPU..."
+                ;;
               complete)
-                echo "════════════════════════════════════════"
-                echo "✅ KERNEL COMPLETED SUCCESSFULLY!"
-                exit 0
+                # Only accept if we saw running first, OR enough time passed
+                if [ "$SEEN_RUNNING" = true ] || [ $ELAPSED -ge 300 ]; then
+                  echo "════════════════════════════════════════"
+                  echo "✅ KERNEL COMPLETED!"
+                  exit 0
+                else
+                  echo "  ⚠ Stale 'complete' from previous run — waiting for new run to start..."
+                fi
                 ;;
               error)
-                echo "════════════════════════════════════════"
-                echo "❌ KERNEL FAILED — check Kaggle logs"
-                echo "https://www.kaggle.com/code/$KERNEL"
-                exit 1
+                if [ "$SEEN_RUNNING" = true ]; then
+                  echo "════════════════════════════════════════"
+                  echo "❌ KERNEL FAILED — check logs:"
+                  echo "https://www.kaggle.com/code/$KERNEL"
+                  exit 1
+                else
+                  echo "  ⚠ Stale 'error' from previous run — waiting for new run..."
+                fi
+                ;;
+              *)
+                if [ $ELAPSED -ge 600 ]; then
+                  echo "  ⚠ No valid status after ${MINS}m — Raw: $FULL"
+                fi
                 ;;
             esac
-
-            if [ -z "$S" ] && [ $ELAPSED -ge 300 ]; then
-              echo "  ⚠ WARNING: No valid status after ${MINS}m"
-              echo "  Raw output: $FULL"
-            fi
 
             sleep $POLL
             ELAPSED=$((ELAPSED + POLL))
           done
 
           echo "════════════════════════════════════════"
-          echo "⏰ TIMEOUT after ${MAX}s"
+          echo "⏰ TIMEOUT after $((MAX / 60)) minutes"
           exit 1
 
       - name: Save Progress
