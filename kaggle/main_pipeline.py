@@ -123,6 +123,17 @@ if pending:
     print("Loading black-forest-labs/FLUX.1-dev ...")
     print("(First run: downloads ~24GB — ~10 min)\n")
 
+    # ── HuggingFace login (FLUX.1-dev is gated) ──────────────
+    from huggingface_hub import login
+    try:
+        from kaggle_secrets import UserSecretsClient
+        hf_token = UserSecretsClient().get_secret("HF_TOKEN")
+        login(token=hf_token, add_to_git_credential=False)
+        print("✅ HuggingFace login: OK")
+    except Exception as e:
+        print(f"❌ HF login failed: {e}")
+        raise SystemExit("Add HF_TOKEN to Kaggle Secrets (Add-ons → Secrets)")
+
     from diffusers import FluxPipeline
     pipe = FluxPipeline.from_pretrained(
         "black-forest-labs/FLUX.1-dev",
