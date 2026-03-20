@@ -378,14 +378,13 @@ if pending:
     print()
 
     # ── Thread-safe shared state ──────────────────────────────
-    _lock        = threading.Lock()
-    gen_count    = 0
-    t0           = time.time()
+    _lock         = threading.Lock()
+    _counter      = [0]          # mutable list — no nonlocal needed
+    t0            = time.time()
     total_pending = len(pending)
 
     def worker(gpu_id, items):
         """Each worker owns one GPU and processes its queue sequentially."""
-        nonlocal gen_count
         pipe_w = pipes[gpu_id]
         device = f"cuda:{gpu_id}"
 
@@ -419,16 +418,16 @@ if pending:
 
                 with _lock:
                     progress["completed"].append(item["index"])
-                    gen_count += 1
+                    _counter[0] += 1
                     elapsed = time.time() - t0
-                    rate    = gen_count / elapsed
-                    eta     = (total_pending - gen_count) / rate / 60 if rate > 0 else 0
+                    rate    = _counter[0] / elapsed
+                    eta     = (total_pending - _counter[0]) / rate / 60 if rate > 0 else 0
                     cat     = item.get("category", "")
                     mode    = "VEC" if cat in VECTOR_CATEGORIES else "PHO"
-                    print(f"  ✅ [GPU{gpu_id}] [{gen_count}/{total_pending}] {item['filename']}"
+                    print(f"  ✅ [GPU{gpu_id}] [{_counter[0]}/{total_pending}] {item['filename']}"
                           f" | {cat} [{mode}] | ETA {eta:.0f}min")
 
-                    if gen_count % 100 == 0:
+                    if _counter[0] % 100 == 0:
                         with open(pf, "w") as _f: json.dump(progress, _f)
                         save_progress_to_drive(progress, START_INDEX, END_INDEX)
                         gc.collect()
@@ -453,7 +452,7 @@ if pending:
                     save_generated(img, item)
                     with _lock:
                         progress["completed"].append(item["index"])
-                        gen_count += 1
+                        _counter[0] += 1
                 except Exception as e2:
                     print(f"  FAIL GPU{gpu_id}: {e2}")
                     with _lock:
@@ -478,7 +477,7 @@ if pending:
 
     with open(pf, "w") as f: json.dump(progress, f)
     save_progress_to_drive(progress, START_INDEX, END_INDEX)
-    print(f"\nGeneration : {gen_count} images in {(time.time()-t0)/60:.0f} min")
+    print(f"\nGeneration : {_counter[0]} images in {(time.time()-t0)/60:.0f} min")
     print(f"Failed     : {len(progress['failed'])}")
 
     # Free all pipes
