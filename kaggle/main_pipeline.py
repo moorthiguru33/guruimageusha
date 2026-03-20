@@ -36,6 +36,8 @@ pkgs = [
     "numpy",
     "rembg[gpu]",
     "requests",
+    "realesrgan",
+    "basicsr",
 ]
 for pkg in pkgs:
     r = subprocess.run(
@@ -56,11 +58,12 @@ import requests as req
 # ── Paths ─────────────────────────────────────────────────────
 WORKING_DIR     = Path("/kaggle/working")
 GENERATED_DIR   = WORKING_DIR / "generated_images"
+UPSCALED_DIR    = WORKING_DIR / "upscaled_images"
 TRANSPARENT_DIR = WORKING_DIR / "transparent_pngs"
 PROMPTS_DIR     = WORKING_DIR / "prompts_splits"
 PROGRESS_DIR    = WORKING_DIR / "progress"
 PROJECT_DIR     = WORKING_DIR / "project"
-for d in [GENERATED_DIR, TRANSPARENT_DIR, PROGRESS_DIR]:
+for d in [GENERATED_DIR, UPSCALED_DIR, TRANSPARENT_DIR, PROGRESS_DIR]:
     d.mkdir(parents=True, exist_ok=True)
 
 # ── Credentials ───────────────────────────────────────────────
@@ -433,7 +436,71 @@ if pending:
     print("Model freed\n")
 
 # ============================================================
-# STEP 2: Background Removal (rembg - U2Net)
+# STEP 1.5: RealESRGAN 4x Upscale (1024 → 4096)
+# ============================================================
+print("=" * 55)
+print("STEP 1.5: RealESRGAN 4x Upscale")
+print("=" * 55)
+
+try:
+    from basicsr.archs.rrdbnet_arch import RRDBNet
+    from realesrgan import RealESRGANer
+
+    upscale_model = RRDBNet(
+        num_in_ch=3, num_out_ch=3, num_feat=64,
+        num_block=23, num_grow_ch=32, scale=4
+    )
+    upscaler = RealESRGANer(
+        scale=4,
+        model_path="https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth",
+        model=upscale_model,
+        tile=512,          # tile-based — low RAM usage
+        tile_pad=10,
+        pre_pad=0,
+        half=False,        # CPU — no half precision
+        device="cpu",
+    )
+    print("RealESRGAN loaded (CPU mode, tile=512)\n")
+
+    gen_files_up = list(GENERATED_DIR.rglob("*.png"))
+    print(f"Upscaling {len(gen_files_up)} images...\n")
+    up_ok = 0; up_fail = 0; t_up = time.time()
+
+    for img_file in gen_files_up:
+        rel     = img_file.relative_to(GENERATED_DIR)
+        out_up  = UPSCALED_DIR / rel
+        if out_up.exists():
+            continue
+        out_up.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            import cv2, numpy as _np
+            img_cv = cv2.imread(str(img_file), cv2.IMREAD_COLOR)
+            output, _ = upscaler.enhance(img_cv, outscale=4)
+            cv2.imwrite(str(out_up), output)
+            up_ok += 1
+            if up_ok % 50 == 0:
+                print(f"  Upscaled: {up_ok} | {up_ok/(time.time()-t_up):.2f}/s")
+        except Exception as e:
+            print(f"  Upscale FAIL {img_file.name}: {e}")
+            # fallback: copy original as-is
+            import shutil
+            shutil.copy2(str(img_file), str(out_up))
+            up_fail += 1
+
+    print(f"\nUpscale : {up_ok} OK (4096x4096), {up_fail} fallback in {(time.time()-t_up)/60:.0f} min")
+    del upscaler; gc.collect()
+    print("Upscaler freed\n")
+
+    # STEP 2 reads from UPSCALED_DIR (4096x4096 sharp images)
+    BG_INPUT_DIR = UPSCALED_DIR
+
+except Exception as e:
+    print(f"RealESRGAN load failed: {e}")
+    print("Falling back: BG removal will use original 1024x1024 images\n")
+    BG_INPUT_DIR = GENERATED_DIR
+
+# ============================================================
+# STEP 2: Background Removal (rembg - birefnet-general)
 # ============================================================
 print("=" * 55)
 print("STEP 2: Background Removal (rembg)")
@@ -443,12 +510,12 @@ from rembg import remove as rembg_remove, new_session
 _rembg_session = new_session("birefnet-general")
 print("rembg loaded (birefnet-general)")
 
-gen_files = list(GENERATED_DIR.rglob("*.png"))
+gen_files = list(BG_INPUT_DIR.rglob("*.png"))
 print(f"Processing {len(gen_files)} images...\n")
 bg_ok = 0; bg_fail = 0; t1 = time.time()
 
 for img_file in gen_files:
-    rel = img_file.relative_to(GENERATED_DIR)
+    rel = img_file.relative_to(BG_INPUT_DIR)
     out = TRANSPARENT_DIR / rel
     if out.exists(): continue
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -589,7 +656,8 @@ print(f"""
   BATCH COMPLETE!
   Model      : FLUX.2 [klein] 4B (Apache 2.0)
   Prompts    : V2 Ultra-Realistic (43,082 total)
-  Steps      : 4  |  CFG: 1.0  |  1536x1536
+  Steps      : 4  |  CFG: 1.0  |  1024x1024 → 4096x4096
+  Upscale    : RealESRGAN 4x (AI Sharp)
   BG Removal : rembg (birefnet-general)
   GPUs       : {torch.cuda.device_count()} x T4 (2x Data Parallel)
   Generated  : {total_gen} images
