@@ -87,23 +87,46 @@ jobs:
         run: |
           KERNEL="${{ secrets.KAGGLE_USERNAME }}/png-library-generator"
 
-          # Check if kernel is currently running/queued — cancel it first
+          # Check if kernel is currently running/queued/error — handle it first
           echo "Checking current kernel status..."
           CURRENT=$(kaggle kernels status $KERNEL 2>&1)
           echo "Current status: $CURRENT"
 
-          S=$(echo "$CURRENT" | grep -oE 'running|queued' | head -1)
+          S=$(echo "$CURRENT" | grep -oiE 'running|queued|error' | head -1 | tr '[:upper:]' '[:lower:]')
+
           if [ "$S" = "running" ] || [ "$S" = "queued" ]; then
             echo "Kernel is $S — cancelling before push..."
             kaggle kernels cancel $KERNEL || echo "Cancel attempted"
-            echo "Waiting 30s for cancel to take effect..."
-            sleep 30
+            echo "Waiting 60s for cancel to take effect..."
+            sleep 60
+          elif [ "$S" = "error" ]; then
+            echo "Kernel is in ERROR state — waiting 60s for Kaggle cleanup..."
+            sleep 60
           fi
 
           cd kaggle
-          echo "Pushing kernel..."
-          kaggle kernels push -p .
-          echo "Pushed successfully! Waiting 60s for Kaggle to register..."
+
+          # Retry push up to 3 times with delay
+          MAX_RETRIES=3
+          RETRY=0
+          while [ $RETRY -lt $MAX_RETRIES ]; do
+            echo "Push attempt $((RETRY + 1))/$MAX_RETRIES..."
+            if kaggle kernels push -p . 2>&1; then
+              echo "Pushed successfully!"
+              break
+            else
+              RETRY=$((RETRY + 1))
+              if [ $RETRY -lt $MAX_RETRIES ]; then
+                echo "Push failed — waiting 90s before retry..."
+                sleep 90
+              else
+                echo "All $MAX_RETRIES push attempts failed!"
+                exit 1
+              fi
+            fi
+          done
+
+          echo "Waiting 60s for Kaggle to register..."
           sleep 60
 
       - name: Wait for Kaggle
