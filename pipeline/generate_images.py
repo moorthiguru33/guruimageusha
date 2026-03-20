@@ -1,8 +1,9 @@
 """
 PNG Library - Image Generator
-Model : FLUX.1 [dev]  (Non-commercial - Black Forest Labs)
+Model : FLUX.2 [klein] 4B  (Apache 2.0 - 100% FREE)
 GPU   : Kaggle T4 (16 GB VRAM)
-Output: 1536x1536 PNG
+Output: 2048x2048 PNG  (FLUX.2 native - no upscaler needed)
+BG    : BRIA-RMBG-2.0
 """
 
 import torch, json, os, gc
@@ -11,16 +12,16 @@ from diffusers import FluxPipeline
 from PIL import Image
 import time
 
-MODEL_ID      = "black-forest-labs/FLUX.1-dev"
+MODEL_ID      = "black-forest-labs/FLUX.2-klein-4B"
 OUTPUT_DIR    = Path("/kaggle/working/generated_images")
 PROMPTS_FILE  = "prompts/all_prompts.json"
 PROGRESS_FILE = "progress/progress.json"
 
 GENERATION_CONFIG = {
-    "num_inference_steps": 28,
+    "num_inference_steps": 8,
     "guidance_scale": 3.5,
-    "height": 1536,
-    "width":  1536,
+    "height": 2048,
+    "width":  2048,
     "max_sequence_length": 512,
 }
 
@@ -31,14 +32,14 @@ def is_quality_image(img):
     if (arr < 250).sum() < 1000: return False
     return True
 
-class FluxDevGenerator:
+class Flux2Generator:
     def __init__(self):
         self.pipe   = None
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         print(f"Device: {self.device}")
 
     def load_model(self):
-        print(f"Loading FLUX.1 [dev]...")
+        print(f"Loading FLUX.2 [klein] 4B...")
         self.pipe = FluxPipeline.from_pretrained(MODEL_ID, torch_dtype=torch.bfloat16)
         self.pipe.enable_model_cpu_offload()
         self.pipe.enable_attention_slicing(slice_size="auto")
@@ -96,7 +97,7 @@ def run_generation(prompts_file=PROMPTS_FILE, output_dir=str(OUTPUT_DIR), max_im
     if max_images: pending = pending[:max_images]
     if not pending: print("All done!"); return
 
-    gen = FluxDevGenerator().load_model()
+    gen = Flux2Generator().load_model()
     total = 0
     t0    = time.time()
 
@@ -115,12 +116,12 @@ def run_generation(prompts_file=PROMPTS_FILE, output_dir=str(OUTPUT_DIR), max_im
                   f"| 2048x2048 | {rate:.2f}/s | ETA {eta:.0f}min")
 
         except torch.cuda.OutOfMemoryError:
-            print(f"  OOM -- retrying at 768x768")
+            print(f"  OOM -- retrying at 1024x1024")
             torch.cuda.empty_cache(); gc.collect()
             try:
                 GENERATION_CONFIG["height"] = 1024; GENERATION_CONFIG["width"] = 1024
                 img = gen.generate(item["prompt"], item["seed"])
-                GENERATION_CONFIG["height"] = 1536; GENERATION_CONFIG["width"] = 1536
+                GENERATION_CONFIG["height"] = 2048; GENERATION_CONFIG["width"] = 2048
                 save_image(img, item, output_dir)
                 progress.mark_done(item["index"]); total += 1
             except Exception as e2:

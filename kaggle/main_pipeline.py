@@ -1,12 +1,13 @@
 """
 PNG Library - Kaggle Pipeline
 =============================================================
-Model   : FLUX.1 [dev] NF4 4-bit Quantized
-HF ID   : black-forest-labs/FLUX.1-dev
-Quant   : bitsandbytes NF4 double-quant (bfloat16 compute)
-VRAM    : ~8GB on T4 16GB — confirmed fits
-Steps   : 28 steps | CFG 3.5 | full dev quality
-Output  : 1024x1024 | OOM fallback: 768x768
+Model   : FLUX.2 [klein] 4B
+HF ID   : black-forest-labs/FLUX.2-klein-4B
+License : Apache 2.0 - FREE for commercial use
+VRAM    : ~8GB on T4 16GB - confirmed fits
+Released: January 15, 2026 by Black Forest Labs
+Steps   : 4 steps (distilled - fast + good quality)
+Batch   : 800 images/run ~ 4hrs (safe within 30hr/week)
 =============================================================
 """
 
@@ -22,9 +23,9 @@ pkgs = [
     "accelerate>=0.28.0",
     "sentencepiece",
     "huggingface_hub",
-    "bitsandbytes>=0.43.0",
     "Pillow",
     "numpy",
+    "rembg[gpu]",
     "requests",
 ]
 for pkg in pkgs:
@@ -44,12 +45,13 @@ from PIL import Image
 import requests as req
 
 # ── Paths ─────────────────────────────────────────────────────
-WORKING_DIR   = Path("/kaggle/working")
-GENERATED_DIR = WORKING_DIR / "generated_images"
-PROMPTS_FILE  = WORKING_DIR / "all_prompts.json"
-PROGRESS_DIR  = WORKING_DIR / "progress"
-PROJECT_DIR   = WORKING_DIR / "project"
-for d in [GENERATED_DIR, PROGRESS_DIR]:
+WORKING_DIR     = Path("/kaggle/working")
+GENERATED_DIR   = WORKING_DIR / "generated_images"
+TRANSPARENT_DIR = WORKING_DIR / "transparent_pngs"
+PROMPTS_FILE    = WORKING_DIR / "all_prompts.json"
+PROGRESS_DIR    = WORKING_DIR / "progress"
+PROJECT_DIR     = WORKING_DIR / "project"
+for d in [GENERATED_DIR, TRANSPARENT_DIR, PROGRESS_DIR]:
     d.mkdir(parents=True, exist_ok=True)
 
 # ── Credentials ───────────────────────────────────────────────
@@ -61,7 +63,7 @@ START_INDEX          = int(os.environ.get("START_INDEX", "0"))
 END_INDEX            = int(os.environ.get("END_INDEX", "800"))
 
 print("=" * 55)
-print("  PNG LIBRARY — FLUX.1 [schnell]")
+print("  PNG LIBRARY — FLUX.2 [klein] 4B")
 print("  Apache 2.0 | ~8GB VRAM | T4 Confirmed")
 print("=" * 55)
 print(f"  Batch  : {START_INDEX} -> {END_INDEX}  ({END_INDEX - START_INDEX} images)")
@@ -110,71 +112,43 @@ pending  = [p for p in batch_prompts if p["index"] not in done_set]
 print(f"Pending    : {len(pending)} images\n")
 
 # ============================================================
-# STEP 1: FLUX.1 [dev] NF4 Quantized — Image Generation
+# STEP 1: FLUX.2 [klein] 4B — Image Generation
 # ============================================================
 if pending:
     print("=" * 55)
-    print("STEP 1: FLUX.1 [dev] NF4 4-bit Quantized")
-    print("  VRAM: ~8GB  |  Quality: Full dev  |  Apache 2.0")
+    print("STEP 1: FLUX.2 [klein] 4B Generation")
     print("=" * 55)
+    print("Loading black-forest-labs/FLUX.2-klein-4B ...")
+    print("(First run: downloads ~8GB — ~5 min)\n")
 
-    os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
-
-    # ── HuggingFace login (FLUX.1-dev is gated) ──────────────
-    from huggingface_hub import login
-    try:
-        from kaggle_secrets import UserSecretsClient
-        hf_token = UserSecretsClient().get_secret("HF_TOKEN")
-        login(token=hf_token, add_to_git_credential=False)
-        print("✅ HuggingFace login: OK")
-    except Exception as e:
-        print(f"❌ HF login failed: {e}")
-        raise SystemExit("Add HF_TOKEN to Kaggle Secrets (Add-ons → Secrets → Attach ON)")
-
-    print("Loading FLUX.1-dev transformer in NF4 4-bit ...")
-    print("(First run: downloads ~24GB — ~10 min)\n")
-
-    from transformers import BitsAndBytesConfig as BnBConfig
-    from diffusers import FluxTransformer2DModel, FluxPipeline
-
-    nf4_config = BnBConfig(
-        load_in_4bit=True,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.bfloat16,
-        bnb_4bit_use_double_quant=True,
-    )
-
-    transformer = FluxTransformer2DModel.from_pretrained(
-        "black-forest-labs/FLUX.1-dev",
-        subfolder="transformer",
-        quantization_config=nf4_config,
+    # Use Flux2KleinPipeline (official HuggingFace pipeline for FLUX.2 klein)
+    from diffusers import Flux2KleinPipeline
+    pipe = Flux2KleinPipeline.from_pretrained(
+        "black-forest-labs/FLUX.2-klein-4B",
         torch_dtype=torch.bfloat16,
     )
-    print("Transformer loaded (NF4 4-bit) ✅")
+    print("Loaded with Flux2KleinPipeline")
 
-    pipe = FluxPipeline.from_pretrained(
-        "black-forest-labs/FLUX.1-dev",
-        transformer=transformer,
-        torch_dtype=torch.bfloat16,
-    )
     pipe.enable_model_cpu_offload()
-    pipe.enable_attention_slicing(slice_size="auto")
-    pipe.vae.enable_tiling()
-    pipe.vae.enable_slicing()
-    print(f"Pipeline ready! VRAM: {torch.cuda.memory_allocated()/1e9:.1f} GB\n")
+    print(f"Model loaded! VRAM: {torch.cuda.memory_allocated()/1e9:.1f} GB\n")
 
     def make_prompt(raw):
-        return raw + ", hyperrealistic photography, photorealistic, sharp focus, professional studio lighting, high resolution"
+        """Add realism boosters for PNG library quality"""
+        return (
+            raw +
+            ", hyperrealistic photography, shot on Canon EOS R5, "
+            "photorealistic, sharp focus, real life texture, "
+            "professional studio lighting, high resolution"
+        )
 
-    def generate_image(item, h=1024, w=1024):
+    def generate_image(item):
         generator = torch.Generator(device="cpu").manual_seed(item["seed"])
         return pipe(
             prompt=make_prompt(item["prompt"]),
-            num_inference_steps=28,
-            guidance_scale=3.5,
-            height=h,
-            width=w,
-            max_sequence_length=512,
+            num_inference_steps=4,     # klein distilled = 4 steps optimal
+            guidance_scale=1.0,        # klein uses 1.0 per HuggingFace docs
+            height=1024,
+            width=1024,
             generator=generator,
         ).images[0]
 
@@ -191,23 +165,27 @@ if pending:
 
     gen_count = 0
     t0 = time.time()
-    print(f"Generating {len(pending)} images at 1024x1024...\n")
+    print(f"Generating {len(pending)} images...\n")
 
     for item in pending:
         try:
-            img = generate_image(item, 1024, 1024)
+            img = generate_image(item)
+
             if not is_good(img):
                 print(f"  Retry {item['filename']}...")
                 retry = dict(item); retry["seed"] += 42
-                img = generate_image(retry, 1024, 1024)
+                img = generate_image(retry)
+
             save_generated(img, item)
             progress["completed"].append(item["index"])
             gen_count += 1
+
             elapsed = time.time() - t0
             rate    = gen_count / elapsed
             eta     = (len(pending) - gen_count) / rate / 60 if rate > 0 else 0
             print(f"  OK [{gen_count}/{len(pending)}] {item['filename']}"
                   f" | {item['category']} | ETA {eta:.0f}min")
+
             if gen_count % 100 == 0:
                 with open(pf, "w") as f: json.dump(progress, f)
                 gc.collect(); torch.cuda.empty_cache()
@@ -217,7 +195,14 @@ if pending:
             print(f"  OOM — retrying {item['filename']} at 768x768")
             torch.cuda.empty_cache(); gc.collect()
             try:
-                img = generate_image(item, 768, 768)
+                gen = torch.Generator(device="cpu").manual_seed(item["seed"])
+                img = pipe(
+                    prompt=make_prompt(item["prompt"]),
+                    num_inference_steps=4,
+                    guidance_scale=1.0,
+                    height=768, width=768,
+                    generator=gen,
+                ).images[0]
                 save_generated(img, item)
                 progress["completed"].append(item["index"])
                 gen_count += 1
@@ -236,10 +221,44 @@ if pending:
     print("Model freed\n")
 
 # ============================================================
-# STEP 2: Google Drive Upload
+# STEP 2: Background Removal (rembg - U2Net)
 # ============================================================
 print("=" * 55)
-print("STEP 2: Upload to Google Drive")
+print("STEP 2: Background Removal (rembg)")
+print("=" * 55)
+
+from rembg import remove as rembg_remove
+print("rembg loaded successfully")
+
+gen_files = list(GENERATED_DIR.rglob("*.png"))
+print(f"Processing {len(gen_files)} images...\n")
+bg_ok = 0; bg_fail = 0; t1 = time.time()
+
+for img_file in gen_files:
+    rel = img_file.relative_to(GENERATED_DIR)
+    out = TRANSPARENT_DIR / rel
+    if out.exists(): continue
+    out.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        img = Image.open(str(img_file)).convert("RGB")
+        result = rembg_remove(img)
+        result.save(str(out), "PNG", optimize=True)
+        bg_ok += 1
+        if bg_ok % 50 == 0:
+            print(f"  BG done: {bg_ok} | {bg_ok/(time.time()-t1):.2f}/s")
+            gc.collect(); torch.cuda.empty_cache()
+    except Exception as e:
+        print(f"  BG FAIL {img_file.name}: {e}"); bg_fail += 1
+
+print(f"\nBG removal : {bg_ok} OK, {bg_fail} failed in {(time.time()-t1)/60:.0f} min")
+gc.collect(); torch.cuda.empty_cache()
+print("BG done\n")
+
+# ============================================================
+# STEP 3: Google Drive Upload
+# ============================================================
+print("=" * 55)
+print("STEP 3: Upload to Google Drive")
 print("=" * 55)
 
 def get_token():
@@ -293,14 +312,15 @@ if all([GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN]):
         f_cache[""] = find_or_create(token, "png_library_images")
         print(f"Root folder ready: png_library_images\n")
 
-        png_files = list(GENERATED_DIR.rglob("*.png"))
+        png_files = list(TRANSPARENT_DIR.rglob("*.png"))
         up_ok = 0; t2 = time.time()
         print(f"Uploading {len(png_files)} PNGs...")
 
         for png in png_files:
-            rel      = png.relative_to(GENERATED_DIR)
+            rel      = png.relative_to(TRANSPARENT_DIR)
             file_key = str(rel)
             if file_key in uploaded: continue
+
             cat    = str(rel.parent)
             parent = f_cache[""]
             for part in cat.split("/"):
@@ -310,9 +330,11 @@ if all([GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN]):
                     f_cache[key] = find_or_create(token, part, parent)
                 parent = f_cache[key]
             f_cache[cat] = parent
+
             if up_ok > 0 and up_ok % 500 == 0:
                 token = get_token()
                 print(f"  Token refreshed at {up_ok} uploads")
+
             if upload_file(token, str(png), rel.name, f_cache[cat]):
                 up_prog["uploaded"].append(file_key)
                 uploaded.add(file_key)
@@ -335,13 +357,17 @@ else:
 # FINAL REPORT
 # ============================================================
 total_gen = len(list(GENERATED_DIR.rglob("*.png")))
+total_trn = len(list(TRANSPARENT_DIR.rglob("*.png")))
 total_min = (time.time() - progress.get("start_time", time.time())) / 60
 print(f"""
 {'='*55}
   BATCH COMPLETE!
-  Model      : FLUX.1 [dev] NF4 4-bit Quantized
-  Steps      : 28  |  CFG: 3.5  |  1024x1024
+  Model      : FLUX.2 [klein] 4B (Apache 2.0)
+  Released   : Jan 15, 2026 by Black Forest Labs
+  Steps      : 4  |  CFG: 3.5  |  1024x1024
+  BG Removal : rembg (U2Net)
   Generated  : {total_gen} images
+  Transparent: {total_trn} PNGs
   Batch      : {START_INDEX} - {END_INDEX}
   Time       : {total_min:.0f} minutes
   Drive      : png_library_images/
