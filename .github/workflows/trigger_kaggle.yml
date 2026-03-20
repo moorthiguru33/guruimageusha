@@ -1,3 +1,4 @@
+
 name: PNG Library Generator
 
 on:
@@ -47,7 +48,10 @@ jobs:
           mkdir -p ~/.kaggle
           printf '%s' '{"username":"${{ secrets.KAGGLE_USERNAME }}","key":"${{ secrets.KAGGLE_KEY }}"}' > ~/.kaggle/kaggle.json
           chmod 600 ~/.kaggle/kaggle.json
+          echo "Kaggle CLI version:"
           kaggle --version
+          echo "Verifying credentials..."
+          kaggle kernels list --mine --page-size 1 || echo "WARNING: Credential check failed"
 
       - name: Calculate Batch
         id: batch
@@ -83,22 +87,50 @@ jobs:
       - name: Push to Kaggle
         run: |
           cd kaggle
+          echo "Pushing kernel..."
           kaggle kernels push -p .
-          echo "Pushed! Waiting 60s..."
+          echo "Pushed successfully! Waiting 60s for Kaggle to register..."
           sleep 60
 
       - name: Wait for Kaggle
         run: |
           MAX=14400
           W=0
+          KERNEL="${{ secrets.KAGGLE_USERNAME }}/png-library-generator"
+          echo "Monitoring kernel: $KERNEL"
+          echo "Max wait: ${MAX}s (~4 hours)"
+          echo "========================================"
+
           while [ $W -lt $MAX ]; do
-            S=$(kaggle kernels status ${{ secrets.KAGGLE_USERNAME }}/png-library-generator 2>/dev/null | grep -oE 'complete|running|error|queued' | head -1)
-            echo "[${W}s] $S"
-            if [ "$S" = "complete" ]; then echo "Done!"; break; fi
-            if [ "$S" = "error" ]; then echo "FAILED!"; exit 1; fi
+            FULL=$(kaggle kernels status $KERNEL 2>&1)
+            S=$(echo "$FULL" | grep -oE 'complete|running|error|queued' | head -1)
+            echo "[${W}s] Status: ${S:-unknown} | $FULL"
+
+            if [ "$S" = "complete" ]; then
+              echo "========================================"
+              echo "Kernel COMPLETE!"
+              break
+            fi
+
+            if [ "$S" = "error" ]; then
+              echo "========================================"
+              echo "Kernel FAILED! Check Kaggle logs."
+              exit 1
+            fi
+
+            if [ -z "$S" ] && [ $W -ge 300 ]; then
+              echo "WARNING: No status after ${W}s - kernel may not have started"
+              echo "Full output: $FULL"
+            fi
+
             sleep 120
             W=$((W + 120))
           done
+
+          if [ $W -ge $MAX ]; then
+            echo "TIMEOUT: Kernel did not finish in ${MAX}s"
+            exit 1
+          fi
 
       - name: Save Progress
         if: success()
