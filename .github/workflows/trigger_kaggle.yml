@@ -73,8 +73,8 @@ jobs:
               END=800
             fi
           fi
-          if [ "$END" -gt "46502" ]; then END=46502; fi
-          if [ "$START" -ge "46502" ]; then echo "All done!"; exit 0; fi
+          if [ "$END" -gt "43082" ]; then END=43082; fi
+          if [ "$START" -ge "43082" ]; then echo "All done!"; exit 0; fi
           echo "start_index=$START" >> $GITHUB_OUTPUT
           echo "end_index=$END" >> $GITHUB_OUTPUT
           echo "Batch: $START → $END"
@@ -227,9 +227,9 @@ jobs:
         run: |
           if [ -f "progress/batch_tracker.txt" ]; then
             DONE=$(cat progress/batch_tracker.txt)
-            echo "Done: $DONE / 46502 ($((DONE * 100 / 46502))%)"
-            echo "Remaining: $((46502 - DONE))"
-            echo "Est. days: ~$(((46502 - DONE) / 800))"
+            echo "Done: $DONE / 43082 ($((DONE * 100 / 43082))%)"
+            echo "Remaining: $((43082 - DONE))"
+            echo "Est. days: ~$(((43082 - DONE) / 800))"
           else
             echo "Not started yet!"
           fi
