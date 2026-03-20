@@ -121,17 +121,149 @@ all_prompts   = load_or_generate_prompts()
 batch_prompts = all_prompts[START_INDEX:END_INDEX]
 print(f"Batch size : {len(batch_prompts)}")
 
+# ── Skip helpers ──────────────────────────────────────────────
+def is_already_generated(item):
+    """Check if image file already exists in GENERATED_DIR (within-session skip)."""
+    path = GENERATED_DIR / item["category"] / item.get("subcategory", "general") / item["filename"]
+    return path.exists()
+
+def _drive_token():
+    """Get a fresh token only if credentials are available."""
+    if all([GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN]):
+        try:
+            r = req.post("https://oauth2.googleapis.com/token", data={
+                "client_id":     GOOGLE_CLIENT_ID,
+                "client_secret": GOOGLE_CLIENT_SECRET,
+                "refresh_token": GOOGLE_REFRESH_TOKEN,
+                "grant_type":    "refresh_token",
+            })
+            if r.status_code == 200:
+                return r.json()["access_token"]
+        except Exception:
+            pass
+    return None
+
+def _drive_find_file(token, name):
+    """Return file_id for a named file in Drive root (not trashed), or None."""
+    h = {"Authorization": f"Bearer {token}"}
+    r = req.get("https://www.googleapis.com/drive/v3/files", headers=h,
+                params={"q": f"name='{name}' and trashed=false", "fields": "files(id)"})
+    files = r.json().get("files", [])
+    return files[0]["id"] if files else None
+
+def save_progress_to_drive(data, start, end):
+    """Upload progress JSON to Drive so it survives Kaggle session resets."""
+    token = _drive_token()
+    if not token:
+        return
+    try:
+        name    = f"progress_{start}_{end}.json"
+        content = json.dumps(data).encode()
+        h       = {"Authorization": f"Bearer {token}"}
+        fid     = _drive_find_file(token, name)
+        if fid:
+            req.patch(
+                f"https://www.googleapis.com/upload/drive/v3/files/{fid}?uploadType=media",
+                headers={**h, "Content-Type": "application/json"},
+                data=content,
+            )
+        else:
+            req.post(
+                "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+                headers=h,
+                files=[("metadata", ("m", json.dumps({"name": name}), "application/json")),
+                       ("file",     (name, content, "application/json"))],
+            )
+        print(f"  [drive] Progress saved ({len(data['completed'])} done)")
+    except Exception as e:
+        print(f"  [drive] Progress save failed: {e}")
+
+def load_progress_from_drive(start, end):
+    """Download progress JSON from Drive. Returns dict or None."""
+    token = _drive_token()
+    if not token:
+        return None
+    try:
+        name = f"progress_{start}_{end}.json"
+        fid  = _drive_find_file(token, name)
+        if not fid:
+            return None
+        h  = {"Authorization": f"Bearer {token}"}
+        r  = req.get(f"https://www.googleapis.com/drive/v3/files/{fid}?alt=media", headers=h)
+        data = r.json()
+        print(f"  [drive] Loaded progress: {len(data.get('completed', []))} already done")
+        return data
+    except Exception as e:
+        print(f"  [drive] Progress load failed: {e}")
+        return None
+
+def save_upload_progress_to_drive(data, start):
+    """Upload the upload-progress JSON to Drive."""
+    token = _drive_token()
+    if not token:
+        return
+    try:
+        name    = f"upload_progress_{start}.json"
+        content = json.dumps(data).encode()
+        h       = {"Authorization": f"Bearer {token}"}
+        fid     = _drive_find_file(token, name)
+        if fid:
+            req.patch(
+                f"https://www.googleapis.com/upload/drive/v3/files/{fid}?uploadType=media",
+                headers={**h, "Content-Type": "application/json"},
+                data=content,
+            )
+        else:
+            req.post(
+                "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+                headers=h,
+                files=[("metadata", ("m", json.dumps({"name": name}), "application/json")),
+                       ("file",     (name, content, "application/json"))],
+            )
+        print(f"  [drive] Upload progress saved ({len(data['uploaded'])} uploaded)")
+    except Exception as e:
+        print(f"  [drive] Upload progress save failed: {e}")
+
+def load_upload_progress_from_drive(start):
+    """Download upload-progress JSON from Drive. Returns dict or None."""
+    token = _drive_token()
+    if not token:
+        return None
+    try:
+        name = f"upload_progress_{start}.json"
+        fid  = _drive_find_file(token, name)
+        if not fid:
+            return None
+        h  = {"Authorization": f"Bearer {token}"}
+        r  = req.get(f"https://www.googleapis.com/drive/v3/files/{fid}?alt=media", headers=h)
+        data = r.json()
+        print(f"  [drive] Loaded upload progress: {len(data.get('uploaded', []))} already uploaded")
+        return data
+    except Exception as e:
+        print(f"  [drive] Upload progress load failed: {e}")
+        return None
+
 # ── Resume ────────────────────────────────────────────────────
 pf = PROGRESS_DIR / f"progress_{START_INDEX}_{END_INDEX}.json"
 if pf.exists():
     with open(pf) as f:
         progress = json.load(f)
-    print(f"Resuming   : {len(progress['completed'])} already done")
+    print(f"Resuming   : {len(progress['completed'])} already done (local)")
 else:
-    progress = {"completed": [], "failed": [], "start_time": time.time()}
+    # Try Drive — survives Kaggle session resets
+    drive_prog = load_progress_from_drive(START_INDEX, END_INDEX)
+    if drive_prog:
+        progress = drive_prog
+        with open(pf, "w") as f:
+            json.dump(progress, f)
+        print(f"Resuming   : {len(progress['completed'])} already done (from Drive)")
+    else:
+        progress = {"completed": [], "failed": [], "start_time": time.time()}
+        print("Resuming   : fresh start")
 
 done_set = set(progress["completed"])
-pending  = [p for p in batch_prompts if p["index"] not in done_set]
+pending  = [p for p in batch_prompts
+            if p["index"] not in done_set and not is_already_generated(p)]
 print(f"Pending    : {len(pending)} images\n")
 
 # ─────────────────────────────────────────────────────────────
@@ -210,8 +342,8 @@ if pending:
             prompt=prompt,
             num_inference_steps=4,
             guidance_scale=1.0,
-            height=1024,
-            width=1024,
+            height=1536,
+            width=1536,
             generator=generator,
         ).images[0]
 
@@ -253,11 +385,12 @@ if pending:
 
             if gen_count % 100 == 0:
                 with open(pf, "w") as f: json.dump(progress, f)
+                save_progress_to_drive(progress, START_INDEX, END_INDEX)
                 gc.collect(); torch.cuda.empty_cache()
                 print(f"  [saved] VRAM: {torch.cuda.memory_allocated()/1e9:.1f}GB")
 
         except torch.cuda.OutOfMemoryError:
-            print(f"  OOM — retrying {item['filename']} at 768x768")
+            print(f"  OOM — retrying {item['filename']} at 1024x1024")
             torch.cuda.empty_cache(); gc.collect()
             try:
                 prompt = enhance_prompt(item["prompt"], item.get("category", ""))
@@ -266,7 +399,7 @@ if pending:
                     prompt=prompt,
                     num_inference_steps=4,
                     guidance_scale=1.0,
-                    height=768, width=768,
+                    height=1024, width=1024,
                     generator=gen,
                 ).images[0]
                 save_generated(img, item)
@@ -281,6 +414,7 @@ if pending:
             progress["failed"].append(item["index"])
 
     with open(pf, "w") as f: json.dump(progress, f)
+    save_progress_to_drive(progress, START_INDEX, END_INDEX)
     print(f"\nGeneration : {gen_count} images in {(time.time()-t0)/60:.0f} min")
     print(f"Failed     : {len(progress['failed'])}")
     del pipe; gc.collect(); torch.cuda.empty_cache()
@@ -293,8 +427,9 @@ print("=" * 55)
 print("STEP 2: Background Removal (rembg)")
 print("=" * 55)
 
-from rembg import remove as rembg_remove
-print("rembg loaded successfully")
+from rembg import remove as rembg_remove, new_session
+_rembg_session = new_session("birefnet-general")
+print("rembg loaded (birefnet-general)")
 
 gen_files = list(GENERATED_DIR.rglob("*.png"))
 print(f"Processing {len(gen_files)} images...\n")
@@ -307,7 +442,7 @@ for img_file in gen_files:
     out.parent.mkdir(parents=True, exist_ok=True)
     try:
         img = Image.open(str(img_file)).convert("RGB")
-        result = rembg_remove(img)
+        result = rembg_remove(img, session=_rembg_session)
         result.save(str(out), "PNG", optimize=True)
         bg_ok += 1
         if bg_ok % 50 == 0:
@@ -372,7 +507,13 @@ if all([GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN]):
         token   = get_token()
         f_cache = {}
         up_pf   = PROGRESS_DIR / f"upload_{START_INDEX}.json"
-        up_prog = json.load(open(up_pf)) if up_pf.exists() else {"uploaded": []}
+        if up_pf.exists():
+            up_prog = json.load(open(up_pf))
+        else:
+            drive_up = load_upload_progress_from_drive(START_INDEX)
+            up_prog  = drive_up if drive_up else {"uploaded": []}
+            if drive_up:
+                with open(up_pf, "w") as f: json.dump(up_prog, f)
         uploaded = set(up_prog["uploaded"])
 
         f_cache[""] = find_or_create(token, "png_library_images")
@@ -407,12 +548,14 @@ if all([GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN]):
                 up_ok += 1
                 if up_ok % 50 == 0:
                     with open(up_pf, "w") as f: json.dump(up_prog, f)
+                    save_upload_progress_to_drive(up_prog, START_INDEX)
                     print(f"  Uploaded: {up_ok} | {up_ok/(time.time()-t2):.2f}/s")
             else:
                 print(f"  Upload FAIL: {file_key}")
             time.sleep(0.05)
 
         with open(up_pf, "w") as f: json.dump(up_prog, f)
+        save_upload_progress_to_drive(up_prog, START_INDEX)
         print(f"\nUpload done: {up_ok} files in {(time.time()-t2)/60:.0f} min")
     except Exception as e:
         print(f"Drive error: {e}")
@@ -430,8 +573,8 @@ print(f"""
   BATCH COMPLETE!
   Model      : FLUX.2 [klein] 4B (Apache 2.0)
   Prompts    : V2 Ultra-Realistic (43,082 total)
-  Steps      : 4  |  CFG: 1.0  |  1024x1024
-  BG Removal : rembg (U2Net)
+  Steps      : 4  |  CFG: 1.0  |  1536x1536
+  BG Removal : rembg (birefnet-general)
   Generated  : {total_gen} images
   Transparent: {total_trn} PNGs
   Batch      : {START_INDEX} - {END_INDEX}
