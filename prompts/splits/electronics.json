@@ -1,1874 +1,434 @@
 [
   {
     "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "wireless earbuds in charging case open, 45 degree angle hero shot, tech product photography, 45 degree angle view, bright even fill lighting, ultra fine material detail, studio catalog photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 223284,
-    "index": 18,
-    "filename": "img_000018.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "USB-C hub multiport adapter, 45 degree angle hero shot, tech product photography, close-up macro shot, dramatic Rembrandt side lighting, ultra fine material detail, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 308548,
-    "index": 231,
-    "filename": "img_000231.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "power bank portable charger, side profile thin view, tech product photography, top-down flat lay view, dramatic Rembrandt side lighting, tactile surface quality, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 213771,
-    "index": 297,
-    "filename": "img_000297.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "action camera GoPro style, 45 degree angle hero shot, tech product photography, 45 degree angle view, bright even fill lighting, lifelike realistic texture, studio catalog photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 529313,
-    "index": 333,
-    "filename": "img_000333.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "MacBook Pro silver open showing screen, top down flat lay, tech product photography, front view, warm key light with cool fill, every pore and grain visible, high-end advertising photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 386305,
-    "index": 579,
-    "filename": "img_000579.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "over-ear premium headphones leather cushion, front view showing screen, tech product photography, close-up macro shot, soft diffused studio strobe, lifelike realistic texture, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 375991,
-    "index": 696,
-    "filename": "img_000696.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "mechanical gaming keyboard RGB, 45 degree angle hero shot, tech product photography, front view, rim light with soft fill, tactile surface quality, studio catalog photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 754981,
-    "index": 941,
-    "filename": "img_000941.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "ergonomic wireless mouse, top down flat lay, tech product photography, top-down flat lay view, bright even fill lighting, true-to-life material rendering, studio catalog photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 571600,
-    "index": 964,
-    "filename": "img_000964.png",
+    "subcategory": "phones",
+    "prompt": "latest iPhone Pro with triple camera system, front view showing screen, tech product photography, 45 degree angle view, soft diffused studio strobe, true-to-life material rendering, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 928342,
+    "filename": "electronics_phones_2c6b314b.png",
+    "index": 9941,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "phones",
-    "prompt": "Samsung Galaxy S Ultra flagship phone, 45 degree angle hero shot, tech product photography, low angle heroic view, soft diffused studio strobe, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 503634,
-    "index": 1136,
-    "filename": "img_001136.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "action camera GoPro style, 45 degree angle hero shot, tech product photography, 45 degree angle view, bright even fill lighting, lifelike realistic texture, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 559212,
-    "index": 1350,
-    "filename": "img_001350.png",
+    "prompt": "latest iPhone Pro with triple camera system, 45 degree angle hero shot, tech product photography, side profile view, bright even fill lighting, lifelike realistic texture, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 100436,
+    "filename": "electronics_phones_aafc317a.png",
+    "index": 9942,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "phones",
-    "prompt": "latest iPhone Pro with triple camera system, top down flat lay, tech product photography, close-up macro shot, dramatic Rembrandt side lighting, true-to-life material rendering, commercial product photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 422238,
-    "index": 1472,
-    "filename": "img_001472.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "gaming laptop with RGB keyboard glowing, front view showing screen, tech product photography, front view, bright even fill lighting, ultra fine material detail, commercial product photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 568093,
-    "index": 1566,
-    "filename": "img_001566.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "thin ultrabook laptop silver, 45 degree angle hero shot, tech product photography, low angle heroic view, bright even fill lighting, every pore and grain visible, commercial product photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 704941,
-    "index": 1904,
-    "filename": "img_001904.png",
+    "prompt": "latest iPhone Pro with triple camera system, side profile thin view, tech product photography, 3/4 perspective view, soft diffused studio strobe, tactile surface quality, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 711502,
+    "filename": "electronics_phones_8de116ac.png",
+    "index": 9943,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "phones",
-    "prompt": "Google Pixel Pro phone clean design, front view showing screen, tech product photography, front view, dramatic Rembrandt side lighting, every pore and grain visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 215374,
-    "index": 2179,
-    "filename": "img_002179.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "mechanical gaming keyboard RGB, side profile thin view, tech product photography, top-down flat lay view, rim light with soft fill, true-to-life material rendering, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 527122,
-    "index": 2182,
-    "filename": "img_002182.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "vintage film camera analog, top down flat lay, tech product photography, front view, rim light with soft fill, ultra fine material detail, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 386177,
-    "index": 2350,
-    "filename": "img_002350.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "vintage film camera analog, 45 degree angle hero shot, tech product photography, low angle heroic view, soft diffused studio strobe, tactile surface quality, editorial magazine photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 599384,
-    "index": 2929,
-    "filename": "img_002929.png",
+    "prompt": "Samsung Galaxy S Ultra flagship phone, front view showing screen, tech product photography, eye level straight on view, rim light with soft fill, lifelike realistic texture, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 637568,
+    "filename": "electronics_phones_d7cddd04.png",
+    "index": 9944,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "phones",
-    "prompt": "Google Pixel Pro phone clean design, side profile thin view, tech product photography, front view, bright even fill lighting, intricate surface texture visible, editorial magazine photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 637199,
-    "index": 3234,
-    "filename": "img_003234.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "vintage film camera analog, 45 degree angle hero shot, tech product photography, low angle heroic view, soft diffused studio strobe, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 546361,
-    "index": 3779,
-    "filename": "img_003779.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "smart glasses tech wearable, front view showing screen, tech product photography, close-up macro shot, dramatic Rembrandt side lighting, every pore and grain visible, high-end advertising photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 401007,
-    "index": 3819,
-    "filename": "img_003819.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "convertible 2-in-1 laptop tablet mode, top down flat lay, tech product photography, side profile view, high key bright studio lighting, intricate surface texture visible, commercial product photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 333503,
-    "index": 3995,
-    "filename": "img_003995.png",
+    "prompt": "Samsung Galaxy S Ultra flagship phone, 45 degree angle hero shot, tech product photography, 3/4 perspective view, high key bright studio lighting, true-to-life material rendering, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 894375,
+    "filename": "electronics_phones_ec424b10.png",
+    "index": 9945,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "phones",
-    "prompt": "Google Pixel Pro phone clean design, top down flat lay, tech product photography, 45 degree angle view, bright even fill lighting, intricate surface texture visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 622992,
-    "index": 4027,
-    "filename": "img_004027.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "fitness band tracker on display, 45 degree angle hero shot, tech product photography, side profile view, rim light with soft fill, ultra fine material detail, studio catalog photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 858155,
-    "index": 4298,
-    "filename": "img_004298.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "studio monitor headphones professional, top down flat lay, tech product photography, top-down flat lay view, warm key light with cool fill, every pore and grain visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 664109,
-    "index": 4603,
-    "filename": "img_004603.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "over-ear premium headphones leather cushion, top down flat lay, tech product photography, eye level straight on view, warm key light with cool fill, ultra fine material detail, editorial magazine photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 777343,
-    "index": 4883,
-    "filename": "img_004883.png",
+    "prompt": "Samsung Galaxy S Ultra flagship phone, side profile thin view, tech product photography, side profile view, soft diffused studio strobe, intricate surface texture visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 741587,
+    "filename": "electronics_phones_03300cb9.png",
+    "index": 9946,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "phones",
-    "prompt": "latest iPhone Pro with triple camera system, front view showing screen, tech product photography, front view, dramatic Rembrandt side lighting, ultra fine material detail, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 444144,
-    "index": 5095,
-    "filename": "img_005095.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "fitness band tracker on display, front view showing screen, tech product photography, close-up macro shot, high key bright studio lighting, ultra fine material detail, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 631519,
-    "index": 5287,
-    "filename": "img_005287.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "USB-C hub multiport adapter, side profile thin view, tech product photography, close-up macro shot, high key bright studio lighting, true-to-life material rendering, high-end advertising photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 950535,
-    "index": 5810,
-    "filename": "img_005810.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "ergonomic wireless mouse, side profile thin view, tech product photography, close-up macro shot, rim light with soft fill, true-to-life material rendering, commercial product photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 235143,
-    "index": 5851,
-    "filename": "img_005851.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "DSLR camera with lens attached professional, top down flat lay, tech product photography, close-up macro shot, warm key light with cool fill, true-to-life material rendering, studio catalog photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 492607,
-    "index": 6290,
-    "filename": "img_006290.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "MacBook Pro silver open showing screen, top down flat lay, tech product photography, front view, warm key light with cool fill, every pore and grain visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 817517,
-    "index": 6331,
-    "filename": "img_006331.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "portable Bluetooth speaker cylindrical, 45 degree angle hero shot, tech product photography, close-up macro shot, rim light with soft fill, true-to-life material rendering, editorial magazine photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 217347,
-    "index": 6536,
-    "filename": "img_006536.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "ergonomic wireless mouse, side profile thin view, tech product photography, close-up macro shot, rim light with soft fill, true-to-life material rendering, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 522553,
-    "index": 6597,
-    "filename": "img_006597.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "mirrorless camera compact body, top down flat lay, tech product photography, low angle heroic view, rim light with soft fill, every pore and grain visible, studio catalog photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 603685,
-    "index": 6995,
-    "filename": "img_006995.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "wireless charging pad circular, front view showing screen, tech product photography, front view, bright even fill lighting, ultra fine material detail, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 363313,
-    "index": 7118,
-    "filename": "img_007118.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "convertible 2-in-1 laptop tablet mode, side profile thin view, tech product photography, front view, dramatic Rembrandt side lighting, intricate surface texture visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 944169,
-    "index": 7253,
-    "filename": "img_007253.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "smartwatch with digital face display, 45 degree angle hero shot, tech product photography, top-down flat lay view, bright even fill lighting, lifelike realistic texture, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 843972,
-    "index": 7684,
-    "filename": "img_007684.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "vintage turntable record player, front view showing screen, tech product photography, close-up macro shot, soft diffused studio strobe, every pore and grain visible, editorial magazine photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 181695,
-    "index": 7989,
-    "filename": "img_007989.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "USB-C hub multiport adapter, top down flat lay, tech product photography, eye level straight on view, warm key light with cool fill, every pore and grain visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 21562,
-    "index": 7995,
-    "filename": "img_007995.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "mechanical gaming keyboard RGB, top down flat lay, tech product photography, 3/4 perspective view, high key bright studio lighting, every pore and grain visible, editorial magazine photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 947690,
-    "index": 8058,
-    "filename": "img_008058.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "USB-C hub multiport adapter, front view showing screen, tech product photography, side profile view, bright even fill lighting, tactile surface quality, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 605345,
-    "index": 8328,
-    "filename": "img_008328.png",
+    "prompt": "OnePlus flagship phone sleek black, front view showing screen, tech product photography, side profile view, rim light with soft fill, ultra fine material detail, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 634478,
+    "filename": "electronics_phones_86a663b8.png",
+    "index": 9947,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "phones",
-    "prompt": "Google Pixel Pro phone clean design, front view showing screen, tech product photography, front view, dramatic Rembrandt side lighting, every pore and grain visible, editorial magazine photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 953368,
-    "index": 8457,
-    "filename": "img_008457.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "portable Bluetooth speaker cylindrical, front view showing screen, tech product photography, eye level straight on view, warm key light with cool fill, every pore and grain visible, high-end advertising photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 180016,
-    "index": 8772,
-    "filename": "img_008772.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "power bank portable charger, front view showing screen, tech product photography, close-up macro shot, high key bright studio lighting, true-to-life material rendering, commercial product photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 146021,
-    "index": 8964,
-    "filename": "img_008964.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "MacBook Pro silver open showing screen, side profile thin view, tech product photography, front view, dramatic Rembrandt side lighting, true-to-life material rendering, editorial magazine photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 708490,
-    "index": 9087,
-    "filename": "img_009087.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "convertible 2-in-1 laptop tablet mode, front view showing screen, tech product photography, close-up macro shot, bright even fill lighting, every pore and grain visible, high-end advertising photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 198794,
-    "index": 9205,
-    "filename": "img_009205.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "portable Bluetooth speaker cylindrical, side profile thin view, tech product photography, eye level straight on view, high key bright studio lighting, every pore and grain visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 210216,
-    "index": 9712,
-    "filename": "img_009712.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "fitness band tracker on display, front view showing screen, tech product photography, close-up macro shot, high key bright studio lighting, ultra fine material detail, studio catalog photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 442770,
-    "index": 9880,
-    "filename": "img_009880.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "vintage turntable record player, side profile thin view, tech product photography, top-down flat lay view, soft diffused studio strobe, lifelike realistic texture, studio catalog photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 685635,
-    "index": 10381,
-    "filename": "img_010381.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "thin ultrabook laptop silver, side profile thin view, tech product photography, front view, bright even fill lighting, lifelike realistic texture, high-end advertising photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 986390,
-    "index": 10519,
-    "filename": "img_010519.png",
+    "prompt": "OnePlus flagship phone sleek black, 45 degree angle hero shot, tech product photography, 3/4 perspective view, soft diffused studio strobe, ultra fine material detail, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 118239,
+    "filename": "electronics_phones_91422013.png",
+    "index": 9948,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "phones",
-    "prompt": "OnePlus flagship phone sleek black, side profile thin view, tech product photography, 3/4 perspective view, warm key light with cool fill, every pore and grain visible, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 669228,
-    "index": 10586,
-    "filename": "img_010586.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "portable Bluetooth speaker cylindrical, top down flat lay, tech product photography, front view, rim light with soft fill, tactile surface quality, commercial product photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 876916,
-    "index": 10641,
-    "filename": "img_010641.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "smart glasses tech wearable, side profile thin view, tech product photography, side profile view, high key bright studio lighting, intricate surface texture visible, commercial product photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 503555,
-    "index": 10700,
-    "filename": "img_010700.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "vintage turntable record player, 45 degree angle hero shot, tech product photography, 3/4 perspective view, rim light with soft fill, lifelike realistic texture, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 415573,
-    "index": 10710,
-    "filename": "img_010710.png",
+    "prompt": "OnePlus flagship phone sleek black, side profile thin view, tech product photography, close-up macro shot, dramatic Rembrandt side lighting, every pore and grain visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 458894,
+    "filename": "electronics_phones_2f96135a.png",
+    "index": 9949,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "laptops",
-    "prompt": "MacBook Pro silver open showing screen, front view showing screen, tech product photography, top-down flat lay view, high key bright studio lighting, true-to-life material rendering, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 306384,
-    "index": 10743,
-    "filename": "img_010743.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "vintage film camera analog, side profile thin view, tech product photography, front view, warm key light with cool fill, tactile surface quality, studio catalog photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 253579,
-    "index": 10841,
-    "filename": "img_010841.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "portable Bluetooth speaker cylindrical, side profile thin view, tech product photography, eye level straight on view, high key bright studio lighting, every pore and grain visible, commercial product photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 663524,
-    "index": 11126,
-    "filename": "img_011126.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "studio monitor headphones professional, front view showing screen, tech product photography, 3/4 perspective view, dramatic Rembrandt side lighting, intricate surface texture visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 950223,
-    "index": 11548,
-    "filename": "img_011548.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "studio monitor headphones professional, side profile thin view, tech product photography, eye level straight on view, warm key light with cool fill, tactile surface quality, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 978488,
-    "index": 11908,
-    "filename": "img_011908.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "Google Pixel Pro phone clean design, 45 degree angle hero shot, tech product photography, top-down flat lay view, warm key light with cool fill, every pore and grain visible, editorial magazine photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 781182,
-    "index": 12246,
-    "filename": "img_012246.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "fitness band tracker on display, 45 degree angle hero shot, tech product photography, side profile view, rim light with soft fill, ultra fine material detail, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 164447,
-    "index": 12633,
-    "filename": "img_012633.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "wireless earbuds in charging case open, side profile thin view, tech product photography, low angle heroic view, bright even fill lighting, tactile surface quality, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 447116,
-    "index": 12912,
-    "filename": "img_012912.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "smart glasses tech wearable, 45 degree angle hero shot, tech product photography, top-down flat lay view, soft diffused studio strobe, lifelike realistic texture, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 875293,
-    "index": 13067,
-    "filename": "img_013067.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "latest iPhone Pro with triple camera system, 45 degree angle hero shot, tech product photography, front view, dramatic Rembrandt side lighting, tactile surface quality, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 241313,
-    "index": 13088,
-    "filename": "img_013088.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "studio monitor headphones professional, side profile thin view, tech product photography, eye level straight on view, warm key light with cool fill, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 780874,
-    "index": 13150,
-    "filename": "img_013150.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "studio monitor headphones professional, 45 degree angle hero shot, tech product photography, 45 degree angle view, warm key light with cool fill, every pore and grain visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 607370,
-    "index": 13265,
-    "filename": "img_013265.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "ergonomic wireless mouse, 45 degree angle hero shot, tech product photography, eye level straight on view, dramatic Rembrandt side lighting, lifelike realistic texture, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 595845,
-    "index": 13870,
-    "filename": "img_013870.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "studio monitor headphones professional, front view showing screen, tech product photography, 3/4 perspective view, dramatic Rembrandt side lighting, intricate surface texture visible, editorial magazine photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 345754,
-    "index": 13895,
-    "filename": "img_013895.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "smartwatch with digital face display, front view showing screen, tech product photography, side profile view, dramatic Rembrandt side lighting, lifelike realistic texture, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 197323,
-    "index": 13900,
-    "filename": "img_013900.png",
+    "prompt": "MacBook Pro silver open showing screen, front view showing screen, tech product photography, close-up macro shot, bright even fill lighting, lifelike realistic texture, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 911383,
+    "filename": "electronics_laptops_f6c12543.png",
+    "index": 9950,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "laptops",
-    "prompt": "thin ultrabook laptop silver, front view showing screen, tech product photography, close-up macro shot, bright even fill lighting, true-to-life material rendering, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 896883,
-    "index": 14121,
-    "filename": "img_014121.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "wireless charging pad circular, 45 degree angle hero shot, tech product photography, front view, rim light with soft fill, every pore and grain visible, commercial product photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 752693,
-    "index": 14425,
-    "filename": "img_014425.png",
+    "prompt": "MacBook Pro silver open showing screen, 45 degree angle hero shot, tech product photography, close-up macro shot, rim light with soft fill, every pore and grain visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 266174,
+    "filename": "electronics_laptops_bbf3cb86.png",
+    "index": 9951,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "laptops",
-    "prompt": "convertible 2-in-1 laptop tablet mode, 45 degree angle hero shot, tech product photography, side profile view, high key bright studio lighting, every pore and grain visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 726517,
-    "index": 14580,
-    "filename": "img_014580.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "OnePlus flagship phone sleek black, front view showing screen, tech product photography, eye level straight on view, warm key light with cool fill, lifelike realistic texture, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 580028,
-    "index": 14691,
-    "filename": "img_014691.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "ergonomic wireless mouse, front view showing screen, tech product photography, low angle heroic view, rim light with soft fill, lifelike realistic texture, high-end advertising photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 667746,
-    "index": 14777,
-    "filename": "img_014777.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "DSLR camera with lens attached professional, 45 degree angle hero shot, tech product photography, low angle heroic view, rim light with soft fill, true-to-life material rendering, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 859763,
-    "index": 15044,
-    "filename": "img_015044.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "DSLR camera with lens attached professional, side profile thin view, tech product photography, low angle heroic view, bright even fill lighting, lifelike realistic texture, studio catalog photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 273507,
-    "index": 15475,
-    "filename": "img_015475.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "over-ear premium headphones leather cushion, 45 degree angle hero shot, tech product photography, 45 degree angle view, dramatic Rembrandt side lighting, tactile surface quality, studio catalog photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 952884,
-    "index": 16048,
-    "filename": "img_016048.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "mirrorless camera compact body, front view showing screen, tech product photography, side profile view, soft diffused studio strobe, lifelike realistic texture, high-end advertising photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 690007,
-    "index": 16441,
-    "filename": "img_016441.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "studio monitor headphones professional, top down flat lay, tech product photography, top-down flat lay view, warm key light with cool fill, every pore and grain visible, studio catalog photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 188968,
-    "index": 16590,
-    "filename": "img_016590.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "vintage turntable record player, side profile thin view, tech product photography, top-down flat lay view, soft diffused studio strobe, lifelike realistic texture, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 161859,
-    "index": 16615,
-    "filename": "img_016615.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "over-ear premium headphones leather cushion, top down flat lay, tech product photography, eye level straight on view, warm key light with cool fill, ultra fine material detail, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 6645,
-    "index": 16630,
-    "filename": "img_016630.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "Samsung Galaxy S Ultra flagship phone, side profile thin view, tech product photography, low angle heroic view, rim light with soft fill, true-to-life material rendering, commercial product photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 693197,
-    "index": 16656,
-    "filename": "img_016656.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "mechanical gaming keyboard RGB, top down flat lay, tech product photography, 3/4 perspective view, high key bright studio lighting, every pore and grain visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 967007,
-    "index": 16773,
-    "filename": "img_016773.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "fitness band tracker on display, side profile thin view, tech product photography, top-down flat lay view, rim light with soft fill, tactile surface quality, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 156683,
-    "index": 16811,
-    "filename": "img_016811.png",
+    "prompt": "MacBook Pro silver open showing screen, side profile thin view, tech product photography, 45 degree angle view, warm key light with cool fill, ultra fine material detail, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 465351,
+    "filename": "electronics_laptops_2c2daad7.png",
+    "index": 9952,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "laptops",
-    "prompt": "MacBook Pro silver open showing screen, side profile thin view, tech product photography, front view, dramatic Rembrandt side lighting, true-to-life material rendering, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 678071,
-    "index": 16927,
-    "filename": "img_016927.png",
+    "prompt": "gaming laptop with RGB keyboard glowing, front view showing screen, tech product photography, side profile view, warm key light with cool fill, lifelike realistic texture, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 226500,
+    "filename": "electronics_laptops_d653c95b.png",
+    "index": 9953,
     "status": "pending"
   },
   {
     "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "latest iPhone Pro with triple camera system, 45 degree angle hero shot, tech product photography, front view, dramatic Rembrandt side lighting, tactile surface quality, high-end advertising photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 261064,
-    "index": 17110,
-    "filename": "img_017110.png",
+    "subcategory": "laptops",
+    "prompt": "gaming laptop with RGB keyboard glowing, 45 degree angle hero shot, tech product photography, eye level straight on view, rim light with soft fill, lifelike realistic texture, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 873370,
+    "filename": "electronics_laptops_0c0d4d3e.png",
+    "index": 9954,
+    "status": "pending"
+  },
+  {
+    "category": "electronics",
+    "subcategory": "laptops",
+    "prompt": "gaming laptop with RGB keyboard glowing, side profile thin view, tech product photography, 3/4 perspective view, high key bright studio lighting, every pore and grain visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 534882,
+    "filename": "electronics_laptops_12cc79db.png",
+    "index": 9955,
+    "status": "pending"
+  },
+  {
+    "category": "electronics",
+    "subcategory": "laptops",
+    "prompt": "thin ultrabook laptop silver, front view showing screen, tech product photography, side profile view, soft diffused studio strobe, true-to-life material rendering, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 901209,
+    "filename": "electronics_laptops_e089f744.png",
+    "index": 9956,
+    "status": "pending"
+  },
+  {
+    "category": "electronics",
+    "subcategory": "laptops",
+    "prompt": "thin ultrabook laptop silver, 45 degree angle hero shot, tech product photography, eye level straight on view, dramatic Rembrandt side lighting, true-to-life material rendering, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 640690,
+    "filename": "electronics_laptops_7515307f.png",
+    "index": 9957,
+    "status": "pending"
+  },
+  {
+    "category": "electronics",
+    "subcategory": "laptops",
+    "prompt": "thin ultrabook laptop silver, side profile thin view, tech product photography, front view, dramatic Rembrandt side lighting, every pore and grain visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 476932,
+    "filename": "electronics_laptops_a9dfb1c6.png",
+    "index": 9958,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "audio",
-    "prompt": "wireless earbuds in charging case open, top down flat lay, tech product photography, low angle heroic view, soft diffused studio strobe, intricate surface texture visible, studio catalog photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 383255,
-    "index": 17187,
-    "filename": "img_017187.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "smartwatch with digital face display, top down flat lay, tech product photography, 45 degree angle view, warm key light with cool fill, tactile surface quality, studio catalog photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 449342,
-    "index": 17232,
-    "filename": "img_017232.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "smartwatch with digital face display, side profile thin view, tech product photography, close-up macro shot, warm key light with cool fill, ultra fine material detail, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 453127,
-    "index": 17693,
-    "filename": "img_017693.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "OnePlus flagship phone sleek black, side profile thin view, tech product photography, 3/4 perspective view, warm key light with cool fill, every pore and grain visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 116954,
-    "index": 17972,
-    "filename": "img_017972.png",
+    "prompt": "over-ear premium headphones leather cushion, front view showing screen, tech product photography, close-up macro shot, bright even fill lighting, lifelike realistic texture, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 335784,
+    "filename": "electronics_audio_13bcd7cd.png",
+    "index": 9959,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "audio",
-    "prompt": "wireless earbuds in charging case open, front view showing screen, tech product photography, eye level straight on view, soft diffused studio strobe, intricate surface texture visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 492456,
-    "index": 17992,
-    "filename": "img_017992.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "gaming laptop with RGB keyboard glowing, 45 degree angle hero shot, tech product photography, 3/4 perspective view, bright even fill lighting, true-to-life material rendering, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 106689,
-    "index": 18006,
-    "filename": "img_018006.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "MacBook Pro silver open showing screen, 45 degree angle hero shot, tech product photography, front view, warm key light with cool fill, lifelike realistic texture, commercial product photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 287296,
-    "index": 18090,
-    "filename": "img_018090.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "wireless charging pad circular, 45 degree angle hero shot, tech product photography, front view, rim light with soft fill, every pore and grain visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 488219,
-    "index": 18158,
-    "filename": "img_018158.png",
+    "prompt": "over-ear premium headphones leather cushion, 45 degree angle hero shot, tech product photography, eye level straight on view, soft diffused studio strobe, tactile surface quality, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 558942,
+    "filename": "electronics_audio_e63d39e8.png",
+    "index": 9960,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "audio",
-    "prompt": "portable Bluetooth speaker cylindrical, top down flat lay, tech product photography, front view, rim light with soft fill, tactile surface quality, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 117736,
-    "index": 18202,
-    "filename": "img_018202.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "thin ultrabook laptop silver, 45 degree angle hero shot, tech product photography, low angle heroic view, bright even fill lighting, every pore and grain visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 664960,
-    "index": 18229,
-    "filename": "img_018229.png",
+    "prompt": "over-ear premium headphones leather cushion, side profile thin view, tech product photography, side profile view, warm key light with cool fill, tactile surface quality, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 638896,
+    "filename": "electronics_audio_a76cae58.png",
+    "index": 9961,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "audio",
-    "prompt": "over-ear premium headphones leather cushion, front view showing screen, tech product photography, close-up macro shot, soft diffused studio strobe, lifelike realistic texture, studio catalog photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 375784,
-    "index": 18707,
-    "filename": "img_018707.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "smart glasses tech wearable, front view showing screen, tech product photography, close-up macro shot, dramatic Rembrandt side lighting, every pore and grain visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 485161,
-    "index": 19047,
-    "filename": "img_019047.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "fitness band tracker on display, top down flat lay, tech product photography, close-up macro shot, dramatic Rembrandt side lighting, lifelike realistic texture, high-end advertising photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 783832,
-    "index": 19299,
-    "filename": "img_019299.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "wireless charging pad circular, top down flat lay, tech product photography, 45 degree angle view, high key bright studio lighting, true-to-life material rendering, editorial magazine photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 767874,
-    "index": 19575,
-    "filename": "img_019575.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "MacBook Pro silver open showing screen, front view showing screen, tech product photography, top-down flat lay view, high key bright studio lighting, true-to-life material rendering, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 310844,
-    "index": 19686,
-    "filename": "img_019686.png",
+    "prompt": "wireless earbuds in charging case open, front view showing screen, tech product photography, front view, bright even fill lighting, ultra fine material detail, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 897765,
+    "filename": "electronics_audio_1a27c889.png",
+    "index": 9962,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "audio",
-    "prompt": "wireless earbuds in charging case open, side profile thin view, tech product photography, low angle heroic view, bright even fill lighting, tactile surface quality, commercial product photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 273110,
-    "index": 19843,
-    "filename": "img_019843.png",
+    "prompt": "wireless earbuds in charging case open, 45 degree angle hero shot, tech product photography, eye level straight on view, warm key light with cool fill, every pore and grain visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 409920,
+    "filename": "electronics_audio_2e0c5be3.png",
+    "index": 9963,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "audio",
-    "prompt": "vintage turntable record player, top down flat lay, tech product photography, low angle heroic view, dramatic Rembrandt side lighting, intricate surface texture visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 642602,
-    "index": 20259,
-    "filename": "img_020259.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "mirrorless camera compact body, front view showing screen, tech product photography, side profile view, soft diffused studio strobe, lifelike realistic texture, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 812979,
-    "index": 20506,
-    "filename": "img_020506.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "USB-C hub multiport adapter, front view showing screen, tech product photography, side profile view, bright even fill lighting, tactile surface quality, commercial product photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 472888,
-    "index": 20516,
-    "filename": "img_020516.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "mirrorless camera compact body, 45 degree angle hero shot, tech product photography, close-up macro shot, bright even fill lighting, lifelike realistic texture, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 809004,
-    "index": 20541,
-    "filename": "img_020541.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "fitness band tracker on display, top down flat lay, tech product photography, close-up macro shot, dramatic Rembrandt side lighting, lifelike realistic texture, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 286974,
-    "index": 20871,
-    "filename": "img_020871.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "instant Polaroid camera retro, front view showing screen, tech product photography, side profile view, high key bright studio lighting, intricate surface texture visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 670992,
-    "index": 20908,
-    "filename": "img_020908.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "smartwatch with digital face display, side profile thin view, tech product photography, close-up macro shot, warm key light with cool fill, ultra fine material detail, editorial magazine photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 166477,
-    "index": 21081,
-    "filename": "img_021081.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "vintage film camera analog, top down flat lay, tech product photography, front view, rim light with soft fill, ultra fine material detail, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 256806,
-    "index": 21361,
-    "filename": "img_021361.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "wireless charging pad circular, top down flat lay, tech product photography, 45 degree angle view, high key bright studio lighting, true-to-life material rendering, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 131983,
-    "index": 21431,
-    "filename": "img_021431.png",
+    "prompt": "wireless earbuds in charging case open, side profile thin view, tech product photography, 45 degree angle view, rim light with soft fill, every pore and grain visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 427425,
+    "filename": "electronics_audio_1b4c12cc.png",
+    "index": 9964,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "audio",
-    "prompt": "wireless earbuds in charging case open, top down flat lay, tech product photography, low angle heroic view, soft diffused studio strobe, intricate surface texture visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 46299,
-    "index": 21847,
-    "filename": "img_021847.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "thin ultrabook laptop silver, front view showing screen, tech product photography, close-up macro shot, bright even fill lighting, true-to-life material rendering, studio catalog photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 990609,
-    "index": 21943,
-    "filename": "img_021943.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "Google Pixel Pro phone clean design, 45 degree angle hero shot, tech product photography, top-down flat lay view, warm key light with cool fill, every pore and grain visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 362442,
-    "index": 21986,
-    "filename": "img_021986.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "mechanical gaming keyboard RGB, front view showing screen, tech product photography, 45 degree angle view, bright even fill lighting, true-to-life material rendering, commercial product photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 183478,
-    "index": 22121,
-    "filename": "img_022121.png",
+    "prompt": "portable Bluetooth speaker cylindrical, front view showing screen, tech product photography, low angle heroic view, bright even fill lighting, intricate surface texture visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 755537,
+    "filename": "electronics_audio_5d8e6bbe.png",
+    "index": 9965,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "audio",
-    "prompt": "vintage turntable record player, top down flat lay, tech product photography, low angle heroic view, dramatic Rembrandt side lighting, intricate surface texture visible, commercial product photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 477059,
-    "index": 22255,
-    "filename": "img_022255.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "vintage film camera analog, side profile thin view, tech product photography, front view, warm key light with cool fill, tactile surface quality, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 630965,
-    "index": 22625,
-    "filename": "img_022625.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "action camera GoPro style, top down flat lay, tech product photography, top-down flat lay view, soft diffused studio strobe, intricate surface texture visible, commercial product photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 846720,
-    "index": 23043,
-    "filename": "img_023043.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "Samsung Galaxy S Ultra flagship phone, top down flat lay, tech product photography, front view, dramatic Rembrandt side lighting, every pore and grain visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 462560,
-    "index": 23430,
-    "filename": "img_023430.png",
+    "prompt": "portable Bluetooth speaker cylindrical, 45 degree angle hero shot, tech product photography, front view, bright even fill lighting, true-to-life material rendering, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 393581,
+    "filename": "electronics_audio_14940b39.png",
+    "index": 9966,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "audio",
-    "prompt": "over-ear premium headphones leather cushion, 45 degree angle hero shot, tech product photography, 45 degree angle view, dramatic Rembrandt side lighting, tactile surface quality, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 593192,
-    "index": 23702,
-    "filename": "img_023702.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "wireless earbuds in charging case open, 45 degree angle hero shot, tech product photography, 45 degree angle view, bright even fill lighting, ultra fine material detail, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 491074,
-    "index": 23848,
-    "filename": "img_023848.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "OnePlus flagship phone sleek black, top down flat lay, tech product photography, 45 degree angle view, warm key light with cool fill, ultra fine material detail, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 132036,
-    "index": 23929,
-    "filename": "img_023929.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "OnePlus flagship phone sleek black, front view showing screen, tech product photography, eye level straight on view, warm key light with cool fill, lifelike realistic texture, studio catalog photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 919197,
-    "index": 24110,
-    "filename": "img_024110.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "latest iPhone Pro with triple camera system, side profile thin view, tech product photography, side profile view, high key bright studio lighting, lifelike realistic texture, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 117851,
-    "index": 24297,
-    "filename": "img_024297.png",
+    "prompt": "portable Bluetooth speaker cylindrical, side profile thin view, tech product photography, close-up macro shot, warm key light with cool fill, every pore and grain visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 705294,
+    "filename": "electronics_audio_1bc651ad.png",
+    "index": 9967,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "cameras",
-    "prompt": "mirrorless camera compact body, side profile thin view, tech product photography, top-down flat lay view, high key bright studio lighting, lifelike realistic texture, commercial product photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 255380,
-    "index": 24863,
-    "filename": "img_024863.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "smartwatch with digital face display, 45 degree angle hero shot, tech product photography, top-down flat lay view, bright even fill lighting, lifelike realistic texture, editorial magazine photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 501759,
-    "index": 24924,
-    "filename": "img_024924.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "convertible 2-in-1 laptop tablet mode, 45 degree angle hero shot, tech product photography, side profile view, high key bright studio lighting, every pore and grain visible, commercial product photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 424776,
-    "index": 25118,
-    "filename": "img_025118.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "gaming laptop with RGB keyboard glowing, front view showing screen, tech product photography, front view, bright even fill lighting, ultra fine material detail, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 394059,
-    "index": 25602,
-    "filename": "img_025602.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "Samsung Galaxy S Ultra flagship phone, front view showing screen, tech product photography, side profile view, bright even fill lighting, every pore and grain visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 829567,
-    "index": 25901,
-    "filename": "img_025901.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "fitness band tracker on display, side profile thin view, tech product photography, top-down flat lay view, rim light with soft fill, tactile surface quality, high-end advertising photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 529216,
-    "index": 25997,
-    "filename": "img_025997.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "Google Pixel Pro phone clean design, top down flat lay, tech product photography, 45 degree angle view, bright even fill lighting, intricate surface texture visible, high-end advertising photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 368531,
-    "index": 26114,
-    "filename": "img_026114.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "smart glasses tech wearable, 45 degree angle hero shot, tech product photography, top-down flat lay view, soft diffused studio strobe, lifelike realistic texture, commercial product photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 515567,
-    "index": 26172,
-    "filename": "img_026172.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "portable Bluetooth speaker cylindrical, 45 degree angle hero shot, tech product photography, close-up macro shot, rim light with soft fill, true-to-life material rendering, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 197995,
-    "index": 26257,
-    "filename": "img_026257.png",
+    "prompt": "DSLR camera with lens attached professional, front view showing screen, tech product photography, eye level straight on view, warm key light with cool fill, every pore and grain visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 64403,
+    "filename": "electronics_cameras_6eafa056.png",
+    "index": 9968,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "cameras",
-    "prompt": "instant Polaroid camera retro, side profile thin view, tech product photography, side profile view, dramatic Rembrandt side lighting, ultra fine material detail, studio catalog photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 117308,
-    "index": 26421,
-    "filename": "img_026421.png",
+    "prompt": "DSLR camera with lens attached professional, 45 degree angle hero shot, tech product photography, low angle heroic view, warm key light with cool fill, true-to-life material rendering, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 503431,
+    "filename": "electronics_cameras_3b47d9df.png",
+    "index": 9969,
     "status": "pending"
   },
   {
     "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "Samsung Galaxy S Ultra flagship phone, side profile thin view, tech product photography, low angle heroic view, rim light with soft fill, true-to-life material rendering, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 949321,
-    "index": 26435,
-    "filename": "img_026435.png",
+    "subcategory": "cameras",
+    "prompt": "DSLR camera with lens attached professional, side profile thin view, tech product photography, front view, bright even fill lighting, ultra fine material detail, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 268232,
+    "filename": "electronics_cameras_88d3eead.png",
+    "index": 9970,
+    "status": "pending"
+  },
+  {
+    "category": "electronics",
+    "subcategory": "cameras",
+    "prompt": "mirrorless camera compact body, front view showing screen, tech product photography, side profile view, dramatic Rembrandt side lighting, tactile surface quality, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 743114,
+    "filename": "electronics_cameras_8dea1be6.png",
+    "index": 9971,
+    "status": "pending"
+  },
+  {
+    "category": "electronics",
+    "subcategory": "cameras",
+    "prompt": "mirrorless camera compact body, 45 degree angle hero shot, tech product photography, eye level straight on view, soft diffused studio strobe, true-to-life material rendering, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 419351,
+    "filename": "electronics_cameras_a8d86335.png",
+    "index": 9972,
+    "status": "pending"
+  },
+  {
+    "category": "electronics",
+    "subcategory": "cameras",
+    "prompt": "mirrorless camera compact body, side profile thin view, tech product photography, 45 degree angle view, warm key light with cool fill, true-to-life material rendering, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 66466,
+    "filename": "electronics_cameras_99095f7c.png",
+    "index": 9973,
+    "status": "pending"
+  },
+  {
+    "category": "electronics",
+    "subcategory": "cameras",
+    "prompt": "vintage film camera analog, front view showing screen, tech product photography, 3/4 perspective view, dramatic Rembrandt side lighting, intricate surface texture visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 131469,
+    "filename": "electronics_cameras_72c559d6.png",
+    "index": 9974,
+    "status": "pending"
+  },
+  {
+    "category": "electronics",
+    "subcategory": "cameras",
+    "prompt": "vintage film camera analog, 45 degree angle hero shot, tech product photography, eye level straight on view, dramatic Rembrandt side lighting, true-to-life material rendering, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 547785,
+    "filename": "electronics_cameras_2d25cb0a.png",
+    "index": 9975,
+    "status": "pending"
+  },
+  {
+    "category": "electronics",
+    "subcategory": "cameras",
+    "prompt": "vintage film camera analog, side profile thin view, tech product photography, front view, rim light with soft fill, true-to-life material rendering, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 459503,
+    "filename": "electronics_cameras_c690594e.png",
+    "index": 9976,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "accessories",
-    "prompt": "ergonomic wireless mouse, front view showing screen, tech product photography, low angle heroic view, rim light with soft fill, lifelike realistic texture, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 437247,
-    "index": 26607,
-    "filename": "img_026607.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "instant Polaroid camera retro, side profile thin view, tech product photography, side profile view, dramatic Rembrandt side lighting, ultra fine material detail, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 588177,
-    "index": 26619,
-    "filename": "img_026619.png",
+    "prompt": "wireless charging pad circular, front view showing screen, tech product photography, 3/4 perspective view, soft diffused studio strobe, lifelike realistic texture, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 807795,
+    "filename": "electronics_accessories_45d47471.png",
+    "index": 9977,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "accessories",
-    "prompt": "mechanical gaming keyboard RGB, front view showing screen, tech product photography, 45 degree angle view, bright even fill lighting, true-to-life material rendering, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 774496,
-    "index": 27084,
-    "filename": "img_027084.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "studio monitor headphones professional, 45 degree angle hero shot, tech product photography, 45 degree angle view, warm key light with cool fill, every pore and grain visible, commercial product photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 826008,
-    "index": 27128,
-    "filename": "img_027128.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "instant Polaroid camera retro, 45 degree angle hero shot, tech product photography, low angle heroic view, warm key light with cool fill, lifelike realistic texture, high-end advertising photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 301759,
-    "index": 27691,
-    "filename": "img_027691.png",
+    "prompt": "wireless charging pad circular, 45 degree angle hero shot, tech product photography, side profile view, bright even fill lighting, tactile surface quality, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 178389,
+    "filename": "electronics_accessories_b8357e08.png",
+    "index": 9978,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "accessories",
-    "prompt": "wireless charging pad circular, side profile thin view, tech product photography, low angle heroic view, high key bright studio lighting, every pore and grain visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 534788,
-    "index": 27771,
-    "filename": "img_027771.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "instant Polaroid camera retro, 45 degree angle hero shot, tech product photography, low angle heroic view, warm key light with cool fill, lifelike realistic texture, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 227190,
-    "index": 27871,
-    "filename": "img_027871.png",
+    "prompt": "wireless charging pad circular, side profile thin view, tech product photography, 45 degree angle view, warm key light with cool fill, every pore and grain visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 295715,
+    "filename": "electronics_accessories_6dcdae4b.png",
+    "index": 9979,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "accessories",
-    "prompt": "mechanical gaming keyboard RGB, 45 degree angle hero shot, tech product photography, front view, rim light with soft fill, tactile surface quality, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 809430,
-    "index": 28065,
-    "filename": "img_028065.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "action camera GoPro style, top down flat lay, tech product photography, top-down flat lay view, soft diffused studio strobe, intricate surface texture visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 830962,
-    "index": 28295,
-    "filename": "img_028295.png",
+    "prompt": "power bank portable charger, front view showing screen, tech product photography, top-down flat lay view, high key bright studio lighting, tactile surface quality, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 239410,
+    "filename": "electronics_accessories_0c5c6575.png",
+    "index": 9980,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "accessories",
-    "prompt": "ergonomic wireless mouse, top down flat lay, tech product photography, top-down flat lay view, bright even fill lighting, true-to-life material rendering, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 957307,
-    "index": 28660,
-    "filename": "img_028660.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "mirrorless camera compact body, 45 degree angle hero shot, tech product photography, close-up macro shot, bright even fill lighting, lifelike realistic texture, high-end advertising photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 109957,
-    "index": 28964,
-    "filename": "img_028964.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "gaming laptop with RGB keyboard glowing, top down flat lay, tech product photography, top-down flat lay view, high key bright studio lighting, ultra fine material detail, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 149888,
-    "index": 29392,
-    "filename": "img_029392.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "convertible 2-in-1 laptop tablet mode, top down flat lay, tech product photography, side profile view, high key bright studio lighting, intricate surface texture visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 271762,
-    "index": 29424,
-    "filename": "img_029424.png",
+    "prompt": "power bank portable charger, 45 degree angle hero shot, tech product photography, side profile view, bright even fill lighting, ultra fine material detail, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 984862,
+    "filename": "electronics_accessories_68e42148.png",
+    "index": 9981,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "accessories",
-    "prompt": "power bank portable charger, top down flat lay, tech product photography, front view, high key bright studio lighting, intricate surface texture visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 157736,
-    "index": 29803,
-    "filename": "img_029803.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "action camera GoPro style, front view showing screen, tech product photography, close-up macro shot, dramatic Rembrandt side lighting, tactile surface quality, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 537754,
-    "index": 29983,
-    "filename": "img_029983.png",
+    "prompt": "power bank portable charger, side profile thin view, tech product photography, 3/4 perspective view, soft diffused studio strobe, tactile surface quality, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 679284,
+    "filename": "electronics_accessories_3e7cd78b.png",
+    "index": 9982,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "accessories",
-    "prompt": "power bank portable charger, 45 degree angle hero shot, tech product photography, eye level straight on view, high key bright studio lighting, true-to-life material rendering, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 680453,
-    "index": 30362,
-    "filename": "img_030362.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "Samsung Galaxy S Ultra flagship phone, front view showing screen, tech product photography, side profile view, bright even fill lighting, every pore and grain visible, studio catalog photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 737982,
-    "index": 30401,
-    "filename": "img_030401.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "latest iPhone Pro with triple camera system, top down flat lay, tech product photography, close-up macro shot, dramatic Rembrandt side lighting, true-to-life material rendering, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 558672,
-    "index": 30653,
-    "filename": "img_030653.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "latest iPhone Pro with triple camera system, side profile thin view, tech product photography, side profile view, high key bright studio lighting, lifelike realistic texture, studio catalog photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 941040,
-    "index": 30700,
-    "filename": "img_030700.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "OnePlus flagship phone sleek black, 45 degree angle hero shot, tech product photography, 3/4 perspective view, warm key light with cool fill, ultra fine material detail, high-end advertising photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 342494,
-    "index": 30726,
-    "filename": "img_030726.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "OnePlus flagship phone sleek black, top down flat lay, tech product photography, 45 degree angle view, warm key light with cool fill, ultra fine material detail, editorial magazine photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 557188,
-    "index": 30737,
-    "filename": "img_030737.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "DSLR camera with lens attached professional, front view showing screen, tech product photography, front view, warm key light with cool fill, every pore and grain visible, editorial magazine photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 196315,
-    "index": 30769,
-    "filename": "img_030769.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "gaming laptop with RGB keyboard glowing, 45 degree angle hero shot, tech product photography, 3/4 perspective view, bright even fill lighting, true-to-life material rendering, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 844038,
-    "index": 30811,
-    "filename": "img_030811.png",
+    "prompt": "mechanical gaming keyboard RGB, front view showing screen, tech product photography, low angle heroic view, high key bright studio lighting, every pore and grain visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 480180,
+    "filename": "electronics_accessories_23d5ae03.png",
+    "index": 9983,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "accessories",
-    "prompt": "USB-C hub multiport adapter, 45 degree angle hero shot, tech product photography, close-up macro shot, dramatic Rembrandt side lighting, ultra fine material detail, high-end advertising photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 810433,
-    "index": 30861,
-    "filename": "img_030861.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "latest iPhone Pro with triple camera system, front view showing screen, tech product photography, front view, dramatic Rembrandt side lighting, ultra fine material detail, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 248739,
-    "index": 31041,
-    "filename": "img_031041.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "vintage turntable record player, 45 degree angle hero shot, tech product photography, 3/4 perspective view, rim light with soft fill, lifelike realistic texture, editorial magazine photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 143144,
-    "index": 31069,
-    "filename": "img_031069.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "Google Pixel Pro phone clean design, side profile thin view, tech product photography, front view, bright even fill lighting, intricate surface texture visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 237624,
-    "index": 31610,
-    "filename": "img_031610.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "MacBook Pro silver open showing screen, 45 degree angle hero shot, tech product photography, front view, warm key light with cool fill, lifelike realistic texture, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 546334,
-    "index": 31769,
-    "filename": "img_031769.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "thin ultrabook laptop silver, top down flat lay, tech product photography, 3/4 perspective view, soft diffused studio strobe, tactile surface quality, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 661092,
-    "index": 32267,
-    "filename": "img_032267.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "DSLR camera with lens attached professional, side profile thin view, tech product photography, low angle heroic view, bright even fill lighting, lifelike realistic texture, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 194849,
-    "index": 32411,
-    "filename": "img_032411.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "DSLR camera with lens attached professional, top down flat lay, tech product photography, close-up macro shot, warm key light with cool fill, true-to-life material rendering, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 762308,
-    "index": 32643,
-    "filename": "img_032643.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "convertible 2-in-1 laptop tablet mode, side profile thin view, tech product photography, front view, dramatic Rembrandt side lighting, intricate surface texture visible, high-end advertising photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 292791,
-    "index": 32651,
-    "filename": "img_032651.png",
+    "prompt": "mechanical gaming keyboard RGB, 45 degree angle hero shot, tech product photography, 45 degree angle view, rim light with soft fill, true-to-life material rendering, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 786977,
+    "filename": "electronics_accessories_47641153.png",
+    "index": 9984,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "accessories",
-    "prompt": "USB-C hub multiport adapter, side profile thin view, tech product photography, close-up macro shot, high key bright studio lighting, true-to-life material rendering, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 483458,
-    "index": 32808,
-    "filename": "img_032808.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "Samsung Galaxy S Ultra flagship phone, 45 degree angle hero shot, tech product photography, low angle heroic view, soft diffused studio strobe, tactile surface quality, editorial magazine photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 904770,
-    "index": 32825,
-    "filename": "img_032825.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "convertible 2-in-1 laptop tablet mode, front view showing screen, tech product photography, close-up macro shot, bright even fill lighting, every pore and grain visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 918316,
-    "index": 33049,
-    "filename": "img_033049.png",
+    "prompt": "mechanical gaming keyboard RGB, side profile thin view, tech product photography, eye level straight on view, rim light with soft fill, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 195552,
+    "filename": "electronics_accessories_90b21226.png",
+    "index": 9985,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "accessories",
-    "prompt": "power bank portable charger, 45 degree angle hero shot, tech product photography, eye level straight on view, high key bright studio lighting, true-to-life material rendering, high-end advertising photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 148226,
-    "index": 33207,
-    "filename": "img_033207.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "mirrorless camera compact body, side profile thin view, tech product photography, top-down flat lay view, high key bright studio lighting, lifelike realistic texture, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 659588,
-    "index": 33276,
-    "filename": "img_033276.png",
+    "prompt": "ergonomic wireless mouse, front view showing screen, tech product photography, front view, bright even fill lighting, every pore and grain visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 627751,
+    "filename": "electronics_accessories_760c0389.png",
+    "index": 9986,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "accessories",
-    "prompt": "power bank portable charger, top down flat lay, tech product photography, front view, high key bright studio lighting, intricate surface texture visible, high-end advertising photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 287419,
-    "index": 33278,
-    "filename": "img_033278.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "mirrorless camera compact body, top down flat lay, tech product photography, low angle heroic view, rim light with soft fill, every pore and grain visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 76684,
-    "index": 33817,
-    "filename": "img_033817.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "gaming laptop with RGB keyboard glowing, side profile thin view, tech product photography, low angle heroic view, soft diffused studio strobe, every pore and grain visible, high-end advertising photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 208431,
-    "index": 34388,
-    "filename": "img_034388.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "thin ultrabook laptop silver, side profile thin view, tech product photography, front view, bright even fill lighting, lifelike realistic texture, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 274588,
-    "index": 34580,
-    "filename": "img_034580.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "instant Polaroid camera retro, front view showing screen, tech product photography, side profile view, high key bright studio lighting, intricate surface texture visible, high-end advertising photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 374575,
-    "index": 34587,
-    "filename": "img_034587.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "action camera GoPro style, side profile thin view, tech product photography, close-up macro shot, rim light with soft fill, lifelike realistic texture, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 720646,
-    "index": 35286,
-    "filename": "img_035286.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "action camera GoPro style, front view showing screen, tech product photography, close-up macro shot, dramatic Rembrandt side lighting, tactile surface quality, commercial product photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 255290,
-    "index": 35474,
-    "filename": "img_035474.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "smartwatch with digital face display, top down flat lay, tech product photography, 45 degree angle view, warm key light with cool fill, tactile surface quality, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 134468,
-    "index": 35508,
-    "filename": "img_035508.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "smartwatch with digital face display, front view showing screen, tech product photography, side profile view, dramatic Rembrandt side lighting, lifelike realistic texture, editorial magazine photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 147920,
-    "index": 35613,
-    "filename": "img_035613.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "smart glasses tech wearable, top down flat lay, tech product photography, side profile view, rim light with soft fill, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 899811,
-    "index": 35634,
-    "filename": "img_035634.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "instant Polaroid camera retro, top down flat lay, tech product photography, low angle heroic view, rim light with soft fill, every pore and grain visible, commercial product photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 932039,
-    "index": 35813,
-    "filename": "img_035813.png",
+    "prompt": "ergonomic wireless mouse, 45 degree angle hero shot, tech product photography, top-down flat lay view, soft diffused studio strobe, true-to-life material rendering, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 342723,
+    "filename": "electronics_accessories_4501a883.png",
+    "index": 9987,
     "status": "pending"
   },
   {
     "category": "electronics",
     "subcategory": "accessories",
-    "prompt": "ergonomic wireless mouse, 45 degree angle hero shot, tech product photography, eye level straight on view, dramatic Rembrandt side lighting, lifelike realistic texture, studio catalog photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 626827,
-    "index": 36214,
-    "filename": "img_036214.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "mechanical gaming keyboard RGB, side profile thin view, tech product photography, top-down flat lay view, rim light with soft fill, true-to-life material rendering, studio catalog photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 213841,
-    "index": 36226,
-    "filename": "img_036226.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "OnePlus flagship phone sleek black, 45 degree angle hero shot, tech product photography, 3/4 perspective view, warm key light with cool fill, ultra fine material detail, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 563512,
-    "index": 36398,
-    "filename": "img_036398.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "DSLR camera with lens attached professional, front view showing screen, tech product photography, front view, warm key light with cool fill, every pore and grain visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 351788,
-    "index": 36415,
-    "filename": "img_036415.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "power bank portable charger, side profile thin view, tech product photography, top-down flat lay view, dramatic Rembrandt side lighting, tactile surface quality, studio catalog photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 994718,
-    "index": 36504,
-    "filename": "img_036504.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "vintage turntable record player, front view showing screen, tech product photography, close-up macro shot, soft diffused studio strobe, every pore and grain visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 497398,
-    "index": 36508,
-    "filename": "img_036508.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "vintage film camera analog, front view showing screen, tech product photography, eye level straight on view, bright even fill lighting, true-to-life material rendering, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 545489,
-    "index": 36527,
-    "filename": "img_036527.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "gaming laptop with RGB keyboard glowing, side profile thin view, tech product photography, low angle heroic view, soft diffused studio strobe, every pore and grain visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 657466,
-    "index": 37011,
-    "filename": "img_037011.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "instant Polaroid camera retro, top down flat lay, tech product photography, low angle heroic view, rim light with soft fill, every pore and grain visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 724980,
-    "index": 37175,
-    "filename": "img_037175.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "over-ear premium headphones leather cushion, side profile thin view, tech product photography, 45 degree angle view, rim light with soft fill, lifelike realistic texture, editorial magazine photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 891307,
-    "index": 37182,
-    "filename": "img_037182.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "smart glasses tech wearable, side profile thin view, tech product photography, side profile view, high key bright studio lighting, intricate surface texture visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 219765,
-    "index": 37226,
-    "filename": "img_037226.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "wireless charging pad circular, front view showing screen, tech product photography, front view, bright even fill lighting, ultra fine material detail, commercial product photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 453577,
-    "index": 38045,
-    "filename": "img_038045.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "portable Bluetooth speaker cylindrical, front view showing screen, tech product photography, eye level straight on view, warm key light with cool fill, every pore and grain visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 930525,
-    "index": 38156,
-    "filename": "img_038156.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "thin ultrabook laptop silver, top down flat lay, tech product photography, 3/4 perspective view, soft diffused studio strobe, tactile surface quality, high-end advertising photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 923711,
-    "index": 38266,
-    "filename": "img_038266.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "action camera GoPro style, side profile thin view, tech product photography, close-up macro shot, rim light with soft fill, lifelike realistic texture, commercial product photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 202700,
-    "index": 39231,
-    "filename": "img_039231.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "wireless charging pad circular, side profile thin view, tech product photography, low angle heroic view, high key bright studio lighting, every pore and grain visible, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 818091,
-    "index": 39441,
-    "filename": "img_039441.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "phones",
-    "prompt": "Samsung Galaxy S Ultra flagship phone, top down flat lay, tech product photography, front view, dramatic Rembrandt side lighting, every pore and grain visible, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 242919,
-    "index": 39900,
-    "filename": "img_039900.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "DSLR camera with lens attached professional, 45 degree angle hero shot, tech product photography, low angle heroic view, rim light with soft fill, true-to-life material rendering, studio catalog photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 447771,
-    "index": 40534,
-    "filename": "img_040534.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "laptops",
-    "prompt": "gaming laptop with RGB keyboard glowing, top down flat lay, tech product photography, top-down flat lay view, high key bright studio lighting, ultra fine material detail, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 836033,
-    "index": 41003,
-    "filename": "img_041003.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "over-ear premium headphones leather cushion, side profile thin view, tech product photography, 45 degree angle view, rim light with soft fill, lifelike realistic texture, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 3844,
-    "index": 41340,
-    "filename": "img_041340.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "power bank portable charger, front view showing screen, tech product photography, close-up macro shot, high key bright studio lighting, true-to-life material rendering, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 287047,
-    "index": 41865,
-    "filename": "img_041865.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "cameras",
-    "prompt": "vintage film camera analog, front view showing screen, tech product photography, eye level straight on view, bright even fill lighting, true-to-life material rendering, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 49241,
-    "index": 42284,
-    "filename": "img_042284.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "audio",
-    "prompt": "wireless earbuds in charging case open, front view showing screen, tech product photography, eye level straight on view, soft diffused studio strobe, intricate surface texture visible, studio catalog photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 229299,
-    "index": 42474,
-    "filename": "img_042474.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "wearables",
-    "prompt": "smart glasses tech wearable, top down flat lay, tech product photography, side profile view, rim light with soft fill, tactile surface quality, editorial magazine photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 335399,
-    "index": 42595,
-    "filename": "img_042595.png",
-    "status": "pending"
-  },
-  {
-    "category": "electronics",
-    "subcategory": "accessories",
-    "prompt": "USB-C hub multiport adapter, top down flat lay, tech product photography, eye level straight on view, warm key light with cool fill, every pore and grain visible, editorial magazine photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 681693,
-    "index": 42712,
-    "filename": "img_042712.png",
+    "prompt": "ergonomic wireless mouse, side profile thin view, tech product photography, side profile view, bright even fill lighting, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 51800,
+    "filename": "electronics_accessories_dacb1c58.png",
+    "index": 9988,
     "status": "pending"
   }
 ]

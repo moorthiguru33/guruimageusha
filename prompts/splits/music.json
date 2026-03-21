@@ -1,1658 +1,542 @@
 [
   {
     "category": "music",
-    "subcategory": "wind",
-    "prompt": "clarinet black wooden, close-up detail of craftsmanship, musical instrument photography, 3/4 perspective view, soft diffused studio strobe, tactile surface quality, editorial magazine photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 889997,
-    "index": 0,
-    "filename": "img_000000.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "mridangam South Indian drum, 45 degree angle showing detail, musical instrument photography, 45 degree angle view, warm key light with cool fill, tactile surface quality, editorial magazine photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 499430,
-    "index": 180,
-    "filename": "img_000180.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "saxophone golden brass, full instrument front view, musical instrument photography, low angle heroic view, rim light with soft fill, every pore and grain visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 241230,
-    "index": 216,
-    "filename": "img_000216.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "drum kit full set professional, full instrument front view, musical instrument photography, 45 degree angle view, dramatic Rembrandt side lighting, intricate surface texture visible, high-end advertising photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 373000,
-    "index": 241,
-    "filename": "img_000241.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "clarinet black wooden, close-up detail of craftsmanship, musical instrument photography, 3/4 perspective view, soft diffused studio strobe, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 130109,
-    "index": 347,
-    "filename": "img_000347.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "shehnai Indian wedding instrument, dramatic side profile, musical instrument photography, top-down flat lay view, rim light with soft fill, ultra fine material detail, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 336192,
-    "index": 1198,
-    "filename": "img_001198.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "tambourine with jingles, 45 degree angle showing detail, musical instrument photography, 3/4 perspective view, rim light with soft fill, tactile surface quality, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 662798,
-    "index": 1317,
-    "filename": "img_001317.png",
+    "subcategory": "string",
+    "prompt": "acoustic guitar wood grain visible, full instrument front view, musical instrument photography, low angle heroic view, bright even fill lighting, every pore and grain visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 5991,
+    "filename": "music_string_be5f6f0f.png",
+    "index": 10043,
     "status": "pending"
   },
   {
     "category": "music",
     "subcategory": "string",
-    "prompt": "Indian veena traditional ornate, full instrument front view, musical instrument photography, low angle heroic view, dramatic Rembrandt side lighting, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 93809,
-    "index": 1392,
-    "filename": "img_001392.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "drum kit full set professional, full instrument front view, musical instrument photography, 45 degree angle view, dramatic Rembrandt side lighting, intricate surface texture visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 331721,
-    "index": 1526,
-    "filename": "img_001526.png",
+    "prompt": "acoustic guitar wood grain visible, 45 degree angle showing detail, musical instrument photography, 3/4 perspective view, dramatic Rembrandt side lighting, ultra fine material detail, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 982047,
+    "filename": "music_string_4f65d38d.png",
+    "index": 10044,
     "status": "pending"
   },
   {
     "category": "music",
     "subcategory": "string",
-    "prompt": "classical violin with bow, dramatic side profile, musical instrument photography, side profile view, bright even fill lighting, tactile surface quality, studio catalog photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 481348,
-    "index": 1888,
-    "filename": "img_001888.png",
+    "prompt": "acoustic guitar wood grain visible, dramatic side profile, musical instrument photography, front view, rim light with soft fill, every pore and grain visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 941162,
+    "filename": "music_string_e46ebb34.png",
+    "index": 10045,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "string",
+    "prompt": "electric guitar sunburst finish, full instrument front view, musical instrument photography, front view, dramatic Rembrandt side lighting, intricate surface texture visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 618211,
+    "filename": "music_string_6373ca73.png",
+    "index": 10046,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "string",
+    "prompt": "electric guitar sunburst finish, 45 degree angle showing detail, musical instrument photography, 3/4 perspective view, bright even fill lighting, true-to-life material rendering, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 749213,
+    "filename": "music_string_aa3d1bce.png",
+    "index": 10047,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "string",
+    "prompt": "electric guitar sunburst finish, dramatic side profile, musical instrument photography, 45 degree angle view, rim light with soft fill, lifelike realistic texture, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 132768,
+    "filename": "music_string_ec54b0c3.png",
+    "index": 10048,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "string",
+    "prompt": "classical violin with bow, full instrument front view, musical instrument photography, side profile view, high key bright studio lighting, ultra fine material detail, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 654937,
+    "filename": "music_string_3005bd7b.png",
+    "index": 10049,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "string",
+    "prompt": "classical violin with bow, 45 degree angle showing detail, musical instrument photography, front view, high key bright studio lighting, ultra fine material detail, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 685881,
+    "filename": "music_string_4ded386b.png",
+    "index": 10050,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "string",
+    "prompt": "classical violin with bow, dramatic side profile, musical instrument photography, close-up macro shot, rim light with soft fill, ultra fine material detail, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 361231,
+    "filename": "music_string_80533878.png",
+    "index": 10051,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "string",
+    "prompt": "Indian sitar with resonator, full instrument front view, musical instrument photography, close-up macro shot, dramatic Rembrandt side lighting, every pore and grain visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 835161,
+    "filename": "music_string_550eb0f0.png",
+    "index": 10052,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "string",
+    "prompt": "Indian sitar with resonator, 45 degree angle showing detail, musical instrument photography, close-up macro shot, dramatic Rembrandt side lighting, lifelike realistic texture, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 666383,
+    "filename": "music_string_d1e20c4d.png",
+    "index": 10053,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "string",
+    "prompt": "Indian sitar with resonator, dramatic side profile, musical instrument photography, low angle heroic view, soft diffused studio strobe, tactile surface quality, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 874149,
+    "filename": "music_string_6882d266.png",
+    "index": 10054,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "string",
+    "prompt": "Indian veena traditional ornate, full instrument front view, musical instrument photography, close-up macro shot, bright even fill lighting, ultra fine material detail, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 674922,
+    "filename": "music_string_cd01e59d.png",
+    "index": 10055,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "string",
+    "prompt": "Indian veena traditional ornate, 45 degree angle showing detail, musical instrument photography, side profile view, high key bright studio lighting, true-to-life material rendering, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 54127,
+    "filename": "music_string_196ad740.png",
+    "index": 10056,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "string",
+    "prompt": "Indian veena traditional ornate, dramatic side profile, musical instrument photography, close-up macro shot, dramatic Rembrandt side lighting, lifelike realistic texture, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 474271,
+    "filename": "music_string_b184116c.png",
+    "index": 10057,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "string",
+    "prompt": "cello full size wooden, full instrument front view, musical instrument photography, 3/4 perspective view, high key bright studio lighting, intricate surface texture visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 322868,
+    "filename": "music_string_033044a7.png",
+    "index": 10058,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "string",
+    "prompt": "cello full size wooden, 45 degree angle showing detail, musical instrument photography, 3/4 perspective view, soft diffused studio strobe, intricate surface texture visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 756892,
+    "filename": "music_string_4cacca17.png",
+    "index": 10059,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "string",
+    "prompt": "cello full size wooden, dramatic side profile, musical instrument photography, side profile view, bright even fill lighting, every pore and grain visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 643002,
+    "filename": "music_string_bd0b15e7.png",
+    "index": 10060,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "percussion",
+    "prompt": "tabla pair Indian drums, full instrument front view, musical instrument photography, 45 degree angle view, dramatic Rembrandt side lighting, tactile surface quality, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 314977,
+    "filename": "music_percussion_e4f3851d.png",
+    "index": 10061,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "percussion",
+    "prompt": "tabla pair Indian drums, 45 degree angle showing detail, musical instrument photography, 45 degree angle view, bright even fill lighting, ultra fine material detail, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 505626,
+    "filename": "music_percussion_5988bb1a.png",
+    "index": 10062,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "percussion",
+    "prompt": "tabla pair Indian drums, dramatic side profile, musical instrument photography, front view, warm key light with cool fill, tactile surface quality, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 938142,
+    "filename": "music_percussion_ddc6ec12.png",
+    "index": 10063,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "percussion",
+    "prompt": "mridangam South Indian drum, full instrument front view, musical instrument photography, eye level straight on view, soft diffused studio strobe, lifelike realistic texture, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 585001,
+    "filename": "music_percussion_fdd91e95.png",
+    "index": 10064,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "percussion",
+    "prompt": "mridangam South Indian drum, 45 degree angle showing detail, musical instrument photography, low angle heroic view, dramatic Rembrandt side lighting, intricate surface texture visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 60049,
+    "filename": "music_percussion_9acdf47c.png",
+    "index": 10065,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "percussion",
+    "prompt": "mridangam South Indian drum, dramatic side profile, musical instrument photography, side profile view, high key bright studio lighting, intricate surface texture visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 927101,
+    "filename": "music_percussion_7e4d781f.png",
+    "index": 10066,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "percussion",
+    "prompt": "drum kit full set professional, full instrument front view, musical instrument photography, side profile view, rim light with soft fill, intricate surface texture visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 527432,
+    "filename": "music_percussion_316f24c4.png",
+    "index": 10067,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "percussion",
+    "prompt": "drum kit full set professional, 45 degree angle showing detail, musical instrument photography, 45 degree angle view, dramatic Rembrandt side lighting, intricate surface texture visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 534734,
+    "filename": "music_percussion_caf95777.png",
+    "index": 10068,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "percussion",
+    "prompt": "drum kit full set professional, dramatic side profile, musical instrument photography, 3/4 perspective view, soft diffused studio strobe, true-to-life material rendering, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 860586,
+    "filename": "music_percussion_b6d547cc.png",
+    "index": 10069,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "percussion",
+    "prompt": "tambourine with jingles, full instrument front view, musical instrument photography, 3/4 perspective view, bright even fill lighting, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 362906,
+    "filename": "music_percussion_65518a29.png",
+    "index": 10070,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "percussion",
+    "prompt": "tambourine with jingles, 45 degree angle showing detail, musical instrument photography, eye level straight on view, warm key light with cool fill, true-to-life material rendering, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 96529,
+    "filename": "music_percussion_3801f55f.png",
+    "index": 10071,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "percussion",
+    "prompt": "tambourine with jingles, dramatic side profile, musical instrument photography, 45 degree angle view, high key bright studio lighting, lifelike realistic texture, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 401019,
+    "filename": "music_percussion_f93ddade.png",
+    "index": 10072,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "percussion",
+    "prompt": "Indian dholak double headed, full instrument front view, musical instrument photography, front view, bright even fill lighting, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 611082,
+    "filename": "music_percussion_51d20947.png",
+    "index": 10073,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "percussion",
+    "prompt": "Indian dholak double headed, 45 degree angle showing detail, musical instrument photography, close-up macro shot, dramatic Rembrandt side lighting, ultra fine material detail, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 201489,
+    "filename": "music_percussion_38f486fd.png",
+    "index": 10074,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "percussion",
+    "prompt": "Indian dholak double headed, dramatic side profile, musical instrument photography, 3/4 perspective view, rim light with soft fill, ultra fine material detail, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 259687,
+    "filename": "music_percussion_ec66a50b.png",
+    "index": 10075,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "wind",
+    "prompt": "bamboo flute Indian bansuri, full instrument front view, musical instrument photography, low angle heroic view, rim light with soft fill, every pore and grain visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 934687,
+    "filename": "music_wind_1a256e48.png",
+    "index": 10076,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "wind",
+    "prompt": "bamboo flute Indian bansuri, 45 degree angle showing detail, musical instrument photography, 3/4 perspective view, soft diffused studio strobe, ultra fine material detail, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 258052,
+    "filename": "music_wind_f1fe04b1.png",
+    "index": 10077,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "wind",
+    "prompt": "bamboo flute Indian bansuri, dramatic side profile, musical instrument photography, front view, soft diffused studio strobe, lifelike realistic texture, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 997410,
+    "filename": "music_wind_bf9e456f.png",
+    "index": 10078,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "wind",
+    "prompt": "saxophone golden brass, full instrument front view, musical instrument photography, eye level straight on view, high key bright studio lighting, ultra fine material detail, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 312889,
+    "filename": "music_wind_52aa0cfe.png",
+    "index": 10079,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "wind",
+    "prompt": "saxophone golden brass, 45 degree angle showing detail, musical instrument photography, low angle heroic view, soft diffused studio strobe, ultra fine material detail, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 430737,
+    "filename": "music_wind_859254ed.png",
+    "index": 10080,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "wind",
+    "prompt": "saxophone golden brass, dramatic side profile, musical instrument photography, top-down flat lay view, high key bright studio lighting, every pore and grain visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 564500,
+    "filename": "music_wind_d34a17e2.png",
+    "index": 10081,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "wind",
+    "prompt": "trumpet polished brass, full instrument front view, musical instrument photography, top-down flat lay view, dramatic Rembrandt side lighting, every pore and grain visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 666595,
+    "filename": "music_wind_b7342a59.png",
+    "index": 10082,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "wind",
+    "prompt": "trumpet polished brass, 45 degree angle showing detail, musical instrument photography, front view, dramatic Rembrandt side lighting, every pore and grain visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 850296,
+    "filename": "music_wind_e0ee0031.png",
+    "index": 10083,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "wind",
+    "prompt": "trumpet polished brass, dramatic side profile, musical instrument photography, 45 degree angle view, warm key light with cool fill, true-to-life material rendering, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 970796,
+    "filename": "music_wind_6bebc234.png",
+    "index": 10084,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "wind",
+    "prompt": "clarinet black wooden, full instrument front view, musical instrument photography, low angle heroic view, dramatic Rembrandt side lighting, tactile surface quality, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 193401,
+    "filename": "music_wind_4313a95e.png",
+    "index": 10085,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "wind",
+    "prompt": "clarinet black wooden, 45 degree angle showing detail, musical instrument photography, 3/4 perspective view, dramatic Rembrandt side lighting, true-to-life material rendering, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 994079,
+    "filename": "music_wind_0d1a00f4.png",
+    "index": 10086,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "wind",
+    "prompt": "clarinet black wooden, dramatic side profile, musical instrument photography, side profile view, bright even fill lighting, true-to-life material rendering, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 209824,
+    "filename": "music_wind_c87c9e90.png",
+    "index": 10087,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "wind",
+    "prompt": "shehnai Indian wedding instrument, full instrument front view, musical instrument photography, eye level straight on view, warm key light with cool fill, ultra fine material detail, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 274107,
+    "filename": "music_wind_d3db7604.png",
+    "index": 10088,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "wind",
+    "prompt": "shehnai Indian wedding instrument, 45 degree angle showing detail, musical instrument photography, close-up macro shot, rim light with soft fill, lifelike realistic texture, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 271289,
+    "filename": "music_wind_b45296f4.png",
+    "index": 10089,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "wind",
+    "prompt": "shehnai Indian wedding instrument, dramatic side profile, musical instrument photography, eye level straight on view, warm key light with cool fill, intricate surface texture visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 600095,
+    "filename": "music_wind_93fbf197.png",
+    "index": 10090,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "wind",
+    "prompt": "harmonica silver chrome, full instrument front view, musical instrument photography, close-up macro shot, bright even fill lighting, true-to-life material rendering, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 882544,
+    "filename": "music_wind_da066c2d.png",
+    "index": 10091,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "wind",
+    "prompt": "harmonica silver chrome, 45 degree angle showing detail, musical instrument photography, side profile view, bright even fill lighting, intricate surface texture visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 365486,
+    "filename": "music_wind_f5b81863.png",
+    "index": 10092,
+    "status": "pending"
+  },
+  {
+    "category": "music",
+    "subcategory": "wind",
+    "prompt": "harmonica silver chrome, dramatic side profile, musical instrument photography, top-down flat lay view, soft diffused studio strobe, true-to-life material rendering, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 97828,
+    "filename": "music_wind_a7f1053e.png",
+    "index": 10093,
     "status": "pending"
   },
   {
     "category": "music",
     "subcategory": "keyboard",
-    "prompt": "grand piano black glossy, full instrument front view, musical instrument photography, close-up macro shot, soft diffused studio strobe, every pore and grain visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 879087,
-    "index": 2043,
-    "filename": "img_002043.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "Indian dholak double headed, dramatic side profile, musical instrument photography, front view, soft diffused studio strobe, ultra fine material detail, studio catalog photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 598167,
-    "index": 2901,
-    "filename": "img_002901.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "saxophone golden brass, dramatic side profile, musical instrument photography, 45 degree angle view, soft diffused studio strobe, intricate surface texture visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 467506,
-    "index": 3409,
-    "filename": "img_003409.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "Indian sitar with resonator, full instrument front view, musical instrument photography, 3/4 perspective view, high key bright studio lighting, tactile surface quality, studio catalog photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 947388,
-    "index": 3578,
-    "filename": "img_003578.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "classical violin with bow, full instrument front view, musical instrument photography, top-down flat lay view, soft diffused studio strobe, lifelike realistic texture, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 878068,
-    "index": 3778,
-    "filename": "img_003778.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "acoustic guitar wood grain visible, 45 degree angle showing detail, musical instrument photography, eye level straight on view, bright even fill lighting, tactile surface quality, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 760712,
-    "index": 3812,
-    "filename": "img_003812.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "Indian dholak double headed, close-up detail of craftsmanship, musical instrument photography, side profile view, dramatic Rembrandt side lighting, tactile surface quality, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 300227,
-    "index": 3871,
-    "filename": "img_003871.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "acoustic guitar wood grain visible, dramatic side profile, musical instrument photography, top-down flat lay view, rim light with soft fill, true-to-life material rendering, commercial product photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 567116,
-    "index": 3930,
-    "filename": "img_003930.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "tabla pair Indian drums, dramatic side profile, musical instrument photography, 45 degree angle view, high key bright studio lighting, ultra fine material detail, commercial product photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 232423,
-    "index": 4188,
-    "filename": "img_004188.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "tambourine with jingles, close-up detail of craftsmanship, musical instrument photography, 45 degree angle view, dramatic Rembrandt side lighting, every pore and grain visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 462793,
-    "index": 4302,
-    "filename": "img_004302.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "mridangam South Indian drum, close-up detail of craftsmanship, musical instrument photography, low angle heroic view, soft diffused studio strobe, intricate surface texture visible, editorial magazine photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 610464,
-    "index": 4703,
-    "filename": "img_004703.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "drum kit full set professional, 45 degree angle showing detail, musical instrument photography, low angle heroic view, warm key light with cool fill, intricate surface texture visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 240369,
-    "index": 4861,
-    "filename": "img_004861.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "classical violin with bow, 45 degree angle showing detail, musical instrument photography, top-down flat lay view, bright even fill lighting, every pore and grain visible, editorial magazine photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 146984,
-    "index": 5138,
-    "filename": "img_005138.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "Indian sitar with resonator, dramatic side profile, musical instrument photography, close-up macro shot, high key bright studio lighting, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 315427,
-    "index": 5217,
-    "filename": "img_005217.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "classical violin with bow, dramatic side profile, musical instrument photography, side profile view, bright even fill lighting, tactile surface quality, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 533221,
-    "index": 5305,
-    "filename": "img_005305.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "saxophone golden brass, close-up detail of craftsmanship, musical instrument photography, 45 degree angle view, dramatic Rembrandt side lighting, intricate surface texture visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 260335,
-    "index": 5418,
-    "filename": "img_005418.png",
+    "prompt": "grand piano black glossy, full instrument front view, musical instrument photography, 3/4 perspective view, warm key light with cool fill, every pore and grain visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 517471,
+    "filename": "music_keyboard_2c970bb5.png",
+    "index": 10094,
     "status": "pending"
   },
   {
     "category": "music",
     "subcategory": "keyboard",
-    "prompt": "electronic keyboard synthesizer, dramatic side profile, musical instrument photography, close-up macro shot, bright even fill lighting, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 301451,
-    "index": 6245,
-    "filename": "img_006245.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "shehnai Indian wedding instrument, full instrument front view, musical instrument photography, eye level straight on view, soft diffused studio strobe, ultra fine material detail, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 765358,
-    "index": 6787,
-    "filename": "img_006787.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "classical violin with bow, full instrument front view, musical instrument photography, top-down flat lay view, soft diffused studio strobe, lifelike realistic texture, studio catalog photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 970353,
-    "index": 7211,
-    "filename": "img_007211.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "harmonica silver chrome, close-up detail of craftsmanship, musical instrument photography, front view, soft diffused studio strobe, intricate surface texture visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 935752,
-    "index": 7219,
-    "filename": "img_007219.png",
+    "prompt": "grand piano black glossy, 45 degree angle showing detail, musical instrument photography, close-up macro shot, dramatic Rembrandt side lighting, true-to-life material rendering, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 878799,
+    "filename": "music_keyboard_f3c14752.png",
+    "index": 10095,
     "status": "pending"
   },
   {
     "category": "music",
     "subcategory": "keyboard",
-    "prompt": "accordion red with bellows, dramatic side profile, musical instrument photography, 3/4 perspective view, soft diffused studio strobe, intricate surface texture visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 261887,
-    "index": 7378,
-    "filename": "img_007378.png",
+    "prompt": "grand piano black glossy, dramatic side profile, musical instrument photography, 45 degree angle view, high key bright studio lighting, every pore and grain visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 173371,
+    "filename": "music_keyboard_8a417707.png",
+    "index": 10096,
     "status": "pending"
   },
   {
     "category": "music",
     "subcategory": "keyboard",
-    "prompt": "harmonium Indian keyboard bellows, close-up detail of craftsmanship, musical instrument photography, low angle heroic view, high key bright studio lighting, intricate surface texture visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 699758,
-    "index": 8063,
-    "filename": "img_008063.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "harmonica silver chrome, dramatic side profile, musical instrument photography, low angle heroic view, high key bright studio lighting, intricate surface texture visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 598562,
-    "index": 8071,
-    "filename": "img_008071.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "electric guitar sunburst finish, 45 degree angle showing detail, musical instrument photography, low angle heroic view, dramatic Rembrandt side lighting, intricate surface texture visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 962536,
-    "index": 8152,
-    "filename": "img_008152.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "classical violin with bow, 45 degree angle showing detail, musical instrument photography, top-down flat lay view, bright even fill lighting, every pore and grain visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 111392,
-    "index": 8722,
-    "filename": "img_008722.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "ukulele small four string, dramatic side profile, musical instrument photography, front view, rim light with soft fill, ultra fine material detail, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 160472,
-    "index": 9281,
-    "filename": "img_009281.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "Indian dholak double headed, 45 degree angle showing detail, musical instrument photography, top-down flat lay view, rim light with soft fill, lifelike realistic texture, commercial product photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 204205,
-    "index": 9430,
-    "filename": "img_009430.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "bamboo flute Indian bansuri, dramatic side profile, musical instrument photography, side profile view, bright even fill lighting, ultra fine material detail, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 345105,
-    "index": 9631,
-    "filename": "img_009631.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "cello full size wooden, close-up detail of craftsmanship, musical instrument photography, close-up macro shot, bright even fill lighting, ultra fine material detail, high-end advertising photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 450599,
-    "index": 9744,
-    "filename": "img_009744.png",
+    "prompt": "harmonium Indian keyboard bellows, full instrument front view, musical instrument photography, 3/4 perspective view, high key bright studio lighting, tactile surface quality, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 906134,
+    "filename": "music_keyboard_2281d30e.png",
+    "index": 10097,
     "status": "pending"
   },
   {
     "category": "music",
     "subcategory": "keyboard",
-    "prompt": "harmonium Indian keyboard bellows, close-up detail of craftsmanship, musical instrument photography, low angle heroic view, high key bright studio lighting, intricate surface texture visible, high-end advertising photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 338601,
-    "index": 9964,
-    "filename": "img_009964.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "cello full size wooden, full instrument front view, musical instrument photography, low angle heroic view, dramatic Rembrandt side lighting, tactile surface quality, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 182458,
-    "index": 10685,
-    "filename": "img_010685.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "clarinet black wooden, 45 degree angle showing detail, musical instrument photography, 3/4 perspective view, bright even fill lighting, intricate surface texture visible, high-end advertising photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 982775,
-    "index": 11039,
-    "filename": "img_011039.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "ukulele small four string, full instrument front view, musical instrument photography, 3/4 perspective view, warm key light with cool fill, lifelike realistic texture, high-end advertising photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 478542,
-    "index": 11486,
-    "filename": "img_011486.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "drum kit full set professional, 45 degree angle showing detail, musical instrument photography, low angle heroic view, warm key light with cool fill, intricate surface texture visible, high-end advertising photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 160570,
-    "index": 11569,
-    "filename": "img_011569.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "djembe African hand drum, dramatic side profile, musical instrument photography, front view, rim light with soft fill, lifelike realistic texture, studio catalog photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 478880,
-    "index": 11694,
-    "filename": "img_011694.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "trumpet polished brass, dramatic side profile, musical instrument photography, top-down flat lay view, bright even fill lighting, lifelike realistic texture, studio catalog photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 572197,
-    "index": 11881,
-    "filename": "img_011881.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "clarinet black wooden, dramatic side profile, musical instrument photography, close-up macro shot, warm key light with cool fill, tactile surface quality, high-end advertising photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 740362,
-    "index": 12217,
-    "filename": "img_012217.png",
+    "prompt": "harmonium Indian keyboard bellows, 45 degree angle showing detail, musical instrument photography, eye level straight on view, dramatic Rembrandt side lighting, tactile surface quality, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 224930,
+    "filename": "music_keyboard_b10e5dad.png",
+    "index": 10098,
     "status": "pending"
   },
   {
     "category": "music",
     "subcategory": "keyboard",
-    "prompt": "grand piano black glossy, 45 degree angle showing detail, musical instrument photography, close-up macro shot, bright even fill lighting, lifelike realistic texture, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 841124,
-    "index": 12291,
-    "filename": "img_012291.png",
+    "prompt": "harmonium Indian keyboard bellows, dramatic side profile, musical instrument photography, front view, soft diffused studio strobe, true-to-life material rendering, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 819237,
+    "filename": "music_keyboard_1305545d.png",
+    "index": 10099,
     "status": "pending"
   },
   {
     "category": "music",
     "subcategory": "keyboard",
-    "prompt": "grand piano black glossy, close-up detail of craftsmanship, musical instrument photography, low angle heroic view, dramatic Rembrandt side lighting, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 495136,
-    "index": 12579,
-    "filename": "img_012579.png",
+    "prompt": "electronic keyboard synthesizer, full instrument front view, musical instrument photography, side profile view, bright even fill lighting, every pore and grain visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 885845,
+    "filename": "music_keyboard_cd78f5dc.png",
+    "index": 10100,
     "status": "pending"
   },
   {
     "category": "music",
     "subcategory": "keyboard",
-    "prompt": "electronic keyboard synthesizer, close-up detail of craftsmanship, musical instrument photography, 45 degree angle view, bright even fill lighting, ultra fine material detail, editorial magazine photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 672732,
-    "index": 12651,
-    "filename": "img_012651.png",
+    "prompt": "electronic keyboard synthesizer, 45 degree angle showing detail, musical instrument photography, eye level straight on view, high key bright studio lighting, every pore and grain visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 877662,
+    "filename": "music_keyboard_690482ee.png",
+    "index": 10101,
     "status": "pending"
   },
   {
     "category": "music",
     "subcategory": "keyboard",
-    "prompt": "accordion red with bellows, 45 degree angle showing detail, musical instrument photography, eye level straight on view, bright even fill lighting, tactile surface quality, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 580222,
-    "index": 12712,
-    "filename": "img_012712.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "keyboard",
-    "prompt": "accordion red with bellows, 45 degree angle showing detail, musical instrument photography, eye level straight on view, bright even fill lighting, tactile surface quality, commercial product photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 450730,
-    "index": 13151,
-    "filename": "img_013151.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "keyboard",
-    "prompt": "electronic keyboard synthesizer, full instrument front view, musical instrument photography, top-down flat lay view, rim light with soft fill, ultra fine material detail, editorial magazine photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 830596,
-    "index": 13308,
-    "filename": "img_013308.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "bamboo flute Indian bansuri, close-up detail of craftsmanship, musical instrument photography, top-down flat lay view, dramatic Rembrandt side lighting, ultra fine material detail, commercial product photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 869716,
-    "index": 13558,
-    "filename": "img_013558.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "mridangam South Indian drum, full instrument front view, musical instrument photography, front view, warm key light with cool fill, ultra fine material detail, studio catalog photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 651901,
-    "index": 13929,
-    "filename": "img_013929.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "trumpet polished brass, close-up detail of craftsmanship, musical instrument photography, low angle heroic view, high key bright studio lighting, ultra fine material detail, studio catalog photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 968809,
-    "index": 14018,
-    "filename": "img_014018.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "harmonica silver chrome, 45 degree angle showing detail, musical instrument photography, 45 degree angle view, bright even fill lighting, lifelike realistic texture, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 771099,
-    "index": 14030,
-    "filename": "img_014030.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "saxophone golden brass, close-up detail of craftsmanship, musical instrument photography, 45 degree angle view, dramatic Rembrandt side lighting, intricate surface texture visible, editorial magazine photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 970663,
-    "index": 14088,
-    "filename": "img_014088.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "acoustic guitar wood grain visible, dramatic side profile, musical instrument photography, top-down flat lay view, rim light with soft fill, true-to-life material rendering, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 760132,
-    "index": 14361,
-    "filename": "img_014361.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "shehnai Indian wedding instrument, close-up detail of craftsmanship, musical instrument photography, 3/4 perspective view, bright even fill lighting, lifelike realistic texture, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 624654,
-    "index": 14919,
-    "filename": "img_014919.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "bamboo flute Indian bansuri, 45 degree angle showing detail, musical instrument photography, 45 degree angle view, dramatic Rembrandt side lighting, true-to-life material rendering, studio catalog photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 695777,
-    "index": 14966,
-    "filename": "img_014966.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "drum kit full set professional, close-up detail of craftsmanship, musical instrument photography, close-up macro shot, high key bright studio lighting, lifelike realistic texture, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 465598,
-    "index": 15068,
-    "filename": "img_015068.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "tabla pair Indian drums, full instrument front view, musical instrument photography, 45 degree angle view, rim light with soft fill, true-to-life material rendering, high-end advertising photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 124598,
-    "index": 15580,
-    "filename": "img_015580.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "ukulele small four string, full instrument front view, musical instrument photography, 3/4 perspective view, warm key light with cool fill, lifelike realistic texture, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 702791,
-    "index": 16030,
-    "filename": "img_016030.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "trumpet polished brass, full instrument front view, musical instrument photography, front view, warm key light with cool fill, tactile surface quality, studio catalog photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 804335,
-    "index": 17761,
-    "filename": "img_017761.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "Indian sitar with resonator, close-up detail of craftsmanship, musical instrument photography, 45 degree angle view, high key bright studio lighting, ultra fine material detail, studio catalog photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 950675,
-    "index": 17790,
-    "filename": "img_017790.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "acoustic guitar wood grain visible, close-up detail of craftsmanship, musical instrument photography, side profile view, dramatic Rembrandt side lighting, ultra fine material detail, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 81077,
-    "index": 17914,
-    "filename": "img_017914.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "harmonica silver chrome, dramatic side profile, musical instrument photography, low angle heroic view, high key bright studio lighting, intricate surface texture visible, high-end advertising photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 750012,
-    "index": 18444,
-    "filename": "img_018444.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "drum kit full set professional, close-up detail of craftsmanship, musical instrument photography, close-up macro shot, high key bright studio lighting, lifelike realistic texture, studio catalog photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 106248,
-    "index": 18494,
-    "filename": "img_018494.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "electric guitar sunburst finish, close-up detail of craftsmanship, musical instrument photography, close-up macro shot, dramatic Rembrandt side lighting, ultra fine material detail, high-end advertising photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 526237,
-    "index": 19137,
-    "filename": "img_019137.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "cello full size wooden, dramatic side profile, musical instrument photography, top-down flat lay view, bright even fill lighting, true-to-life material rendering, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 53722,
-    "index": 19171,
-    "filename": "img_019171.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "ukulele small four string, close-up detail of craftsmanship, musical instrument photography, eye level straight on view, warm key light with cool fill, true-to-life material rendering, studio catalog photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 585230,
-    "index": 19221,
-    "filename": "img_019221.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "tambourine with jingles, dramatic side profile, musical instrument photography, eye level straight on view, bright even fill lighting, intricate surface texture visible, studio catalog photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 300010,
-    "index": 19388,
-    "filename": "img_019388.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "cello full size wooden, 45 degree angle showing detail, musical instrument photography, top-down flat lay view, soft diffused studio strobe, lifelike realistic texture, high-end advertising photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 218615,
-    "index": 20075,
-    "filename": "img_020075.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "acoustic guitar wood grain visible, full instrument front view, musical instrument photography, close-up macro shot, warm key light with cool fill, tactile surface quality, studio catalog photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 775225,
-    "index": 20278,
-    "filename": "img_020278.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "Indian dholak double headed, full instrument front view, musical instrument photography, 3/4 perspective view, warm key light with cool fill, true-to-life material rendering, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 95099,
-    "index": 20580,
-    "filename": "img_020580.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "trumpet polished brass, close-up detail of craftsmanship, musical instrument photography, low angle heroic view, high key bright studio lighting, ultra fine material detail, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 186995,
-    "index": 20791,
-    "filename": "img_020791.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "electric guitar sunburst finish, close-up detail of craftsmanship, musical instrument photography, close-up macro shot, dramatic Rembrandt side lighting, ultra fine material detail, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 166904,
-    "index": 21268,
-    "filename": "img_021268.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "electric guitar sunburst finish, full instrument front view, musical instrument photography, top-down flat lay view, soft diffused studio strobe, ultra fine material detail, commercial product photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 286631,
-    "index": 21649,
-    "filename": "img_021649.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "keyboard",
-    "prompt": "grand piano black glossy, full instrument front view, musical instrument photography, close-up macro shot, soft diffused studio strobe, every pore and grain visible, studio catalog photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 150148,
-    "index": 21677,
-    "filename": "img_021677.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "saxophone golden brass, 45 degree angle showing detail, musical instrument photography, side profile view, rim light with soft fill, true-to-life material rendering, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 840097,
-    "index": 21880,
-    "filename": "img_021880.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "ukulele small four string, 45 degree angle showing detail, musical instrument photography, close-up macro shot, warm key light with cool fill, ultra fine material detail, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 392724,
-    "index": 21903,
-    "filename": "img_021903.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "keyboard",
-    "prompt": "electronic keyboard synthesizer, dramatic side profile, musical instrument photography, close-up macro shot, bright even fill lighting, tactile surface quality, editorial magazine photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 184789,
-    "index": 21917,
-    "filename": "img_021917.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "Indian sitar with resonator, 45 degree angle showing detail, musical instrument photography, front view, bright even fill lighting, true-to-life material rendering, commercial product photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 898364,
-    "index": 22015,
-    "filename": "img_022015.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "keyboard",
-    "prompt": "harmonium Indian keyboard bellows, dramatic side profile, musical instrument photography, close-up macro shot, soft diffused studio strobe, true-to-life material rendering, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 991496,
-    "index": 22181,
-    "filename": "img_022181.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "shehnai Indian wedding instrument, close-up detail of craftsmanship, musical instrument photography, 3/4 perspective view, bright even fill lighting, lifelike realistic texture, commercial product photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 710331,
-    "index": 22549,
-    "filename": "img_022549.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "trumpet polished brass, 45 degree angle showing detail, musical instrument photography, eye level straight on view, high key bright studio lighting, lifelike realistic texture, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 456526,
-    "index": 22654,
-    "filename": "img_022654.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "keyboard",
-    "prompt": "harmonium Indian keyboard bellows, full instrument front view, musical instrument photography, close-up macro shot, soft diffused studio strobe, lifelike realistic texture, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 484288,
-    "index": 22845,
-    "filename": "img_022845.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "Indian sitar with resonator, dramatic side profile, musical instrument photography, close-up macro shot, high key bright studio lighting, tactile surface quality, editorial magazine photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 610369,
-    "index": 23112,
-    "filename": "img_023112.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "djembe African hand drum, close-up detail of craftsmanship, musical instrument photography, front view, rim light with soft fill, intricate surface texture visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 342958,
-    "index": 23520,
-    "filename": "img_023520.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "Indian veena traditional ornate, 45 degree angle showing detail, musical instrument photography, eye level straight on view, soft diffused studio strobe, intricate surface texture visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 234665,
-    "index": 23585,
-    "filename": "img_023585.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "shehnai Indian wedding instrument, dramatic side profile, musical instrument photography, top-down flat lay view, rim light with soft fill, ultra fine material detail, high-end advertising photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 238122,
-    "index": 24059,
-    "filename": "img_024059.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "clarinet black wooden, dramatic side profile, musical instrument photography, close-up macro shot, warm key light with cool fill, tactile surface quality, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 40384,
-    "index": 24086,
-    "filename": "img_024086.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "keyboard",
-    "prompt": "harmonium Indian keyboard bellows, 45 degree angle showing detail, musical instrument photography, close-up macro shot, high key bright studio lighting, every pore and grain visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 217827,
-    "index": 24158,
-    "filename": "img_024158.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "tambourine with jingles, dramatic side profile, musical instrument photography, eye level straight on view, bright even fill lighting, intricate surface texture visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 713991,
-    "index": 24287,
-    "filename": "img_024287.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "shehnai Indian wedding instrument, full instrument front view, musical instrument photography, eye level straight on view, soft diffused studio strobe, ultra fine material detail, commercial product photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 169090,
-    "index": 24748,
-    "filename": "img_024748.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "cello full size wooden, full instrument front view, musical instrument photography, low angle heroic view, dramatic Rembrandt side lighting, tactile surface quality, high-end advertising photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 630088,
-    "index": 24787,
-    "filename": "img_024787.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "harmonica silver chrome, 45 degree angle showing detail, musical instrument photography, 45 degree angle view, bright even fill lighting, lifelike realistic texture, high-end advertising photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 535609,
-    "index": 25147,
-    "filename": "img_025147.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "acoustic guitar wood grain visible, close-up detail of craftsmanship, musical instrument photography, side profile view, dramatic Rembrandt side lighting, ultra fine material detail, editorial magazine photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 143643,
-    "index": 25298,
-    "filename": "img_025298.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "Indian veena traditional ornate, close-up detail of craftsmanship, musical instrument photography, front view, warm key light with cool fill, intricate surface texture visible, editorial magazine photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 612678,
-    "index": 25513,
-    "filename": "img_025513.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "tabla pair Indian drums, 45 degree angle showing detail, musical instrument photography, top-down flat lay view, rim light with soft fill, intricate surface texture visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 230727,
-    "index": 25551,
-    "filename": "img_025551.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "bamboo flute Indian bansuri, full instrument front view, musical instrument photography, eye level straight on view, rim light with soft fill, intricate surface texture visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 198084,
-    "index": 25837,
-    "filename": "img_025837.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "keyboard",
-    "prompt": "accordion red with bellows, close-up detail of craftsmanship, musical instrument photography, 45 degree angle view, rim light with soft fill, intricate surface texture visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 834855,
-    "index": 26170,
-    "filename": "img_026170.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "bamboo flute Indian bansuri, dramatic side profile, musical instrument photography, side profile view, bright even fill lighting, ultra fine material detail, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 734971,
-    "index": 26230,
-    "filename": "img_026230.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "acoustic guitar wood grain visible, full instrument front view, musical instrument photography, close-up macro shot, warm key light with cool fill, tactile surface quality, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 387687,
-    "index": 26241,
-    "filename": "img_026241.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "tambourine with jingles, close-up detail of craftsmanship, musical instrument photography, 45 degree angle view, dramatic Rembrandt side lighting, every pore and grain visible, commercial product photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 710685,
-    "index": 26649,
-    "filename": "img_026649.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "cello full size wooden, 45 degree angle showing detail, musical instrument photography, top-down flat lay view, soft diffused studio strobe, lifelike realistic texture, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 282814,
-    "index": 26822,
-    "filename": "img_026822.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "djembe African hand drum, full instrument front view, musical instrument photography, 3/4 perspective view, high key bright studio lighting, every pore and grain visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 470057,
-    "index": 26881,
-    "filename": "img_026881.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "Indian sitar with resonator, full instrument front view, musical instrument photography, 3/4 perspective view, high key bright studio lighting, tactile surface quality, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 231466,
-    "index": 26902,
-    "filename": "img_026902.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "tambourine with jingles, 45 degree angle showing detail, musical instrument photography, 3/4 perspective view, rim light with soft fill, tactile surface quality, commercial product photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 771994,
-    "index": 27237,
-    "filename": "img_027237.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "shehnai Indian wedding instrument, 45 degree angle showing detail, musical instrument photography, low angle heroic view, rim light with soft fill, tactile surface quality, editorial magazine photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 716590,
-    "index": 27294,
-    "filename": "img_027294.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "ukulele small four string, dramatic side profile, musical instrument photography, front view, rim light with soft fill, ultra fine material detail, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 278505,
-    "index": 27479,
-    "filename": "img_027479.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "keyboard",
-    "prompt": "accordion red with bellows, close-up detail of craftsmanship, musical instrument photography, 45 degree angle view, rim light with soft fill, intricate surface texture visible, high-end advertising photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 344146,
-    "index": 27492,
-    "filename": "img_027492.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "clarinet black wooden, 45 degree angle showing detail, musical instrument photography, 3/4 perspective view, bright even fill lighting, intricate surface texture visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 343165,
-    "index": 27626,
-    "filename": "img_027626.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "keyboard",
-    "prompt": "grand piano black glossy, 45 degree angle showing detail, musical instrument photography, close-up macro shot, bright even fill lighting, lifelike realistic texture, commercial product photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 468441,
-    "index": 27977,
-    "filename": "img_027977.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "keyboard",
-    "prompt": "harmonium Indian keyboard bellows, dramatic side profile, musical instrument photography, close-up macro shot, soft diffused studio strobe, true-to-life material rendering, high-end advertising photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 612493,
-    "index": 28112,
-    "filename": "img_028112.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "djembe African hand drum, close-up detail of craftsmanship, musical instrument photography, front view, rim light with soft fill, intricate surface texture visible, high-end advertising photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 230783,
-    "index": 28332,
-    "filename": "img_028332.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "ukulele small four string, 45 degree angle showing detail, musical instrument photography, close-up macro shot, warm key light with cool fill, ultra fine material detail, commercial product photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 103488,
-    "index": 28592,
-    "filename": "img_028592.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "mridangam South Indian drum, dramatic side profile, musical instrument photography, top-down flat lay view, warm key light with cool fill, lifelike realistic texture, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 649625,
-    "index": 28710,
-    "filename": "img_028710.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "saxophone golden brass, full instrument front view, musical instrument photography, low angle heroic view, rim light with soft fill, every pore and grain visible, editorial magazine photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 729567,
-    "index": 28757,
-    "filename": "img_028757.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "cello full size wooden, dramatic side profile, musical instrument photography, top-down flat lay view, bright even fill lighting, true-to-life material rendering, studio catalog photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 232157,
-    "index": 29496,
-    "filename": "img_029496.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "bamboo flute Indian bansuri, close-up detail of craftsmanship, musical instrument photography, top-down flat lay view, dramatic Rembrandt side lighting, ultra fine material detail, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 266733,
-    "index": 29526,
-    "filename": "img_029526.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "classical violin with bow, close-up detail of craftsmanship, musical instrument photography, top-down flat lay view, warm key light with cool fill, ultra fine material detail, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 239087,
-    "index": 29672,
-    "filename": "img_029672.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "tabla pair Indian drums, full instrument front view, musical instrument photography, 45 degree angle view, rim light with soft fill, true-to-life material rendering, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 700034,
-    "index": 29773,
-    "filename": "img_029773.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "Indian veena traditional ornate, close-up detail of craftsmanship, musical instrument photography, front view, warm key light with cool fill, intricate surface texture visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 912023,
-    "index": 30061,
-    "filename": "img_030061.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "keyboard",
-    "prompt": "harmonium Indian keyboard bellows, 45 degree angle showing detail, musical instrument photography, close-up macro shot, high key bright studio lighting, every pore and grain visible, studio catalog photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 819687,
-    "index": 30077,
-    "filename": "img_030077.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "djembe African hand drum, full instrument front view, musical instrument photography, 3/4 perspective view, high key bright studio lighting, every pore and grain visible, editorial magazine photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 630013,
-    "index": 30960,
-    "filename": "img_030960.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "trumpet polished brass, 45 degree angle showing detail, musical instrument photography, eye level straight on view, high key bright studio lighting, lifelike realistic texture, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 916186,
-    "index": 31058,
-    "filename": "img_031058.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "keyboard",
-    "prompt": "electronic keyboard synthesizer, 45 degree angle showing detail, musical instrument photography, 3/4 perspective view, rim light with soft fill, every pore and grain visible, high-end advertising photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 207303,
-    "index": 31153,
-    "filename": "img_031153.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "keyboard",
-    "prompt": "accordion red with bellows, full instrument front view, musical instrument photography, top-down flat lay view, warm key light with cool fill, true-to-life material rendering, commercial product photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 839278,
-    "index": 31172,
-    "filename": "img_031172.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "tabla pair Indian drums, close-up detail of craftsmanship, musical instrument photography, close-up macro shot, soft diffused studio strobe, intricate surface texture visible, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 862348,
-    "index": 31294,
-    "filename": "img_031294.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "tambourine with jingles, full instrument front view, musical instrument photography, 45 degree angle view, rim light with soft fill, lifelike realistic texture, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 448247,
-    "index": 31489,
-    "filename": "img_031489.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "electric guitar sunburst finish, 45 degree angle showing detail, musical instrument photography, low angle heroic view, dramatic Rembrandt side lighting, intricate surface texture visible, high-end advertising photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 757037,
-    "index": 31672,
-    "filename": "img_031672.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "Indian dholak double headed, full instrument front view, musical instrument photography, 3/4 perspective view, warm key light with cool fill, true-to-life material rendering, high-end advertising photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 623031,
-    "index": 31978,
-    "filename": "img_031978.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "keyboard",
-    "prompt": "accordion red with bellows, dramatic side profile, musical instrument photography, 3/4 perspective view, soft diffused studio strobe, intricate surface texture visible, studio catalog photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 404009,
-    "index": 32034,
-    "filename": "img_032034.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "keyboard",
-    "prompt": "accordion red with bellows, full instrument front view, musical instrument photography, top-down flat lay view, warm key light with cool fill, true-to-life material rendering, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 887828,
-    "index": 32296,
-    "filename": "img_032296.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "tabla pair Indian drums, 45 degree angle showing detail, musical instrument photography, top-down flat lay view, rim light with soft fill, intricate surface texture visible, high-end advertising photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 804189,
-    "index": 32335,
-    "filename": "img_032335.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "mridangam South Indian drum, full instrument front view, musical instrument photography, front view, warm key light with cool fill, ultra fine material detail, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 794392,
-    "index": 32607,
-    "filename": "img_032607.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "mridangam South Indian drum, close-up detail of craftsmanship, musical instrument photography, low angle heroic view, soft diffused studio strobe, intricate surface texture visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 16827,
-    "index": 32737,
-    "filename": "img_032737.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "shehnai Indian wedding instrument, 45 degree angle showing detail, musical instrument photography, low angle heroic view, rim light with soft fill, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 821842,
-    "index": 33156,
-    "filename": "img_033156.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "keyboard",
-    "prompt": "grand piano black glossy, dramatic side profile, musical instrument photography, eye level straight on view, dramatic Rembrandt side lighting, ultra fine material detail, high-end advertising photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 212741,
-    "index": 33306,
-    "filename": "img_033306.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "Indian veena traditional ornate, dramatic side profile, musical instrument photography, close-up macro shot, warm key light with cool fill, intricate surface texture visible, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 421964,
-    "index": 33434,
-    "filename": "img_033434.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "tambourine with jingles, full instrument front view, musical instrument photography, 45 degree angle view, rim light with soft fill, lifelike realistic texture, studio catalog photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 227999,
-    "index": 33787,
-    "filename": "img_033787.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "Indian dholak double headed, dramatic side profile, musical instrument photography, front view, soft diffused studio strobe, ultra fine material detail, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 875855,
-    "index": 33931,
-    "filename": "img_033931.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "trumpet polished brass, dramatic side profile, musical instrument photography, top-down flat lay view, bright even fill lighting, lifelike realistic texture, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 926934,
-    "index": 34745,
-    "filename": "img_034745.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "mridangam South Indian drum, 45 degree angle showing detail, musical instrument photography, 45 degree angle view, warm key light with cool fill, tactile surface quality, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 15895,
-    "index": 34972,
-    "filename": "img_034972.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "keyboard",
-    "prompt": "harmonium Indian keyboard bellows, full instrument front view, musical instrument photography, close-up macro shot, soft diffused studio strobe, lifelike realistic texture, high-end advertising photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 348506,
-    "index": 35135,
-    "filename": "img_035135.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "clarinet black wooden, full instrument front view, musical instrument photography, 3/4 perspective view, warm key light with cool fill, every pore and grain visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 473963,
-    "index": 35305,
-    "filename": "img_035305.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "saxophone golden brass, 45 degree angle showing detail, musical instrument photography, side profile view, rim light with soft fill, true-to-life material rendering, high-end advertising photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 444279,
-    "index": 35410,
-    "filename": "img_035410.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "djembe African hand drum, 45 degree angle showing detail, musical instrument photography, eye level straight on view, soft diffused studio strobe, every pore and grain visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 384528,
-    "index": 35738,
-    "filename": "img_035738.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "keyboard",
-    "prompt": "grand piano black glossy, close-up detail of craftsmanship, musical instrument photography, low angle heroic view, dramatic Rembrandt side lighting, tactile surface quality, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 721243,
-    "index": 35853,
-    "filename": "img_035853.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "keyboard",
-    "prompt": "electronic keyboard synthesizer, 45 degree angle showing detail, musical instrument photography, 3/4 perspective view, rim light with soft fill, every pore and grain visible, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 870011,
-    "index": 35854,
-    "filename": "img_035854.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "bamboo flute Indian bansuri, 45 degree angle showing detail, musical instrument photography, 45 degree angle view, dramatic Rembrandt side lighting, true-to-life material rendering, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 416093,
-    "index": 35997,
-    "filename": "img_035997.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "harmonica silver chrome, full instrument front view, musical instrument photography, 45 degree angle view, warm key light with cool fill, intricate surface texture visible, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 698710,
-    "index": 36210,
-    "filename": "img_036210.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "Indian veena traditional ornate, dramatic side profile, musical instrument photography, close-up macro shot, warm key light with cool fill, intricate surface texture visible, commercial product photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 565084,
-    "index": 36465,
-    "filename": "img_036465.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "Indian dholak double headed, close-up detail of craftsmanship, musical instrument photography, side profile view, dramatic Rembrandt side lighting, tactile surface quality, commercial product photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 220179,
-    "index": 36802,
-    "filename": "img_036802.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "keyboard",
-    "prompt": "electronic keyboard synthesizer, full instrument front view, musical instrument photography, top-down flat lay view, rim light with soft fill, ultra fine material detail, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 26173,
-    "index": 37647,
-    "filename": "img_037647.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "keyboard",
-    "prompt": "grand piano black glossy, dramatic side profile, musical instrument photography, eye level straight on view, dramatic Rembrandt side lighting, ultra fine material detail, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 701763,
-    "index": 37860,
-    "filename": "img_037860.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "cello full size wooden, close-up detail of craftsmanship, musical instrument photography, close-up macro shot, bright even fill lighting, ultra fine material detail, high-end advertising photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 38126,
-    "index": 37976,
-    "filename": "img_037976.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "harmonica silver chrome, close-up detail of craftsmanship, musical instrument photography, front view, soft diffused studio strobe, intricate surface texture visible, high-end advertising photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 350767,
-    "index": 38027,
-    "filename": "img_038027.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "Indian dholak double headed, 45 degree angle showing detail, musical instrument photography, top-down flat lay view, rim light with soft fill, lifelike realistic texture, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 345147,
-    "index": 38556,
-    "filename": "img_038556.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "Indian veena traditional ornate, full instrument front view, musical instrument photography, low angle heroic view, dramatic Rembrandt side lighting, tactile surface quality, editorial magazine photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 918656,
-    "index": 38946,
-    "filename": "img_038946.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "acoustic guitar wood grain visible, 45 degree angle showing detail, musical instrument photography, eye level straight on view, bright even fill lighting, tactile surface quality, commercial product photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 582594,
-    "index": 39286,
-    "filename": "img_039286.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "ukulele small four string, close-up detail of craftsmanship, musical instrument photography, eye level straight on view, warm key light with cool fill, true-to-life material rendering, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 103234,
-    "index": 39878,
-    "filename": "img_039878.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "trumpet polished brass, full instrument front view, musical instrument photography, front view, warm key light with cool fill, tactile surface quality, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 69097,
-    "index": 40500,
-    "filename": "img_040500.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "electric guitar sunburst finish, full instrument front view, musical instrument photography, top-down flat lay view, soft diffused studio strobe, ultra fine material detail, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 6127,
-    "index": 40545,
-    "filename": "img_040545.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "bamboo flute Indian bansuri, full instrument front view, musical instrument photography, eye level straight on view, rim light with soft fill, intricate surface texture visible, editorial magazine photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 411729,
-    "index": 40578,
-    "filename": "img_040578.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "electric guitar sunburst finish, dramatic side profile, musical instrument photography, top-down flat lay view, warm key light with cool fill, lifelike realistic texture, commercial product photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 994985,
-    "index": 40939,
-    "filename": "img_040939.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "Indian sitar with resonator, 45 degree angle showing detail, musical instrument photography, front view, bright even fill lighting, true-to-life material rendering, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 288125,
-    "index": 41084,
-    "filename": "img_041084.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "saxophone golden brass, dramatic side profile, musical instrument photography, 45 degree angle view, soft diffused studio strobe, intricate surface texture visible, editorial magazine photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 846379,
-    "index": 41245,
-    "filename": "img_041245.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "harmonica silver chrome, full instrument front view, musical instrument photography, 45 degree angle view, warm key light with cool fill, intricate surface texture visible, studio catalog photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 444411,
-    "index": 41385,
-    "filename": "img_041385.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "drum kit full set professional, dramatic side profile, musical instrument photography, 3/4 perspective view, bright even fill lighting, true-to-life material rendering, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 206690,
-    "index": 41413,
-    "filename": "img_041413.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "Indian veena traditional ornate, 45 degree angle showing detail, musical instrument photography, eye level straight on view, soft diffused studio strobe, intricate surface texture visible, studio catalog photography, ultra sharp tack focus, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 380235,
-    "index": 41485,
-    "filename": "img_041485.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "classical violin with bow, close-up detail of craftsmanship, musical instrument photography, top-down flat lay view, warm key light with cool fill, ultra fine material detail, editorial magazine photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 612808,
-    "index": 41787,
-    "filename": "img_041787.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "djembe African hand drum, 45 degree angle showing detail, musical instrument photography, eye level straight on view, soft diffused studio strobe, every pore and grain visible, high-end advertising photography, crisp clean photographic quality, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 954261,
-    "index": 41948,
-    "filename": "img_041948.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "tabla pair Indian drums, dramatic side profile, musical instrument photography, 45 degree angle view, high key bright studio lighting, ultra fine material detail, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 57390,
-    "index": 41961,
-    "filename": "img_041961.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "djembe African hand drum, dramatic side profile, musical instrument photography, front view, rim light with soft fill, lifelike realistic texture, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 968801,
-    "index": 42137,
-    "filename": "img_042137.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "wind",
-    "prompt": "clarinet black wooden, full instrument front view, musical instrument photography, 3/4 perspective view, warm key light with cool fill, every pore and grain visible, high-end advertising photography, true to life color accuracy, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 939482,
-    "index": 42194,
-    "filename": "img_042194.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "mridangam South Indian drum, dramatic side profile, musical instrument photography, top-down flat lay view, warm key light with cool fill, lifelike realistic texture, high-end advertising photography, fine grain material detail visible, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 317454,
-    "index": 42452,
-    "filename": "img_042452.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "keyboard",
-    "prompt": "electronic keyboard synthesizer, close-up detail of craftsmanship, musical instrument photography, 45 degree angle view, bright even fill lighting, ultra fine material detail, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 759209,
-    "index": 42472,
-    "filename": "img_042472.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "electric guitar sunburst finish, dramatic side profile, musical instrument photography, top-down flat lay view, warm key light with cool fill, lifelike realistic texture, commercial product photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 190460,
-    "index": 42782,
-    "filename": "img_042782.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "tabla pair Indian drums, close-up detail of craftsmanship, musical instrument photography, close-up macro shot, soft diffused studio strobe, intricate surface texture visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 23116,
-    "index": 42929,
-    "filename": "img_042929.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "percussion",
-    "prompt": "drum kit full set professional, dramatic side profile, musical instrument photography, 3/4 perspective view, bright even fill lighting, true-to-life material rendering, studio catalog photography, extremely detailed surface texture, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 139645,
-    "index": 42969,
-    "filename": "img_042969.png",
-    "status": "pending"
-  },
-  {
-    "category": "music",
-    "subcategory": "string",
-    "prompt": "Indian sitar with resonator, close-up detail of craftsmanship, musical instrument photography, 45 degree angle view, high key bright studio lighting, ultra fine material detail, studio catalog photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
-    "seed": 121620,
-    "index": 43002,
-    "filename": "img_043002.png",
+    "prompt": "electronic keyboard synthesizer, dramatic side profile, musical instrument photography, 3/4 perspective view, soft diffused studio strobe, intricate surface texture visible, editorial magazine photography, isolated on solid light grey background, professional studio product photography, shot on Canon EOS R5 with 100mm macro lens, 8k ultra high definition, photorealistic, razor sharp focus, studio strobe lighting with softbox, clean crisp edges, no shadows on background, centered composition",
+    "seed": 19919,
+    "filename": "music_keyboard_d60d1d43.png",
+    "index": 10102,
     "status": "pending"
   }
 ]

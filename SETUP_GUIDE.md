@@ -1,5 +1,5 @@
 # PNG Library — Complete Setup Guide
-## World's Biggest PNG Library (50,000+ Images) | FLUX.2 Quality
+## World's Biggest PNG Library (10,937 Images) | FLUX.2 Quality
 
 ---
 
@@ -79,7 +79,7 @@ Option 1 - Manual:
 
 Option 2 - Auto Schedule:
   Runs every day at 2 AM IST (30 20 * * * UTC)
-  1500 images/day -> 50,000 images in ~33 days
+  500 images/day -> 10,937 images in ~22 days
   Zero manual work needed!
 
 ---
@@ -92,7 +92,7 @@ Option 2 - Auto Schedule:
   Format      : PNG transparent (BRIA-RMBG-2.0)
   Steps       : 8 (quality optimised)
   CFG scale   : 3.5
-  Uniqueness  : 46,502 unique prompts with random seeds
+  Uniqueness  : 10,937 unique prompts (content-based filenames)
 
 ---
 
@@ -103,7 +103,7 @@ Option 2 - Auto Schedule:
   BRIA-RMBG-2.0 background removal    = ~3 sec/image
   Total per image                     = ~25 sec
 
-  1500 images/day x 33 days = ~50,000 images
+  500 images/day x 22 days = ~10,937 images
   Cost = ZERO rupees!
 
 ---
