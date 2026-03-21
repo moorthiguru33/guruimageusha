@@ -1,13 +1,11 @@
 """
-🎨 PNG Library — Prompt Engine V3 (GURU IMAGE USHA)
+PNG Library — Prompt Engine V4 (GURU IMAGE USHA)
 ══════════════════════════════════════════════════════════
-Categories  : 13 focused categories — Poultry/Animals, Raw Meat, Vehicles,
-              Flowers, Fruits, Vegetables, Cool Drinks, Indian Foods,
-              World Foods, Footwear, Indian Dress, Jewellery Models,
-              Office Models
-Per Item    : 30+ unique prompts guaranteed (combinatorial expansion)
-Style       : 100% Photorealistic — NO cartoon / illustration / watercolor
-Background  : Solid Light Grey (#D3D3D3) — all images
+RULE    : Simple clear item names only. No confusing color/skin words.
+          AI needs to know WHAT the item is — not get confused.
+GROUPS  : Every item has single + group prompts (2, 3, 4 together, in bag etc.)
+STYLE   : 100% Photorealistic studio photography
+BG      : Solid light grey background
 ══════════════════════════════════════════════════════════
 """
 
@@ -16,7 +14,7 @@ import json
 from pathlib import Path
 
 # ─────────────────────────────────────────────────────────────
-# BASE SUFFIXES
+# BASE SUFFIXES — unchanged, do not modify
 # ─────────────────────────────────────────────────────────────
 
 BASE_SUFFIX = (
@@ -46,7 +44,7 @@ MODEL_SUFFIX = (
 )
 
 # ─────────────────────────────────────────────────────────────
-# UNIVERSAL VARIATION BANKS
+# VARIATION BANKS
 # ─────────────────────────────────────────────────────────────
 
 CAMERA_ANGLES = [
@@ -62,7 +60,6 @@ CAMERA_ANGLES = [
 
 LIGHTING_STYLES = [
     "soft diffused studio lighting",
-    "dramatic Rembrandt side lighting",
     "bright even fill lighting",
     "warm key light with cool fill",
     "high key bright studio lighting",
@@ -70,12 +67,11 @@ LIGHTING_STYLES = [
 ]
 
 DETAIL_QUALITY = [
-    "intricate surface texture visible",
-    "ultra fine material detail",
-    "every pore and grain visible",
+    "ultra fine surface detail",
     "lifelike realistic texture",
-    "tactile surface quality",
     "true-to-life rendering",
+    "every detail clearly visible",
+    "sharp crisp photographic quality",
 ]
 
 PHOTO_STYLES = [
@@ -86,1488 +82,1327 @@ PHOTO_STYLES = [
 ]
 
 # ─────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════
+#  SIMPLE CLEAN PROMPTS — NO CONFUSING WORDS
+#  RULE: Item name + how many + presentation only
+# ══════════════════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────
+
+
+# ─────────────────────────────────────────────────────────────
 # 1. LIVE POULTRY & ANIMALS
 # ─────────────────────────────────────────────────────────────
 
-ROOSTER = {
-    "breeds": [
-        "Indian country rooster with bright red comb",
-        "black Australorp rooster with green sheen feathers",
-        "golden Buff Orpington rooster fluffy",
-        "red Rhode Island Red rooster robust",
-        "white Leghorn rooster tall and proud",
-        "colorful jungle fowl rooster wild type",
-        "grey Brahma rooster large feathered feet",
-        "Kadaknath black rooster jet black feathers",
-        "multi-colored bantam rooster small ornamental",
-        "Aseel fighting rooster muscular compact",
-    ],
-    "poses": [
-        "standing alert with chest puffed up",
-        "side profile full body view",
-        "crowing beak open pose",
-        "pecking downward pose",
-        "head turned showing profile",
-        "perched on branch raised position",
-    ],
-    "details": [
-        "bright red fleshy comb and wattles clearly visible",
-        "vivid tail feathers fanned out dramatically",
-        "sharp curved talons on feet visible",
-        "glossy iridescent wing feathers detail",
-        "detailed eye and beak close-up",
-    ],
-}
+ROOSTER_PROMPTS = [
+    # Single
+    "single rooster standing full body side view",
+    "single rooster facing front view",
+    "single rooster crowing with beak open",
+    "single rooster with tail feathers visible",
+    "single rooster close-up head portrait",
+    "single rooster perched elevated view",
+    "rooster full body 3/4 angle view",
+    "rooster alert standing pose",
+    # Group
+    "two roosters standing together side by side",
+    "three roosters group arranged together",
+    "rooster and hen pair together",
+]
 
-BROILER_CHICKEN = {
-    "types": [
-        "plump white broiler chicken whole",
-        "heavy broiler hen large breast",
-        "medium sized broiler chicken standing",
-        "white Cornish cross broiler chicken",
-        "young broiler chicken growing stage",
-        "fully grown commercial broiler chicken",
-        "free range broiler chicken healthy",
-        "organic raised broiler chicken",
-    ],
-    "poses": [
-        "standing full body side view",
-        "front view facing camera",
-        "foraging pecking ground pose",
-        "resting calm relaxed position",
-        "alert head raised standing",
-        "close-up portrait head detail",
-    ],
-    "details": [
-        "clean white feathers detailed texture",
-        "healthy pink comb and wattles",
-        "thick muscular breast visible",
-        "detailed foot and toe structure",
-        "full body profile showing size",
-    ],
-}
+BROILER_CHICKEN_PROMPTS = [
+    # Single
+    "single broiler chicken standing full body",
+    "single white broiler chicken side view",
+    "single broiler chicken facing front",
+    "broiler chicken close-up head detail",
+    "broiler chicken full body profile view",
+    "broiler chicken resting on ground",
+    # Group
+    "two broiler chickens standing together",
+    "three broiler chickens group together",
+    "four broiler chickens arranged group",
+    "flock of broiler chickens together",
+]
 
-GOAT = {
-    "types": [
-        "white Beetal goat with long ears",
-        "black and white Sirohi goat",
-        "brown Jamnapari goat tall",
-        "small Barbari goat spotted",
-        "Malabari goat dark brown",
-        "Osmanabadi black goat sturdy",
-        "Boer goat white with red head",
-        "Nubians goat long floppy ears",
-        "Billy goat male with beard and horns",
-        "Nanny goat female",
-    ],
-    "poses": [
-        "standing alert side profile view",
-        "facing camera front view",
-        "grazing head down pose",
-        "resting sitting calm",
-        "alert head raised ears forward",
-        "full body 3/4 angle view",
-    ],
-    "details": [
-        "curved horns clearly visible",
-        "soft fur coat texture detail",
-        "beard and facial features detail",
-        "hooves and leg structure visible",
-        "eye and ear detail close-up",
-    ],
-}
+GOAT_PROMPTS = [
+    # Single
+    "single goat standing full body side view",
+    "single goat facing camera front view",
+    "single goat with horns visible close-up",
+    "single goat full body profile",
+    "goat head portrait close-up",
+    "single goat resting calm pose",
+    "single goat grazing natural pose",
+    "single young kid goat small",
+    # Group
+    "two goats standing together",
+    "three goats group arranged",
+    "mother goat with baby kid together",
+    "four goats herd together",
+]
 
-QUAIL = {
-    "types": [
-        "Japanese quail brown speckled pattern",
-        "Coturnix quail male with chest marking",
-        "white quail domestic breed",
-        "Indian grey quail wild type",
-        "bobwhite quail brown striped",
-        "button quail tiny smallest breed",
-    ],
-    "poses": [
-        "standing plump side profile",
-        "front view facing camera",
-        "foraging ground pecking pose",
-        "alert head raised erect",
-        "resting calm full body",
-        "close-up portrait head detail",
-    ],
-    "details": [
-        "speckled feather pattern texture detail",
-        "small rounded plump body shape",
-        "tiny beak and eye detail",
-        "short tail and wing detail",
-        "leg and toe structure visible",
-    ],
-}
+QUAIL_PROMPTS = [
+    # Single
+    "single quail bird standing full body",
+    "single quail side profile view",
+    "single quail facing front",
+    "quail close-up portrait head",
+    "single quail resting calm",
+    "single quail alert standing pose",
+    # Group
+    "two quail birds together",
+    "three quail birds group",
+    "five quail birds arranged group",
+    "quail birds flock group together",
+]
 
-COW = {
-    "types": [
-        "white Gir cow with hump sacred Indian breed",
-        "black and white Holstein dairy cow",
-        "brown Tharparkar cow desert breed",
-        "Sahiwal reddish brown dairy cow",
-        "white Kankrej cow large prominent hump",
-        "Ongole white cow massive build",
-        "Kangayam grey cow South Indian breed",
-        "Hallikar brown cow Karnataka breed",
-        "Brahman cow grey with large hump",
-        "desi country cow traditional Indian",
-    ],
-    "poses": [
-        "standing full body side profile",
-        "facing camera front view",
-        "grazing head down position",
-        "resting lying calm peaceful",
-        "alert head raised facing front",
-        "walking gentle motion captured",
-    ],
-    "details": [
-        "prominent hump on back clearly visible",
-        "long curved horns detailed",
-        "soft brown eyes detail close-up",
-        "dewlap loose skin under neck visible",
-        "udder detail full body view",
-    ],
-}
+COW_PROMPTS = [
+    # Single
+    "single Indian cow standing full body side view",
+    "single cow facing camera front view",
+    "single cow full body profile",
+    "cow head portrait close-up",
+    "single cow resting lying down",
+    "single cow with hump visible side view",
+    "single cow alert standing pose",
+    "single dairy cow full body",
+    # Group
+    "two cows standing together",
+    "three cows group together",
+    "cow with calf together",
+    "herd of cows group together",
+]
 
 # ─────────────────────────────────────────────────────────────
 # 2. RAW MEAT & EGGS
 # ─────────────────────────────────────────────────────────────
 
-RAW_CHICKEN_MEAT = {
-    "cuts": [
-        "whole raw chicken cleaned dressed",
-        "raw chicken breast fillets boneless",
-        "raw chicken thighs with bone-in",
-        "raw chicken drumsticks cluster",
-        "raw chicken wings flat arranged",
-        "raw chicken leg quarter pieces",
-        "raw whole chicken cut into curry pieces",
-        "raw chicken liver dark red",
-        "raw chicken gizzard pieces cleaned",
-        "raw chicken neck and back pieces",
-    ],
-    "presentation": [
-        "arranged on white ceramic plate",
-        "on fresh green banana leaf",
-        "on dark slate board clean",
-        "on stainless steel tray",
-        "in white plastic food tray",
-        "arranged neatly close-up macro",
-    ],
-    "details": [
-        "fresh pink raw meat texture",
-        "glistening moist surface detail",
-        "clean cut cross section visible",
-        "fresh not frozen appearance",
-        "butcher quality presentation",
-    ],
-}
+RAW_CHICKEN_PROMPTS = [
+    # Single cuts
+    "whole raw chicken on plate",
+    "raw chicken breast piece on plate",
+    "raw chicken thigh piece on banana leaf",
+    "raw chicken drumstick on plate",
+    "raw chicken wings arranged on plate",
+    "raw chicken curry cut pieces on banana leaf",
+    "raw chicken leg piece on steel tray",
+    "raw chicken liver on plate",
+    "raw chicken pieces arranged on white plate",
+    "raw whole chicken on banana leaf",
+    # Group / multiple
+    "multiple raw chicken pieces arranged on plate",
+    "raw chicken pieces on banana leaf arranged",
+    "raw chicken cuts variety on white plate",
+    "raw chicken drumsticks four pieces arranged",
+    "raw chicken wings six pieces arranged",
+]
 
-RAW_GOAT_MEAT = {
-    "cuts": [
-        "raw goat mutton curry cut pieces",
-        "raw goat leg whole bone-in",
-        "raw goat chops rack with ribs",
-        "raw goat shoulder piece bone-in",
-        "raw goat liver dark maroon",
-        "raw goat kidney pair cleaned",
-        "raw goat ribs individual pieces",
-        "raw goat minced keema pile",
-        "raw goat neck bone pieces",
-        "raw goat brain cleaned halved",
-    ],
-    "presentation": [
-        "on fresh green banana leaf",
-        "on white ceramic plate arranged",
-        "on dark wooden chopping board",
-        "on steel tray market style",
-        "close-up macro meat texture",
-        "stacked pile presentation",
-    ],
-    "details": [
-        "deep red raw mutton color",
-        "visible marbling fat texture",
-        "fresh cut surface glistening",
-        "bone marrow visible in cuts",
-        "butcher shop quality fresh",
-    ],
-}
+RAW_GOAT_PROMPTS = [
+    # Single cuts
+    "raw goat mutton pieces on banana leaf",
+    "raw mutton curry cut pieces on plate",
+    "raw goat leg piece on white plate",
+    "raw mutton ribs on plate",
+    "raw goat liver on plate",
+    "raw mutton pieces on steel tray",
+    "raw goat chops arranged on plate",
+    "raw mutton keema minced on plate",
+    # Group
+    "multiple raw mutton pieces on banana leaf",
+    "raw mutton variety cuts on white plate",
+    "raw goat pieces arranged on plate",
+    "raw mutton selection on banana leaf",
+]
 
-RAW_QUAIL_MEAT = {
-    "cuts": [
-        "whole raw quail cleaned dressed single",
-        "pair of raw quail birds cleaned",
-        "three whole raw quail arranged",
-        "raw quail split halved open",
-        "raw quail with head intact",
-        "raw quail without head cleaned",
-        "raw quail on banana leaf",
-        "raw quail small plump body",
-    ],
-    "presentation": [
-        "on fresh green banana leaf",
-        "on white ceramic plate",
-        "on dark slate board",
-        "in steel tray arranged",
-        "close-up texture detail",
-        "neat row arrangement",
-    ],
-    "details": [
-        "small delicate body texture",
-        "pale yellowish skin surface",
-        "clean dressed ready to cook",
-        "tiny wings folded neatly",
-        "fresh glistening appearance",
-    ],
-}
+RAW_QUAIL_PROMPTS = [
+    # Single
+    "single whole raw quail on plate",
+    "single raw quail on banana leaf",
+    "single raw quail on white plate",
+    "raw quail cleaned dressed on plate",
+    # Group
+    "two raw quail birds on banana leaf",
+    "three raw quail birds arranged on plate",
+    "four raw quail birds on plate",
+    "six raw quail birds arranged on banana leaf",
+    "raw quail birds group on white plate",
+]
 
-EGGS = {
-    "types": [
-        "single white chicken egg perfect",
-        "single brown chicken egg natural",
-        "cluster of brown farm eggs",
-        "white eggs in wicker basket",
-        "brown eggs pile rustic",
-        "quail eggs small speckled cluster",
-        "quail eggs speckled pattern macro",
-        "duck eggs large pale",
-        "Indian desi country chicken eggs brown",
-        "fertile eggs arranged in row",
-        "cracked egg showing yolk runny",
-        "half dozen eggs in carton",
-    ],
-    "presentation": [
-        "on wooden surface natural",
-        "in wicker straw basket",
-        "on white ceramic plate",
-        "on grey stone surface",
-        "scattered on linen cloth",
-        "stacked neat arrangement",
-    ],
-    "details": [
-        "natural matte eggshell texture",
-        "subtle speckle pattern detail",
-        "smooth oval perfect form",
-        "yolk visible through crack",
-        "fresh farm quality appearance",
-    ],
-}
-
-MEAT_STYLE = [
-    "butcher shop product photography",
-    "food market product photography",
-    "fresh meat studio photography",
-    "commercial food photography",
+EGG_PROMPTS = [
+    # Single
+    "single chicken egg on white surface",
+    "single brown egg on wooden surface",
+    "single egg close-up macro detail",
+    "cracked egg with yolk on plate",
+    # Group
+    "three eggs arranged together",
+    "six eggs arranged in two rows",
+    "dozen eggs in carton box",
+    "eggs in wicker basket arranged",
+    "pile of brown eggs together",
+    "quail eggs small cluster together",
+    "six quail eggs arranged on surface",
+    "eggs scattered on wooden surface natural",
+    "four eggs on grey surface",
+    "eggs in white ceramic bowl",
 ]
 
 # ─────────────────────────────────────────────────────────────
-# 3. VEHICLES — INDIAN FOCUS
+# 3. VEHICLES
 # ─────────────────────────────────────────────────────────────
 
-INDIAN_CARS = {
+INDIAN_CAR_PROMPTS = {
     "hatchback": [
-        "Maruti Suzuki Alto used white 2018 model",
-        "Hyundai i20 red used 2019 model",
-        "Maruti Suzuki Swift blue 2020 model used",
-        "Tata Tiago silver used 2018 model",
-        "Renault Kwid used orange 2019 model",
-        "Honda Brio used red 2017 model",
-        "Maruti Wagon R white used 2019 model",
-        "Tata Punch used red 2021 model",
+        "Maruti Suzuki Alto hatchback front view",
+        "Maruti Suzuki Alto side profile view",
+        "Hyundai i20 hatchback front 3/4 view",
+        "Hyundai i20 side profile full view",
+        "Maruti Swift hatchback front view",
+        "Maruti Swift side profile view",
+        "Tata Tiago hatchback front view",
+        "Tata Tiago side profile view",
+        "Maruti Wagon R front view",
+        "Maruti Wagon R side profile view",
+        "Tata Punch front 3/4 view",
+        "Tata Punch side profile view",
     ],
     "sedan": [
-        "Honda City silver used 2019 model",
-        "Maruti Dzire white used 2020 model",
-        "Toyota Etios used silver 2018 model",
-        "Hyundai Verna blue used 2019 model",
-        "Honda Amaze used silver 2020 model",
-        "Tata Tigor used white 2018 model",
+        "Honda City sedan front 3/4 view",
+        "Honda City sedan side profile view",
+        "Maruti Dzire sedan front view",
+        "Maruti Dzire side profile view",
+        "Hyundai Verna sedan front 3/4 view",
+        "Hyundai Verna side profile view",
+        "Honda Amaze sedan front view",
+        "Honda Amaze side profile view",
     ],
     "suv": [
-        "Mahindra Scorpio black used 2019 model",
-        "Hyundai Creta grey used 2020 model",
-        "Kia Seltos used white 2021 model",
-        "Tata Nexon red used 2020 model",
-        "Maruti Brezza used silver 2019 model",
-        "Mahindra Bolero white used 2018 model",
-        "Ford EcoSport blue used 2019 model",
+        "Mahindra Scorpio SUV front 3/4 view",
+        "Mahindra Scorpio side profile view",
+        "Hyundai Creta SUV front view",
+        "Hyundai Creta side profile view",
+        "Kia Seltos SUV front 3/4 view",
+        "Kia Seltos side profile view",
+        "Tata Nexon SUV front view",
+        "Tata Nexon side profile view",
+        "Mahindra Bolero front view",
+        "Mahindra Bolero side profile view",
+        "Maruti Brezza front 3/4 view",
+        "Maruti Brezza side profile view",
     ],
     "mpv": [
-        "Maruti Suzuki Omni white used van",
-        "Tata Ace small tempo truck used",
-        "Mahindra Xylo used white MPV",
-        "Toyota Innova silver used MPV 2019",
-        "Chevrolet Enjoy used white MPV",
+        "Toyota Innova MPV front 3/4 view",
+        "Toyota Innova side profile view",
+        "Mahindra Xylo MPV front view",
+        "Mahindra Xylo side profile view",
+        "Tata Ace mini truck front view",
+        "Tata Ace mini truck side profile view",
     ],
 }
 
-INDIAN_BIKES = {
+BIKE_PROMPTS = {
     "commuter": [
-        "Hero Splendor Plus black 2019 used",
-        "Bajaj Pulsar 150 blue used 2019",
-        "Honda CB Shine used silver 2018",
-        "TVS Apache RTR 160 red used",
-        "Hero HF Deluxe black used commuter",
-        "Bajaj CT100 used black commuter",
-        "Honda Unicorn silver used 2018",
-        "TVS Star City used black 2019",
+        "Hero Splendor bike front view",
+        "Hero Splendor side profile view",
+        "Bajaj Pulsar 150 front 3/4 view",
+        "Bajaj Pulsar 150 side profile view",
+        "Honda Shine bike front view",
+        "Honda Shine side profile view",
+        "TVS Apache 160 front view",
+        "TVS Apache 160 side profile view",
+        "Honda Unicorn front view",
+        "Honda Unicorn side profile view",
     ],
     "sports": [
-        "Bajaj Pulsar NS200 black sports used",
-        "TVS Apache RR310 used black sports",
-        "Yamaha R15 V3 red sports used",
-        "KTM Duke 200 orange used sports",
-        "Royal Enfield Thunderbird 350 used black",
-        "Bajaj Dominar 400 used black",
+        "Bajaj Pulsar NS200 front 3/4 view",
+        "Bajaj Pulsar NS200 side profile view",
+        "Yamaha R15 front view",
+        "Yamaha R15 side profile view",
+        "KTM Duke 200 front 3/4 view",
+        "KTM Duke 200 side profile view",
+        "Bajaj Dominar 400 front view",
+        "Bajaj Dominar 400 side profile view",
     ],
-    "classic": [
-        "Royal Enfield Classic 350 black used",
-        "Royal Enfield Bullet 350 used black",
-        "Royal Enfield Meteor 350 used blue",
-        "Jawa 42 used maroon classic",
-        "Royal Enfield Himalayan grey used",
+    "royal_enfield": [
+        "Royal Enfield Classic 350 front 3/4 view",
+        "Royal Enfield Classic 350 side profile view",
+        "Royal Enfield Bullet 350 front view",
+        "Royal Enfield Bullet 350 side profile view",
+        "Royal Enfield Meteor 350 front 3/4 view",
+        "Royal Enfield Meteor 350 side profile view",
+        "Royal Enfield Himalayan front view",
+        "Royal Enfield Himalayan side profile view",
     ],
     "scooter": [
-        "Honda Activa 6G used silver scooter",
-        "TVS Jupiter used grey scooter",
-        "Suzuki Access 125 used grey",
-        "Yamaha Fascino used blue scooter",
-        "Hero Maestro Edge used red scooter",
-        "TVS Ntorq 125 used sports scooter",
+        "Honda Activa scooter front view",
+        "Honda Activa scooter side profile view",
+        "TVS Jupiter scooter front view",
+        "TVS Jupiter scooter side profile view",
+        "Suzuki Access scooter front view",
+        "Suzuki Access scooter side profile view",
+        "Yamaha Fascino scooter front view",
+        "Yamaha Fascino scooter side profile view",
     ],
 }
 
-AUTO_RICKSHAW = {
-    "types": [
-        "yellow black Indian auto rickshaw three-wheeler",
-        "green yellow auto rickshaw passenger",
-        "Bajaj RE auto rickshaw yellow classic",
-        "TVS King auto rickshaw yellow",
-        "electric auto rickshaw green modern",
-        "decorated auto rickshaw colorful Indian",
-        "auto rickshaw front view showing meter",
-        "auto rickshaw side profile classic",
-        "cargo auto rickshaw load carrier",
-        "school auto rickshaw yellow",
-    ],
-    "angles": [
-        "front 3/4 view showing handlebars and seating",
-        "side profile full view",
-        "rear 3/4 view showing passenger area",
-        "front view symmetrical straight on",
-        "low angle dramatic hero shot",
-        "top aerial view showing roof",
-    ],
-    "details": [
-        "shiny painted metal bodywork",
-        "rubber tires and wheel detail",
-        "meter and steering detail",
-        "passenger seating interior visible",
-        "engine cover side detail",
-    ],
-}
-
-CAR_ANGLES_V = [
-    "front 3/4 view showing grille and headlights",
-    "side profile full length view",
-    "rear 3/4 view showing tail lights",
-    "dramatic front view symmetrical",
-    "top aerial bird eye view",
-    "dynamic low angle hero shot",
+AUTO_RICKSHAW_PROMPTS = [
+    "Indian auto rickshaw front view",
+    "Indian auto rickshaw side profile view",
+    "Indian auto rickshaw 3/4 front view",
+    "Indian auto rickshaw rear view",
+    "yellow auto rickshaw front view",
+    "yellow auto rickshaw side profile",
+    "auto rickshaw low angle hero shot",
+    "auto rickshaw top aerial view",
+    "electric auto rickshaw front view",
+    "electric auto rickshaw side profile",
+    "auto rickshaw with passenger seat visible",
+    "auto rickshaw close-up front detail",
 ]
 
-CAR_DETAILS = [
-    "pristine clean polished bodywork",
-    "detailed wheel rim close-up",
-    "gleaming paintwork with subtle reflections",
-    "clean exterior showroom quality",
-    "side profile full length clean",
+CAR_ANGLES = [
+    "front 3/4 view",
+    "side profile full view",
+    "rear 3/4 view",
+    "front straight on view",
+    "low angle hero shot",
+    "top aerial view",
 ]
 
 # ─────────────────────────────────────────────────────────────
-# 4. FLOWERS — SINGLE & BATCH
+# 4. FLOWERS
 # ─────────────────────────────────────────────────────────────
 
-FLOWERS_SINGLE = {
+FLOWER_SINGLE_PROMPTS = {
     "rose": [
-        "deep red velvet single rose",
-        "soft pink garden rose",
-        "pure white rose",
-        "bright yellow rose",
-        "sunset orange rose",
-        "royal purple rose",
-        "peach blush rose",
-        "dark burgundy rose",
-        "coral pink rose",
-        "bicolor red and white rose",
+        "single red rose flower",
+        "single pink rose flower",
+        "single white rose flower",
+        "single yellow rose flower",
+        "single orange rose flower",
+        "single dark red rose flower",
+        "red rose bud close-up",
+        "rose flower with green leaves",
+        "rose flower top view",
+        "rose flower side view",
     ],
     "lotus": [
-        "pink lotus flower in full bloom",
-        "pure white lotus open petals",
-        "purple lotus with golden center",
-        "red lotus bud beginning to open",
-        "lotus flower with green lily pad",
-        "pale pink lotus side view",
+        "single pink lotus flower open",
+        "single white lotus flower open",
+        "single lotus flower bud",
+        "lotus flower top view",
+        "lotus flower side view",
+        "lotus flower with green leaf",
     ],
     "jasmine": [
-        "white jasmine flower cluster fresh",
-        "arabian jasmine buds tight",
-        "star jasmine fully open petals",
-        "jasmine garland fresh string",
-        "jasmine single bloom white",
-        "jasmine with green leaf",
+        "jasmine flower cluster white",
+        "jasmine flower bunch fresh",
+        "jasmine single flower close-up",
+        "jasmine flowers on stem",
+        "jasmine flower top view",
+        "jasmine garland fresh",
     ],
     "marigold": [
-        "deep orange marigold full bloom",
-        "bright yellow marigold round",
-        "large African marigold pompom",
+        "single orange marigold flower",
+        "single yellow marigold flower",
+        "marigold flower top view",
+        "marigold flower side view",
+        "marigold flower close-up",
         "marigold bunch tied together",
-        "marigold side profile view",
-        "marigold petals detail macro",
     ],
     "sunflower": [
-        "large yellow sunflower head full bloom",
-        "sunflower with seeds center visible",
-        "sunflower fully open face front",
-        "sunflower with green stem leaves",
-        "small dwarf sunflower compact",
+        "single sunflower face view front",
+        "single sunflower side view",
+        "sunflower close-up center detail",
+        "sunflower with stem and leaves",
+        "sunflower top view",
         "sunflower bud just opening",
     ],
-    "lily": [
-        "elegant white calla lily single",
-        "spotted orange tiger lily",
-        "fragrant pink stargazer lily",
-        "yellow Asiatic lily full bloom",
-        "purple water lily floating",
-        "white Easter lily trumpet shaped",
-    ],
     "hibiscus": [
-        "bright red hibiscus with yellow stamen",
-        "yellow hibiscus tropical bloom",
-        "pink double hibiscus ruffled",
-        "white hibiscus delicate single",
-        "coral hibiscus large open bloom",
-        "dark red hibiscus side view",
+        "single red hibiscus flower open",
+        "single yellow hibiscus flower",
+        "single pink hibiscus flower",
+        "hibiscus flower close-up",
+        "hibiscus flower side view",
+        "hibiscus flower top view",
+    ],
+    "lily": [
+        "single white lily flower",
+        "single pink lily flower",
+        "lily flower close-up",
+        "lily flower side view",
+        "lily flower with stem",
+        "lily flower top view",
     ],
     "orchid": [
-        "purple phalaenopsis orchid spray",
-        "white dendrobium orchid stem",
-        "pink cymbidium orchid bloom",
-        "yellow oncidium orchid cluster",
-        "spotted exotic orchid pattern",
-        "red cattleya orchid large",
-    ],
-    "other_flowers": [
-        "cherry blossom branch pink blooms",
-        "lavender stems bunch purple",
-        "dahlia flower multi-layered petals",
-        "lush peony bloom soft pink",
-        "red tulip flower single",
-        "purple iris flower",
-        "gerbera daisy bright orange",
-        "red anthurium heart shaped",
+        "single purple orchid flower",
+        "single white orchid flower",
+        "single pink orchid flower",
+        "orchid flower close-up",
+        "orchid flower side view",
+        "orchid on stem multiple blooms",
     ],
 }
 
-FLOWERS_BATCH = [
-    "assorted mixed flower bouquet colorful arrangement",
+FLOWER_GROUP_PROMPTS = [
+    "bunch of red roses arranged together",
+    "bouquet of mixed flowers colorful",
+    "three roses arranged together",
+    "five roses bouquet together",
+    "bunch of marigolds tied together",
+    "mixed flower bouquet arranged",
+    "jasmine and rose mixed bunch",
+    "flowers in small glass vase",
+    "flower arrangement flat lay top view",
+    "bunch of sunflowers together three",
     "roses and jasmine mixed bouquet",
-    "marigold and rose batch arrangement",
-    "lotus and lily mixed arrangement",
-    "tropical flower variety spread flat lay",
-    "Indian pooja flower arrangement mixed",
-    "flower market variety bundle colorful",
-    "seasonal mixed flowers flat lay arrangement",
-    "dozen roses bouquet red mixed",
-    "wedding flower arrangement mixed white and pink",
-    "carnation and rose mixed batch",
-    "sunflower and marigold batch together",
-    "jasmine garland and loose flowers batch",
-    "bridal flower arrangement batch white flowers",
-    "colorful spring flower variety bunch",
-    "flower basket overflowing mixed varieties",
-    "Indian temple flower batch marigold jasmine",
-    "red and white rose batch arrangement",
-    "tropical hibiscus and orchid batch",
-    "dahlia peony rose luxury batch bouquet",
-    "country wildflower batch natural mix",
-    "flower vendor bundle market style",
-    "festival flower batch bright colors",
-    "aromatic flower batch jasmine rose mix",
-    "lilies and irises batch modern arrangement",
-    "chrysanthemum batch full bloom variety",
-    "gerbera daisy colorful batch mix",
-    "fresh harvest flower batch green leaves",
-    "mixed flower spread top-down flat lay",
-    "all flowers variety collection batch display",
+    "marigold garland and loose flowers",
+    "lotus flowers two together",
+    "hibiscus flowers three arranged",
+    "lily flowers bunch together",
+    "orchid spray multiple blooms on stem",
+    "mixed Indian flowers arranged bunch",
+    "wedding flower bouquet white flowers",
+    "festival flowers mixed colorful bunch",
+    "flower basket overflowing variety",
+    "dozen roses bouquet arranged",
+    "temple flowers marigold jasmine bunch",
+    "flower vendor bundle arranged",
+    "fresh flowers flat lay overhead view",
+    "colorful mixed flowers group arranged",
 ]
 
-FLOWER_STAGES = ["in full bloom", "half open bud", "just opening fresh", "tight bud"]
 FLOWER_CONTEXTS = [
-    "single long stem",
-    "with morning dewdrops on petals",
-    "with fresh green leaves attached",
-    "freshly cut close-up",
-    "in small glass vase",
-    "on light grey surface",
-]
-FLOWER_PHOTO = [
-    "macro lens close-up floral photography",
-    "botanical studio photography",
-    "fine art floral photography",
-    "natural light floral photography",
+    "studio photography close-up",
+    "with morning dew drops on petals",
+    "with fresh green leaves",
+    "freshly cut stem visible",
+    "in full bloom",
+    "top view overhead",
 ]
 
 # ─────────────────────────────────────────────────────────────
-# 5. FRUITS — SINGLE & BATCH
+# 5. FRUITS
 # ─────────────────────────────────────────────────────────────
 
-FRUITS_SINGLE = {
+FRUIT_SINGLE_PROMPTS = {
     "mango": [
-        "ripe Alphonso mango golden yellow",
-        "green raw mango unripe",
-        "Kesar mango orange ripe",
-        "Banganapalli mango large ripe",
-        "ripe mango sliced cross section",
-        "mango halved showing seed",
-        "small green totapuri mango",
-        "bunch of small local mangoes",
-        "Ratnagiri mango premium quality",
-        "mango with leaf attached fresh",
+        "single mango whole fruit",
+        "mango cut in half showing inside",
+        "mango sliced pieces arranged",
+        "mango top view",
+        "ripe mango close-up",
+        "mango with leaf attached",
+        "small green mango unripe",
+        "mango cross section view",
     ],
     "banana": [
-        "single ripe yellow banana",
-        "bunch of yellow bananas",
-        "small Yelakki banana cluster",
-        "red banana variety ripe",
-        "peeled banana showing white flesh",
-        "green raw banana single",
-        "plantain cooking banana raw green",
-        "very ripe banana dark yellow spots",
+        "single banana whole",
+        "single banana peeled",
+        "banana close-up",
+        "banana top view",
+        "green banana unripe",
+        "ripe banana yellow",
     ],
     "apple": [
-        "shiny red Shimla apple single",
-        "green Granny Smith apple",
-        "pink Lady apple blush color",
-        "red apple halved showing seeds",
-        "apple slice fan arrangement",
-        "yellow golden apple variety",
-        "apple with stem and leaf",
-        "small crabapple deep red",
+        "single apple whole",
+        "apple cut in half showing inside",
+        "apple slice arranged",
+        "apple top view",
+        "apple close-up",
+        "apple with stem",
     ],
     "watermelon": [
-        "whole watermelon large round",
-        "watermelon slice triangular red flesh",
-        "watermelon half cut showing red inside",
+        "whole watermelon",
+        "watermelon slice triangular",
+        "watermelon half cut open",
         "watermelon cubes arranged",
-        "mini watermelon small whole",
-        "watermelon with seeds black visible",
+        "watermelon round slice flat",
+        "watermelon close-up flesh",
     ],
     "grapes": [
-        "purple grapes bunch on vine",
-        "green seedless grapes cluster",
-        "red globe grapes bunch",
-        "black grapes dark glossy cluster",
-        "single grape close-up macro",
-        "grapes with vine and leaves",
-    ],
-    "papaya": [
-        "ripe yellow papaya whole",
-        "papaya halved showing orange flesh and seeds",
-        "raw green papaya whole",
-        "papaya slice arranged pieces",
-        "small round papaya variety",
-        "papaya with seeds visible",
-    ],
-    "coconut": [
-        "green tender coconut whole fresh",
-        "coconut with straw ready to drink",
-        "half split coconut white flesh",
-        "mature brown coconut whole",
-        "coconut halved dry inside",
-        "cluster of three coconuts together",
-    ],
-    "pomegranate": [
-        "whole red pomegranate round",
-        "pomegranate halved showing red seeds",
-        "pomegranate arils seeds scattered",
-        "pomegranate crown detail macro",
-        "deep red pomegranate variety",
-        "pomegranate quarter wedge cut",
-    ],
-    "pineapple": [
-        "whole pineapple with crown fresh",
-        "pineapple slice ring cross section",
-        "pineapple halved showing yellow flesh",
-        "pineapple spear wedge cut",
-        "baby pineapple small whole",
-        "pineapple chunks pieces cubed",
-    ],
-    "guava": [
-        "white guava round whole ripe",
-        "pink flesh guava halved",
-        "green guava unripe whole",
-        "guava slice showing seeds",
-        "small bunch guava cluster",
-        "guava with leaf attached fresh",
+        "bunch of grapes",
+        "grapes cluster close-up",
+        "grapes on vine",
+        "grapes top view",
+        "green grapes bunch",
+        "purple grapes bunch",
     ],
     "orange": [
-        "bright orange ripe orange single",
-        "orange halved showing juicy segments",
-        "blood orange deep red inside",
-        "orange peeled segments spread",
-        "navel orange whole with navel",
-        "orange slice round cross section",
+        "single orange whole fruit",
+        "orange cut in half showing inside",
+        "orange slice round",
+        "orange segments arranged",
+        "orange top view",
+        "orange close-up skin texture",
     ],
-    "lemon_lime": [
-        "bright yellow lemon whole",
-        "lemon halved showing juicy flesh",
-        "green lime round fresh",
-        "lime halved squeezed",
-        "lemon and lime together pair",
-        "slice of lemon round thin",
+    "lemon": [
+        "single lemon whole",
+        "lemon cut in half",
+        "lemon slice round",
+        "lemon top view",
+        "lemon close-up",
+        "lemon with leaf",
+    ],
+    "coconut": [
+        "green tender coconut whole",
+        "coconut with straw",
+        "coconut cut open showing inside",
+        "mature coconut whole brown",
+        "coconut half showing white flesh",
+        "coconut top view",
+    ],
+    "papaya": [
+        "whole papaya fruit",
+        "papaya cut in half showing inside seeds",
+        "papaya sliced pieces",
+        "papaya top view",
+        "papaya close-up flesh",
+        "small papaya whole",
+    ],
+    "pomegranate": [
+        "whole pomegranate fruit",
+        "pomegranate cut in half showing seeds",
+        "pomegranate seeds scattered",
+        "pomegranate top view",
+        "pomegranate close-up",
+        "pomegranate quarter cut",
+    ],
+    "pineapple": [
+        "whole pineapple with crown",
+        "pineapple slice round",
+        "pineapple cut in half",
+        "pineapple chunks arranged",
+        "pineapple top view",
+        "pineapple close-up skin",
+    ],
+    "guava": [
+        "single guava whole fruit",
+        "guava cut in half showing inside",
+        "guava slice arranged",
+        "guava top view",
+        "guava close-up",
+        "guava with leaf",
     ],
     "other_fruits": [
-        "ripe red strawberry single close-up",
-        "dragon fruit halved pink flesh white",
-        "kiwi fruit halved showing green flesh",
-        "peach fuzzy skin whole ripe",
-        "plum dark purple glossy ripe",
-        "fig fresh halved showing pink inside",
-        "jackfruit segment ripe yellow",
-        "chikoo sapodilla brown round ripe",
-        "star fruit carambola yellow sliced",
-        "custard apple sitaphal ripe",
+        "single strawberry",
+        "kiwi cut in half showing inside",
+        "dragon fruit cut in half",
+        "fig cut in half showing inside",
+        "chikoo sapodilla whole fruit",
+        "jackfruit cut piece",
+        "custard apple whole fruit",
+        "plum whole fruit",
+        "peach whole fruit",
+        "cherry pair with stem",
     ],
 }
 
-FRUITS_BATCH = [
-    "mixed tropical fruit variety flat lay assortment",
-    "Indian fruit market variety spread arrangement",
-    "all seasonal fruits collection together display",
-    "colorful mixed fruits flat lay overhead view",
-    "fruit basket overflowing variety mixed",
-    "fresh fruit platter assortment mixed cut",
-    "mango papaya banana coconut tropical batch",
-    "apple orange grapes mixed fruit batch",
-    "summer fruit variety arrangement colorful",
-    "pomegranate guava chikoo local fruits batch",
-    "whole and cut mixed fruit display",
-    "fresh fruit vendor arrangement market style",
-    "exotic tropical fruit variety collection",
-    "citrus fruit variety batch orange lemon lime",
-    "berry and small fruit assortment batch",
-    "festival fruit offering variety mixed",
-    "vitamin C rich fruit variety batch together",
-    "ripe colorful fruit flat lay pattern",
-    "fruit abundance heap pile mixed",
-    "organic farm fruit harvest variety batch",
-    "whole fruits only batch arrangement twelve types",
-    "cut fruit platter showing inside flesh variety",
-    "tropical green fruits batch raw variety",
-    "Indian local fruit batch desi variety",
-    "premium quality mixed fruit gift basket",
-    "rainbow fruit arrangement colorful mix",
-    "round shaped fruit collection batch",
-    "juicy fruit variety batch close-up",
-    "seasonal harvest fruit batch fresh",
-    "all Indian fruits together batch collection",
+FRUIT_GROUP_PROMPTS = [
+    # Specific groups as user requested
+    "3 tomatoes arranged together on surface",
+    "single banana on surface",
+    "bunch of 6 bananas together",
+    "2 bananas together",
+    "3 mangoes arranged together",
+    "2 mangoes with one cut open",
+    "pile of mangoes together",
+    "3 apples arranged together",
+    "4 apples grouped together",
+    "2 oranges with one sliced",
+    "3 oranges arranged",
+    "2 lemons together",
+    "3 lemons arranged",
+    "watermelon with slice cut beside it",
+    "3 guavas arranged together",
+    "bunch of grapes and 2 apples together",
+    "mixed fruit basket arrangement",
+    "all fruits variety flat lay collection",
+    "tropical fruits collection arranged",
+    "Indian fruits variety arranged together",
+    "fruit platter cut fruits arranged",
+    "4 pomegranates arranged together",
+    "3 papayas together",
+    "2 pineapples arranged",
+    "coconuts three arranged together",
+    "mixed citrus fruits lemon orange lime together",
+    "strawberries pile together",
+    "kiwi and strawberry together arranged",
+    "fruit market style mixed arrangement",
+    "seasonal fruits collection flat lay",
 ]
 
 FRUIT_CONTEXTS = [
-    "whole intact fresh",
-    "sliced cross section showing inside flesh",
+    "on white surface",
+    "on wooden surface",
+    "on grey surface",
+    "top view overhead",
+    "close-up detail",
     "with water droplets fresh",
-    "with leaf and stem attached",
-    "close-up skin texture macro",
-    "top view flat lay",
+    "with leaves attached natural",
+    "cut open showing inside",
 ]
 
 # ─────────────────────────────────────────────────────────────
-# 6. VEGETABLES — SINGLE & BATCH
+# 6. VEGETABLES
 # ─────────────────────────────────────────────────────────────
 
-VEGETABLES_SINGLE = {
+VEG_SINGLE_PROMPTS = {
     "tomato": [
-        "ripe red vine tomato single",
-        "tomato halved showing seeds and flesh",
-        "bunch of small cherry tomatoes",
-        "green raw tomato unripe",
-        "roma tomato oval shape",
-        "beefsteak tomato large ripe red",
-        "yellow tomato ripe variety",
-        "heirloom tomato colorful",
-    ],
-    "onion": [
-        "red onion whole round",
-        "white onion single whole",
-        "onion halved showing layers rings",
-        "small shallots pearl onions cluster",
-        "green spring onion bunch",
-        "onion sliced rings arranged",
-        "fresh onion with papery skin",
+        "single tomato whole",
+        "tomato cut in half showing inside",
+        "tomato top view",
+        "tomato close-up",
+        "tomato with stem and leaf",
+        "tomato slice round",
+        "small cherry tomatoes cluster",
+        "tomato 45 degree view",
     ],
     "potato": [
-        "brown potato whole russet",
-        "yellow potato variety fresh",
-        "baby potatoes small cluster",
-        "potato halved showing white flesh",
-        "sweet potato orange flesh halved",
-        "red skin potato variety",
-        "purple sweet potato",
+        "single potato whole",
+        "potato cut in half showing inside white flesh",
+        "potato top view",
+        "potato close-up skin texture",
+        "baby potato small whole",
+        "potato 45 degree view",
+        "potato on wooden surface",
+    ],
+    "sweet_potato": [
+        "single sweet potato whole",
+        "sweet potato cut in half showing orange flesh",
+        "sweet potato top view",
+        "sweet potato close-up skin",
+        "sweet potato side view",
+        "sweet potato 45 degree view",
     ],
     "brinjal": [
-        "purple glossy brinjal eggplant whole",
-        "round brinjal variety single",
-        "long slim brinjal purple",
-        "green brinjal Thai variety",
-        "white brinjal variety whole",
-        "brinjal halved cross section",
-        "small baby brinjals cluster",
+        "single brinjal eggplant whole",
+        "brinjal cut in half showing inside",
+        "brinjal top view",
+        "brinjal close-up skin texture",
+        "brinjal side view",
+        "round brinjal variety whole",
+        "long brinjal whole",
+        "brinjal with stem attached",
     ],
-    "okra": [
-        "fresh green okra ladyfinger single",
-        "okra cluster bunch fresh",
-        "okra split showing seeds inside",
-        "young tender okra bright green",
-        "okra flat lay arrangement",
-        "long okra full length",
+    "onion": [
+        "single onion whole",
+        "onion cut in half showing layers",
+        "onion top view",
+        "onion close-up skin",
+        "onion slice rings arranged",
+        "small shallots cluster",
+        "spring onion bunch",
+    ],
+    "tomato_varieties": [
+        "single red tomato ripe",
+        "tomato on vine whole",
+        "large beefsteak tomato",
+        "roma tomato oval",
+        "cherry tomatoes small cluster",
+        "heirloom tomato cross section",
     ],
     "carrot": [
-        "fresh orange carrot whole with top",
-        "carrot bunch tied together",
-        "carrot halved cross section",
+        "single carrot whole with top",
+        "carrot cut in half",
+        "carrot slice rounds",
+        "carrot top view",
+        "carrot close-up texture",
         "baby carrots small bunch",
-        "red carrot Indian variety",
-        "carrot sliced rounds arranged",
     ],
     "capsicum": [
-        "red bell capsicum glossy whole",
-        "green capsicum bell pepper whole",
-        "yellow capsicum bell pepper",
-        "orange capsicum bell pepper",
-        "capsicum halved showing seeds",
-        "three capsicums mixed colors",
+        "single green capsicum whole",
+        "single red capsicum whole",
+        "single yellow capsicum whole",
+        "capsicum cut in half showing inside",
+        "capsicum top view",
+        "capsicum close-up skin",
     ],
-    "chili": [
-        "fresh green chili bunch",
-        "red dried chili peppers cluster",
-        "long green chili single close-up",
-        "red chili fresh whole",
-        "small round chili variety",
-        "green chili cross section macro",
-    ],
-    "beans": [
-        "green French beans cluster fresh",
-        "flat beans variety green",
-        "cluster beans guar phali fresh",
-        "long beans snake beans fresh",
-        "bean pods split showing beans",
-        "green beans flat lay",
+    "okra": [
+        "single okra ladyfinger whole",
+        "okra bunch fresh",
+        "okra cut open showing inside",
+        "okra top view",
+        "okra close-up",
+        "okra flat lay arranged",
     ],
     "cucumber": [
-        "dark green cucumber whole fresh",
-        "cucumber sliced rounds arranged",
-        "cucumber halved lengthwise",
-        "small pickling cucumber variety",
-        "cucumber with flower attached",
-        "light green cucumber variety",
+        "single cucumber whole",
+        "cucumber slice rounds arranged",
+        "cucumber cut in half lengthwise",
+        "cucumber top view",
+        "cucumber close-up skin",
+        "cucumber with flower end",
     ],
-    "pumpkin": [
-        "orange pumpkin large whole round",
-        "pumpkin halved showing orange flesh seeds",
-        "small decorative pumpkin variety",
-        "yellow pumpkin variety whole",
-        "pumpkin slice wedge cut",
-        "green pumpkin raw whole",
+    "beans": [
+        "green beans cluster fresh",
+        "beans flat lay arranged",
+        "beans top view",
+        "beans close-up",
+        "beans cut showing inside",
+        "cluster beans bunch",
     ],
     "other_veggies": [
-        "white cauliflower head full",
-        "green broccoli floret head",
-        "cabbage green head whole",
-        "bitter gourd karela textured green",
-        "drumstick moringa long pods",
-        "colocasia arbi root vegetable",
-        "fresh ginger root knobby",
-        "turmeric root fresh yellow-orange",
-        "garlic bulb whole with cloves",
-        "spinach bunch fresh green",
+        "cauliflower head whole",
+        "broccoli head whole",
+        "cabbage head whole",
+        "bitter gourd whole",
+        "drumstick long vegetable whole",
+        "ginger root whole",
+        "garlic bulb whole",
+        "spinach bunch fresh",
+        "pumpkin whole",
+        "pumpkin cut in half showing inside",
     ],
 }
 
-VEGETABLES_BATCH = [
-    "mixed vegetable variety flat lay assortment",
-    "Indian vegetable market spread all types",
-    "all vegetables collection together overhead view",
-    "colorful mixed vegetable flat lay",
+VEG_GROUP_PROMPTS = [
+    # Specific groups as user requested
+    "3 tomatoes arranged together",
+    "4 tomatoes grouped together",
+    "tomatoes in small bowl arranged",
+    "3 brinjals arranged together",
+    "4 brinjals grouped together",
+    "brinjal and tomato together arranged",
+    "3 potatoes arranged together",
+    "potatoes in jute bag",
+    "potatoes in basket arranged",
+    "pile of potatoes together",
+    "4 sweet potatoes arranged together",
+    "sweet potatoes in basket",
+    "3 onions arranged together",
+    "pile of onions together",
+    "onions in jute bag",
+    "3 carrots arranged together",
+    "carrot bunch tied together",
+    "3 cucumbers arranged together",
+    "capsicum three colors together",
+    "okra bunch arranged together",
+    "beans pile arranged",
+    "mixed vegetables flat lay collection",
+    "Indian cooking vegetables arranged together",
     "vegetable basket overflowing variety",
-    "fresh vegetable platter assortment mixed",
-    "root vegetable batch carrot beetroot potato",
-    "leafy green vegetable batch spinach cabbage",
-    "colorful capsicum tomato brinjal batch",
-    "sabzi mandi vegetable vendor arrangement",
-    "whole vegetables only batch twelve types",
-    "cut vegetable batch showing inside flesh",
-    "green vegetable variety batch fresh",
-    "Indian curry vegetable batch mix",
-    "organic farm fresh harvest variety batch",
-    "market fresh daily vegetable batch mix",
-    "rainbow vegetable arrangement colorful",
-    "seasonal vegetable abundance heap pile",
-    "chili onion tomato garlic cooking base batch",
-    "mixed vegetable stir-fry variety raw batch",
-    "gourd variety batch pumpkin cucumber bitter",
-    "onion tomato capsicum peppers batch together",
-    "beans variety batch cluster long flat",
-    "fresh herb vegetable batch coriander mint",
-    "village fresh vegetable harvest variety",
-    "premium quality vegetable basket",
-    "north Indian vegetable batch assortment",
-    "south Indian vegetable batch traditional",
-    "tropical vegetable variety batch",
-    "all Indian vegetables together batch collection",
+    "vegetables in jute bag arranged",
+    "mixed vegetables market style",
+    "cauliflower broccoli together",
+    "garlic onion ginger three together",
+    "mixed green vegetables bunch",
+    "vegetable platter variety arranged",
 ]
 
 VEG_CONTEXTS = [
-    "whole fresh intact",
-    "sliced cross section showing inside",
+    "on white surface",
+    "on wooden surface",
+    "on grey surface",
+    "top view overhead",
+    "close-up detail texture",
     "with water droplets fresh",
     "with stem and leaf attached",
-    "close-up skin texture macro",
-    "top view flat lay surface",
+    "cut open showing inside",
 ]
 
 # ─────────────────────────────────────────────────────────────
-# 7. COOL DRINKS & BEVERAGES
+# 7. COOL DRINKS
 # ─────────────────────────────────────────────────────────────
 
-COOL_DRINKS = {
+DRINK_PROMPTS = {
     "mojito": [
-        "classic mint mojito with crushed ice and lime",
-        "strawberry mojito pink color with mint",
-        "mango mojito yellow with fresh mint",
-        "virgin mojito clear with lime wedge",
-        "lychee mojito with mint garnish",
-        "passion fruit mojito tropical",
-        "watermelon mojito fresh red",
-        "blue curacao mojito layered blue",
-        "coconut mojito creamy white",
-        "blackberry mojito dark purple",
+        "mojito drink in tall glass with mint and lime",
+        "mint mojito with crushed ice in glass",
+        "mojito drink with straw and lime slice",
+        "mojito in mason jar with mint",
+        "mojito close-up glass condensation",
+        "mojito top view overhead",
+        "two mojito glasses together",
+        "mojito with fruit garnish",
     ],
     "lemon_soda": [
-        "fresh lime soda clear fizzy with lemon slice",
-        "masala lemon soda Indian spiced",
-        "sweet lemon soda with ice",
-        "salty lemon soda Indian style",
-        "lemon soda with mint leaves",
-        "nimbu pani lemon water fresh",
-        "sparkling lemon water with bubbles",
-        "lemon soda with black salt masala",
-        "chilled lemon soda condensation on glass",
-        "lemon soda with ice cubes tall glass",
+        "lemon soda in glass with ice",
+        "nimbu pani lemon water in glass",
+        "lemon soda with lemon slice on rim",
+        "fresh lime soda fizzy in glass",
+        "lemon soda with straw in glass",
+        "lemon soda top view overhead",
+        "masala lemon soda in glass",
+        "lemon soda close-up glass condensation",
+        "two lemon soda glasses together",
+        "lemon soda in clay kulhad",
     ],
     "lassi": [
-        "thick sweet mango lassi in brass glass",
-        "plain sweet white lassi frothy",
-        "salted lassi Indian yogurt drink",
-        "rose flavored pink lassi",
-        "strawberry lassi pink frothy",
-        "saffron kesar lassi golden yellow",
-        "thick creamy Punjabi lassi full glass",
-        "blueberry lassi purple color",
-        "lassi with malai cream on top",
-        "traditional clay pot lassi earthen",
+        "mango lassi in tall glass",
+        "plain lassi in brass glass",
+        "sweet lassi frothy in glass",
+        "lassi with cream on top",
+        "lassi in clay kulhad earthen cup",
+        "lassi close-up frothy surface",
+        "lassi top view overhead",
+        "two lassi glasses together",
+        "pink rose lassi in glass",
+        "lassi with dry fruit garnish",
     ],
     "tender_coconut": [
-        "green tender coconut whole with straw",
-        "tender coconut on white surface fresh",
-        "tender coconut water poured in glass",
-        "coconut with colorful paper straw",
-        "two tender coconuts together with straws",
-        "tender coconut cut open showing jelly",
-        "tender coconut with spoon and straw",
-        "young green coconut single fresh",
-        "tender coconut organic fresh natural",
-        "tender coconut summer refreshing",
+        "tender coconut with straw whole",
+        "green coconut with colorful straw",
+        "tender coconut cut open with spoon",
+        "tender coconut top view",
+        "two tender coconuts with straws",
+        "three coconuts arranged together",
+        "coconut water in glass with coconut",
+        "tender coconut close-up",
+        "tender coconut on white surface",
+        "tender coconut with paper straw",
     ],
     "fresh_juice": [
-        "fresh orange juice glass with orange slice",
-        "carrot juice orange in glass",
-        "sugarcane juice fresh pressed in glass",
-        "pomegranate juice deep red in glass",
-        "watermelon juice pink red refreshing",
-        "mosambi sweet lime juice fresh",
-        "pineapple juice yellow with pineapple",
+        "fresh orange juice in glass with orange slice",
+        "sugarcane juice in glass fresh",
+        "watermelon juice in glass",
+        "pomegranate juice in glass",
+        "carrot juice in glass",
         "mixed fruit juice colorful in glass",
-        "beetroot carrot juice healthy dark red",
-        "green apple juice clear pale in glass",
+        "fresh juice with fruit beside glass",
+        "juice glass top view overhead",
+        "two juice glasses together",
+        "fresh juice with straw in glass",
     ],
     "buttermilk": [
-        "chilled Indian buttermilk chaas in glass",
-        "spiced masala buttermilk with curry leaves",
-        "white buttermilk in traditional brass tumbler",
-        "frothy fresh buttermilk plain",
-        "tadka buttermilk with mustard seeds",
-        "South Indian neer mor diluted buttermilk",
-        "buttermilk with coriander garnish",
-        "chilled chaas with ice cubes summer",
-        "traditional clay pot buttermilk mitti",
-        "buttermilk pitcher with poured glass",
+        "buttermilk chaas in glass",
+        "buttermilk in brass tumbler",
+        "buttermilk in clay pot",
+        "buttermilk with curry leaves garnish",
+        "buttermilk frothy in glass",
+        "buttermilk top view overhead",
+        "two buttermilk glasses together",
+        "masala buttermilk in glass",
+        "buttermilk close-up frothy",
+        "buttermilk in tall glass with ice",
     ],
 }
 
 DRINK_VESSELS = [
-    "in tall clear glass with ice",
-    "in traditional brass tumbler",
+    "in tall clear glass",
+    "in brass tumbler traditional",
     "in clay kulhad earthen cup",
     "in mason jar glass",
-    "in tall plastic cup with straw",
-    "in ceramic mug with saucer",
+    "in ceramic glass",
+    "in tall glass with ice cubes visible",
 ]
 
 DRINK_DETAILS = [
     "condensation droplets on cold glass",
-    "garnished with fresh mint leaves on top",
-    "with colorful paper straw inserted",
-    "ice cubes visible inside drink",
-    "garnish of fruit slice on rim",
+    "with fresh garnish on top",
+    "with colorful straw inserted",
+    "ice cubes clearly visible",
+    "frothy top surface",
 ]
 
 # ─────────────────────────────────────────────────────────────
 # 8. INDIAN FOODS
 # ─────────────────────────────────────────────────────────────
 
-INDIAN_FOODS = {
+INDIAN_FOOD_PROMPTS = {
     "biryani": [
-        "Hyderabadi dum biryani with chicken leg piece",
-        "Dindigul thalappakatti mutton biryani",
-        "Ambur star biryani seeraga samba rice",
-        "Malabar chicken biryani coconut",
-        "Kolkata biryani with potato and egg",
-        "Lucknowi awadhi dum biryani",
-        "Chettinad biryani spicy aromatic",
-        "Kashmiri biryani with saffron dry fruits",
-        "egg biryani golden fried eggs",
-        "vegetable biryani aromatic basmati",
+        "biryani in bowl with rice and meat",
+        "biryani served on banana leaf",
+        "biryani in clay pot",
+        "biryani close-up with garnish",
+        "biryani top view overhead",
+        "chicken biryani in bowl",
+        "mutton biryani on plate",
+        "biryani with raita on side",
+        "biryani on steel thali",
+        "biryani steam rising from bowl",
     ],
     "dosa": [
-        "golden crispy masala dosa with potato filling",
-        "paper thin ghee roast dosa browned",
-        "fluffy soft set dosa stack",
-        "lacy rava dosa with onion",
-        "delicate neer dosa white thin",
-        "pesarattu green dosa moong",
-        "egg dosa spicy with onion",
-        "cheese dosa melted inside",
-        "onion tomato uthappam thick",
-        "crispy paper dosa very thin large",
+        "masala dosa on plate with chutneys",
+        "dosa on banana leaf",
+        "crispy dosa with sambar bowl",
+        "dosa close-up texture",
+        "dosa top view overhead",
+        "set dosa stack on plate",
+        "egg dosa on plate",
+        "dosa with coconut chutney",
+        "dosa folded on plate",
+        "large paper dosa on plate",
     ],
     "idly": [
-        "soft white idly stack with sambar",
-        "mini idly small bite size",
-        "kanchipuram idly thick spiced",
-        "tatte idly large flat Karnataka",
-        "rava idly with mustard seeds",
-        "brown rice idly healthy",
+        "idly on plate with sambar",
+        "idly on banana leaf with chutneys",
+        "idly stack three pieces on plate",
+        "idly close-up texture",
+        "idly top view overhead",
+        "mini idly small on plate",
+        "idly with sambar bowl beside",
         "idly with coconut chutney",
-        "idly with tomato chutney red",
-        "idly podi powder sesame oil",
-        "steamed idly fresh from vessel",
+        "four idly on steel plate",
+        "idly with podi powder",
     ],
     "parotta": [
-        "layered flaky Kerala parotta crispy",
-        "coin parotta small round pieces",
-        "egg parotta wrapped with egg",
-        "kothu parotta minced shredded spicy",
-        "srilankan parotta layered fluffy",
-        "Malabar parotta soft flaky layers",
+        "parotta on plate layered",
+        "parotta on banana leaf",
+        "parotta close-up layers visible",
+        "parotta top view overhead",
+        "two parotta on plate",
         "parotta with chicken salna side",
-        "parotta with kurma curry side",
-        "fresh hot parotta from tawa",
-        "parotta stack layers visible",
+        "parotta with kurma side",
+        "kothu parotta on plate",
+        "parotta stack visible layers",
+        "hot parotta on plate fresh",
     ],
     "curry": [
-        "creamy rich butter chicken gravy red",
-        "spicy Chettinad chicken curry dark",
-        "Kerala fish curry coconut milk red",
-        "mutton rogan josh dark red aromatic",
-        "egg curry South Indian style",
-        "prawn masala in thick gravy",
-        "crab masala spicy dark",
-        "chicken tikka masala red gravy",
-        "goat curry with bone-in pieces",
-        "fish fry Chettinad style spiced",
+        "chicken curry in bowl",
+        "mutton curry in clay pot",
+        "fish curry in bowl",
+        "egg curry in bowl",
+        "prawn curry in bowl",
+        "curry close-up overhead view",
+        "curry with rice on plate",
+        "crab masala in plate",
+        "chicken curry on banana leaf",
+        "thick curry in steel bowl",
     ],
     "rice_dishes": [
-        "lemon rice South Indian yellow",
-        "curd rice with pomegranate",
-        "tomato rice spicy red",
-        "sambar rice mixed together",
-        "pongal creamy rice lentil dish",
-        "tamarind rice Puliyodharai",
-        "ghee rice fragrant basmati",
-        "coconut milk rice Thengai Sadham",
-        "jeera rice cumin basmati",
-        "plain steam rice with ghee",
+        "lemon rice on banana leaf",
+        "curd rice in bowl",
+        "tomato rice on plate",
+        "biryani rice in clay pot",
+        "plain rice with ghee in bowl",
+        "pongal in bowl",
+        "sambar rice on plate",
+        "ghee rice in bowl",
+        "coconut rice on banana leaf",
+        "tamarind rice on plate",
     ],
     "snacks": [
-        "crispy golden samosa three pieces",
-        "medu vada with hole South Indian",
-        "crispy murukku coil shaped",
-        "pakora bhaji onion fritters",
-        "bread pakora stuffed fried",
-        "aloo tikki pan fried patty",
-        "masala vada crispy South Indian",
-        "crispy bajji chili fritters",
-        "ribbon pakoda flat fried snack",
-        "tapioca chips banana chips batch",
+        "samosa three pieces on plate",
+        "medu vada two pieces on plate",
+        "murukku on plate",
+        "pakora on plate",
+        "bajji on plate",
+        "snacks close-up overhead view",
+        "banana chips on plate",
+        "masala vada on plate",
+        "bread pakora on plate",
+        "aloo tikki on plate",
     ],
     "sweets": [
-        "syrup soaked gulab jamun",
-        "ghee dripping mysore pak golden",
-        "crispy orange jalebi fresh",
-        "rava kesari South Indian saffron",
-        "round besan ladoo",
-        "halwa carrot gajar Indian",
-        "kaju katli diamond cut silver",
-        "rasgulla spongy white",
-        "creamy rice kheer bowl",
-        "coconut burfi white square",
+        "gulab jamun in bowl with syrup",
+        "mysore pak on plate",
+        "jalebi on plate",
+        "rava kesari in bowl",
+        "ladoo three pieces on plate",
+        "sweets close-up overhead view",
+        "kaju katli on plate",
+        "rasgulla in bowl",
+        "kheer in bowl",
+        "coconut burfi on plate",
     ],
 }
 
 INDIAN_FOOD_VESSELS = [
-    "in traditional banana leaf plate",
-    "in round steel thali plate",
-    "in ceramic bowl garnished",
-    "in rustic clay pot",
-    "in copper serving bowl",
-    "in terracotta plate",
+    "on banana leaf",
+    "in steel thali",
+    "in ceramic bowl",
+    "in clay pot",
+    "in copper bowl",
+    "on white plate",
 ]
 
-INDIAN_FOOD_STYLES = [
-    "South Indian restaurant style plating",
-    "authentic home style serving",
-    "dhaba roadside style presentation",
-    "wedding feast grand serving",
-    "street food casual style",
+FOOD_ANGLES = [
+    "overhead flat lay view",
+    "45 degree angled shot",
+    "front view",
+    "close-up macro",
+    "side view",
 ]
 
 # ─────────────────────────────────────────────────────────────
 # 9. WORLD FOODS
 # ─────────────────────────────────────────────────────────────
 
-WORLD_FOODS = {
+WORLD_FOOD_PROMPTS = {
     "pizza": [
-        "Margherita pizza with fresh basil mozzarella",
-        "deep dish pepperoni pizza cheese pull",
-        "BBQ chicken pizza loaded toppings",
-        "four cheese pizza melted golden",
-        "veggie supreme pizza bell peppers",
-        "spicy chicken pizza with jalapenos",
-        "paneer tikka pizza Indian fusion",
-        "mushroom truffle pizza gourmet",
-        "pizza slice triangular single serving",
-        "mini personal pizza individual size",
-        "pizza with tomato sauce base visible",
-        "charred crust artisan pizza rustic",
+        "pizza whole on wooden board",
+        "pizza slice single piece",
+        "pizza top view overhead",
+        "pizza close-up cheese stretch",
+        "pizza side view showing layers",
+        "two pizza slices arranged",
+        "pizza in box open",
+        "pizza fresh from oven",
+        "mini pizza personal size",
+        "pizza with toppings visible",
+        "pizza 45 degree angle view",
+        "pizza on white plate",
     ],
     "burger": [
-        "juicy beef cheeseburger melting cheddar",
-        "crispy fried chicken burger coleslaw",
-        "smoky BBQ double patty burger",
-        "mushroom Swiss burger grilled patty",
-        "spicy chicken burger with sauce",
-        "veggie bean burger with avocado",
-        "smash burger caramelized onions",
-        "fish burger tartar sauce lettuce",
-        "egg burger with sunny side up",
-        "burger halved showing layers cross section",
-        "mini slider burgers three pieces",
-        "paneer tikka burger Indian style",
+        "burger whole on plate",
+        "burger cut in half showing layers",
+        "burger close-up side view",
+        "burger top view overhead",
+        "burger with fries on plate",
+        "burger 45 degree angle",
+        "burger on wooden board",
+        "double burger stacked",
+        "burger unwrapped showing inside",
+        "burger with sauce dripping",
+        "two burgers arranged",
+        "burger close-up macro",
     ],
     "fried_chicken": [
-        "crispy golden fried chicken piece drumstick",
-        "KFC style fried chicken breast piece",
-        "boneless crispy fried chicken strips",
-        "buttermilk fried chicken golden brown",
-        "spicy fried chicken Indian masala style",
-        "fried chicken bucket full pieces",
-        "fried chicken sandwich in bun",
-        "popcorn chicken bite size pieces",
-        "Korean crispy fried chicken glazed",
-        "fried chicken with honey sauce drizzle",
-        "double fried extra crispy chicken",
-        "fried chicken platter with dips",
+        "fried chicken piece on plate",
+        "fried chicken drumstick single",
+        "fried chicken bucket full",
+        "fried chicken strips on plate",
+        "fried chicken close-up crispy",
+        "fried chicken top view overhead",
+        "fried chicken with dip sauce",
+        "four fried chicken pieces arranged",
+        "fried chicken on wooden board",
+        "fried chicken 45 degree angle",
+        "fried chicken sandwich on plate",
+        "crispy fried chicken pieces arranged",
     ],
     "french_fries": [
-        "crispy golden French fries in serving box",
-        "thin shoestring fries tall glass cup",
-        "thick cut steak fries golden",
-        "curly fries spiral crispy",
-        "waffle fries grid pattern crispy",
-        "loaded cheese fries with sauce",
-        "sweet potato fries orange crispy",
-        "chili cheese fries loaded",
-        "garlic parmesan fries seasoned",
-        "French fries in paper cone",
-        "seasoned spicy masala fries",
-        "truffle oil fries gourmet style",
+        "french fries in box",
+        "french fries in paper cone",
+        "french fries on plate",
+        "french fries close-up",
+        "french fries top view overhead",
+        "large portion fries in box",
+        "fries with dip sauce on side",
+        "curly fries on plate",
+        "waffle fries on plate",
+        "thick cut fries on board",
+        "cheese fries loaded on plate",
+        "fries two boxes arranged",
     ],
     "noodles": [
-        "wok tossed vegetable noodles Chinese style",
-        "spicy Schezwan noodles red sauce",
-        "hakka noodles egg Indian Chinese",
-        "ramen bowl with egg and toppings",
-        "pad thai noodles Thai style",
-        "chow mein stir fried noodles",
-        "Maggi instant noodles Indian style",
-        "glass noodles transparent Korean",
-        "udon noodles thick Japanese soup",
-        "drunken noodles flat rice noodles",
-        "crispy noodles base with sauce",
-        "lo mein noodles soft Chinese",
+        "noodles in bowl with chopsticks",
+        "noodles top view overhead",
+        "noodles close-up texture",
+        "noodles on plate",
+        "ramen bowl with egg on top",
+        "stir fried noodles in bowl",
+        "noodles with vegetables in bowl",
+        "noodles 45 degree angle",
+        "noodle bowl steam rising",
+        "noodles on plate with sauce",
+        "noodles close-up with garnish",
+        "noodles in ceramic bowl",
     ],
     "fried_rice": [
-        "wok fried rice with egg vegetables",
-        "chicken fried rice Chinese style",
-        "Schezwan fried rice spicy red",
-        "egg fried rice golden",
-        "shrimp fried rice seafood",
-        "pineapple fried rice Thai style",
-        "kimchi fried rice Korean style",
-        "vegetable fried rice colorful",
-        "Indian Chinese fried rice masala",
-        "garlic butter fried rice",
-        "black pepper fried rice dark seasoned",
-        "restaurant quality fried rice plated",
+        "fried rice in bowl",
+        "fried rice on plate",
+        "fried rice top view overhead",
+        "fried rice close-up",
+        "fried rice 45 degree angle",
+        "fried rice in wok",
+        "fried rice with egg visible",
+        "fried rice with vegetables",
+        "fried rice with chopsticks",
+        "fried rice on banana leaf",
+        "fried rice in ceramic bowl",
+        "fried rice with garnish",
     ],
     "chinese": [
-        "steaming dim sum bamboo basket",
-        "crispy spring rolls golden fried",
-        "orange chicken with sesame seeds",
-        "chicken manchurian in dark sauce",
-        "gobi manchurian cauliflower Indian Chinese",
-        "hot and sour soup bowl",
-        "wonton soup with floating dumplings",
-        "Peking duck sliced with pancakes",
-        "kung pao chicken with peanuts",
-        "sweet and sour pork dish colorful",
-        "mapo tofu spicy red sauce",
-        "steamed har gow prawn dumplings",
+        "spring rolls on plate crispy",
+        "dim sum in bamboo basket",
+        "chicken manchurian in bowl",
+        "gobi manchurian on plate",
+        "wonton soup in bowl",
+        "spring rolls close-up",
+        "dim sum top view overhead",
+        "chinese food on plate arranged",
+        "soup bowl with dumplings",
+        "chinese stir fry on plate",
+        "spring rolls two pieces on plate",
+        "chinese noodles in bowl",
     ],
 }
 
 WORLD_FOOD_VESSELS = [
-    "on white ceramic dinner plate",
-    "on rustic wooden serving board",
-    "in deep ceramic bowl",
-    "on dark slate serving board",
-    "in cast iron skillet hot",
-    "in red and white paper box",
-    "in bamboo basket steamed",
-]
-
-WORLD_FOOD_ANGLES = [
-    "close-up food photography macro",
-    "overhead flat lay food shot",
-    "angled hero shot 45 degree",
-    "side view plated professional",
-    "front view restaurant style",
+    "on white plate",
+    "on wooden board",
+    "in ceramic bowl",
+    "on slate board",
+    "in paper box",
+    "in bamboo basket",
 ]
 
 # ─────────────────────────────────────────────────────────────
 # 10. FOOTWEAR
 # ─────────────────────────────────────────────────────────────
 
-FOOTWEAR = {
+FOOTWEAR_PROMPTS = {
     "chappals": [
-        "brown leather kolhapuri chappal flat",
-        "rubber flip flop slipper casual",
-        "simple hawai chappal rubber traditional",
-        "embroidered Rajasthani chappal colorful",
-        "black rubber home slipper foam",
-        "leather sole flat chappal simple",
-        "wooden paduka traditional Indian",
-        "multi-color fabric chappal",
-        "synthetic chappal flat casual",
-        "thong sandal rubber flat",
+        "single chappal sandal side view",
+        "pair of chappals front view",
+        "chappals top view flat lay",
+        "leather chappal close-up",
+        "rubber chappal pair",
+        "traditional chappal side view",
+        "chappal sole detail view",
+        "chappal pair 45 degree angle",
+        "two chappals arranged",
+        "chappal on white surface",
     ],
     "sandals": [
-        "leather gladiator sandal brown straps",
-        "sports sandal with velcro strap",
-        "platform sandal women fashion",
-        "strappy heeled sandal elegant",
-        "beach sandal waterproof",
-        "toe ring sandal Indian style",
-        "backstrap sandal comfortable",
-        "wedge cork sandal women",
-        "casual flat sandal summer",
-        "ankle strap heeled sandal fashion",
+        "single sandal side view",
+        "pair of sandals front view",
+        "sandals top view flat lay",
+        "leather sandal close-up",
+        "strappy sandal pair",
+        "sandal 45 degree angle",
+        "sandal sole detail view",
+        "ladies sandal pair arranged",
+        "sandal on white surface",
+        "two sandals arranged",
     ],
     "shoes": [
-        "black Oxford leather shoes polished formal",
-        "brown Derby brogue leather shoes",
-        "casual white canvas shoes",
-        "loafer shoes tan leather slip on",
-        "boat shoes leather casual",
-        "Derby shoes dark brown",
-        "monk strap shoes burgundy",
-        "smart casual leather shoes black",
-        "formal lace-up shoes office",
-        "brogues detailed perforations",
+        "single shoe side profile view",
+        "pair of shoes front view",
+        "shoes top view flat lay",
+        "leather shoe close-up texture",
+        "formal shoes pair arranged",
+        "shoe 45 degree angle",
+        "shoe sole detail view",
+        "shoes on white surface",
+        "shoes pair side by side",
+        "shoe lace detail close-up",
     ],
     "heels": [
-        "pointed toe stiletto heels black",
-        "block heel court shoes nude",
-        "strappy heeled sandal evening",
-        "platform pump heel women",
-        "kitten heel subtle women",
-        "wedge heel casual women",
-        "ankle boot low heel women",
-        "embellished party heel rhinestone",
-        "spool heel classic women",
-        "tapered medium heel office women",
+        "single heel shoe side view",
+        "pair of heels front view",
+        "heels top view flat lay",
+        "stiletto heel close-up",
+        "heels 45 degree angle",
+        "block heel shoe pair",
+        "heels sole detail view",
+        "ladies heels pair arranged",
+        "heels on white surface",
+        "pointed heel shoe side view",
     ],
     "sports_shoes": [
-        "white Nike running shoes",
-        "Adidas ultraboost sports shoes",
-        "Skechers walking shoes comfort",
-        "Puma training shoes colorful",
-        "New Balance running shoes grey",
-        "Reebok gym training shoes",
-        "badminton shoes indoor court",
-        "football turf shoes studs",
-        "cricket shoes rubber studs white",
-        "basketball shoes high top",
+        "single sports shoe side view",
+        "pair of sports shoes front view",
+        "sports shoes top view flat lay",
+        "running shoes pair arranged",
+        "sports shoe sole detail",
+        "sports shoes 45 degree angle",
+        "sneakers pair side by side",
+        "sports shoes on white surface",
+        "running shoes close-up texture",
+        "sneakers top view overhead",
     ],
     "kids_footwear": [
-        "kids school shoes black leather",
-        "colorful children sneakers velcro",
-        "kids sandal soft sole",
-        "toddler shoes soft pink",
-        "children sports shoes colorful",
-        "baby shoes tiny first steps",
+        "kids school shoes pair",
+        "children sneakers pair front view",
+        "kids sandal pair arranged",
+        "baby shoes tiny pair",
+        "kids shoes top view flat lay",
+        "children shoes side view",
+        "kids footwear pair arranged",
     ],
 }
 
 SHOE_VIEWS = [
-    "side profile single shoe view",
-    "pair from front angled 3/4 view",
-    "sole detail underside view",
-    "top view flat lay overhead",
-    "heel detail close-up macro",
-    "45 degree hero shot pair",
-]
-
-SHOE_DETAILS = [
-    "clean pristine condition",
-    "leather texture visible close-up",
-    "stitch detail macro view",
-    "lace detail close-up",
-    "sole grip pattern detail",
+    "side profile view",
+    "front view",
+    "top view flat lay",
+    "45 degree angle",
+    "sole detail view",
+    "heel close-up",
 ]
 
 # ─────────────────────────────────────────────────────────────
 # 11. INDIAN DRESS
 # ─────────────────────────────────────────────────────────────
 
-INDIAN_DRESS = {
+DRESS_PROMPTS = {
     "saree": [
-        "Kanchipuram silk saree gold zari border folded",
-        "Banarasi silk saree rich brocade work",
-        "cotton saree casual lightweight",
-        "South Indian silk saree traditional",
-        "Mysore silk saree smooth texture",
-        "chiffon saree transparent lightweight",
-        "net saree embroidered festive",
-        "bridal saree heavy embroidery gold",
-        "Kerala kasavu cream gold border saree",
-        "Bandhani tie-dye Rajasthani saree",
-        "chanderi cotton silk saree",
-        "patola Gujarati weave saree",
+        "saree neatly folded showing fabric",
+        "saree draped showing full fabric",
+        "saree flat lay full garment",
+        "silk saree folded with border visible",
+        "saree close-up embroidery detail",
+        "saree pallu end detail close-up",
+        "bridal saree folded heavy embroidery",
+        "cotton saree folded lightweight",
+        "saree zari border close-up",
+        "saree fabric texture close-up",
+        "Kanchipuram saree folded",
+        "Banarasi saree folded",
     ],
     "salwar_kameez": [
-        "embroidered salwar kameez festive",
-        "Anarkali suit long flared dress",
-        "straight cut simple salwar suit",
-        "palazzo suit flared pants",
-        "patiala salwar traditional Punjab",
-        "cotton salwar kameez summer",
-        "silk salwar kameez party wear",
-        "churidar salwar kameez tight",
-        "printed salwar kameez floral",
-        "designer salwar kameez modern",
+        "salwar kameez set flat lay",
+        "salwar suit folded arranged",
+        "anarkali suit flat lay",
+        "salwar kameez fabric detail",
+        "salwar kameez embroidery close-up",
+        "palazzo suit flat lay",
+        "salwar kameez on hanger",
+        "printed salwar kameez flat lay",
+        "embroidered salwar kameez",
+        "salwar kameez top view overhead",
     ],
     "lehenga": [
-        "bridal lehenga choli heavy embroidery",
-        "flared lehenga skirt festive wear",
-        "half saree lehenga South Indian",
-        "ghagra choli Rajasthani folk",
-        "lehenga with crop top modern",
-        "pink bridal lehenga traditional",
+        "lehenga skirt flat lay",
+        "bridal lehenga folded",
+        "lehenga embroidery close-up",
+        "lehenga choli set flat lay",
+        "lehenga fabric detail",
+        "lehenga top view overhead",
     ],
     "kurta": [
-        "men kurta white cotton simple",
-        "kurta pajama set Indian traditional",
-        "embroidered kurta festive occasion",
-        "nehru collar kurta elegant",
-        "short kurta casual modern",
-        "silk kurta festive golden",
-        "linen kurta summer lightweight",
-        "sherwani men wedding formal",
-        "pathani suit men traditional",
-        "printed kurta modern design",
+        "mens kurta folded flat lay",
+        "kurta on hanger full view",
+        "kurta fabric detail close-up",
+        "embroidered kurta flat lay",
+        "silk kurta folded",
+        "kurta pajama set arranged",
+        "sherwani flat lay",
+        "kurta top view overhead",
+        "printed kurta flat lay",
+        "plain white kurta folded",
     ],
     "kids_dress": [
-        "children lehenga choli girls festive",
-        "kids kurta pajama boys traditional",
-        "baby girl frock Indian style",
-        "kids school uniform formal",
-        "boys sherwani kids wedding",
-        "girls half saree South Indian kids",
-        "boys dhoti kurta traditional",
-        "girls salwar kameez party wear",
-        "kids ethnic wear accessories",
-        "infant Indian traditional dress",
+        "kids lehenga choli flat lay",
+        "children kurta pajama set flat lay",
+        "baby girl frock flat lay",
+        "kids ethnic wear flat lay",
+        "boys sherwani flat lay",
+        "girls salwar kameez flat lay",
+        "kids dress fabric detail",
+        "children traditional dress flat lay",
+        "kids festive wear top view",
+        "infant Indian dress tiny",
     ],
 }
 
 DRESS_CONTEXTS = [
-    "neatly folded showing fabric",
-    "draped showing full fabric flow",
-    "flat lay full garment overhead",
-    "hanging on display showing full length",
-    "close-up fabric embroidery texture detail",
-    "saree pleats detail close-up",
-]
-
-DRESS_STYLE = [
-    "fashion product photography",
-    "textile studio photography",
-    "ethnic wear catalog photography",
-    "traditional garment editorial photography",
+    "neatly folded on surface",
+    "draped showing fabric",
+    "flat lay top view",
+    "hanging full length",
+    "embroidery detail close-up",
+    "fabric texture close-up",
 ]
 
 # ─────────────────────────────────────────────────────────────
 # 12. JEWELLERY MODELS
 # ─────────────────────────────────────────────────────────────
 
-JEWELLERY_MODELS = {
-    "gold_necklace_models": [
-        "beautiful Indian woman wearing heavy gold temple necklace",
-        "South Indian woman with traditional layered gold haar necklace",
-        "young Indian woman with gold chain necklace portrait",
-        "woman wearing gold Lakshmi coin necklace traditional",
-        "Indian girl with gold rani haar long necklace",
-        "Tamil woman with gold kasumala necklace",
-        "woman wearing bridal gold necklace set heavy",
-        "Indian woman with antique gold choker necklace",
-        "woman wearing gold mangalsutra chain",
-        "lady with kundan polki necklace traditional",
+JEWELLERY_MODEL_PROMPTS = {
+    "necklace_models": [
+        "Indian woman wearing gold necklace portrait",
+        "South Indian woman gold necklace studio portrait",
+        "woman with traditional gold necklace close-up",
+        "woman wearing heavy gold necklace in saree",
+        "woman gold necklace three quarter portrait",
+        "woman wearing layered gold necklace",
+        "woman gold necklace side profile portrait",
+        "Indian woman gold temple necklace portrait",
+        "woman wearing gold chain necklace",
+        "woman gold necklace smiling portrait",
     ],
     "bridal_models": [
-        "beautiful South Indian bride full gold jewellery set",
-        "North Indian bride with gold and kundan bridal set",
-        "Tamil bride with temple jewellery complete set",
-        "Punjabi bride with chooda and gold bridal jewelry",
-        "Rajasthani bride with traditional gold silver jewellery",
-        "Bengali bride with gold Shakha Pola bangles",
-        "Maharashtrian bride with Nath Necklace green bangles",
-        "Kerala bride gold mango mala necklace kasavu saree",
-        "Kannada bride traditional gold set",
-        "bridal close-up face portrait with gold maang tikka",
+        "South Indian bride full gold jewellery studio portrait",
+        "Indian bride with gold bridal set portrait",
+        "Tamil bride temple jewellery full set portrait",
+        "bridal portrait with gold maang tikka close-up",
+        "bride gold necklace earring set portrait",
+        "Indian bridal jewellery model full portrait",
+        "bride in silk saree with gold jewellery",
+        "bridal close-up face gold jewellery portrait",
+        "North Indian bride gold jewellery portrait",
+        "Kerala bride gold jewellery portrait",
     ],
     "earring_models": [
-        "Indian woman with gold jhumka bell earrings",
-        "girl wearing gold hoop earrings Indian",
-        "woman with gold chandbali crescent earrings",
-        "Indian girl with long gold chandelier earrings",
-        "woman wearing large gold earrings portrait",
-        "South Indian woman with gold kammal earrings",
-        "girl with diamond and gold stud earrings",
-        "young woman gold drop earrings portrait",
+        "woman wearing gold jhumka earrings portrait",
+        "woman gold hoop earrings close-up portrait",
+        "woman gold chandbali earrings portrait",
+        "woman chandelier earrings side view portrait",
+        "woman gold earrings three quarter portrait",
+        "Indian woman gold kammal earrings portrait",
+        "woman earrings close-up face portrait",
+        "woman long gold earrings portrait",
     ],
     "bangle_models": [
-        "woman hands with full gold bangles set",
-        "Indian woman wearing gold kaada bangle",
-        "bridal hands with gold and stone bangles",
-        "woman wearing mixed glass and gold bangles",
-        "South Indian woman gold valaiyal bangles",
-        "hands decorated with henna and gold bangles",
-        "woman with green glass bangles and gold",
-        "girl with gold bracelet chain wrist",
+        "woman hands with gold bangles close-up",
+        "Indian woman wearing gold bangles wrist",
+        "woman bridal bangles hands close-up",
+        "woman hands gold and glass bangles",
+        "woman gold kada bangle wrist close-up",
+        "woman hands with bangles henna design",
+        "woman gold bracelet wrist close-up",
+        "woman multiple bangles hands portrait",
     ],
 }
 
 MODEL_LOOKS = [
-    "elegant formal pose studio",
-    "natural smile happy expression",
+    "elegant studio portrait",
+    "natural smile portrait",
     "side profile graceful pose",
-    "three quarter face portrait pose",
-    "looking down jewelry focus",
-    "close-up portrait glowing skin",
+    "three quarter face portrait",
+    "close-up face portrait",
+    "full upper body portrait",
 ]
 
 MODEL_SAREE = [
-    "wearing Kanchipuram silk saree",
-    "in Banarasi silk bridal saree",
+    "in silk saree",
+    "in bridal saree",
     "in traditional South Indian saree",
-    "in bridal red silk saree",
+    "in Kanchipuram saree",
 ]
 
 # ─────────────────────────────────────────────────────────────
-# 13. OFFICE & FASHION MODELS
+# 13. OFFICE MODELS
 # ─────────────────────────────────────────────────────────────
 
-OFFICE_MODELS = {
+OFFICE_MODEL_PROMPTS = {
     "women_office": [
-        "professional Indian woman in formal white shirt and trousers",
-        "businesswoman in navy blue blazer and skirt",
-        "corporate woman in formal pant suit grey",
-        "office woman in saree formal work style",
-        "professional woman in kurta and pants formal",
-        "Indian businesswoman in black formal suit",
-        "working woman in formal dress midi",
-        "office woman in printed formal blouse",
-        "young professional woman corporate attire",
-        "woman in formal blazer with portfolio",
+        "Indian woman in formal office wear portrait",
+        "professional woman in blazer and trousers portrait",
+        "businesswoman in formal suit portrait",
+        "office woman in formal saree portrait",
+        "professional Indian woman corporate attire portrait",
+        "woman in formal white shirt office portrait",
+        "corporate woman smart formal wear portrait",
+        "office woman three quarter body portrait",
+        "professional woman confident pose portrait",
+        "Indian businesswoman formal attire full portrait",
     ],
     "men_formal": [
-        "Indian man in formal white shirt and black trousers",
-        "businessman in navy blue suit and tie",
-        "professional man in grey formal suit",
-        "office man in formal kurta pajama",
-        "corporate man in black suit white shirt",
-        "young professional man blazer and chinos",
-        "man in formal shirt and tie portrait",
-        "businessman in dark suit confident pose",
-        "professional Indian man formal attire",
-        "man in crisp formal shirt office look",
+        "Indian man in formal suit portrait",
+        "businessman in formal shirt and trousers portrait",
+        "professional man in blazer portrait",
+        "office man in formal kurta portrait",
+        "corporate man in suit and tie portrait",
+        "professional Indian man formal attire portrait",
+        "man in formal white shirt portrait",
+        "businessman confident pose portrait",
+        "professional man three quarter portrait",
+        "Indian corporate man formal portrait",
     ],
     "casual_smart": [
-        "Indian woman in smart casual kurta jeans",
-        "woman in floral printed western top skirt",
-        "girl in smart casual dress modern Indian",
-        "woman in simple salwar kameez casual",
-        "lady in linen shirt and trousers smart",
-        "young woman in smart western formal",
-        "woman in traditional with modern fusion wear",
-        "girl in chic casual Indian office wear",
+        "Indian woman smart casual wear portrait",
+        "woman in kurta and jeans portrait",
+        "woman in printed western top portrait",
+        "girl in casual smart dress portrait",
+        "woman in simple salwar kameez portrait",
+        "young woman smart casual Indian portrait",
+        "woman in linen shirt trousers portrait",
+        "Indian girl modern casual portrait",
     ],
 }
 
 MODEL_POSES_OFFICE = [
-    "confident standing front view portrait",
-    "side profile elegant posture",
-    "three quarter body view",
-    "arms crossed professional pose",
-    "natural smile relaxed portrait",
-    "close-up portrait professional headshot style",
+    "confident standing full body portrait",
+    "side profile standing portrait",
+    "three quarter body view portrait",
+    "arms crossed professional pose portrait",
+    "natural relaxed smile portrait",
+    "close-up portrait headshot",
 ]
 
 # ─────────────────────────────────────────────────────────────
@@ -1575,15 +1410,16 @@ MODEL_POSES_OFFICE = [
 # ─────────────────────────────────────────────────────────────
 
 class PromptEngine:
+
     def __init__(self):
-        self.generated_prompts = set()
+        pass
 
     def make_prompt(self, subject, extra=""):
         angle   = random.choice(CAMERA_ANGLES)
         light   = random.choice(LIGHTING_STYLES)
         quality = random.choice(DETAIL_QUALITY)
         style   = random.choice(PHOTO_STYLES)
-        parts = [subject]
+        parts   = [subject]
         if extra:
             parts.append(extra)
         parts.extend([angle, light, quality, style, BASE_SUFFIX])
@@ -1592,7 +1428,7 @@ class PromptEngine:
     def make_animal_prompt(self, subject, extra=""):
         light   = random.choice(LIGHTING_STYLES)
         quality = random.choice(DETAIL_QUALITY)
-        parts = [subject]
+        parts   = [subject]
         if extra:
             parts.append(extra)
         parts.extend([light, quality, ANIMAL_SUFFIX])
@@ -1601,281 +1437,307 @@ class PromptEngine:
     def make_model_prompt(self, subject, extra=""):
         light   = random.choice(LIGHTING_STYLES)
         quality = random.choice(DETAIL_QUALITY)
-        parts = [subject]
+        parts   = [subject]
         if extra:
             parts.append(extra)
         parts.extend([light, quality, MODEL_SUFFIX])
         return ", ".join(parts)
 
-    # ── 1. LIVE POULTRY & ANIMALS ────────────────────────────
+    # ── 1. POULTRY & ANIMALS ─────────────────────────────────
     def generate_poultry_animal_prompts(self):
         prompts = []
-
-        for breed in ROOSTER["breeds"]:
-            for pose in ROOSTER["poses"]:
-                detail = random.choice(ROOSTER["details"])
-                p = self.make_animal_prompt(f"{breed}, {pose}", detail)
-                prompts.append({"category": "poultry_animals", "subcategory": "rooster",
-                                 "prompt": p, "seed": random.randint(1, 999999)})
-
-        for t in BROILER_CHICKEN["types"]:
-            for pose in BROILER_CHICKEN["poses"]:
-                detail = random.choice(BROILER_CHICKEN["details"])
-                p = self.make_animal_prompt(f"{t}, {pose}", detail)
-                prompts.append({"category": "poultry_animals", "subcategory": "broiler_chicken",
-                                 "prompt": p, "seed": random.randint(1, 999999)})
-
-        for t in GOAT["types"]:
-            for pose in GOAT["poses"]:
-                detail = random.choice(GOAT["details"])
-                p = self.make_animal_prompt(f"{t}, {pose}", detail)
-                prompts.append({"category": "poultry_animals", "subcategory": "goat",
-                                 "prompt": p, "seed": random.randint(1, 999999)})
-
-        for t in QUAIL["types"]:
-            for pose in QUAIL["poses"]:
-                detail = random.choice(QUAIL["details"])
-                p = self.make_animal_prompt(f"{t}, {pose}", detail)
-                prompts.append({"category": "poultry_animals", "subcategory": "quail",
-                                 "prompt": p, "seed": random.randint(1, 999999)})
-
-        for t in COW["types"]:
-            for pose in COW["poses"]:
-                detail = random.choice(COW["details"])
-                p = self.make_animal_prompt(f"{t}, {pose}", detail)
-                prompts.append({"category": "poultry_animals", "subcategory": "cow",
-                                 "prompt": p, "seed": random.randint(1, 999999)})
-
+        all_animals = [
+            ("rooster",         ROOSTER_PROMPTS),
+            ("broiler_chicken", BROILER_CHICKEN_PROMPTS),
+            ("goat",            GOAT_PROMPTS),
+            ("quail",           QUAIL_PROMPTS),
+            ("cow",             COW_PROMPTS),
+        ]
+        contexts = [
+            "studio photography",
+            "clean white background",
+            "professional animal portrait",
+            "wildlife photography style",
+            "full body visible",
+            "natural lighting",
+        ]
+        for subcat, items in all_animals:
+            for item in items:
+                for ctx in contexts:
+                    p = self.make_animal_prompt(item, ctx)
+                    prompts.append({"category": "poultry_animals",
+                                    "subcategory": subcat,
+                                    "prompt": p,
+                                    "seed": random.randint(1, 999999)})
         return prompts
 
     # ── 2. RAW MEAT & EGGS ───────────────────────────────────
     def generate_raw_meat_prompts(self):
         prompts = []
-
-        for cut in RAW_CHICKEN_MEAT["cuts"]:
-            for pres in RAW_CHICKEN_MEAT["presentation"]:
-                detail = random.choice(RAW_CHICKEN_MEAT["details"])
-                style  = random.choice(MEAT_STYLE)
-                p = self.make_prompt(f"{cut}, {pres}", f"{detail}, {style}")
-                prompts.append({"category": "raw_meat", "subcategory": "raw_chicken",
-                                 "prompt": p, "seed": random.randint(1, 999999)})
-
-        for cut in RAW_GOAT_MEAT["cuts"]:
-            for pres in RAW_GOAT_MEAT["presentation"]:
-                detail = random.choice(RAW_GOAT_MEAT["details"])
-                style  = random.choice(MEAT_STYLE)
-                p = self.make_prompt(f"{cut}, {pres}", f"{detail}, {style}")
-                prompts.append({"category": "raw_meat", "subcategory": "raw_goat",
-                                 "prompt": p, "seed": random.randint(1, 999999)})
-
-        for cut in RAW_QUAIL_MEAT["cuts"]:
-            for pres in RAW_QUAIL_MEAT["presentation"]:
-                detail = random.choice(RAW_QUAIL_MEAT["details"])
-                style  = random.choice(MEAT_STYLE)
-                p = self.make_prompt(f"{cut}, {pres}", f"{detail}, {style}")
-                prompts.append({"category": "raw_meat", "subcategory": "raw_quail",
-                                 "prompt": p, "seed": random.randint(1, 999999)})
-
-        for egg in EGGS["types"]:
-            for pres in EGGS["presentation"]:
-                detail = random.choice(EGGS["details"])
-                p = self.make_prompt(f"{egg}, {pres}", detail)
-                prompts.append({"category": "raw_meat", "subcategory": "eggs",
-                                 "prompt": p, "seed": random.randint(1, 999999)})
-
+        meat_style = [
+            "butcher shop product photography",
+            "fresh food photography",
+            "commercial food photography",
+            "studio food photography",
+        ]
+        all_meats = [
+            ("raw_chicken", RAW_CHICKEN_PROMPTS),
+            ("raw_goat",    RAW_GOAT_PROMPTS),
+            ("raw_quail",   RAW_QUAIL_PROMPTS),
+            ("eggs",        EGG_PROMPTS),
+        ]
+        for subcat, items in all_meats:
+            for item in items:
+                for style in meat_style:
+                    angle = random.choice(CAMERA_ANGLES)
+                    p = self.make_prompt(item, f"{style}, {angle}")
+                    prompts.append({"category": "raw_meat",
+                                    "subcategory": subcat,
+                                    "prompt": p,
+                                    "seed": random.randint(1, 999999)})
         return prompts
 
     # ── 3. VEHICLES ──────────────────────────────────────────
     def generate_vehicle_prompts(self):
         prompts = []
+        car_details = [
+            "clean polished bodywork",
+            "studio automotive photography",
+            "commercial vehicle photography",
+            "showroom quality presentation",
+            "professional car photography",
+        ]
+        for car_type, car_list in INDIAN_CAR_PROMPTS.items():
+            for car in car_list:
+                for detail in car_details:
+                    p = self.make_prompt(car, detail)
+                    prompts.append({"category": "vehicles",
+                                    "subcategory": f"cars_{car_type}",
+                                    "prompt": p,
+                                    "seed": random.randint(1, 999999)})
 
-        for car_type, models in INDIAN_CARS.items():
-            for model in models:
-                for angle in CAR_ANGLES_V:
-                    detail = random.choice(CAR_DETAILS)
-                    p = self.make_prompt(f"{model}, {angle}", detail)
-                    prompts.append({"category": "vehicles", "subcategory": f"indian_cars_{car_type}",
-                                     "prompt": p, "seed": random.randint(1, 999999)})
+        bike_details = [
+            "shiny chrome detail visible",
+            "studio motorcycle photography",
+            "commercial bike photography",
+            "showroom quality presentation",
+            "professional bike photography",
+        ]
+        for bike_type, bike_list in BIKE_PROMPTS.items():
+            for bike in bike_list:
+                for detail in bike_details:
+                    p = self.make_prompt(bike, detail)
+                    prompts.append({"category": "vehicles",
+                                    "subcategory": f"bikes_{bike_type}",
+                                    "prompt": p,
+                                    "seed": random.randint(1, 999999)})
 
-        for bike_type, models in INDIAN_BIKES.items():
-            for model in models:
-                for angle in CAR_ANGLES_V:
-                    detail = random.choice(CAR_DETAILS)
-                    p = self.make_prompt(f"{model}, {angle}", detail)
-                    prompts.append({"category": "vehicles", "subcategory": f"bikes_{bike_type}",
-                                     "prompt": p, "seed": random.randint(1, 999999)})
-
-        for auto in AUTO_RICKSHAW["types"]:
-            for angle in AUTO_RICKSHAW["angles"]:
-                detail = random.choice(AUTO_RICKSHAW["details"])
-                p = self.make_prompt(f"{auto}, {angle}", detail)
-                prompts.append({"category": "vehicles", "subcategory": "auto_rickshaw",
-                                 "prompt": p, "seed": random.randint(1, 999999)})
-
+        auto_details = [
+            "clean painted bodywork",
+            "studio vehicle photography",
+            "commercial vehicle photography",
+            "professional auto photography",
+            "showroom presentation",
+        ]
+        for auto in AUTO_RICKSHAW_PROMPTS:
+            for detail in auto_details:
+                p = self.make_prompt(auto, detail)
+                prompts.append({"category": "vehicles",
+                                "subcategory": "auto_rickshaw",
+                                "prompt": p,
+                                "seed": random.randint(1, 999999)})
         return prompts
 
     # ── 4. FLOWERS ───────────────────────────────────────────
     def generate_flower_prompts(self):
         prompts = []
+        photo = [
+            "macro close-up photography",
+            "botanical studio photography",
+            "fine art floral photography",
+            "natural light photography",
+        ]
+        for subcat, items in FLOWER_SINGLE_PROMPTS.items():
+            for item in items:
+                for ctx in FLOWER_CONTEXTS:
+                    approach = random.choice(photo)
+                    p = self.make_prompt(f"{item}, {ctx}", approach)
+                    prompts.append({"category": "flowers",
+                                    "subcategory": f"single_{subcat}",
+                                    "prompt": p,
+                                    "seed": random.randint(1, 999999)})
 
-        for flower_type, varieties in FLOWERS_SINGLE.items():
-            for variety in varieties:
-                for stage in FLOWER_STAGES:
-                    for context in FLOWER_CONTEXTS:
-                        approach = random.choice(FLOWER_PHOTO)
-                        subject = f"{variety}, {stage}, {context}, {approach}"
-                        p = self.make_prompt(subject)
-                        prompts.append({"category": "flowers", "subcategory": f"single_{flower_type}",
-                                         "prompt": p, "seed": random.randint(1, 999999)})
-
-        for batch in FLOWERS_BATCH:
-            for approach in FLOWER_PHOTO:
+        for batch in FLOWER_GROUP_PROMPTS:
+            for approach in photo:
                 p = self.make_prompt(batch, approach)
-                prompts.append({"category": "flowers", "subcategory": "batch_flowers",
-                                 "prompt": p, "seed": random.randint(1, 999999)})
-
+                prompts.append({"category": "flowers",
+                                "subcategory": "group_flowers",
+                                "prompt": p,
+                                "seed": random.randint(1, 999999)})
         return prompts
 
     # ── 5. FRUITS ────────────────────────────────────────────
     def generate_fruit_prompts(self):
         prompts = []
-        batch_styles = ["overhead flat lay photography", "studio product photography",
-                         "natural light photography", "editorial food photography"]
+        photo = [
+            "studio product photography",
+            "overhead flat lay photography",
+            "natural light photography",
+            "editorial food photography",
+        ]
+        for subcat, items in FRUIT_SINGLE_PROMPTS.items():
+            for item in items:
+                for ctx in FRUIT_CONTEXTS:
+                    p = self.make_prompt(f"{item}, {ctx}")
+                    prompts.append({"category": "fruits",
+                                    "subcategory": f"single_{subcat}",
+                                    "prompt": p,
+                                    "seed": random.randint(1, 999999)})
 
-        for fruit_type, fruits in FRUITS_SINGLE.items():
-            for fruit in fruits:
-                for context in FRUIT_CONTEXTS:
-                    p = self.make_prompt(f"{fruit}, {context}")
-                    prompts.append({"category": "fruits", "subcategory": f"single_{fruit_type}",
-                                     "prompt": p, "seed": random.randint(1, 999999)})
-
-        for batch in FRUITS_BATCH:
-            for style in batch_styles:
+        for batch in FRUIT_GROUP_PROMPTS:
+            for style in photo:
                 p = self.make_prompt(batch, style)
-                prompts.append({"category": "fruits", "subcategory": "batch_all_fruits",
-                                 "prompt": p, "seed": random.randint(1, 999999)})
-
+                prompts.append({"category": "fruits",
+                                "subcategory": "group_fruits",
+                                "prompt": p,
+                                "seed": random.randint(1, 999999)})
         return prompts
 
     # ── 6. VEGETABLES ────────────────────────────────────────
     def generate_vegetable_prompts(self):
         prompts = []
-        batch_styles = ["overhead flat lay photography", "studio product photography",
-                         "natural light photography", "editorial food photography"]
+        photo = [
+            "studio product photography",
+            "overhead flat lay photography",
+            "natural light photography",
+            "editorial food photography",
+        ]
+        for subcat, items in VEG_SINGLE_PROMPTS.items():
+            for item in items:
+                for ctx in VEG_CONTEXTS:
+                    p = self.make_prompt(f"{item}, {ctx}")
+                    prompts.append({"category": "vegetables",
+                                    "subcategory": f"single_{subcat}",
+                                    "prompt": p,
+                                    "seed": random.randint(1, 999999)})
 
-        for veg_type, vegs in VEGETABLES_SINGLE.items():
-            for veg in vegs:
-                for context in VEG_CONTEXTS:
-                    p = self.make_prompt(f"{veg}, {context}")
-                    prompts.append({"category": "vegetables", "subcategory": f"single_{veg_type}",
-                                     "prompt": p, "seed": random.randint(1, 999999)})
-
-        for batch in VEGETABLES_BATCH:
-            for style in batch_styles:
+        for batch in VEG_GROUP_PROMPTS:
+            for style in photo:
                 p = self.make_prompt(batch, style)
-                prompts.append({"category": "vegetables", "subcategory": "batch_all_vegetables",
-                                 "prompt": p, "seed": random.randint(1, 999999)})
-
+                prompts.append({"category": "vegetables",
+                                "subcategory": "group_vegetables",
+                                "prompt": p,
+                                "seed": random.randint(1, 999999)})
         return prompts
 
     # ── 7. COOL DRINKS ───────────────────────────────────────
     def generate_drink_prompts(self):
         prompts = []
-
-        for drink_type, drinks in COOL_DRINKS.items():
-            for drink in drinks:
+        for subcat, items in DRINK_PROMPTS.items():
+            for item in items:
                 for vessel in DRINK_VESSELS:
                     detail = random.choice(DRINK_DETAILS)
-                    p = self.make_prompt(f"{drink}, {vessel}", f"{detail}, beverage photography")
-                    prompts.append({"category": "cool_drinks", "subcategory": drink_type,
-                                     "prompt": p, "seed": random.randint(1, 999999)})
-
+                    p = self.make_prompt(f"{item}", f"{vessel}, {detail}, beverage photography")
+                    prompts.append({"category": "cool_drinks",
+                                    "subcategory": subcat,
+                                    "prompt": p,
+                                    "seed": random.randint(1, 999999)})
         return prompts
 
     # ── 8. INDIAN FOODS ──────────────────────────────────────
     def generate_indian_food_prompts(self):
         prompts = []
-        angles = ["close-up overhead flat lay", "angled hero shot",
-                  "side view", "front view restaurant style"]
-
-        for food_type, dishes in INDIAN_FOODS.items():
-            for dish in dishes:
+        for subcat, items in INDIAN_FOOD_PROMPTS.items():
+            for item in items:
                 for vessel in INDIAN_FOOD_VESSELS:
-                    style = random.choice(INDIAN_FOOD_STYLES)
-                    angle = random.choice(angles)
-                    p = self.make_prompt(f"{dish}, {vessel}", f"{style}, {angle}")
-                    prompts.append({"category": "indian_foods", "subcategory": food_type,
-                                     "prompt": p, "seed": random.randint(1, 999999)})
-
+                    angle = random.choice(FOOD_ANGLES)
+                    p = self.make_prompt(f"{item}, {vessel}", f"{angle}, food photography")
+                    prompts.append({"category": "indian_foods",
+                                    "subcategory": subcat,
+                                    "prompt": p,
+                                    "seed": random.randint(1, 999999)})
         return prompts
 
     # ── 9. WORLD FOODS ───────────────────────────────────────
     def generate_world_food_prompts(self):
         prompts = []
-
-        for food_type, items in WORLD_FOODS.items():
+        for subcat, items in WORLD_FOOD_PROMPTS.items():
             for item in items:
                 for vessel in WORLD_FOOD_VESSELS:
-                    angle = random.choice(WORLD_FOOD_ANGLES)
-                    p = self.make_prompt(f"{item}, {vessel}", f"{angle}, restaurant quality")
-                    prompts.append({"category": "world_foods", "subcategory": food_type,
-                                     "prompt": p, "seed": random.randint(1, 999999)})
-
+                    angle = random.choice(FOOD_ANGLES)
+                    p = self.make_prompt(f"{item}, {vessel}", f"{angle}, food photography")
+                    prompts.append({"category": "world_foods",
+                                    "subcategory": subcat,
+                                    "prompt": p,
+                                    "seed": random.randint(1, 999999)})
         return prompts
 
     # ── 10. FOOTWEAR ─────────────────────────────────────────
     def generate_footwear_prompts(self):
         prompts = []
-
-        for shoe_type, shoes in FOOTWEAR.items():
-            for shoe in shoes:
+        details = [
+            "product photography",
+            "studio footwear photography",
+            "commercial shoe photography",
+            "clean white surface",
+            "professional product shot",
+        ]
+        for subcat, items in FOOTWEAR_PROMPTS.items():
+            for item in items:
                 for view in SHOE_VIEWS:
-                    detail = random.choice(SHOE_DETAILS)
-                    p = self.make_prompt(f"{shoe}, {view}", f"{detail}, footwear product photography")
-                    prompts.append({"category": "footwear", "subcategory": shoe_type,
-                                     "prompt": p, "seed": random.randint(1, 999999)})
-
+                    detail = random.choice(details)
+                    p = self.make_prompt(f"{item}, {view}", detail)
+                    prompts.append({"category": "footwear",
+                                    "subcategory": subcat,
+                                    "prompt": p,
+                                    "seed": random.randint(1, 999999)})
         return prompts
 
     # ── 11. INDIAN DRESS ─────────────────────────────────────
     def generate_dress_prompts(self):
         prompts = []
-
-        for dress_type, garments in INDIAN_DRESS.items():
-            for garment in garments:
-                for context in DRESS_CONTEXTS:
-                    style = random.choice(DRESS_STYLE)
-                    p = self.make_prompt(f"{garment}, {context}", style)
-                    prompts.append({"category": "indian_dress", "subcategory": dress_type,
-                                     "prompt": p, "seed": random.randint(1, 999999)})
-
+        styles = [
+            "fashion product photography",
+            "textile studio photography",
+            "ethnic wear catalog photography",
+            "flat lay fashion photography",
+        ]
+        for subcat, items in DRESS_PROMPTS.items():
+            for item in items:
+                for ctx in DRESS_CONTEXTS:
+                    style = random.choice(styles)
+                    p = self.make_prompt(f"{item}, {ctx}", style)
+                    prompts.append({"category": "indian_dress",
+                                    "subcategory": subcat,
+                                    "prompt": p,
+                                    "seed": random.randint(1, 999999)})
         return prompts
 
     # ── 12. JEWELLERY MODELS ─────────────────────────────────
     def generate_jewellery_model_prompts(self):
         prompts = []
-
-        for model_type, models in JEWELLERY_MODELS.items():
-            for model in models:
+        for subcat, items in JEWELLERY_MODEL_PROMPTS.items():
+            for item in items:
                 for look in MODEL_LOOKS:
                     saree = random.choice(MODEL_SAREE)
-                    p = self.make_model_prompt(f"{model}, {saree}, {look}")
-                    prompts.append({"category": "jewellery_models", "subcategory": model_type,
-                                     "prompt": p, "seed": random.randint(1, 999999)})
-
+                    p = self.make_model_prompt(f"{item}, {saree}, {look}")
+                    prompts.append({"category": "jewellery_models",
+                                    "subcategory": subcat,
+                                    "prompt": p,
+                                    "seed": random.randint(1, 999999)})
         return prompts
 
     # ── 13. OFFICE MODELS ────────────────────────────────────
     def generate_office_model_prompts(self):
         prompts = []
-
-        for model_type, models in OFFICE_MODELS.items():
-            for model in models:
+        for subcat, items in OFFICE_MODEL_PROMPTS.items():
+            for item in items:
                 for pose in MODEL_POSES_OFFICE:
-                    p = self.make_model_prompt(f"{model}, {pose}")
-                    prompts.append({"category": "office_models", "subcategory": model_type,
-                                     "prompt": p, "seed": random.randint(1, 999999)})
-
+                    p = self.make_model_prompt(f"{item}, {pose}")
+                    prompts.append({"category": "office_models",
+                                    "subcategory": subcat,
+                                    "prompt": p,
+                                    "seed": random.randint(1, 999999)})
         return prompts
 
     # ═══════════════════════════════════════════════════════════
@@ -1883,65 +1745,64 @@ class PromptEngine:
     # ═══════════════════════════════════════════════════════════
 
     def generate_all_prompts(self):
-        print("🎨 Generating all prompts — Guru Image Usha PNG Library V3")
+        print("🎨 Guru Image Usha — PNG Library V4")
         print("=" * 60)
         all_prompts = []
 
         generators = [
-            ("Live Poultry & Animals",    self.generate_poultry_animal_prompts),
-            ("Raw Meat & Eggs",           self.generate_raw_meat_prompts),
-            ("Vehicles (Indian)",         self.generate_vehicle_prompts),
-            ("Flowers (Single + Batch)",  self.generate_flower_prompts),
-            ("Fruits (Single + Batch)",   self.generate_fruit_prompts),
-            ("Vegetables (Single+Batch)", self.generate_vegetable_prompts),
-            ("Cool Drinks",               self.generate_drink_prompts),
-            ("Indian Foods",              self.generate_indian_food_prompts),
-            ("World Foods",               self.generate_world_food_prompts),
-            ("Footwear",                  self.generate_footwear_prompts),
-            ("Indian Dress",              self.generate_dress_prompts),
-            ("Jewellery Models",          self.generate_jewellery_model_prompts),
-            ("Office Models",             self.generate_office_model_prompts),
+            ("Live Poultry & Animals",   self.generate_poultry_animal_prompts),
+            ("Raw Meat & Eggs",          self.generate_raw_meat_prompts),
+            ("Vehicles",                 self.generate_vehicle_prompts),
+            ("Flowers",                  self.generate_flower_prompts),
+            ("Fruits",                   self.generate_fruit_prompts),
+            ("Vegetables",               self.generate_vegetable_prompts),
+            ("Cool Drinks",              self.generate_drink_prompts),
+            ("Indian Foods",             self.generate_indian_food_prompts),
+            ("World Foods",              self.generate_world_food_prompts),
+            ("Footwear",                 self.generate_footwear_prompts),
+            ("Indian Dress",             self.generate_dress_prompts),
+            ("Jewellery Models",         self.generate_jewellery_model_prompts),
+            ("Office Models",            self.generate_office_model_prompts),
         ]
 
-        category_counts = {}
-        for name, gen_func in generators:
+        counts = {}
+        for name, fn in generators:
             prev = len(all_prompts)
-            all_prompts.extend(gen_func())
-            count = len(all_prompts) - prev
-            category_counts[name] = count
-            print(f"  ✅ {name}: {count} prompts")
+            all_prompts.extend(fn())
+            cnt = len(all_prompts) - prev
+            counts[name] = cnt
+            print(f"  ✅ {name}: {cnt}")
 
-        # Seed multiplier — double all prompts with micro variation
-        micro_variations = [
+        # Seed multiplier — each prompt × 2
+        variations = [
             "extremely detailed surface texture",
-            "ultra sharp tack focus",
-            "fine grain material detail visible",
+            "ultra sharp focus",
             "crisp clean photographic quality",
-            "true to life color accuracy",
-            "lifelike ultra realistic render",
+            "true to life rendering",
+            "lifelike realistic detail",
+            "fine grain detail visible",
         ]
         extended = []
         for item in all_prompts:
             extended.append(item)
-            new_item = dict(item)
-            new_item["prompt"] = item["prompt"] + f", {random.choice(micro_variations)}"
-            new_item["seed"] = random.randint(100000, 999999)
-            extended.append(new_item)
-
+            copy = dict(item)
+            copy["prompt"] = item["prompt"] + f", {random.choice(variations)}"
+            copy["seed"]   = random.randint(100000, 999999)
+            extended.append(copy)
         all_prompts = extended
-        print(f"\n  🔁 After seed-multiplier: {len(all_prompts)} total unique prompts")
 
+        print(f"\n  🔁 Seed multiplier: {len(all_prompts)} total prompts")
         random.shuffle(all_prompts)
 
         for i, p in enumerate(all_prompts):
-            p["index"] = i
+            p["index"]    = i
             p["filename"] = f"img_{i:06d}.png"
-            p["status"] = "pending"
+            p["status"]   = "pending"
 
-        print(f"\n🎯 TOTAL PROMPTS GENERATED: {len(all_prompts)}")
-        print("\n📊 Category Summary (base × 2 with seed multiplier):")
-        for name, count in category_counts.items():
-            print(f"   {name:35s}: {count:5d} base → {count*2:5d} total")
+        print(f"\n🎯 TOTAL: {len(all_prompts)} prompts")
+        print("\n📊 Summary:")
+        for name, cnt in counts.items():
+            print(f"   {name:35s}: {cnt:5d} base → {cnt*2:5d} total")
 
         return all_prompts
 
@@ -1961,7 +1822,7 @@ class PromptEngine:
             with open(fpath, "w", encoding="utf-8") as f:
                 json.dump(items, f, indent=2, ensure_ascii=False)
             size_kb = fpath.stat().st_size / 1024
-            print(f"  💾 {cat}.json  →  {len(items)} prompts  ({size_kb:.1f} KB)")
+            print(f"  💾 {cat}.json → {len(items)} prompts ({size_kb:.0f} KB)")
 
         index = {
             "total": len(prompts),
@@ -1971,12 +1832,12 @@ class PromptEngine:
         with open(out / "index.json", "w", encoding="utf-8") as f:
             json.dump(index, f, indent=2, ensure_ascii=False)
 
-        print(f"\n✅ Saved {len(prompts)} prompts across {len(by_cat)} categories in '{output_dir}/'")
+        print(f"\n✅ Saved {len(prompts)} prompts → {len(by_cat)} categories in '{output_dir}/'")
         return output_dir
 
 
 def load_all_prompts(splits_dir="prompts/splits"):
-    splits = Path(splits_dir)
+    splits     = Path(splits_dir)
     index_file = splits / "index.json"
 
     if index_file.exists():
@@ -1991,7 +1852,7 @@ def load_all_prompts(splits_dir="prompts/splits"):
         with open(fpath, encoding="utf-8") as f:
             all_prompts.extend(json.load(f))
 
-    print(f"📦 Loaded {len(all_prompts)} prompts from {len(files)} split files.")
+    print(f"📦 Loaded {len(all_prompts)} prompts from {len(files)} files.")
     return all_prompts
 
 
