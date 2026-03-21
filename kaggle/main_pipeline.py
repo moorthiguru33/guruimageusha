@@ -1,5 +1,5 @@
 """
-PNG Library - Kaggle Pipeline V2
+PNG Library - Kaggle Pipeline V3
 =============================================================
 Model   : FLUX.2 [klein] 4B
 HF ID   : black-forest-labs/FLUX.2-klein-4B
@@ -10,11 +10,15 @@ Steps   : 4 steps (distilled - fast + good quality)
 Batch   : 800 images/run ~ 4hrs (safe within 30hr/week)
 =============================================================
 
-V2 CHANGES:
-  - Removed duplicate make_prompt() — V2 prompts are already complete
-  - Only adds category-specific texture hints (no duplicate keywords)
-  - Updated for 43,082 total prompts (was 46,502)
-  - offer_logos use vector style, everything else photorealistic
+V3 CHANGES:
+  - All prompts replaced with 13 new focused categories
+  - Categories: Poultry/Animals, Raw Meat/Eggs, Vehicles (Indian),
+    Flowers, Fruits, Vegetables, Cool Drinks, Indian Foods,
+    World Foods, Footwear, Indian Dress, Jewellery Models, Office Models
+  - 30+ prompts per item guaranteed
+  - 12,264 total prompts (with seed multiplier)
+  - compress_level=0 on all PNG saves (no compression, 100% quality)
+  - CATEGORY_ENHANCERS updated to match V3 category names
 """
 
 import os, sys, json, time, gc, subprocess
@@ -75,9 +79,9 @@ START_INDEX          = int(os.environ.get("START_INDEX", "0"))
 END_INDEX            = int(os.environ.get("END_INDEX", "800"))
 
 print("=" * 55)
-print("  PNG LIBRARY V2 — FLUX.2 [klein] 4B")
+print("  PNG LIBRARY V3 — FLUX.2 [klein] 4B")
 print("  Apache 2.0 | ~8GB VRAM | T4 Confirmed")
-print("  43,082 Ultra-Realistic Prompts")
+print("  12,264 Ultra-Realistic Prompts — 13 Categories")
 print("=" * 55)
 print(f"  Batch  : {START_INDEX} -> {END_INDEX}  ({END_INDEX - START_INDEX} images)")
 if torch.cuda.is_available():
@@ -285,29 +289,19 @@ print(f"Pending    : {len(pending)} images\n")
 VECTOR_CATEGORIES = {"offer_logos"}
 
 CATEGORY_ENHANCERS = {
-    "food/":         ", appetizing food styling, steam visible, glistening surface",
-    "fruits":        ", natural skin texture, juice droplets",
-    "vegetables":    ", natural surface texture, fresh harvest quality",
-    "flowers":       ", petal vein detail, natural color saturation",
-    "jewellery":     ", gem facet reflections, metal mirror finish",
-    "vehicles/":     ", automotive paint reflection, chrome detail",
-    "animals":       ", fur strand detail, catchlight in eyes",
-    "birds_insects": ", feather barb detail, catchlight in eyes",
-    "furniture":     ", wood grain visible, fabric weave texture",
-    "nature/":       ", bark texture, leaf vein detail",
-    "effects":       ", volumetric density, translucent edges",
-    "electronics":   ", screen reflection, anodized finish",
-    "spices":        ", granular texture, aromatic powder detail",
-    "beverages":     ", condensation droplets, liquid transparency",
-    "shoes":         ", leather grain, stitching detail",
-    "bags":          ", leather surface, hardware metal finish",
-    "cosmetics":     ", product sheen, packaging detail",
-    "sports":        ", material texture, grip pattern",
-    "music":         ", wood lacquer, string detail",
-    "pooja_items":   ", brass patina, devotional craftsmanship",
-    "clothing":      ", fabric weave, thread detail",
-    "medical":       ", clinical precision, sterile surface",
-    "stationery":    ", material texture, precision crafting",
+    "indian_foods":      ", appetizing food styling, steam visible, glistening surface",
+    "world_foods":       ", appetizing food styling, steam visible, glistening sauce",
+    "fruits":            ", natural skin texture, juice droplets",
+    "vegetables":        ", natural surface texture, fresh harvest quality",
+    "flowers":           ", petal vein detail, natural color saturation",
+    "jewellery_models":  ", gem facet reflections, gold metal mirror finish",
+    "vehicles":          ", automotive paint reflection, chrome detail",
+    "poultry_animals":   ", fur and feather strand detail, catchlight in eyes",
+    "raw_meat":          ", fresh meat texture, glistening moist surface",
+    "cool_drinks":       ", condensation droplets, liquid transparency",
+    "footwear":          ", leather grain, stitching detail",
+    "indian_dress":      ", fabric weave, embroidery thread detail",
+    "office_models":     ", professional portrait, sharp clothing detail",
 }
 
 
@@ -655,7 +649,7 @@ print(f"""
 {'='*55}
   BATCH COMPLETE!
   Model      : FLUX.2 [klein] 4B (Apache 2.0)
-  Prompts    : V2 Ultra-Realistic (43,082 total)
+  Prompts    : V3 Ultra-Realistic (12,264 total)
   Steps      : 4  |  CFG: 1.0  |  1024x1024 → 4096x4096
   Upscale    : RealESRGAN 4x (AI Sharp)
   BG Removal : rembg (birefnet-general)

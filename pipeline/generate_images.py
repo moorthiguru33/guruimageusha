@@ -1,28 +1,20 @@
 """
-PNG Library - Image Generator V2
+PNG Library - Image Generator V3
 ═══════════════════════════════════════════════════════
 Model   : FLUX.2 [klein] 4B  (Apache 2.0 — FREE)
 Pipeline: Flux2KleinPipeline
 GPU     : Kaggle T4 (16 GB VRAM)
-Output  : 1024x1024 PNG
+Output  : 1024x1024 PNG (compress_level=0, 100% quality)
 Steps   : 10  |  CFG : 1.5
 ═══════════════════════════════════════════════════════
 
-V2 CHANGES:
-  prompt_engine_v2 already produces CLEAN photorealistic prompts.
-  NO MORE double keyword stuffing.
-  
-  OLD PROBLEM (3 layers of keywords):
-    Layer 1: prompt_engine → "Canon EOS R5, photorealistic, 8k..."
-    Layer 2: sanitize_prompt() → ADDED "Canon EOS R5, photorealistic..." AGAIN
-    Layer 3: main_pipeline make_prompt() → ADDED same keywords THIRD TIME
-    Result: "Canon EOS R5" appeared 3 times → model confused
-
-  V2 FIX:
-    - prompt_engine_v2 prompts are already perfect — pass through
-    - Only offer_logos use VECTOR_SUFFIX (already in prompt)
-    - Category-specific ENHANCERS add only UNIQUE photography tips
-    - No duplicate keywords ever
+V3 CHANGES:
+  - CATEGORY_ENHANCERS updated to match new V3 category names
+    (indian_foods, world_foods, poultry_animals, raw_meat,
+     cool_drinks, footwear, indian_dress, jewellery_models,
+     office_models, vehicles, flowers, fruits, vegetables)
+  - compress_level=0 on all saves — no compression, 100% quality
+  - optimize=True removed (was causing file compression)
 """
 
 import torch, json, os, gc, re
@@ -59,35 +51,19 @@ VECTOR_CATEGORIES = {"offer_logos"}
 # BASE_SUFFIX already has: Canon EOS R5, 8k, photorealistic,
 # sharp focus, studio strobe, light grey bg, etc.
 CATEGORY_ENHANCERS = {
-    "food/indian":    ", appetizing food styling, steam visible, glistening oil surface",
-    "food/world":     ", appetizing food styling, steam visible, glistening sauce",
-    "fruits":         ", natural skin texture, juice droplets visible",
-    "vegetables":     ", natural surface texture, fresh harvest quality",
-    "flowers":        ", petal vein detail visible, natural color saturation",
-    "jewellery":      ", gem facet reflections, metal surface mirror finish",
-    "vehicles/cars":  ", automotive paint reflection, chrome trim detail",
-    "vehicles/bikes": ", engine component detail, chrome pipe reflection",
-    "animals":        ", individual fur strand detail, catchlight in eyes",
-    "birds_insects":  ", feather barb detail visible, catchlight in eyes",
-    "furniture":      ", wood grain pattern visible, fabric weave texture",
-    "nature/trees":   ", bark crack texture, leaf vein network visible",
-    "sky_celestial":  ", atmospheric depth, volumetric light rays",
-    "effects":        ", volumetric density, translucent edges, backlit",
-    "pots_vessels":   ", surface patina detail, material authenticity",
-    "tools":          ", metal grain texture, handle material detail",
-    "festivals":      ", warm festive glow, cultural authenticity",
-    "electronics":    ", screen reflection, anodized surface finish",
-    "spices":         ", granular texture visible, aromatic powder detail",
-    "beverages":      ", condensation droplets, liquid transparency",
-    "shoes":          ", leather grain texture, stitching detail visible",
-    "bags":           ", leather surface quality, hardware metal finish",
-    "cosmetics":      ", product surface sheen, packaging detail",
-    "sports":         ", material wear texture, grip pattern detail",
-    "music":          ", wood lacquer finish, string detail visible",
-    "pooja_items":    ", brass patina detail, devotional craftsmanship",
-    "clothing":       ", fabric weave texture, thread count visible",
-    "medical":        ", clinical precision detail, sterile surface",
-    "stationery":     ", material surface texture, precision crafting",
+    "indian_foods":      ", appetizing food styling, steam visible, glistening oil surface",
+    "world_foods":       ", appetizing food styling, steam visible, glistening sauce",
+    "fruits":            ", natural skin texture, juice droplets visible",
+    "vegetables":        ", natural surface texture, fresh harvest quality",
+    "flowers":           ", petal vein detail visible, natural color saturation",
+    "jewellery_models":  ", gem facet reflections, gold metal surface mirror finish",
+    "vehicles":          ", automotive paint reflection, chrome detail visible",
+    "poultry_animals":   ", individual fur and feather strand detail, catchlight in eyes",
+    "raw_meat":          ", fresh meat texture, glistening moist surface",
+    "cool_drinks":       ", condensation droplets on glass, liquid transparency",
+    "footwear":          ", leather grain texture, stitching detail visible",
+    "indian_dress":      ", fabric weave texture, thread and embroidery detail",
+    "office_models":     ", professional studio portrait, sharp clothing detail",
 }
 
 
@@ -214,7 +190,7 @@ def save_image(img, item, base_dir):
     folder = Path(base_dir) / item["category"] / item.get("subcategory", "general")
     folder.mkdir(parents=True, exist_ok=True)
     path = folder / item["filename"]
-    img.save(str(path), "PNG", optimize=True)
+    img.save(str(path), "PNG", compress_level=0)  # compress_level=0 = no compression, 100% quality
     return str(path)
 
 
