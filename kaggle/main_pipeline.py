@@ -1,29 +1,35 @@
 """
-PNG Library - Kaggle Pipeline V2
+PNG Library - Kaggle Pipeline V3
 =============================================================
 Model   : FLUX.2 [klein] 4B
 HF ID   : black-forest-labs/FLUX.2-klein-4B
 License : Apache 2.0 - FREE for commercial use
-VRAM    : ~8GB on T4 16GB - confirmed fits
-Released: January 15, 2026 by Black Forest Labs
-Steps   : 4 steps (distilled - fast + good quality)
+VRAM    : ~4-6GB with sequential offload on T4 16GB
+Steps   : 4 (distilled - fast + good quality)
+CFG     : 0.0 (REQUIRED for distilled — any other value is ignored/wrong)
 Batch   : 500 images/run ~ 3hrs (safe within 30hr/week)
 =============================================================
 
-V2 CHANGES:
-  - Removed duplicate make_prompt() — V2 prompts are already complete
-  - Only adds category-specific texture hints (no duplicate keywords)
-  - V3: 10,937 prompts (Indian-first priority order)
-  - offer_logos use vector style, everything else photorealistic
+V3 OOM FIXES:
+  - enable_sequential_cpu_offload() replaces enable_model_cpu_offload()
+    → moves each layer GPU<->CPU one-at-a-time
+    → uses ~4-6GB VRAM instead of ~12GB  ← BIGGEST FIX
+  - guidance_scale=0.0 everywhere (distilled model requirement — NOT 3.5, NOT 1.5)
+  - max_sequence_length=256 (saves ~1GB text encoder VRAM)
+  - VRAM flush before EVERY image (prevents fragmentation)
+  - 3-tier OOM fallback: 1024 → 768 → 512
+  - Checkpoint every 25 images (was 100)
+=============================================================
 """
 
 import os, sys, json, time, gc, subprocess
 
-# ── Memory fragmentation fix (recommended by PyTorch) ─────────
+# Memory fragmentation fix (recommended by PyTorch)
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+
 from pathlib import Path
 
-# ── Install dependencies ──────────────────────────────────────
+# ── Install dependencies ───────────────────────────────────────────────────
 print("=" * 55)
 print("Installing dependencies...")
 pkgs = [
@@ -53,7 +59,7 @@ import numpy as np
 from PIL import Image
 import requests as req
 
-# ── Paths ─────────────────────────────────────────────────────
+# ── Paths ──────────────────────────────────────────────────────────────────
 WORKING_DIR     = Path("/kaggle/working")
 GENERATED_DIR   = WORKING_DIR / "generated_images"
 TRANSPARENT_DIR = WORKING_DIR / "transparent_pngs"
@@ -63,56 +69,43 @@ PROJECT_DIR     = WORKING_DIR / "project"
 for d in [GENERATED_DIR, TRANSPARENT_DIR, PROGRESS_DIR]:
     d.mkdir(parents=True, exist_ok=True)
 
-# ── Credentials ───────────────────────────────────────────────
+# ── Credentials ────────────────────────────────────────────────────────────
 GOOGLE_CLIENT_ID     = os.environ.get("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 GOOGLE_REFRESH_TOKEN = os.environ.get("GOOGLE_REFRESH_TOKEN", "")
 GITHUB_REPO          = os.environ.get("GITHUB_REPO", "")
 START_INDEX          = int(os.environ.get("START_INDEX", "0"))
-END_INDEX            = int(os.environ.get("END_INDEX", "800"))
+END_INDEX            = int(os.environ.get("END_INDEX", "500"))
 
 print("=" * 55)
-print("  PNG LIBRARY V2 — FLUX.2 [klein] 4B")
-print("  Apache 2.0 | ~8GB VRAM | T4 Confirmed")
-print("  10,937 Ultra-Realistic Prompts (V3)")
+print("  PNG LIBRARY V3 — FLUX.2 [klein] 4B")
+print("  Apache 2.0 | Sequential CPU Offload | T4")
 print("=" * 55)
 print(f"  Batch  : {START_INDEX} -> {END_INDEX}  ({END_INDEX - START_INDEX} images)")
 if torch.cuda.is_available():
-    for _gi in range(torch.cuda.device_count()):
-        _p = torch.cuda.get_device_properties(_gi)
-        _vram = _p.total_mem/1e9 if hasattr(_p, 'total_mem') else _p.total_memory/1e9
-        print(f"  GPU {_gi}  : {_p.name}  |  VRAM: {_vram:.0f} GB")
-    _total = sum(torch.cuda.get_device_properties(i).total_memory/1e9 for i in range(torch.cuda.device_count()))
-    print(f"  Total  : {_total:.0f} GB across {torch.cuda.device_count()} GPUs")
+    p = torch.cuda.get_device_properties(0)
+    print(f"  GPU    : {p.name}  |  VRAM: {p.total_memory/1e9:.0f} GB")
 print("=" * 55 + "\n")
 
-# ── Clone repo ────────────────────────────────────────────────
+# ── Clone repo ─────────────────────────────────────────────────────────────
 if GITHUB_REPO and not PROJECT_DIR.exists():
     os.system(f"git clone https://github.com/{GITHUB_REPO} {PROJECT_DIR}")
     sys.path.insert(0, str(PROJECT_DIR))
     print(f"Cloned: {GITHUB_REPO}")
 
-# ── Load prompts ──────────────────────────────────────────────
+# ── Load prompts ───────────────────────────────────────────────────────────
 def load_or_generate_prompts():
-    # Try loading from split files in repo (fast path)
-    repo_splits = PROJECT_DIR / "prompts" / "splits"
+    repo_splits  = PROJECT_DIR / "prompts" / "splits"
     local_splits = PROMPTS_DIR
 
-    if repo_splits.exists() and any(repo_splits.glob("*.json")):
-        sys.path.insert(0, str(PROJECT_DIR))
-        from prompts.prompt_engine import load_all_prompts
-        prompts = load_all_prompts(str(repo_splits))
-        print(f"Loaded {len(prompts)} prompts from repo splits")
-        return prompts
+    for splits_dir in [repo_splits, local_splits]:
+        if splits_dir.exists() and any(splits_dir.glob("*.json")):
+            sys.path.insert(0, str(PROJECT_DIR))
+            from prompts.prompt_engine import load_all_prompts
+            prompts = load_all_prompts(str(splits_dir))
+            print(f"Loaded {len(prompts)} prompts from {splits_dir}")
+            return prompts
 
-    if local_splits.exists() and any(local_splits.glob("*.json")):
-        sys.path.insert(0, str(PROJECT_DIR))
-        from prompts.prompt_engine import load_all_prompts
-        prompts = load_all_prompts(str(local_splits))
-        print(f"Loaded {len(prompts)} prompts from local splits")
-        return prompts
-
-    # Fallback: generate fresh and save as splits
     if PROJECT_DIR.exists():
         sys.path.insert(0, str(PROJECT_DIR))
     from prompts.prompt_engine import PromptEngine
@@ -128,14 +121,13 @@ all_prompts   = load_or_generate_prompts()
 batch_prompts = all_prompts[START_INDEX:END_INDEX]
 print(f"Batch size : {len(batch_prompts)}")
 
-# ── Skip helpers ──────────────────────────────────────────────
+# ── Skip helper ────────────────────────────────────────────────────────────
 def is_already_generated(item):
-    """Check if image file already exists in GENERATED_DIR (within-session skip)."""
     path = GENERATED_DIR / item["category"] / item.get("subcategory", "general") / item["filename"]
     return path.exists()
 
+# ── Drive helpers ──────────────────────────────────────────────────────────
 def _drive_token():
-    """Get a fresh token only if credentials are available."""
     if all([GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN]):
         try:
             r = req.post("https://oauth2.googleapis.com/token", data={
@@ -151,136 +143,93 @@ def _drive_token():
     return None
 
 def _drive_find_file(token, name):
-    """Return file_id for a named file in Drive root (not trashed), or None."""
     h = {"Authorization": f"Bearer {token}"}
     r = req.get("https://www.googleapis.com/drive/v3/files", headers=h,
                 params={"q": f"name='{name}' and trashed=false", "fields": "files(id)"})
     files = r.json().get("files", [])
     return files[0]["id"] if files else None
 
+def _drive_upsert(token, name, content_bytes):
+    h   = {"Authorization": f"Bearer {token}"}
+    fid = _drive_find_file(token, name)
+    if fid:
+        req.patch(f"https://www.googleapis.com/upload/drive/v3/files/{fid}?uploadType=media",
+                  headers={**h, "Content-Type": "application/json"}, data=content_bytes)
+    else:
+        req.post("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+                 headers=h,
+                 files=[("metadata", ("m", json.dumps({"name": name}), "application/json")),
+                        ("file",     (name, content_bytes, "application/json"))])
+
+def _drive_fetch(token, name):
+    fid = _drive_find_file(token, name)
+    if not fid: return None
+    h = {"Authorization": f"Bearer {token}"}
+    r = req.get(f"https://www.googleapis.com/drive/v3/files/{fid}?alt=media", headers=h)
+    return r.json()
+
 def save_progress_to_drive(data, start, end):
-    """Upload progress JSON to Drive so it survives Kaggle session resets."""
     token = _drive_token()
-    if not token:
-        return
+    if not token: return
     try:
-        name    = f"progress_{start}_{end}.json"
-        content = json.dumps(data).encode()
-        h       = {"Authorization": f"Bearer {token}"}
-        fid     = _drive_find_file(token, name)
-        if fid:
-            req.patch(
-                f"https://www.googleapis.com/upload/drive/v3/files/{fid}?uploadType=media",
-                headers={**h, "Content-Type": "application/json"},
-                data=content,
-            )
-        else:
-            req.post(
-                "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
-                headers=h,
-                files=[("metadata", ("m", json.dumps({"name": name}), "application/json")),
-                       ("file",     (name, content, "application/json"))],
-            )
+        _drive_upsert(token, f"progress_{start}_{end}.json", json.dumps(data).encode())
         print(f"  [drive] Progress saved ({len(data['completed'])} done)")
     except Exception as e:
         print(f"  [drive] Progress save failed: {e}")
 
 def load_progress_from_drive(start, end):
-    """Download progress JSON from Drive. Returns dict or None."""
     token = _drive_token()
-    if not token:
-        return None
+    if not token: return None
     try:
-        name = f"progress_{start}_{end}.json"
-        fid  = _drive_find_file(token, name)
-        if not fid:
-            return None
-        h  = {"Authorization": f"Bearer {token}"}
-        r  = req.get(f"https://www.googleapis.com/drive/v3/files/{fid}?alt=media", headers=h)
-        data = r.json()
-        print(f"  [drive] Loaded progress: {len(data.get('completed', []))} already done")
+        data = _drive_fetch(token, f"progress_{start}_{end}.json")
+        if data: print(f"  [drive] Loaded progress: {len(data.get('completed', []))} already done")
         return data
     except Exception as e:
         print(f"  [drive] Progress load failed: {e}")
         return None
 
 def save_upload_progress_to_drive(data, start):
-    """Upload the upload-progress JSON to Drive."""
     token = _drive_token()
-    if not token:
-        return
+    if not token: return
     try:
-        name    = f"upload_progress_{start}.json"
-        content = json.dumps(data).encode()
-        h       = {"Authorization": f"Bearer {token}"}
-        fid     = _drive_find_file(token, name)
-        if fid:
-            req.patch(
-                f"https://www.googleapis.com/upload/drive/v3/files/{fid}?uploadType=media",
-                headers={**h, "Content-Type": "application/json"},
-                data=content,
-            )
-        else:
-            req.post(
-                "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
-                headers=h,
-                files=[("metadata", ("m", json.dumps({"name": name}), "application/json")),
-                       ("file",     (name, content, "application/json"))],
-            )
+        _drive_upsert(token, f"upload_progress_{start}.json", json.dumps(data).encode())
         print(f"  [drive] Upload progress saved ({len(data['uploaded'])} uploaded)")
     except Exception as e:
         print(f"  [drive] Upload progress save failed: {e}")
 
 def load_upload_progress_from_drive(start):
-    """Download upload-progress JSON from Drive. Returns dict or None."""
     token = _drive_token()
-    if not token:
-        return None
+    if not token: return None
     try:
-        name = f"upload_progress_{start}.json"
-        fid  = _drive_find_file(token, name)
-        if not fid:
-            return None
-        h  = {"Authorization": f"Bearer {token}"}
-        r  = req.get(f"https://www.googleapis.com/drive/v3/files/{fid}?alt=media", headers=h)
-        data = r.json()
-        print(f"  [drive] Loaded upload progress: {len(data.get('uploaded', []))} already uploaded")
+        data = _drive_fetch(token, f"upload_progress_{start}.json")
+        if data: print(f"  [drive] Loaded upload progress: {len(data.get('uploaded', []))} already uploaded")
         return data
     except Exception as e:
         print(f"  [drive] Upload progress load failed: {e}")
         return None
 
-# ── Resume ────────────────────────────────────────────────────
+# ── Resume ─────────────────────────────────────────────────────────────────
 pf = PROGRESS_DIR / f"progress_{START_INDEX}_{END_INDEX}.json"
 if pf.exists():
     with open(pf) as f:
         progress = json.load(f)
     print(f"Resuming   : {len(progress['completed'])} already done (local)")
 else:
-    # Try Drive — survives Kaggle session resets
     drive_prog = load_progress_from_drive(START_INDEX, END_INDEX)
     if drive_prog:
         progress = drive_prog
-        with open(pf, "w") as f:
-            json.dump(progress, f)
+        with open(pf, "w") as f: json.dump(progress, f)
         print(f"Resuming   : {len(progress['completed'])} already done (from Drive)")
     else:
         progress = {"completed": [], "failed": [], "start_time": time.time()}
         print("Resuming   : fresh start")
 
 done_set = set(progress["completed"])
-# V3: filename is content-based — is_already_generated() is primary skip
-# index check is secondary for within-session tracking
 pending  = [p for p in batch_prompts
             if not is_already_generated(p) and p["index"] not in done_set]
 print(f"Pending    : {len(pending)} images\n")
 
-# ─────────────────────────────────────────────────────────────
-# CATEGORY ENHANCERS (unique detail hints only)
-# ─────────────────────────────────────────────────────────────
-# V2 prompts already have: Canon EOS R5, 8k, photorealistic,
-# sharp focus, studio strobe, light grey bg.
-# We ONLY add category-specific texture hints here.
+# ── Category enhancers ─────────────────────────────────────────────────────
 VECTOR_CATEGORIES = {"offer_logos"}
 
 CATEGORY_ENHANCERS = {
@@ -309,36 +258,41 @@ CATEGORY_ENHANCERS = {
     "stationery":    ", material texture, precision crafting",
 }
 
-
 def enhance_prompt(raw_prompt, category):
-    """Add only unique category hints. No duplicate keywords."""
     if category in VECTOR_CATEGORIES:
         return raw_prompt
-
-    extra = ""
     for cat_key, enhancer in CATEGORY_ENHANCERS.items():
         if category.startswith(cat_key):
-            extra = enhancer
-            break
+            return raw_prompt + enhancer
+    return raw_prompt
 
-    return raw_prompt + extra
+# ── VRAM utilities ─────────────────────────────────────────────────────────
+def vram_free_gb():
+    if torch.cuda.is_available():
+        return (torch.cuda.get_device_properties(0).total_memory
+                - torch.cuda.memory_allocated(0)) / 1e9
+    return 0.0
 
-
-# ============================================================
-# STEP 1: FLUX.2 [klein] 4B — Image Generation
-# ============================================================
+def flush_vram():
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        torch.cuda.synchronize()
 
 def save_generated(img, item):
     folder = GENERATED_DIR / item["category"] / item.get("subcategory", "general")
     folder.mkdir(parents=True, exist_ok=True)
     path = folder / item["filename"]
-    img.save(str(path), "PNG", compress_level=0)  # 100% quality - zero compression
+    img.save(str(path), "PNG", compress_level=0)
     return str(path)
 
 def is_good(img):
     arr = np.array(img)
     return arr.std() > 5 and (arr < 250).sum() > 1000
 
+# ============================================================
+# STEP 1: FLUX.2 [klein] 4B — Image Generation
+# ============================================================
 if pending:
     from diffusers import Flux2KleinPipeline
 
@@ -350,77 +304,82 @@ if pending:
 
     pipe = Flux2KleinPipeline.from_pretrained(
         "black-forest-labs/FLUX.2-klein-4B",
-        torch_dtype=torch.bfloat16,  # bfloat16 — less VRAM than float32
+        torch_dtype=torch.bfloat16,
     )
-    # cpu_offload: layers move GPU↔CPU on demand → prevents OOM on 16GB T4
-    pipe.enable_model_cpu_offload()
-    pipe.enable_vae_tiling()          # VAE tiling → saves ~2GB VRAM on decode
+
+    # KEY FIX: sequential offload = ~4-6GB VRAM vs ~12GB with model offload
+    pipe.enable_sequential_cpu_offload()
+    pipe.enable_vae_tiling()          # saves ~1-2GB on VAE decode
     pipe.set_progress_bar_config(disable=True)
-    print("Model loaded (bfloat16, cpu_offload, vae_tiling)!\n")
+
+    print("Model loaded (bfloat16 | sequential_cpu_offload | vae_tiling)!")
+    print(f"VRAM free after load: {vram_free_gb():.1f} GB\n")
+
+    def _generate(prompt, seed, h=1024, w=1024):
+        """
+        guidance_scale MUST be 0.0 for distilled FLUX.2 klein.
+        Any non-zero value is ignored by the model (causes the warning in logs).
+        max_sequence_length=256 saves ~1GB vs default 512.
+        """
+        gen = torch.Generator(device="cpu").manual_seed(seed)
+        return pipe(
+            prompt              = prompt,
+            num_inference_steps = 4,
+            guidance_scale      = 0.0,   # distilled model — MUST be 0.0
+            height              = h,
+            width               = w,
+            max_sequence_length = 256,   # 256 saves ~1GB VRAM vs 512
+            generator           = gen,
+        ).images[0]
 
     gen_count = 0
     t0        = time.time()
     print(f"Generating {len(pending)} images at 1024x1024...\n")
 
     for item in pending:
+        flush_vram()  # flush before every image to prevent fragmentation
+
+        prompt = enhance_prompt(item["prompt"], item.get("category", ""))
+        cat    = item.get("category", "")
+        mode   = "VEC" if cat in VECTOR_CATEGORIES else "PHO"
+
         try:
-            prompt    = enhance_prompt(item["prompt"], item.get("category", ""))
-            generator = torch.Generator(device="cpu").manual_seed(item["seed"])
-
-            img = pipe(
-                prompt=prompt,
-                num_inference_steps=4,    # FLUX.2 klein = step-wise distilled, 4 steps optimal
-                guidance_scale=0.0,        # distilled model — CFG must be 0.0
-                height=1024,
-                width=1024,
-                generator=generator,
-            ).images[0]
-
-            # Quality check + retry
+            # Primary: 1024x1024
+            img = _generate(prompt, item["seed"], h=1024, w=1024)
             if not is_good(img):
-                retry_gen = torch.Generator(device="cpu").manual_seed(item["seed"] + 42)
-                img = pipe(
-                    prompt=prompt,
-                    num_inference_steps=4,
-                    guidance_scale=0.0,  # distilled — must be 0.0
-                    height=1024,
-                    width=1024,
-                    generator=retry_gen,
-                ).images[0]
-
+                img = _generate(prompt, item["seed"] + 42, h=1024, w=1024)
             save_generated(img, item)
             progress["completed"].append(item["index"])
             gen_count += 1
-
             elapsed = time.time() - t0
             rate    = gen_count / elapsed
             eta     = (len(pending) - gen_count) / rate / 60 if rate > 0 else 0
-            cat     = item.get("category", "")
-            mode    = "VEC" if cat in VECTOR_CATEGORIES else "PHO"
-            print(f"  ✅ [{gen_count}/{len(pending)}] {item['filename']}"
-                  f" | {cat} [{mode}] | ETA {eta:.0f}min")
-
-            if gen_count % 100 == 0:
-                with open(pf, "w") as f: json.dump(progress, f)
-                save_progress_to_drive(progress, START_INDEX, END_INDEX)
-                gc.collect(); torch.cuda.empty_cache()
-                print(f"  [saved] VRAM: {torch.cuda.memory_allocated(0)/1e9:.1f}GB")
+            print(f"  OK [{gen_count}/{len(pending)}] {item['filename']} | {cat} [{mode}] | ETA {eta:.0f}min")
 
         except torch.cuda.OutOfMemoryError:
-            torch.cuda.empty_cache(); gc.collect()
+            # Fallback 1: 768x768
+            flush_vram()
+            print(f"  OOM -> retrying {item['filename']} at 768x768")
             try:
-                print(f"  OOM — retrying {item['filename']} at 768x768")
-                gen_fb = torch.Generator(device="cpu").manual_seed(item["seed"])
-                img = pipe(
-                    prompt=enhance_prompt(item["prompt"], item.get("category", "")),
-                    num_inference_steps=4,    # distilled — 4 steps optimal
-                    guidance_scale=0.0,  # distilled — must be 0.0
-                    height=768, width=768,
-                    generator=gen_fb,
-                ).images[0]
+                img = _generate(prompt, item["seed"], h=768, w=768)
                 save_generated(img, item)
                 progress["completed"].append(item["index"])
                 gen_count += 1
+                print(f"  OK [{gen_count}/{len(pending)}] {item['filename']} [768px]")
+
+            except torch.cuda.OutOfMemoryError:
+                # Fallback 2: 512x512
+                flush_vram()
+                print(f"  OOM -> retrying {item['filename']} at 512x512")
+                try:
+                    img = _generate(prompt, item["seed"], h=512, w=512)
+                    save_generated(img, item)
+                    progress["completed"].append(item["index"])
+                    gen_count += 1
+                    print(f"  OK [{gen_count}/{len(pending)}] {item['filename']} [512px]")
+                except Exception as e2:
+                    print(f"  FAIL (all sizes): {e2}")
+                    progress["failed"].append(item["index"])
             except Exception as e2:
                 print(f"  FAIL: {e2}")
                 progress["failed"].append(item["index"])
@@ -429,26 +388,35 @@ if pending:
             print(f"  FAIL {item['filename']}: {e}")
             progress["failed"].append(item["index"])
 
+        # Checkpoint every 25 images (was 100 — too infrequent for OOM recovery)
+        if gen_count % 25 == 0 and gen_count > 0:
+            with open(pf, "w") as f: json.dump(progress, f)
+            save_progress_to_drive(progress, START_INDEX, END_INDEX)
+            flush_vram()
+            print(f"  [checkpoint] {gen_count} done | VRAM free: {vram_free_gb():.1f} GB")
+
     with open(pf, "w") as f: json.dump(progress, f)
     save_progress_to_drive(progress, START_INDEX, END_INDEX)
     print(f"\nGeneration : {gen_count} images in {(time.time()-t0)/60:.0f} min")
     print(f"Failed     : {len(progress['failed'])}")
-    del pipe; gc.collect(); torch.cuda.empty_cache()
-    print("Model freed\n")
+    del pipe
+    flush_vram()
+    print(f"Model freed | VRAM free: {vram_free_gb():.1f} GB\n")
 
 # ============================================================
-# STEP 2: Background Removal (rembg - birefnet-general)
+# STEP 2: Background Removal (rembg — birefnet-general)
 # ============================================================
 print("=" * 55)
 print("STEP 2: Background Removal (rembg)")
 print("=" * 55)
 
 from rembg import remove as rembg_remove, new_session
+
 _rembg_session = new_session(
     "birefnet-general",
-    providers=["CUDAExecutionProvider", "CPUExecutionProvider"],  # GPU first, CPU fallback
+    providers=["CUDAExecutionProvider", "CPUExecutionProvider"],
 )
-print("rembg loaded (birefnet-general) on GPU")
+print("rembg loaded (birefnet-general)\n")
 
 gen_files = list(GENERATED_DIR.rglob("*.png"))
 print(f"Processing {len(gen_files)} images...\n")
@@ -460,22 +428,19 @@ for img_file in gen_files:
     if out.exists(): continue
     out.parent.mkdir(parents=True, exist_ok=True)
     try:
-        img = Image.open(str(img_file)).convert("RGB")
+        img    = Image.open(str(img_file)).convert("RGB")
         result = rembg_remove(img, session=_rembg_session)
-        result.save(str(out), "PNG", compress_level=0)  # 100% quality - zero compression
+        result.save(str(out), "PNG", compress_level=0)
         bg_ok += 1
         if bg_ok % 50 == 0:
             print(f"  BG done: {bg_ok} | {bg_ok/(time.time()-t1):.2f}/s")
-            gc.collect()
-            for _gi in range(torch.cuda.device_count()):
-                torch.cuda.empty_cache()
+            flush_vram()
     except Exception as e:
-        print(f"  BG FAIL {img_file.name}: {e}"); bg_fail += 1
+        print(f"  BG FAIL {img_file.name}: {e}")
+        bg_fail += 1
 
 print(f"\nBG removal : {bg_ok} OK, {bg_fail} failed in {(time.time()-t1)/60:.0f} min")
-gc.collect()
-for _gi in range(torch.cuda.device_count()):
-    torch.cuda.empty_cache()
+flush_vram()
 print("BG done\n")
 
 # ============================================================
@@ -487,10 +452,10 @@ print("=" * 55)
 
 def get_token():
     r = req.post("https://oauth2.googleapis.com/token", data={
-        "client_id": GOOGLE_CLIENT_ID,
+        "client_id":     GOOGLE_CLIENT_ID,
         "client_secret": GOOGLE_CLIENT_SECRET,
         "refresh_token": GOOGLE_REFRESH_TOKEN,
-        "grant_type": "refresh_token"
+        "grant_type":    "refresh_token"
     })
     if r.status_code != 200:
         raise Exception(f"Token failed: {r.text}")
@@ -513,10 +478,9 @@ def find_or_create(token, name, parent=None):
     return r2.json()["id"]
 
 def upload_file(token, path, name, folder_id):
-    import json as _j
     h = {"Authorization": f"Bearer {token}"}
     with open(path, "rb") as f: data = f.read()
-    meta = _j.dumps({"name": name, "parents": [folder_id]})
+    meta = json.dumps({"name": name, "parents": [folder_id]})
     r = req.post(
         "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
         headers=h,
@@ -530,6 +494,7 @@ if all([GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN]):
         token   = get_token()
         f_cache = {}
         up_pf   = PROGRESS_DIR / f"upload_{START_INDEX}.json"
+
         if up_pf.exists():
             up_prog = json.load(open(up_pf))
         else:
@@ -537,8 +502,8 @@ if all([GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN]):
             up_prog  = drive_up if drive_up else {"uploaded": []}
             if drive_up:
                 with open(up_pf, "w") as f: json.dump(up_prog, f)
-        uploaded = set(up_prog["uploaded"])
 
+        uploaded    = set(up_prog["uploaded"])
         f_cache[""] = find_or_create(token, "png_library_images")
         print(f"Root folder ready: png_library_images\n")
 
@@ -580,10 +545,11 @@ if all([GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN]):
         with open(up_pf, "w") as f: json.dump(up_prog, f)
         save_upload_progress_to_drive(up_prog, START_INDEX)
         print(f"\nUpload done: {up_ok} files in {(time.time()-t2)/60:.0f} min")
+
     except Exception as e:
         print(f"Drive error: {e}")
 else:
-    print("WARNING: Google credentials missing!")
+    print("WARNING: Google credentials missing — skipping upload.")
 
 # ============================================================
 # FINAL REPORT
@@ -595,10 +561,9 @@ print(f"""
 {'='*55}
   BATCH COMPLETE!
   Model      : FLUX.2 [klein] 4B (Apache 2.0)
-  Prompts    : V3 Indian-Priority (10,937 total)
-  Steps      : 20  |  CFG: 3.5  |  1024x1024 PNG
+  Steps      : 4  |  CFG: 0.0  |  1024x1024 PNG
+  Offload    : Sequential CPU offload (OOM-safe)
   BG Removal : rembg (birefnet-general)
-  GPUs       : {torch.cuda.device_count()} x T4 (2x Data Parallel)
   Generated  : {total_gen} images
   Transparent: {total_trn} PNGs
   Batch      : {START_INDEX} - {END_INDEX}
