@@ -1,7 +1,7 @@
 """
-PNG Library - Kaggle Pipeline V3
+PNG Library - Kaggle Pipeline V2
 =============================================================
-Model   : FLUX.2 [klein] 4B (Distilled)
+Model   : FLUX.2 [klein] 4B
 HF ID   : black-forest-labs/FLUX.2-klein-4B
 License : Apache 2.0 - FREE for commercial use
 VRAM    : ~8GB on T4 16GB - confirmed fits
@@ -10,14 +10,11 @@ Steps   : 4 steps (distilled - fast + good quality)
 Batch   : 800 images/run ~ 4hrs (safe within 30hr/week)
 =============================================================
 
-V3 CHANGES:
-  - SPEED FIX: pipe.to("cuda") replaces enable_model_cpu_offload()
-              → 5x–10x faster generation on T4
-  - SPEED FIX: Generator device="cuda" (was "cpu")
-  - QUALITY FIX: PNG compress_level=0 — 100% original quality, no compression
-  - REMOVED: RealESRGAN 4x upscale step entirely
-  - REMOVED: realesrgan + basicsr from pip installs
-  - BG removal now reads directly from GENERATED_DIR (1024x1024 originals)
+V2 CHANGES:
+  - Removed duplicate make_prompt() — V2 prompts are already complete
+  - Only adds category-specific texture hints (no duplicate keywords)
+  - Updated for 43,082 total prompts (was 46,502)
+  - offer_logos use vector style, everything else photorealistic
 """
 
 import os, sys, json, time, gc, subprocess
@@ -39,6 +36,8 @@ pkgs = [
     "numpy",
     "rembg[gpu]",
     "requests",
+    "realesrgan",
+    "basicsr",
 ]
 for pkg in pkgs:
     r = subprocess.run(
@@ -59,11 +58,12 @@ import requests as req
 # ── Paths ─────────────────────────────────────────────────────
 WORKING_DIR     = Path("/kaggle/working")
 GENERATED_DIR   = WORKING_DIR / "generated_images"
+UPSCALED_DIR    = WORKING_DIR / "upscaled_images"
 TRANSPARENT_DIR = WORKING_DIR / "transparent_pngs"
 PROMPTS_DIR     = WORKING_DIR / "prompts_splits"
 PROGRESS_DIR    = WORKING_DIR / "progress"
 PROJECT_DIR     = WORKING_DIR / "project"
-for d in [GENERATED_DIR, TRANSPARENT_DIR, PROGRESS_DIR]:
+for d in [GENERATED_DIR, UPSCALED_DIR, TRANSPARENT_DIR, PROGRESS_DIR]:
     d.mkdir(parents=True, exist_ok=True)
 
 # ── Credentials ───────────────────────────────────────────────
@@ -333,7 +333,7 @@ def save_generated(img, item):
     folder = GENERATED_DIR / item["category"] / item.get("subcategory", "general")
     folder.mkdir(parents=True, exist_ok=True)
     path = folder / item["filename"]
-    img.save(str(path), "PNG")
+    img.save(str(path), "PNG", compress_level=0)  # compress_level=0 → no compression, 100% original quality
     return str(path)
 
 def is_good(img):
@@ -353,9 +353,9 @@ if pending:
         "black-forest-labs/FLUX.2-klein-4B",
         torch_dtype=torch.bfloat16,
     )
-    pipe.to("cuda")   # ✅ Full GPU — 5x–10x faster than cpu_offload
+    pipe.enable_model_cpu_offload(gpu_id=0)
     pipe.set_progress_bar_config(disable=True)
-    print("Model loaded on GPU (full CUDA mode)!\n")
+    print("Model loaded with cpu_offload!\n")
 
     gen_count = 0
     t0        = time.time()
@@ -364,7 +364,7 @@ if pending:
     for item in pending:
         try:
             prompt    = enhance_prompt(item["prompt"], item.get("category", ""))
-            generator = torch.Generator(device="cuda").manual_seed(item["seed"])
+            generator = torch.Generator(device="cpu").manual_seed(item["seed"])
 
             img = pipe(
                 prompt=prompt,
@@ -377,7 +377,7 @@ if pending:
 
             # Quality check + retry
             if not is_good(img):
-                retry_gen = torch.Generator(device="cuda").manual_seed(item["seed"] + 42)
+                retry_gen = torch.Generator(device="cpu").manual_seed(item["seed"] + 42)
                 img = pipe(
                     prompt=prompt,
                     num_inference_steps=4,
@@ -409,7 +409,7 @@ if pending:
             torch.cuda.empty_cache(); gc.collect()
             try:
                 print(f"  OOM — retrying {item['filename']} at 768x768")
-                gen_fb = torch.Generator(device="cuda").manual_seed(item["seed"])
+                gen_fb = torch.Generator(device="cpu").manual_seed(item["seed"])
                 img = pipe(
                     prompt=enhance_prompt(item["prompt"], item.get("category", "")),
                     num_inference_steps=4,
@@ -436,10 +436,68 @@ if pending:
     print("Model freed\n")
 
 # ============================================================
-# STEP 1.5: SKIPPED — RealESRGAN removed (not needed)
-# BG removal uses original 1024x1024 generated images directly
+# STEP 1.5: RealESRGAN 4x Upscale (1024 → 4096)
 # ============================================================
-BG_INPUT_DIR = GENERATED_DIR
+print("=" * 55)
+print("STEP 1.5: RealESRGAN 4x Upscale")
+print("=" * 55)
+
+try:
+    from basicsr.archs.rrdbnet_arch import RRDBNet
+    from realesrgan import RealESRGANer
+
+    upscale_model = RRDBNet(
+        num_in_ch=3, num_out_ch=3, num_feat=64,
+        num_block=23, num_grow_ch=32, scale=4
+    )
+    upscaler = RealESRGANer(
+        scale=4,
+        model_path="https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth",
+        model=upscale_model,
+        tile=512,          # tile-based — low RAM usage
+        tile_pad=10,
+        pre_pad=0,
+        half=False,        # CPU — no half precision
+        device="cpu",
+    )
+    print("RealESRGAN loaded (CPU mode, tile=512)\n")
+
+    gen_files_up = list(GENERATED_DIR.rglob("*.png"))
+    print(f"Upscaling {len(gen_files_up)} images...\n")
+    up_ok = 0; up_fail = 0; t_up = time.time()
+
+    for img_file in gen_files_up:
+        rel     = img_file.relative_to(GENERATED_DIR)
+        out_up  = UPSCALED_DIR / rel
+        if out_up.exists():
+            continue
+        out_up.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            import cv2, numpy as _np
+            img_cv = cv2.imread(str(img_file), cv2.IMREAD_COLOR)
+            output, _ = upscaler.enhance(img_cv, outscale=4)
+            cv2.imwrite(str(out_up), output)
+            up_ok += 1
+            if up_ok % 50 == 0:
+                print(f"  Upscaled: {up_ok} | {up_ok/(time.time()-t_up):.2f}/s")
+        except Exception as e:
+            print(f"  Upscale FAIL {img_file.name}: {e}")
+            # fallback: copy original as-is
+            import shutil
+            shutil.copy2(str(img_file), str(out_up))
+            up_fail += 1
+
+    print(f"\nUpscale : {up_ok} OK (4096x4096), {up_fail} fallback in {(time.time()-t_up)/60:.0f} min")
+    del upscaler; gc.collect()
+    print("Upscaler freed\n")
+
+    # STEP 2 reads from UPSCALED_DIR (4096x4096 sharp images)
+    BG_INPUT_DIR = UPSCALED_DIR
+
+except Exception as e:
+    print(f"RealESRGAN load failed: {e}")
+    print("Falling back: BG removal will use original 1024x1024 images\n")
+    BG_INPUT_DIR = GENERATED_DIR
 
 # ============================================================
 # STEP 2: Background Removal (rembg - birefnet-general)
@@ -464,7 +522,7 @@ for img_file in gen_files:
     try:
         img = Image.open(str(img_file)).convert("RGB")
         result = rembg_remove(img, session=_rembg_session)
-        result.save(str(out), "PNG", compress_level=0)  # ✅ 100% original quality
+        result.save(str(out), "PNG", compress_level=0)  # compress_level=0 → no compression, 100% original quality
         bg_ok += 1
         if bg_ok % 50 == 0:
             print(f"  BG done: {bg_ok} | {bg_ok/(time.time()-t1):.2f}/s")
@@ -596,11 +654,10 @@ total_min = (time.time() - progress.get("start_time", time.time())) / 60
 print(f"""
 {'='*55}
   BATCH COMPLETE!
-  Model      : FLUX.2 [klein] 4B (Distilled - Apache 2.0)
+  Model      : FLUX.2 [klein] 4B (Apache 2.0)
   Prompts    : V2 Ultra-Realistic (43,082 total)
-  Steps      : 4  |  CFG: 1.0  |  1024x1024
-  GPU Mode   : Full CUDA (no cpu_offload — max speed)
-  PNG Quality: compress_level=0 (100% original quality)
+  Steps      : 4  |  CFG: 1.0  |  1024x1024 → 4096x4096
+  Upscale    : RealESRGAN 4x (AI Sharp)
   BG Removal : rembg (birefnet-general)
   GPUs       : {torch.cuda.device_count()} x T4 (2x Data Parallel)
   Generated  : {total_gen} images

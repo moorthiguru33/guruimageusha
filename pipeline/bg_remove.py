@@ -83,7 +83,7 @@ class BackgroundRemover:
         img = Image.open(input_path).convert("RGB")
         result = self.remove_background(img)
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-        result.save(output_path, "PNG")
+        result.save(output_path, "PNG", compress_level=0)  # compress_level=0 → no compression, 100% original quality
         return output_path
 
     def process_folder(self, input_folder: str, output_folder: str, skip_existing: bool = True) -> dict:
@@ -120,7 +120,7 @@ class BackgroundRemover:
                 else:
                     result = self.remove_background(img)
 
-                result.save(str(out_file), "PNG")
+                result.save(str(out_file), "PNG", compress_level=0)  # compress_level=0 → no compression, 100% original quality
                 stats["processed"] += 1
 
                 if stats["processed"] % 50 == 0:

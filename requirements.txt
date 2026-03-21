@@ -1,0 +1,26 @@
+# PNG Library Project — Python Dependencies
+# Model: FLUX.2 [klein] 4B (Apache 2.0)
+
+# Core ML
+torch>=2.1.0
+torchvision>=0.16.0
+diffusers>=0.32.0
+transformers>=4.47.0
+accelerate>=0.28.0
+huggingface_hub>=0.27.0
+
+# Image Processing
+Pillow>=10.0.0
+numpy>=1.24.0
+
+# Background Removal (BRIA-RMBG-2.0)
+timm>=0.9.0
+kornia>=0.7.0
+
+# Memory Optimization
+bitsandbytes>=0.43.0
+
+# Utilities
+requests>=2.31.0
+tqdm>=4.66.0
+kaggle>=1.6.0
