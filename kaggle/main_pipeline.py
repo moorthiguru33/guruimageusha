@@ -348,15 +348,15 @@ if pending:
     print("Loading black-forest-labs/FLUX.2-klein-4B ...")
     print("(First run: downloads ~8GB — ~5 min)\n")
 
-    # P100 = float16 (bfloat16 support இல்லை P100-ல்)
     pipe = Flux2KleinPipeline.from_pretrained(
         "black-forest-labs/FLUX.2-klein-4B",
-        torch_dtype=torch.float16,
+        torch_dtype=torch.bfloat16,  # bfloat16 — less VRAM than float32
     )
-    # P100 16GB VRAM போதும் — full GPU load (cpu_offload வேண்டாம் → faster)
-    pipe = pipe.to("cuda")
+    # cpu_offload: layers move GPU↔CPU on demand → prevents OOM on 16GB T4
+    pipe.enable_model_cpu_offload()
+    pipe.enable_vae_tiling()          # VAE tiling → saves ~2GB VRAM on decode
     pipe.set_progress_bar_config(disable=True)
-    print("Model loaded on P100 GPU (float16, full VRAM)!\n")
+    print("Model loaded (bfloat16, cpu_offload, vae_tiling)!\n")
 
     gen_count = 0
     t0        = time.time()
@@ -369,8 +369,8 @@ if pending:
 
             img = pipe(
                 prompt=prompt,
-                num_inference_steps=20,   # FIX: 4→20 (realistic images வரும்)
-                guidance_scale=3.5,        # FIX: 1.0→3.5 (prompt correctly follow ஆகும்)
+                num_inference_steps=4,    # FLUX.2 klein = step-wise distilled, 4 steps optimal
+                guidance_scale=0.0,        # distilled model — CFG must be 0.0
                 height=1024,
                 width=1024,
                 generator=generator,
@@ -381,8 +381,8 @@ if pending:
                 retry_gen = torch.Generator(device="cpu").manual_seed(item["seed"] + 42)
                 img = pipe(
                     prompt=prompt,
-                    num_inference_steps=20,   # FIX: retry-லும் same settings
-                    guidance_scale=3.5,
+                    num_inference_steps=4,
+                    guidance_scale=0.0,  # distilled — must be 0.0
                     height=1024,
                     width=1024,
                     generator=retry_gen,
@@ -413,8 +413,8 @@ if pending:
                 gen_fb = torch.Generator(device="cpu").manual_seed(item["seed"])
                 img = pipe(
                     prompt=enhance_prompt(item["prompt"], item.get("category", "")),
-                    num_inference_steps=20,   # FIX: OOM retry-லும் 20 steps
-                    guidance_scale=3.5,
+                    num_inference_steps=4,    # distilled — 4 steps optimal
+                    guidance_scale=0.0,  # distilled — must be 0.0
                     height=768, width=768,
                     generator=gen_fb,
                 ).images[0]
