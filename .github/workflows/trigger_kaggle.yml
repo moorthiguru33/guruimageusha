@@ -97,11 +97,13 @@ jobs:
         run: |
           cd kaggle
           KERNEL_ID="${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}"
+          DATASET_ID="${{ secrets.KAGGLE_USERNAME }}/my-pipeline-models"
           python3 -c "
           import json
           with open('kernel-metadata.json', 'r') as f:
               meta = json.load(f)
           meta['id'] = '${KERNEL_ID}'
+          meta['dataset_sources'] = ['${DATASET_ID}']
           with open('kernel-metadata.json', 'w') as f:
               json.dump(meta, f, indent=2)
           print(json.dumps(meta, indent=2))
