@@ -85,19 +85,7 @@ import requests as req
 MODELS_DIR      = Path("/kaggle/input/my-pipeline-models")
 FLUX_DIR        = MODELS_DIR / "flux2-klein"
 QWEN_DIR        = MODELS_DIR / "qwen-vision"
-# Auto-find ONNX model file (supports model.onnx, BiRefNet.onnx, etc.)
-def _find_onnx():
-    search_dirs = [
-        MODELS_DIR / "rembg" / "onnx",
-        MODELS_DIR / "rembg",
-    ]
-    for d in search_dirs:
-        if d.exists():
-            hits = list(d.glob("*.onnx"))
-            if hits:
-                return hits[0]
-    return MODELS_DIR / "rembg" / "onnx" / "model.onnx"  # fallback path for error msg
-RMBG_ONNX = _find_onnx()
+RMBG_ONNX       = MODELS_DIR / "rembg" / "onnx" / "model.onnx"
 
 WORKING_DIR     = Path("/kaggle/working")
 GENERATED_DIR   = WORKING_DIR / "generated"
@@ -121,8 +109,8 @@ GITHUB_TOKEN         = os.environ.get("GITHUB_TOKEN_REPO2", "")
 GITHUB_REPO2         = os.environ.get("GITHUB_REPO2", "")
 GITHUB_REPO1         = os.environ.get("GITHUB_REPO", "")
 GITHUB_TOKEN_REPO1   = os.environ.get("GITHUB_TOKEN_REPO1", "")
-TELEGRAM_BOT_TOKEN   = ""
-TELEGRAM_CHAT_ID     = ""
+TELEGRAM_BOT_TOKEN   = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID     = os.environ.get("TELEGRAM_CHAT_ID", "")
 START_INDEX          = int(float(os.environ.get("START_INDEX", "0").strip()))
 END_INDEX            = int(float(os.environ.get("END_INDEX", "200").strip()))
 
@@ -351,7 +339,7 @@ def load_skip_set_from_json():
                 ["git", "sparse-checkout", "set", "data"],
                 cwd=str(REPO2_DIR), capture_output=True, check=True)
         except Exception as e:
-            log(f"  Skip-set: REPO2 not set or empty — starting fresh (no duplicates check)")
+            log(f"  Skip-set clone warning: {e}")
             return skip_set
 
     data_dir = REPO2_DIR / "data"
@@ -1735,10 +1723,10 @@ def phase5_build_push(new_posts):
     log("PHASE 5: HTML Build + Git Push to REPO2")
     log("=" * 56)
 
-    if not GITHUB_TOKEN or not GITHUB_REPO2:
-        log("  WARNING: GITHUB_REPO2 / GITHUB_TOKEN_REPO2 not set — skipping git push")
-        log("  (Set GITHUB_REPO2 secret to enable website push)")
-        return
+    if not GITHUB_TOKEN:
+        log("ERROR: GITHUB_TOKEN_REPO2 not set"); return
+    if not GITHUB_REPO2:
+        log("ERROR: GITHUB_REPO2 not set"); return
     if not new_posts:
         log("No new posts"); return
 
@@ -1979,16 +1967,6 @@ def main():
     if torch.cuda.is_available():
         p = torch.cuda.get_device_properties(0)
         print(f"  GPU    : {p.name} | VRAM: {p.total_memory/1e9:.0f}GB")
-    print()
-
-    # ── Dataset path check ──────────────────────────────────
-    print("  Dataset model paths:")
-    for _lbl, _pth in [("FLUX  ", FLUX_DIR), ("Qwen  ", QWEN_DIR), ("RMBG  ", RMBG_ONNX)]:
-        _ok = Path(_pth).exists()
-        print(f"    {'✅' if _ok else '❌'} {_lbl}: {_pth}")
-    if MODELS_DIR.exists():
-        _top = sorted([p.name for p in MODELS_DIR.iterdir()])
-        print(f"    📂 Dataset folders: {_top}")
     print()
 
     try:
