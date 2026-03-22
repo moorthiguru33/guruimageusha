@@ -1,5 +1,5 @@
 {
-  "id": "moorthiguru33/notebook8c5ae1ecf2",
+  "id": "gurumoorthirajagopal/notebook8c5ae1ecf2",
   "title": "notebook8c5ae1ecf2",
   "code_file": "main_pipeline.ipynb",
   "language": "python",
@@ -8,7 +8,7 @@
   "enable_gpu": true,
   "enable_internet": true,
   "dataset_sources": [
-    "moorthiguru33/my-pipeline-models"
+    "gurumoorthirajagopal/my-pipeline-models"
   ],
   "competition_sources": [],
   "kernel_sources": []
