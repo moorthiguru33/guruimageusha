@@ -414,34 +414,35 @@ def phase1_generate(batch, skip_set):
 
     log("Loading FLUX.2 (instant from dataset)...")
 
-    # ── Smart loader: handles both full diffusers layout AND single .safetensors ──
+    # ── Smart loader: works for BOTH diffusers layout AND single .safetensors ──
     _loaded = False
     if FLUX_DIR.is_dir():
-        _ckpt_files   = sorted(FLUX_DIR.glob("*.safetensors"))
+        _ckpt_files     = sorted(FLUX_DIR.glob("*.safetensors"))
         _has_components = (FLUX_DIR / "transformer").is_dir()
 
         if _has_components:
-            # Full diffusers directory layout (transformer/, vae/, text_encoder/, …)
+            # Full diffusers layout: transformer/, vae/, text_encoder/, scheduler/
             log("  Mode: from_pretrained (full diffusers layout)")
             pipe = _FluxCls.from_pretrained(str(FLUX_DIR), torch_dtype=torch.bfloat16)
             _loaded = True
         elif _ckpt_files:
-            # Single consolidated .safetensors checkpoint
+            # Single consolidated .safetensors (e.g. flux-2-klein-4b.safetensors)
             log(f"  Mode: from_single_file ({_ckpt_files[0].name})")
             pipe = _FluxCls.from_single_file(str(_ckpt_files[0]), torch_dtype=torch.bfloat16)
             _loaded = True
         else:
-            log(f"  ⚠ FLUX_DIR exists but no .safetensors found inside: {FLUX_DIR}")
+            log(f"  ⚠ FLUX_DIR exists but contains no .safetensors: {FLUX_DIR}")
     else:
-        log(f"  ⚠ FLUX_DIR does not exist: {FLUX_DIR}")
+        log(f"  ⚠ FLUX_DIR not found: {FLUX_DIR}")
 
     if not _loaded:
-        _contents = sorted(p.name for p in FLUX_DIR.iterdir()) if FLUX_DIR.exists() else "DIRECTORY MISSING"
+        _contents = (sorted(p.name for p in FLUX_DIR.iterdir())
+                     if FLUX_DIR.exists() else "DIRECTORY MISSING")
         raise FileNotFoundError(
-            f"FLUX model not found or unrecognised structure at: {FLUX_DIR}\n"
+            f"FLUX model not found at: {FLUX_DIR}\n"
             f"  Contents: {_contents}\n"
-            f"  Fix: (1) Ensure dataset 'my-pipeline-models' is attached to this Kaggle kernel.\n"
-            f"       (2) If flux2-klein/ only has a .safetensors file, from_single_file is used automatically."
+            f"  Fix 1: Attach dataset 'my-pipeline-models' to this Kaggle kernel via UI.\n"
+            f"  Fix 2: Ensure flux2-klein/ contains a .safetensors file or full diffusers structure."
         )
 
     pipe.enable_model_cpu_offload(gpu_id=0)
@@ -2021,10 +2022,10 @@ def main():
             print(f"         └─ {_sub}")
     if MODELS_DIR.exists():
         _top = sorted([p.name for p in MODELS_DIR.iterdir()])
-        print(f"    📂 Dataset top-level folders: {_top}")
+        print(f"    📂 Dataset top-level: {_top}")
     else:
-        print(f"    ❌ MODELS_DIR not found: {MODELS_DIR}")
-        print(f"       → Fix: Attach 'my-pipeline-models' dataset to this Kaggle kernel!")
+        print(f"    ❌ MODELS_DIR missing: {MODELS_DIR}")
+        print(f"       → Fix: Add 'my-pipeline-models' dataset to this notebook via Kaggle UI!")
     print()
 
     try:
