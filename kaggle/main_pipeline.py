@@ -27,9 +27,13 @@ os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 # ── HuggingFace cache dir (writable in Kaggle) ────────────────
 HF_CACHE = Path("/kaggle/working/hf_cache")
 HF_CACHE.mkdir(parents=True, exist_ok=True)
-os.environ["HF_HOME"]            = str(HF_CACHE)
+os.environ["HF_HOME"]               = str(HF_CACHE)
 os.environ["HUGGINGFACE_HUB_CACHE"] = str(HF_CACHE)
-os.environ["TRANSFORMERS_CACHE"] = str(HF_CACHE)
+os.environ["TRANSFORMERS_CACHE"]    = str(HF_CACHE)
+# Set HF token if available (faster downloads, no rate limits)
+_hf_token = os.environ.get("HF_TOKEN", "")
+if _hf_token:
+    os.environ["HUGGINGFACE_HUB_TOKEN"] = _hf_token
 
 # ══════════════════════════════════════════════════════════════
 # HuggingFace Model IDs  ← change here if repo name differs
@@ -454,9 +458,20 @@ def phase1_generate(batch, skip_set):
         except Exception as e:
             log(f"  FAIL {fname}: {e}")
 
-    log("\n  Deleting FLUX.2 -> freeing VRAM...")
+    log("\n  Deleting FLUX.2 -> freeing VRAM + disk cache...")
     del pipe
     free_memory()
+
+    # Delete FLUX HF cache to free ~8GB disk for Qwen download
+    import shutil as _shutil
+    for _cache_sub in HF_CACHE.iterdir():
+        if _cache_sub.is_dir():
+            _name = _cache_sub.name.lower()
+            if "flux" in _name or "black-forest" in _name:
+                _shutil.rmtree(str(_cache_sub), ignore_errors=True)
+                log(f"  Deleted FLUX cache: {_cache_sub.name}")
+    _used = sum(f.stat().st_size for f in HF_CACHE.rglob("*") if f.is_file()) / 1e9
+    log(f"  HF cache after cleanup: {_used:.1f}GB")
 
     save_checkpoint("phase1_generated", generated)
     log(f"PHASE 1 DONE — Generated: {len(generated)} | Skipped: {skipped}\n")
@@ -782,9 +797,27 @@ def phase2_qwen_filter_seo(generated):
             gc.collect(); torch.cuda.empty_cache()
             save_checkpoint("phase2_posts_partial", posts)
 
-    log("\n  Deleting Qwen -> freeing VRAM...")
+    log("\n  Deleting Qwen -> freeing VRAM + disk cache...")
     del model, processor
     free_memory()
+
+    # Delete Qwen HF cache to free ~6GB disk for RMBG download
+    import shutil as _shutil
+    for _cache_sub in HF_CACHE.iterdir():
+        if _cache_sub.is_dir():
+            _name = _cache_sub.name.lower()
+            if "qwen" in _name:
+                _shutil.rmtree(str(_cache_sub), ignore_errors=True)
+                log(f"  Deleted Qwen cache: {_cache_sub.name}")
+
+    # Delete GENERATED_DIR images — approved/ has the copies already
+    if GENERATED_DIR.exists():
+        _shutil.rmtree(str(GENERATED_DIR), ignore_errors=True)
+        GENERATED_DIR.mkdir(parents=True, exist_ok=True)
+        log("  Deleted generated/ images (approved/ copies kept)")
+
+    _used = sum(f.stat().st_size for f in HF_CACHE.rglob("*") if f.is_file()) / 1e9
+    log(f"  HF cache after cleanup: {_used:.1f}GB")
 
     save_checkpoint("phase2_posts", posts)
     log(f"PHASE 2 DONE — Kept: {len(posts)} | Deleted: {deleted}")
@@ -955,10 +988,28 @@ def phase3_bg_remove(posts):
         except Exception as e:
             log(f"  RMBG FAIL {path.name}: {e}")
 
-    # ── DELETE model → free VRAM for Phase 4 ──
-    log("\n  Deleting RMBG-2.0 → freeing VRAM...")
+    # ── DELETE model → free VRAM + disk for Phase 4 ──
+    log("\n  Deleting RMBG-2.0 → freeing VRAM + disk cache...")
     del rmbg_model, transform_img
     free_memory()
+
+    # Delete RMBG HF cache
+    import shutil as _shutil
+    for _cache_sub in HF_CACHE.iterdir():
+        if _cache_sub.is_dir():
+            _name = _cache_sub.name.lower()
+            if "rmbg" in _name or "briaai" in _name or "birefnet" in _name:
+                _shutil.rmtree(str(_cache_sub), ignore_errors=True)
+                log(f"  Deleted RMBG cache: {_cache_sub.name}")
+
+    # Delete APPROVED_DIR images — transparent/ has the final copies
+    if APPROVED_DIR.exists():
+        _shutil.rmtree(str(APPROVED_DIR), ignore_errors=True)
+        APPROVED_DIR.mkdir(parents=True, exist_ok=True)
+        log("  Deleted approved/ images (transparent/ copies kept)")
+
+    _used = sum(f.stat().st_size for f in HF_CACHE.rglob("*") if f.is_file()) / 1e9
+    log(f"  HF cache after cleanup: {_used:.1f}GB")
 
     save_checkpoint("phase3_transparent", result_posts)
     log(f"PHASE 3 DONE — Transparent PNGs: {len(result_posts)}\n")
@@ -1040,7 +1091,15 @@ def phase4_upload(posts):
             log(f"  Upload FAIL {path.name}: {e}")
 
     save_checkpoint("phase4_uploaded", uploaded)
-    log(f"PHASE 4 DONE — Uploaded: {len(uploaded)} in {(time.time()-t0)/60:.0f}min\n")
+    log(f"PHASE 4 DONE — Uploaded: {len(uploaded)} in {(time.time()-t0)/60:.0f}min")
+
+    # Delete transparent/ images — all uploaded to Drive already
+    import shutil as _shutil
+    if TRANSPARENT_DIR.exists():
+        _shutil.rmtree(str(TRANSPARENT_DIR), ignore_errors=True)
+        TRANSPARENT_DIR.mkdir(parents=True, exist_ok=True)
+        log("  Deleted transparent/ images (uploaded to Drive)")
+    log("")
     return uploaded
 
 # ══════════════════════════════════════════════════════════════
