@@ -40,7 +40,7 @@ if _hf_token:
 # ══════════════════════════════════════════════════════════════
 FLUX_HF_ID = "black-forest-labs/FLUX.2-klein-4B"
 QWEN_HF_ID = "Qwen/Qwen2.5-VL-3B-Instruct"
-RMBG_HF_ID = "briaai/RMBG-2.0"
+RMBG_HF_ID = "ZhengPeng7/BiRefNet-HR"  # Highest quality: trained at 2048x2048, public MIT, no gating
 
 # ══════════════════════════════════════════════════════════════
 # GLOBAL LOG CAPTURE
@@ -600,8 +600,20 @@ Return ONLY valid JSON, no markdown:
   "meta_desc": "max 155 chars",
   "h1": "{subject} [details] PNG HD Image",
   "tags": "18 comma-separated tags including PNG free, transparent PNG, canva, flex banner, ultrapng",
-  "description": "650+ words with sections: About, Quality Details, Design Ideas (8 bullets), Tech Specs (table), How to Download (6 steps), FAQ (4 Q&A), Why UltraPNG"
-}}"""
+  "title": "UNIQUE 20+ words — include specific visual details seen in THIS image (color, style, angle, material). Must differ from generic pattern. Include: {subject} + 2-3 specific visual adjectives + Transparent PNG HD Free Download | UltraPNG",
+  "slug": "max 55 chars — include 2-3 specific visual words seen in image, not just subject name",
+  "meta_desc": "max 155 chars — describe THIS specific image uniquely, mention color/style/use case",
+  "h1": "UNIQUE — describe exactly what is visible in this specific image",
+  "tags": "18 comma-separated — mix of: subject name, color, style, material, use case, design terms, PNG free, transparent PNG, canva, flex banner, social media, ultrapng, HD, free download",
+  "description": "650+ UNIQUE words. DO NOT use generic boilerplate. Write fresh content describing THIS specific image:\n## About This {subject} PNG Image\n[describe visual details of THIS image — color, style, composition, 200+ words]\n## Image Quality & Technical Details\n[100 words about quality]\n## Design Ideas & Creative Applications\n[8 bullet points — specific use cases for THIS image]\n## Technical Specifications\n[table: Format/Background/Resolution/Edge Quality/Compatible With/Print Ready/License]\n## How to Download\n[6 numbered steps]\n## Frequently Asked Questions\n[4 Q&A: free?/Canva?/watermark?/flex banner?]\n## Why UltraPNG\n[80 words — keep brief]"
+}}
+
+CRITICAL UNIQUENESS RULES:
+- Every title MUST contain specific visual details (color, pose, style) from THIS image
+- Never write "High Quality {subject} PNG" — too generic
+- Never start description with "This high-quality" — use specific visual observation instead
+- Each slug must have 2-3 unique words beyond the base subject name
+- Tags must include at least 5 specific descriptive terms about THIS image"""
 
 def phase2_qwen_filter_seo(generated):
     ckpt = load_checkpoint("phase2_posts")
@@ -924,7 +936,7 @@ def phase3_bg_remove(posts):
         return ckpt
 
     log("=" * 56)
-    log("PHASE 3: RMBG-2.0 — Background Removal (GPU)")
+    log("PHASE 3: BiRefNet-HR 2048x2048 — Background Removal (GPU)")
     log(f"  Loading from HuggingFace: {RMBG_HF_ID}")
     log("=" * 56)
 
@@ -943,8 +955,9 @@ def phase3_bg_remove(posts):
     rmbg_model = rmbg_model.to(device).eval()
     log(f"  RMBG-2.0 loaded on {device.upper()}\n")
 
+    # BiRefNet-HR is trained at 2048x2048 → better edge quality at higher res
     transform_img = transforms.Compose([
-        transforms.Resize((1024, 1024)),
+        transforms.Resize((2048, 2048)),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406],
                              [0.229, 0.224, 0.225]),
@@ -993,14 +1006,14 @@ def phase3_bg_remove(posts):
     del rmbg_model, transform_img
     free_memory()
 
-    # Delete RMBG HF cache
+    # Delete BiRefNet HF cache
     import shutil as _shutil
     for _cache_sub in HF_CACHE.iterdir():
         if _cache_sub.is_dir():
             _name = _cache_sub.name.lower()
             if "rmbg" in _name or "briaai" in _name or "birefnet" in _name:
                 _shutil.rmtree(str(_cache_sub), ignore_errors=True)
-                log(f"  Deleted RMBG cache: {_cache_sub.name}")
+                log(f"  Deleted BiRefNet cache: {_cache_sub.name}")
 
     # Delete APPROVED_DIR images — transparent/ has the final copies
     if APPROVED_DIR.exists():
@@ -1753,7 +1766,7 @@ def main():
     print(f"  REPO2 : {GITHUB_REPO2}")
     print(f"  FLUX  : {FLUX_HF_ID}")
     print(f"  Qwen  : {QWEN_HF_ID}")
-    print(f"  RMBG  : {RMBG_HF_ID}")
+    print(f"  RMBG  : {RMBG_HF_ID} (2048x2048 — highest quality)")
     print(f"  Cache : {HF_CACHE}")
     if torch.cuda.is_available():
         p = torch.cuda.get_device_properties(0)
