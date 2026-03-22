@@ -413,7 +413,37 @@ def phase1_generate(batch, skip_set):
         log("Loading FLUX.2-Klein via FluxPipeline (diffusers fallback)...")
 
     log("Loading FLUX.2 (instant from dataset)...")
-    pipe = _FluxCls.from_pretrained(str(FLUX_DIR), torch_dtype=torch.bfloat16)
+
+    # ── Smart loader: handles both full diffusers layout AND single .safetensors ──
+    _loaded = False
+    if FLUX_DIR.is_dir():
+        _ckpt_files   = sorted(FLUX_DIR.glob("*.safetensors"))
+        _has_components = (FLUX_DIR / "transformer").is_dir()
+
+        if _has_components:
+            # Full diffusers directory layout (transformer/, vae/, text_encoder/, …)
+            log("  Mode: from_pretrained (full diffusers layout)")
+            pipe = _FluxCls.from_pretrained(str(FLUX_DIR), torch_dtype=torch.bfloat16)
+            _loaded = True
+        elif _ckpt_files:
+            # Single consolidated .safetensors checkpoint
+            log(f"  Mode: from_single_file ({_ckpt_files[0].name})")
+            pipe = _FluxCls.from_single_file(str(_ckpt_files[0]), torch_dtype=torch.bfloat16)
+            _loaded = True
+        else:
+            log(f"  ⚠ FLUX_DIR exists but no .safetensors found inside: {FLUX_DIR}")
+    else:
+        log(f"  ⚠ FLUX_DIR does not exist: {FLUX_DIR}")
+
+    if not _loaded:
+        _contents = sorted(p.name for p in FLUX_DIR.iterdir()) if FLUX_DIR.exists() else "DIRECTORY MISSING"
+        raise FileNotFoundError(
+            f"FLUX model not found or unrecognised structure at: {FLUX_DIR}\n"
+            f"  Contents: {_contents}\n"
+            f"  Fix: (1) Ensure dataset 'my-pipeline-models' is attached to this Kaggle kernel.\n"
+            f"       (2) If flux2-klein/ only has a .safetensors file, from_single_file is used automatically."
+        )
+
     pipe.enable_model_cpu_offload(gpu_id=0)
     pipe.set_progress_bar_config(disable=True)
     log(f"FLUX.2 loaded | Batch: {len(batch)} | Skip: {len(skip_set)}\n")
@@ -1986,9 +2016,15 @@ def main():
     for _lbl, _pth in [("FLUX  ", FLUX_DIR), ("Qwen  ", QWEN_DIR), ("RMBG  ", RMBG_ONNX)]:
         _ok = Path(_pth).exists()
         print(f"    {'✅' if _ok else '❌'} {_lbl}: {_pth}")
+        if _ok and Path(_pth).is_dir():
+            _sub = sorted(p.name for p in Path(_pth).iterdir())
+            print(f"         └─ {_sub}")
     if MODELS_DIR.exists():
         _top = sorted([p.name for p in MODELS_DIR.iterdir()])
-        print(f"    📂 Dataset folders: {_top}")
+        print(f"    📂 Dataset top-level folders: {_top}")
+    else:
+        print(f"    ❌ MODELS_DIR not found: {MODELS_DIR}")
+        print(f"       → Fix: Attach 'my-pipeline-models' dataset to this Kaggle kernel!")
     print()
 
     try:
