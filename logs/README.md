@@ -2,8 +2,8 @@
 
 | Date & Time | Generated | Deleted | Approved | Uploaded | Posts | Duration | Status |
 |-------------|-----------|---------|----------|----------|-------|----------|--------|
+| 2026-03-22 22-07 | 5 | 0 | 5 | 0 | 0 | 0.2h | FAILED: ZhengPeng7/BiRefNet-HR is not a local folder and is not a valid model identifier |
 | 2026-03-22 21-40 | 2 | 0 | 2 | 0 | 0 | 0.1h | FAILED: You are trying to access a gated repo.
-Make sure to have access to it at https:/ |
 | 2026-03-22 19-13 | 0 | 0 | 0 | 0 | 0 | 0.0h | FAILED: Dataset download failed (exit 1).
 | 2026-03-22 18-57 | 0 | 0 | 0 | 0 | 0 | 0.0h | FAILED: FLUX model not found at: /kaggle/input/my-pipeline-models/flux2-klein
 | 2026-03-22 18-44 | 0 | 0 | 0 | 0 | 0 | 0.0h | FAILED: The provided pretrained_model_name_or_path "/kaggle/input/my-pipeline-models/flu |
