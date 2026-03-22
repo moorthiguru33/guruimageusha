@@ -1,31 +1,20 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║   UltraPNG.com — PNG Library Pipeline V5.5                  ║
-║   WORLD BEST ARCHITECTURE                                   ║
+║   UltraPNG.com — PNG Library Pipeline V5.6                  ║
 ╠══════════════════════════════════════════════════════════════╣
+║  PHASE 0 → Auto-download models if not mounted              ║
 ║  PHASE 1 → FLUX.2-Klein-4B   Generate 1024x1024 images     ║
 ║  PHASE 2 → Qwen2.5-VL-3B    Filter + SEO (ONE PASS)        ║
-║            Detects two-headed / deformed / fused animals    ║
-║            Keeps group photos safely                        ║
-║            Safe for Tools, Flowers, Food, Clipart           ║
-║            Generates full SEO content same call             ║
-║            DELETE Qwen → Free VRAM                          ║
 ║  PHASE 3 → RMBG-2.0 ONNX    Background removal (GPU)       ║
 ║  PHASE 4 → Google Drive      Upload PNG + JPG + WebP        ║
 ║  PHASE 5 → HTML Build + Git Push → REPO2 Live              ║
 ║  PHASE 6 → Save Run Logs → REPO1 (visible on GitHub!)      ║
 ╠══════════════════════════════════════════════════════════════╣
-║  WHY SINGLE QWEN PASS IS WORLD BEST:                        ║
-║  CLIP cannot detect two-headed / fused animals (60% acc)    ║
-║  CLIP deletes tools, flowers, clipart wrongly               ║
-║  Qwen loads once → Filter + SEO → unload = 1x VRAM only    ║
-║  Qwen accuracy: 95% (sees image like a human)               ║
-╠══════════════════════════════════════════════════════════════╣
-║  ALL V5.4 FIXES CARRIED:                                    ║
-║  slugify fixed, checkpoint system, JSON split, WebP+EXIF,  ║
-║  diagonal watermark, Drive retry, sitemap split,            ║
-║  robots.txt, llms.txt, git pull, concurrency,               ║
-║  sparse checkout, Telegram notifications, search tags       ║
+║  V5.6 FIXES:                                                ║
+║  • Auto-download models if Kaggle dataset not mounted       ║
+║  • Fixed double-print (removed _TeeWriter)                  ║
+║  • Removed Telegram (not needed)                            ║
+║  • RMBG_ONNX resolved after model download                  ║
 ╚══════════════════════════════════════════════════════════════╝
 
 inject_creds.py prepends os.environ[] lines before this file.
@@ -38,23 +27,14 @@ from datetime import datetime
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 
 # ══════════════════════════════════════════════════════════════
-# GLOBAL LOG CAPTURE — saves all output to GitHub REPO1/logs/
+# GLOBAL LOG CAPTURE  (no _TeeWriter — fixes double-print)
 # ══════════════════════════════════════════════════════════════
 _LOG_LINES = []
 
-class _TeeWriter:
-    def __init__(self, original):
-        self._orig = original
-    def write(self, msg):
-        self._orig.write(msg)
-        if msg.strip():
-            _LOG_LINES.append(msg.rstrip())
-    def flush(self):
-        self._orig.flush()
-    def isatty(self):
-        return False
-
-sys.stdout = _TeeWriter(sys.__stdout__)
+def log(msg):
+    line = f"[{datetime.now().strftime('%H:%M:%S')}] {msg}"
+    print(line, flush=True)
+    _LOG_LINES.append(line)
 
 # ── Install deps ──────────────────────────────────────────────
 print("=" * 56)
@@ -85,19 +65,15 @@ import requests as req
 MODELS_DIR      = Path("/kaggle/input/my-pipeline-models")
 FLUX_DIR        = MODELS_DIR / "flux2-klein"
 QWEN_DIR        = MODELS_DIR / "qwen-vision"
-# Auto-find ONNX model file (supports model.onnx, BiRefNet.onnx, etc.)
+
 def _find_onnx():
-    search_dirs = [
-        MODELS_DIR / "rembg" / "onnx",
-        MODELS_DIR / "rembg",
-    ]
-    for d in search_dirs:
+    """Auto-find ONNX model — called AFTER ensure_models()."""
+    for d in [MODELS_DIR / "rembg" / "onnx", MODELS_DIR / "rembg"]:
         if d.exists():
             hits = list(d.glob("*.onnx"))
             if hits:
                 return hits[0]
-    return MODELS_DIR / "rembg" / "onnx" / "model.onnx"  # fallback path for error msg
-RMBG_ONNX = _find_onnx()
+    return MODELS_DIR / "rembg" / "onnx" / "model.onnx"
 
 WORKING_DIR     = Path("/kaggle/working")
 GENERATED_DIR   = WORKING_DIR / "generated"
@@ -121,10 +97,9 @@ GITHUB_TOKEN         = os.environ.get("GITHUB_TOKEN_REPO2", "")
 GITHUB_REPO2         = os.environ.get("GITHUB_REPO2", "")
 GITHUB_REPO1         = os.environ.get("GITHUB_REPO", "")
 GITHUB_TOKEN_REPO1   = os.environ.get("GITHUB_TOKEN_REPO1", "")
-TELEGRAM_BOT_TOKEN   = ""
-TELEGRAM_CHAT_ID     = ""
 START_INDEX          = int(float(os.environ.get("START_INDEX", "0").strip()))
 END_INDEX            = int(float(os.environ.get("END_INDEX", "200").strip()))
+KAGGLE_DATASET       = os.environ.get("KAGGLE_DATASET", "gurumoorthirajagopal/my-pipeline-models")
 
 SITE_URL        = "https://www.ultrapng.com"
 SITE_NAME       = "UltraPNG"
@@ -135,9 +110,6 @@ SITEMAP_MAX_URL = 45000
 # ══════════════════════════════════════════════════════════════
 # UTILITIES
 # ══════════════════════════════════════════════════════════════
-def log(msg):
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}", flush=True)
-
 def free_memory():
     gc.collect()
     if torch.cuda.is_available():
@@ -165,18 +137,52 @@ def preview_url(fid, size=800):
 def download_url(fid):
     return f"https://drive.usercontent.google.com/download?id={fid}&export=download&authuser=0"
 
-def send_telegram(message, parse_mode="HTML"):
-    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+# ══════════════════════════════════════════════════════════════
+# PHASE 0 — Auto-download models if not mounted
+# ══════════════════════════════════════════════════════════════
+def ensure_models():
+    """Download dataset from Kaggle if /kaggle/input/my-pipeline-models is missing."""
+    if MODELS_DIR.exists():
+        log(f"✅ Models found at {MODELS_DIR}")
+        contents = sorted(p.name for p in MODELS_DIR.iterdir())
+        log(f"   Contents: {contents}")
         return
-    try:
-        r = req.post(
-            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
-            json={"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": parse_mode},
-            timeout=15)
-        if not r.ok:
-            log(f"  Telegram warn: {r.status_code}")
-    except Exception as e:
-        log(f"  Telegram error (non-fatal): {e}")
+
+    log("=" * 56)
+    log("PHASE 0: Models not mounted — auto-downloading...")
+    log(f"  Dataset: {KAGGLE_DATASET}")
+    log("=" * 56)
+
+    # Kaggle CLI is pre-installed and auto-authenticated in Kaggle kernels
+    dl_target = Path("/kaggle/input")
+    dl_target.mkdir(parents=True, exist_ok=True)
+
+    r = subprocess.run(
+        ["kaggle", "datasets", "download", KAGGLE_DATASET,
+         "--path", str(dl_target), "--unzip", "--quiet"],
+        capture_output=True, text=True, timeout=3600
+    )
+
+    if r.returncode != 0:
+        raise RuntimeError(
+            f"Dataset download failed (exit {r.returncode}).\n"
+            f"stderr: {r.stderr[:500]}\n"
+            f"stdout: {r.stdout[:500]}\n\n"
+            f"Fix: Go to Kaggle Notebook → Settings → Data → Add Data → "
+            f"search '{KAGGLE_DATASET}' and attach it manually."
+        )
+
+    if not MODELS_DIR.exists():
+        # Check what was actually downloaded
+        items = sorted(p.name for p in dl_target.iterdir()) if dl_target.exists() else []
+        raise RuntimeError(
+            f"Download completed but {MODELS_DIR} still missing.\n"
+            f"Contents of /kaggle/input: {items}"
+        )
+
+    log(f"✅ Models downloaded successfully!")
+    contents = sorted(p.name for p in MODELS_DIR.iterdir())
+    log(f"   Contents: {contents}")
 
 # ══════════════════════════════════════════════════════════════
 # CHECKPOINT SYSTEM
@@ -318,7 +324,7 @@ def make_previews(png_path):
             "0th": {
                 piexif.ImageIFD.Copyright: WATERMARK_TEXT.encode(),
                 piexif.ImageIFD.Artist:    SITE_NAME.encode(),
-                piexif.ImageIFD.Software:  b"UltraPNG Pipeline V5.5",
+                piexif.ImageIFD.Software:  b"UltraPNG Pipeline V5.6",
             }
         })
 
@@ -403,8 +409,6 @@ def phase1_generate(batch, skip_set):
     log("PHASE 1: FLUX.2-Klein-4B — Image Generation")
     log("=" * 56)
 
-    # Flux2KleinPipeline was added in diffusers 0.33+
-    # Fallback to FluxPipeline if older version installed
     try:
         from diffusers import Flux2KleinPipeline as _FluxCls
         log("Loading FLUX.2-Klein via Flux2KleinPipeline...")
@@ -412,37 +416,33 @@ def phase1_generate(batch, skip_set):
         from diffusers import FluxPipeline as _FluxCls
         log("Loading FLUX.2-Klein via FluxPipeline (diffusers fallback)...")
 
-    log("Loading FLUX.2 (instant from dataset)...")
+    log("Loading FLUX.2 from dataset...")
 
-    # ── Smart loader: works for BOTH diffusers layout AND single .safetensors ──
+    # Smart loader: works for full diffusers layout AND single .safetensors
     _loaded = False
     if FLUX_DIR.is_dir():
         _ckpt_files     = sorted(FLUX_DIR.glob("*.safetensors"))
         _has_components = (FLUX_DIR / "transformer").is_dir()
 
         if _has_components:
-            # Full diffusers layout: transformer/, vae/, text_encoder/, scheduler/
             log("  Mode: from_pretrained (full diffusers layout)")
             pipe = _FluxCls.from_pretrained(str(FLUX_DIR), torch_dtype=torch.bfloat16)
             _loaded = True
         elif _ckpt_files:
-            # Single consolidated .safetensors (e.g. flux-2-klein-4b.safetensors)
             log(f"  Mode: from_single_file ({_ckpt_files[0].name})")
             pipe = _FluxCls.from_single_file(str(_ckpt_files[0]), torch_dtype=torch.bfloat16)
             _loaded = True
         else:
-            log(f"  ⚠ FLUX_DIR exists but contains no .safetensors: {FLUX_DIR}")
+            log(f"  FLUX_DIR exists but no .safetensors: {list(FLUX_DIR.iterdir())}")
     else:
-        log(f"  ⚠ FLUX_DIR not found: {FLUX_DIR}")
+        log(f"  FLUX_DIR not found: {FLUX_DIR}")
 
     if not _loaded:
         _contents = (sorted(p.name for p in FLUX_DIR.iterdir())
                      if FLUX_DIR.exists() else "DIRECTORY MISSING")
         raise FileNotFoundError(
             f"FLUX model not found at: {FLUX_DIR}\n"
-            f"  Contents: {_contents}\n"
-            f"  Fix 1: Attach dataset 'my-pipeline-models' to this Kaggle kernel via UI.\n"
-            f"  Fix 2: Ensure flux2-klein/ contains a .safetensors file or full diffusers structure."
+            f"  Contents: {_contents}"
         )
 
     pipe.enable_model_cpu_offload(gpu_id=0)
@@ -478,7 +478,7 @@ def phase1_generate(batch, skip_set):
                 generator=gen,
             ).images[0]
 
-            # Blank image check (0.3% of pixels)
+            # Blank image check
             arr    = np.array(img)
             n_px   = arr.shape[0] * arr.shape[1]
             thresh = int(n_px * 0.003)
@@ -517,23 +517,9 @@ def phase1_generate(batch, skip_set):
 
 # ══════════════════════════════════════════════════════════════
 # PHASE 2 — Qwen2.5-VL-3B SINGLE PASS: Filter + SEO
-#
-# WORLD BEST: One Qwen load handles both quality filter AND
-# SEO content generation. Replaces CLIP entirely.
-#
-# FILTER RULES:
-#   DELETE: two-headed, fused species, severely deformed
-#   KEEP:   group photos same species, all tools/food/flowers
 # ══════════════════════════════════════════════════════════════
 
-# ══════════════════════════════════════════════════════════════
-# CATEGORY GROUPS — Smart filter rules per group
-# Every category gets subject-match + quality check (no bypass)
-# ══════════════════════════════════════════════════════════════
-
-# Maps keyword → group name (checked via 'in category.lower()')
 CATEGORY_GROUP_MAP = [
-    # ── ANIMALS & CREATURES ───────────────────────────────────
     (["animal","bird","insect","fish","seafood","poultry","reptile",
       "butterfly","eagle","parrot","chicken","hen","cock",
       "goat","cow","buffalo","dog","cat","elephant","tiger","lion",
@@ -541,7 +527,6 @@ CATEGORY_GROUP_MAP = [
       "crab","prawn","shrimp","lobster","squid","octopus",
       "tilapia","salmon","tuna","rohu","catla"], "animals"),
 
-    # ── COOKED FOOD & DISHES ─────────────────────────────────
     (["food","dish","recipe","meal","curry","rice","biryani","pulao",
       "chicken_65","butter_chicken","paneer","dosa","idli","vada",
       "sambar","rasam","roti","chapati","paratha","naan","puri",
@@ -553,33 +538,27 @@ CATEGORY_GROUP_MAP = [
       "indian_sweet","dairy","egg","poultry_chicken","raw_meat",
       "bakery_snacks","cool_drink","beverage"], "food"),
 
-    # ── FRUITS & VEGETABLES ───────────────────────────────────
     (["fruit","vegetable","herb","spice","nut","dry_fruit",
       "ayurvedic","herbal"], "produce"),
 
-    # ── FLOWERS & PLANTS & NATURE ────────────────────────────
     (["flower","plant","tree","leaf","nature","botanical",
       "garden","forest","sky","celestial","nature_tree",
       "sky_celestial"], "nature"),
 
-    # ── TOOLS & HARDWARE ─────────────────────────────────────
     (["tool","hardware","equipment","machine","instrument",
       "kitchen","vessel","pot","pan","utensil","kitchen_vessel",
       "pots_vessel"], "tools"),
 
-    # ── FASHION & ACCESSORIES ────────────────────────────────
     (["jewel","jewelry","jewellery","necklace","ring","bangle",
       "earring","bracelet","watch","bag","purse","handbag",
       "shoe","footwear","sandal","slipper","boot","heel",
       "cloth","dress","saree","lehenga","kurta","shirt",
       "indian_dress","clothing"], "fashion"),
 
-    # ── ELECTRONICS & GADGETS ────────────────────────────────
     (["electronic","mobile","phone","laptop","computer","tablet",
       "accessory","cable","charger","earphone","speaker",
       "computer_accessory","mobile_accessory"], "electronics"),
 
-    # ── CLIPART / ICONS / LOGOS / DESIGN ─────────────────────
     (["clipart","icon","logo","badge","frame","border","pattern",
       "texture","offer","effect","festival","pooja","background",
       "abstract","text_effect","music","stationery","office",
@@ -594,200 +573,91 @@ def _get_category_group(category: str) -> str:
             return group
     return "general"
 
-# ── Per-group CHECK INSTRUCTIONS ─────────────────────────────
 GROUP_CHECK_RULES = {
-
     "animals": """SUBJECT MATCH CHECK:
 - The prompt says: "{subject}" — does the image show EXACTLY that animal/species?
 - If it shows a COMPLETELY DIFFERENT species → subject_match: false
-  Examples: prompt=chicken but image=duck | prompt=crab but image=lobster | prompt=tiger but image=lion (different enough)
 - Same species in different pose/style/angle → subject_match: true
 - Cooked/prepared version when prompt expects live animal → subject_match: false
 
-BODY SHAPE CHECK (very important — check before quality):
-Every animal has a SPECIFIC expected body shape. If the body shape is wrong → shape_match: false → DELETE.
-
-SHAPE REFERENCE TABLE — check the animal against its correct shape:
-┌─────────────────┬──────────────────────────────────────────────────────────────┐
-│ Animal          │ Expected Shape                                               │
-├─────────────────┼──────────────────────────────────────────────────────────────┤
-│ CRAB            │ Wide, flat, fan/hexagonal body with 2 claws + 8 legs visible │
-│                 │ DELETE if: round blob, oval lump, egg shape, no claws/legs   │
-├─────────────────┼──────────────────────────────────────────────────────────────┤
-│ FISH (general)  │ Streamlined torpedo/oval body, clear tail fin, side fins     │
-│                 │ DELETE if: circular disc shape, square, blob with no fins    │
-├─────────────────┼──────────────────────────────────────────────────────────────┤
-│ PRAWN/SHRIMP    │ Curved C/U shape, segmented body, long antennae, fan tail    │
-│                 │ DELETE if: straight stick, ball shape, no segmentation       │
-├─────────────────┼──────────────────────────────────────────────────────────────┤
-│ LOBSTER         │ Long elongated body, large front claws, segmented tail       │
-│                 │ DELETE if: round shape, no claws, no tail fan                │
-├─────────────────┼──────────────────────────────────────────────────────────────┤
-│ SQUID/OCTOPUS   │ Squid=torpedo+tentacles | Octopus=round head+8 arms spread  │
-│                 │ DELETE if: no visible tentacles/arms, blob shape             │
-├─────────────────┼──────────────────────────────────────────────────────────────┤
-│ CHICKEN/HEN/    │ Plump round body, 2 wings, 2 legs, beak, comb visible        │
-│ ROOSTER         │ DELETE if: oval blob, no beak, no wings visible at all       │
-├─────────────────┼──────────────────────────────────────────────────────────────┤
-│ DUCK/GOOSE      │ Round body, flat bill (not pointed beak), webbed feet        │
-│                 │ DELETE if: pointed beak shown (that's a different bird)      │
-├─────────────────┼──────────────────────────────────────────────────────────────┤
-│ EAGLE/HAWK      │ Large wingspan when flying, hooked beak, talons visible      │
-│                 │ DELETE if: no wings visible, round blob, no hooked beak      │
-├─────────────────┼──────────────────────────────────────────────────────────────┤
-│ PARROT          │ Compact body, curved beak, long tail feathers, vivid colors  │
-│                 │ DELETE if: straight beak, no tail, blob shape                │
-├─────────────────┼──────────────────────────────────────────────────────────────┤
-│ BUTTERFLY       │ 4 wings with visible patterns, thin body/antennae            │
-│                 │ DELETE if: 2 wings only (that's a moth style but check), blob│
-├─────────────────┼──────────────────────────────────────────────────────────────┤
-│ COW/BUFFALO     │ Large rectangular body, 4 legs, horns, udder/tail visible    │
-│                 │ DELETE if: round shape, no legs visible, no distinguishing   │
-├─────────────────┼──────────────────────────────────────────────────────────────┤
-│ GOAT/SHEEP      │ Compact body, 4 legs, horns or woolly coat                   │
-│                 │ DELETE if: oval blob, no legs, no head features              │
-├─────────────────┼──────────────────────────────────────────────────────────────┤
-│ TIGER/LION      │ Large muscular cat body, 4 legs, distinctive markings/mane  │
-│                 │ DELETE if: round blob, no legs, no stripes/mane              │
-├─────────────────┼──────────────────────────────────────────────────────────────┤
-│ ELEPHANT        │ Very large body, long trunk, big ears, 4 pillar legs, tusks  │
-│                 │ DELETE if: no trunk visible, round shape, tiny               │
-├─────────────────┼──────────────────────────────────────────────────────────────┤
-│ SNAKE           │ Long thin elongated S/coil shape, scales, no legs            │
-│                 │ DELETE if: round ball, thick blob, has legs                  │
-├─────────────────┼──────────────────────────────────────────────────────────────┤
-│ RABBIT          │ Round body, LONG ears (key feature), short tail, 4 paws      │
-│                 │ DELETE if: short ears (looks like cat/rat), blob shape       │
-├─────────────────┼──────────────────────────────────────────────────────────────┤
-│ DOG/CAT         │ 4 legs, pointed ears (cat) or floppy ears (dog), tail        │
-│                 │ DELETE if: no legs, round blob, no distinctive ears/tail     │
-├─────────────────┼──────────────────────────────────────────────────────────────┤
-│ HORSE/CAMEL     │ Horse=tall slender 4-leg | Camel=hump(s) visible clearly     │
-│                 │ DELETE if: no hump (camel), blob shape, no legs              │
-└─────────────────┴──────────────────────────────────────────────────────────────┘
-
-For animals NOT in the table: use common sense — if the body shape is a blob/oval/circle
-with NO distinctive features of that animal → DELETE.
+BODY SHAPE CHECK:
+- DELETE if body shape is a blob/oval/circle with NO distinctive features of that animal
 
 QUALITY CHECK (only if subject matches AND shape is correct):
 - DELETE if: two or more heads on ONE body
 - DELETE if: two completely different species FUSED into one impossible creature
-- DELETE if: extra limbs growing from wrong body parts (e.g. wing from stomach)
-- DELETE if: face/head severely distorted with impossible features (3+ eyes, melted face)
+- DELETE if: extra limbs growing from wrong body parts
 - KEEP if: group of 2–5 same species (completely normal)
 - KEEP if: AI/cartoon/illustrated style with correct body shape
-- KEEP if: minor artistic styling but animal is clearly recognizable
 
 Add shape_match field to your JSON response:
-"shape_match": true or false  (false = wrong body shape → DELETE)""",
+"shape_match": true or false""",
 
     "food": """SUBJECT MATCH CHECK:
 - The prompt says: "{subject}" — does the image show EXACTLY that dish/food item?
-- Chicken 65 prompt → must show fried spicy chicken pieces, NOT raw chicken, NOT butter chicken
-- Biryani prompt → must show layered rice dish with spices, NOT plain rice, NOT pulao
-- Dosa prompt → must show thin crispy crepe, NOT idli, NOT uttapam
 - If completely wrong food shown → subject_match: false
 - Same dish in slightly different presentation/plating → subject_match: true
-- Raw ingredient when cooked dish expected → subject_match: false
 
 QUALITY CHECK (only if subject matches):
 - DELETE if: food is clearly rotten, moldy, inedible-looking
-- DELETE if: completely unrecognizable blob with no food structure
-- DELETE if: wrong serving vessel that makes it unidentifiable
 - KEEP if: plated differently but same dish
-- KEEP if: AI/illustration style of the correct food
-- KEEP if: multiple portions of the same dish""",
+- KEEP if: AI/illustration style of the correct food""",
 
     "produce": """SUBJECT MATCH CHECK:
 - The prompt says: "{subject}" — does the image show EXACTLY that fruit/vegetable/herb?
-- Mango prompt → must show mango shape, NOT papaya or similar
-- Grapes prompt → must show grape cluster, NOT berries in general
 - If completely different produce shown → subject_match: false
-- Different variety/color of same fruit → subject_match: true (e.g., red mango vs yellow mango)
+- Different variety/color of same fruit → subject_match: true
 
 QUALITY CHECK (only if subject matches):
-- DELETE if: severely rotten or moldy (not fresh/food-safe looking)
-- DELETE if: deformed beyond recognition (not natural shape at all)
-- KEEP if: slightly imperfect or bruised (normal)
-- KEEP if: multiple pieces of the same fruit/vegetable
-- KEEP if: cross-section/cut view of the correct item
-- KEEP if: illustrated/cartoon style""",
+- DELETE if: severely rotten or moldy
+- KEEP if: multiple pieces of the same fruit/vegetable""",
 
     "nature": """SUBJECT MATCH CHECK:
 - The prompt says: "{subject}" — does the image show EXACTLY that flower/plant/tree?
-- Rose prompt → must show rose petals/shape, NOT generic flower
-- Lotus prompt → must show lotus, NOT water lily when clearly different
 - If completely different plant shown → subject_match: false
-- Different color variety of same flower → subject_match: true
 
 QUALITY CHECK (only if subject matches):
 - DELETE if: completely melted/unrecognizable plant structure
-- KEEP if: wilted (still recognizable)
-- KEEP if: bud/half-open/fully-open stages
-- KEEP if: single or bouquet arrangement
 - KEEP if: illustrated/watercolor/AI art style""",
 
     "tools": """SUBJECT MATCH CHECK:
 - The prompt says: "{subject}" — does the image show EXACTLY that tool/object?
-- Hammer prompt → must show hammer, NOT wrench
-- Kadai (cooking pot) prompt → must show kadai, NOT regular pot
 - If completely wrong tool/object shown → subject_match: false
-- Different design/material of same tool → subject_match: true
 
 QUALITY CHECK (only if subject matches):
 - DELETE if: object is so distorted it cannot be identified
-- DELETE if: multiple completely different tools merged into one impossible object
-- KEEP if: stylized/metallic/illustrated version of correct tool
-- KEEP if: set of same tools
-- KEEP if: viewed from unusual angle but still identifiable""",
+- KEEP if: stylized/metallic/illustrated version of correct tool""",
 
     "fashion": """SUBJECT MATCH CHECK:
 - The prompt says: "{subject}" — does the image show EXACTLY that item?
-- Gold necklace prompt → must show necklace, NOT earring, NOT bracelet
-- Saree prompt → must show saree, NOT lehenga, NOT dupatta alone
-- Watch prompt → must show wristwatch, NOT wall clock
 - If completely wrong fashion item → subject_match: false
-- Different design/color/style of same item → subject_match: true
 
 QUALITY CHECK (only if subject matches):
 - DELETE if: item is so distorted it cannot be recognized as wearable
-- DELETE if: mixed with unrelated body parts in disturbing way
-- KEEP if: worn by model or shown standalone
-- KEEP if: different angle or artistic style""",
+- KEEP if: worn by model or shown standalone""",
 
     "electronics": """SUBJECT MATCH CHECK:
 - The prompt says: "{subject}" — does the image show EXACTLY that device/accessory?
-- iPhone prompt → must show smartphone, NOT tablet, NOT laptop
-- Earphone prompt → must show earphone/earbud, NOT speaker
 - If completely wrong device shown → subject_match: false
-- Different brand/color/model of same device type → subject_match: true
 
 QUALITY CHECK (only if subject matches):
 - DELETE if: device is so melted/distorted it cannot be identified
-- KEEP if: stylized/illustration version of correct device
-- KEEP if: shown with cables/accessories""",
+- KEEP if: stylized/illustration version of correct device""",
 
     "design": """SUBJECT MATCH CHECK:
 - The prompt says: "{subject}" — does the image show relevant design/graphic?
-- Offer banner prompt → must show promotional/sale design, NOT random clipart
-- Diwali frame prompt → must show festival-themed frame, NOT Christmas
 - If completely wrong design category shown → subject_match: false
-- Different style/color of same design type → subject_match: true
 
 QUALITY CHECK (only if subject matches):
 - DELETE if: completely blank or unrecognizable image
-- DELETE if: random noise with no design structure
-- KEEP if: any clear graphic, icon, frame, pattern
-- KEEP if: any recognizable festival/offer/clipart element""",
+- KEEP if: any clear graphic, icon, frame, pattern""",
 
     "general": """SUBJECT MATCH CHECK:
 - The prompt says: "{subject}" — does the image show the expected subject?
 - If a completely unrelated object/scene is shown → subject_match: false
-- Same subject in different style/angle → subject_match: true
 
 QUALITY CHECK (only if subject matches):
 - DELETE if: image is completely unrecognizable or blank
-- DELETE if: severely deformed beyond any recognition
 - KEEP if: any clear representation of the subject""",
 }
 
@@ -854,9 +724,6 @@ Return ONLY valid JSON starting with {{ — no markdown, no explanation:
 }}"""
 
 
-# ══════════════════════════════════════════════════════════════
-# PHASE 2 — Qwen2.5-VL-3B  SMART FILTER + SEO
-# ══════════════════════════════════════════════════════════════
 def phase2_qwen_filter_seo(generated):
     ckpt = load_checkpoint("phase2_posts")
     if ckpt:
@@ -868,7 +735,6 @@ def phase2_qwen_filter_seo(generated):
     log("  Step 2: Confidence <6  (uncertain → DELETE)")
     log("  Step 3: Quality Check  (deformed → DELETE)")
     log("  Step 4: SEO Generation (if KEEP)")
-    log("  NO category bypass — every image inspected")
     log("=" * 56)
 
     if not generated:
@@ -892,7 +758,6 @@ def phase2_qwen_filter_seo(generated):
     used_slugs = set()
     t0         = time.time()
 
-    # Partial checkpoint recovery
     partial     = load_checkpoint("phase2_posts_partial")
     resume_from = 0
     if partial:
@@ -901,7 +766,6 @@ def phase2_qwen_filter_seo(generated):
         resume_from = len(posts)
         log(f"  Partial checkpoint: resuming from item {resume_from}")
 
-    # Delete reason stats
     stats = {"wrong_subject": 0, "low_confidence": 0, "deformed": 0, "parse_fail": 0}
 
     for i, item_data in enumerate(generated):
@@ -949,7 +813,7 @@ def phase2_qwen_filter_seo(generated):
                 out_ids = model.generate(
                     **inputs,
                     max_new_tokens=2500,
-                    temperature=0.3,      # lower = more deterministic for inspection
+                    temperature=0.3,
                     top_p=0.9,
                     do_sample=True,
                     pad_token_id=processor.tokenizer.eos_token_id,
@@ -961,7 +825,6 @@ def phase2_qwen_filter_seo(generated):
                 trimmed, skip_special_tokens=True,
                 clean_up_tokenization_spaces=True)[0].strip()
 
-            # Parse JSON
             ai = {}
             try:
                 j0, j1 = raw.find("{"), raw.rfind("}") + 1
@@ -975,7 +838,6 @@ def phase2_qwen_filter_seo(generated):
                 except Exception:
                     ai = {}
 
-            # ── Extract decision fields ──
             subject_match = ai.get("subject_match", True)
             if isinstance(subject_match, str):
                 subject_match = subject_match.lower() not in ("false", "no", "0")
@@ -983,7 +845,6 @@ def phase2_qwen_filter_seo(generated):
             verdict       = ai.get("verdict", "KEEP").strip().upper()
             reason        = ai.get("reason", "")
 
-            # ── Smart DELETE logic ──
             shape_match = ai.get("shape_match", True)
             if isinstance(shape_match, str):
                 shape_match = shape_match.lower() not in ("false", "no", "0")
@@ -1009,7 +870,6 @@ def phase2_qwen_filter_seo(generated):
                 deleted += 1
                 continue
 
-            # ── KEEP ──
             shutil.copy2(str(path), str(approved_path))
 
             raw_slug  = ai.get("slug") or f"{slug_base}-png-hd"
@@ -1053,7 +913,7 @@ def phase2_qwen_filter_seo(generated):
 
             rate = max((i + 1 - resume_from), 1) / (time.time() - t0)
             eta  = (len(generated) - i - 1) / rate / 60
-            log(f"  KEEP [{i+1}/{len(generated)}] {slug} (conf={confidence}, grp={group}, shape={'✓' if shape_match else 'n/a'}) | ETA {eta:.0f}min")
+            log(f"  KEEP [{i+1}/{len(generated)}] {slug} (conf={confidence}, grp={group}) | ETA {eta:.0f}min")
 
         except Exception as e:
             log(f"  Qwen FAIL [{i+1}] {item.get('filename','?')}: {e}")
@@ -1078,7 +938,6 @@ def phase2_qwen_filter_seo(generated):
         f"LowConf:{stats['low_confidence']} Deformed:{stats['deformed']} "
         f"ParseFail:{stats['parse_fail']}\n")
     return posts
-
 
 
 def _fallback_desc(subject, category, prompt=""):
@@ -1188,12 +1047,14 @@ def phase3_bg_remove(posts):
     import onnxruntime as ort
     import cv2
 
-    if not RMBG_ONNX.exists():
-        raise FileNotFoundError(f"ONNX model not found: {RMBG_ONNX}")
+    # Resolve ONNX path now (after ensure_models ran)
+    rmbg_onnx = _find_onnx()
+    if not rmbg_onnx.exists():
+        raise FileNotFoundError(f"ONNX model not found: {rmbg_onnx}")
 
     providers = (["CUDAExecutionProvider", "CPUExecutionProvider"]
                  if ort.get_device() == "GPU" else ["CPUExecutionProvider"])
-    session  = ort.InferenceSession(str(RMBG_ONNX), providers=providers)
+    session  = ort.InferenceSession(str(rmbg_onnx), providers=providers)
     inp_name = session.get_inputs()[0].name
     log(f"RMBG ONNX loaded | {session.get_providers()[0]}\n")
 
@@ -1552,15 +1413,20 @@ def build_category_page(cat, items):
     url   = f"{SITE_URL}/png-library/{cat}/"
     img   = items[0].get("preview_url", "") if items else ""
     total = len(items)
-    cards = "".join(
-        f'<a href="/png-library/{it["category"]}/{it["slug"]}/" '
-        f'class="mpng-item-card cat-item" data-pg="{idx // ITEMS_PER_PAGE}" '
-        f'title="{esc(it.get("h1",""))}">'
-        f'<div class="mpng-item-thumb">'
-        + (f'<picture><source srcset="{esc(it.get("webp_preview_url","") or it.get("preview_url_small",""))}" type="image/webp"/><img src="{esc(it.get("preview_url_small",it.get("preview_url","")))}" alt="{esc(it.get("h1",""))}" loading="lazy" width="400" height="400"/></picture>' if it.get("preview_url_small") or it.get("preview_url") else "")
-        + f'</div><div class="mpng-item-label">{esc(it.get("h1",""))}</div></a>\n'
-        for idx, it in enumerate(items)
-    )
+    def _cat_card(idx, it):
+        thumb = ""
+        if it.get("preview_url_small") or it.get("preview_url"):
+            sw = esc(it.get("webp_preview_url","") or it.get("preview_url_small",""))
+            sj = esc(it.get("preview_url_small", it.get("preview_url","")))
+            al = esc(it.get("h1",""))
+            thumb = (f'<picture><source srcset="{sw}" type="image/webp"/>' +
+                     f'<img src="{sj}" alt="{al}" loading="lazy" width="400" height="400"/></picture>')
+        return (f'<a href="/png-library/{it["category"]}/{it["slug"]}/" ' +
+                f'class="mpng-item-card cat-item" data-pg="{idx // ITEMS_PER_PAGE}" ' +
+                f'title="{esc(it.get("h1",""))}">' +
+                f'<div class="mpng-item-thumb">{thumb}</div>' +
+                f'<div class="mpng-item-label">{esc(it.get("h1",""))}</div></a>\n')
+    cards = "".join(_cat_card(idx, it) for idx, it in enumerate(items))
     tp  = max(1, (total + ITEMS_PER_PAGE - 1) // ITEMS_PER_PAGE)
     pag = (f'<nav class="pg-nav">'
            f'<button class="pg-btn pg-btn-prev" id="cP" onclick="catPage(_cp-1)" disabled>&#8592; Previous</button>'
@@ -1614,16 +1480,18 @@ def build_main_page(all_data):
     )
 
     recent    = sorted(all_data, key=lambda x: x.get("date_added", ""), reverse=True)[:ITEMS_PER_PAGE * 5]
-    rec_cards = "".join(
-        f'<a href="/png-library/{it["category"]}/{it["slug"]}/" '
-        f'class="mpng-item-card recent-item" data-rpg="{idx // ITEMS_PER_PAGE}">'
-        f'<div class="mpng-item-thumb">'
-        + (f'<img src="{esc(it.get("preview_url_small",it.get("preview_url","")))}" alt="{esc(it.get("h1",""))}" loading="lazy" width="400" height="400"/>' if it.get("preview_url_small") or it.get("preview_url") else "")
-        + f'</div><div class="mpng-item-label">{esc(it.get("h1",""))}</div>'
-        + f'<div class="mpng-item-cat">{esc(it.get("subject_name", it["category"]))}</div></a>\n'
-        for idx, it in enumerate(recent)
-    )
-
+    def _rec_card(idx, it):
+        thumb = ""
+        if it.get("preview_url_small") or it.get("preview_url"):
+            src = esc(it.get("preview_url_small", it.get("preview_url","")))
+            alt = esc(it.get("h1",""))
+            thumb = f'<img src="{src}" alt="{alt}" loading="lazy" width="400" height="400"/>'
+        return (f'<a href="/png-library/{it["category"]}/{it["slug"]}/" ' +
+                f'class="mpng-item-card recent-item" data-rpg="{idx // ITEMS_PER_PAGE}">' +
+                f'<div class="mpng-item-thumb">{thumb}</div>' +
+                f'<div class="mpng-item-label">{esc(it.get("h1",""))}</div>' +
+                f'<div class="mpng-item-cat">{esc(it.get("subject_name", it["category"]))}</div></a>\n')
+    rec_cards = "".join(_rec_card(idx, it) for idx, it in enumerate(recent))
     trp = max(1, (len(recent) + ITEMS_PER_PAGE - 1) // ITEMS_PER_PAGE)
     pag = (f'<nav class="pg-nav">'
            f'<button class="pg-btn pg-btn-prev" id="rP" onclick="recentPage(_rcp-1)" disabled>&#8592; Previous</button>'
@@ -1663,7 +1531,7 @@ def build_main_page(all_data):
             f'document.querySelectorAll(".mpng-cat-card").forEach(function(c){{'
             f'var n=(c.getAttribute("data-cat")||"").toLowerCase();'
             f'var s=(c.getAttribute("data-search")||"").toLowerCase();'
-            f'c.style.display=q.length<2||n.includes(q)||s.includes(q)?"":"none";}});}}'
+            f'c.style.display=q.length<2||n.includes(q)||s.includes(q)?"":"none";}});}}' 
             f'function recentPage(p){{if(p<0||p>=_rtp)return;_rcp=p;'
             f'document.querySelectorAll(".recent-item").forEach(function(c){{'
             f'c.style.display=parseInt(c.dataset.rpg||0)===p?"":"none";}});'
@@ -1768,7 +1636,6 @@ def phase5_build_push(new_posts):
 
     if not GITHUB_TOKEN or not GITHUB_REPO2:
         log("  WARNING: GITHUB_REPO2 / GITHUB_TOKEN_REPO2 not set — skipping git push")
-        log("  (Set GITHUB_REPO2 secret to enable website push)")
         return
     if not new_posts:
         log("No new posts"); return
@@ -1869,17 +1736,11 @@ def phase5_build_push(new_posts):
         os.chdir(orig_dir)
 
 # ══════════════════════════════════════════════════════════════
-# PHASE 6 — Save Run Logs to REPO1 (visible on GitHub!)
-#
-# Every run creates: REPO1/logs/YYYY-MM-DD_HH-MM.log
-# Latest run: REPO1/logs/latest.log
-# Run history table: REPO1/logs/README.md
-#
-# View logs at: https://github.com/YOUR_REPO/tree/main/logs
+# PHASE 6 — Save Run Logs to REPO1
 # ══════════════════════════════════════════════════════════════
 def phase6_save_logs(stats: dict):
     log("=" * 56)
-    log("PHASE 6: Saving run logs to REPO1/logs/ (GitHub visible)")
+    log("PHASE 6: Saving run logs to REPO1/logs/")
     log("=" * 56)
 
     token = GITHUB_TOKEN_REPO1 or GITHUB_TOKEN
@@ -1907,7 +1768,7 @@ def phase6_save_logs(stats: dict):
         log_file = logs_dir / f"{now}.log"
 
         summary = (
-            f"ULTRAPNG PIPELINE V5.5 — RUN REPORT\n"
+            f"ULTRAPNG PIPELINE V5.6 — RUN REPORT\n"
             f"{'=' * 60}\n"
             f"Date       : {datetime.now().strftime('%Y-%m-%d %H:%M IST')}\n"
             f"Batch      : {START_INDEX} -> {END_INDEX}\n"
@@ -1926,15 +1787,12 @@ def phase6_save_logs(stats: dict):
         full_log = summary + "\n".join(_LOG_LINES)
         log_file.write_text(full_log, "utf-8")
 
-        # Keep only last 30 run logs
         all_logs = sorted(logs_dir.glob("????-??-??_??-??.log"))
         for old in all_logs[:-30]:
             old.unlink()
 
-        # latest.log — always overwrite
         (logs_dir / "latest.log").write_text(full_log, "utf-8")
 
-        # README.md — run history table
         readme = logs_dir / "README.md"
         rows   = []
         if readme.exists():
@@ -1959,7 +1817,6 @@ def phase6_save_logs(stats: dict):
             "|-------------|-----------|---------|----------|----------|-------|----------|--------|\n"
             + "\n".join(rows) + "\n", "utf-8")
 
-        # Commit + push
         orig_dir = os.getcwd()
         try:
             os.chdir(str(REPO1_DIR))
@@ -2002,7 +1859,7 @@ def main():
              "duration": "?"}
 
     print("╔══════════════════════════════════════════════════════╗")
-    print("║  UltraPNG V5.5 — WORLD BEST PIPELINE               ║")
+    print("║  UltraPNG V5.6 — PIPELINE                          ║")
     print("║  FLUX -> Qwen(Filter+SEO) -> RMBG -> Drive -> Git  ║")
     print("╚══════════════════════════════════════════════════════╝")
     print(f"  Batch  : {START_INDEX} -> {END_INDEX} ({END_INDEX-START_INDEX} prompts)")
@@ -2012,23 +1869,17 @@ def main():
         print(f"  GPU    : {p.name} | VRAM: {p.total_memory/1e9:.0f}GB")
     print()
 
-    # ── Dataset path check ──────────────────────────────────
-    print("  Dataset model paths:")
-    for _lbl, _pth in [("FLUX  ", FLUX_DIR), ("Qwen  ", QWEN_DIR), ("RMBG  ", RMBG_ONNX)]:
-        _ok = Path(_pth).exists()
-        print(f"    {'✅' if _ok else '❌'} {_lbl}: {_pth}")
-        if _ok and Path(_pth).is_dir():
-            _sub = sorted(p.name for p in Path(_pth).iterdir())
-            print(f"         └─ {_sub}")
-    if MODELS_DIR.exists():
-        _top = sorted([p.name for p in MODELS_DIR.iterdir()])
-        print(f"    📂 Dataset top-level: {_top}")
-    else:
-        print(f"    ❌ MODELS_DIR missing: {MODELS_DIR}")
-        print(f"       → Fix: Add 'my-pipeline-models' dataset to this notebook via Kaggle UI!")
-    print()
-
     try:
+        # PHASE 0: Ensure models are available (auto-download if needed)
+        ensure_models()
+
+        # Verify model paths after download
+        print("  Model paths:")
+        for lbl, pth in [("FLUX", FLUX_DIR), ("Qwen", QWEN_DIR), ("RMBG", _find_onnx())]:
+            ok = Path(pth).exists()
+            print(f"    {'✅' if ok else '❌'} {lbl}: {pth}")
+        print()
+
         prompts = load_prompts()
         if not prompts:
             raise Exception("No prompts loaded!")
@@ -2036,60 +1887,42 @@ def main():
         batch = prompts[START_INDEX:END_INDEX]
         log(f"Batch: {len(batch)} prompts\n")
 
-        send_telegram(
-            f"<b>UltraPNG V5.5 Started</b>\n"
-            f"Batch: <code>{START_INDEX} -> {END_INDEX}</code> ({len(batch)} prompts)\n"
-            f"{datetime.now().strftime('%Y-%m-%d %H:%M IST')}"
-        )
-
         skip_set  = load_skip_set_from_json()
 
         # PHASE 1: Generate
         generated = phase1_generate(batch, skip_set)
         stats["generated"] = len(generated)
         if not generated:
-            send_telegram("Pipeline stopped: No new images generated.")
+            log("No new images generated — all skipped.")
             return
-
-        send_telegram(f"Phase 1 done. Generated: <code>{len(generated)}</code>")
 
         # PHASE 2: Qwen Single Pass (Filter + SEO)
         posts = phase2_qwen_filter_seo(generated)
         stats["approved"] = len(posts)
         stats["deleted"]  = len(generated) - len(posts)
         if not posts:
-            send_telegram("Pipeline stopped: All images deleted by Qwen.")
+            log("All images deleted by Qwen — nothing to upload.")
             return
-
-        send_telegram(
-            f"Phase 2 done (Qwen).\n"
-            f"Kept: <code>{len(posts)}</code> | "
-            f"Deleted (unreal): <code>{stats['deleted']}</code>"
-        )
 
         # PHASE 3: Background removal
         transparent = phase3_bg_remove(posts)
         stats["transparent"] = len(transparent)
         if not transparent:
-            send_telegram("Pipeline stopped: BG removal failed.")
+            log("BG removal produced no results.")
             return
-
-        send_telegram(f"Phase 3 done. Transparent PNGs: <code>{len(transparent)}</code>")
 
         # PHASE 4: Upload to Drive
         uploaded = phase4_upload(transparent)
         stats["uploaded"] = len(uploaded)
         if not uploaded:
-            send_telegram("Pipeline stopped: Drive upload failed.")
+            log("Drive upload failed — no images uploaded.")
             return
-
-        send_telegram(f"Phase 4 done. Uploaded to Drive: <code>{len(uploaded)}</code>")
 
         # PHASE 5: Build HTML + push to REPO2
         phase5_build_push(uploaded)
         stats["posts"] = len(uploaded)
 
-        # Clear checkpoints
+        # Clear checkpoints on success
         for ck in CHECKPOINT_DIR.glob("*.json"):
             ck.unlink()
 
@@ -2103,27 +1936,11 @@ def main():
         print(f"║  Trans:{len(transparent)} Up:{len(uploaded)}")
         print(f"╚══════════════════════════════════════════════════════╝")
 
-        send_telegram(
-            f"<b>UltraPNG V5.5 COMPLETE!</b>\n"
-            f"Time: <code>{hrs:.1f}h</code>\n"
-            f"Generated: <code>{len(generated)}</code>\n"
-            f"Deleted (unreal): <code>{stats['deleted']}</code>\n"
-            f"Approved: <code>{len(posts)}</code>\n"
-            f"Uploaded: <code>{len(uploaded)}</code>\n"
-            f"Site: {SITE_URL}/png-library/\n"
-            f"Logs: https://github.com/{GITHUB_REPO1}/tree/main/logs"
-        )
-
     except Exception as e:
         hrs = (time.time() - t0) / 3600
         stats["duration"] = f"{hrs:.1f}h"
         stats["status"]   = f"FAILED: {str(e)[:80]}"
         log(f"FATAL: {e}")
-        send_telegram(
-            f"<b>UltraPNG V5.5 FAILED!</b>\n"
-            f"Error: <code>{str(e)[:300]}</code>\n"
-            f"Logs: https://github.com/{GITHUB_REPO1}/tree/main/logs"
-        )
         raise
     finally:
         phase6_save_logs(stats)
