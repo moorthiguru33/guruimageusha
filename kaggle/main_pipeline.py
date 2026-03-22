@@ -120,422 +120,349 @@ WATERMARK_TEXT  = "www.ultrapng.com"
 ITEMS_PER_PAGE  = 24
 SITEMAP_MAX_URL = 45000
 
-# Categories that are always kept — no Qwen filter needed
-ALWAYS_KEEP_CATEGORIES = {
-    "flowers", "plants", "trees", "nature_backgrounds",
-    "tools", "hardware", "equipment", "machinery",
-    "food", "vegetables", "fruits", "snacks", "drinks",
-    "stationery", "office", "icons", "logos", "badges",
-    "clipart", "frames", "borders", "patterns", "textures",
-    "festivals", "pooja_items", "offers", "effects",
-    "abstract", "backgrounds", "text_effects",
+# ══════════════════════════════════════════════════════════════
+# CATEGORY GROUPS — Smart filter rules per group
+# Every category gets subject-match + quality check (no bypass)
+# ══════════════════════════════════════════════════════════════
+
+# Maps keyword → group name (checked via 'in category.lower()')
+CATEGORY_GROUP_MAP = [
+    # ── ANIMALS & CREATURES ───────────────────────────────────
+    (["animal","bird","insect","fish","seafood","poultry","reptile",
+      "butterfly","eagle","parrot","chicken","hen","cock",
+      "goat","cow","buffalo","dog","cat","elephant","tiger","lion",
+      "deer","rabbit","horse","camel","bear","monkey","snake",
+      "crab","prawn","shrimp","lobster","squid","octopus",
+      "tilapia","salmon","tuna","rohu","catla"], "animals"),
+
+    # ── COOKED FOOD & DISHES ─────────────────────────────────
+    (["food","dish","recipe","meal","curry","rice","biryani","pulao",
+      "chicken_65","butter_chicken","paneer","dosa","idli","vada",
+      "sambar","rasam","roti","chapati","paratha","naan","puri",
+      "pizza","burger","sandwich","pasta","noodle","soup","stew",
+      "fry","roast","grill","kebab","tikka","korma","masala",
+      "indian_food","world_food","food_indian","food_world",
+      "bakery","snack","cake","bread","cookie","biscuit",
+      "sweet","halwa","ladoo","barfi","kheer","payasam",
+      "indian_sweet","dairy","egg","poultry_chicken","raw_meat",
+      "bakery_snacks","cool_drink","beverage"], "food"),
+
+    # ── FRUITS & VEGETABLES ───────────────────────────────────
+    (["fruit","vegetable","herb","spice","nut","dry_fruit",
+      "ayurvedic","herbal"], "produce"),
+
+    # ── FLOWERS & PLANTS & NATURE ────────────────────────────
+    (["flower","plant","tree","leaf","nature","botanical",
+      "garden","forest","sky","celestial","nature_tree",
+      "sky_celestial"], "nature"),
+
+    # ── TOOLS & HARDWARE ─────────────────────────────────────
+    (["tool","hardware","equipment","machine","instrument",
+      "kitchen","vessel","pot","pan","utensil","kitchen_vessel",
+      "pots_vessel"], "tools"),
+
+    # ── FASHION & ACCESSORIES ────────────────────────────────
+    (["jewel","jewelry","jewellery","necklace","ring","bangle",
+      "earring","bracelet","watch","bag","purse","handbag",
+      "shoe","footwear","sandal","slipper","boot","heel",
+      "cloth","dress","saree","lehenga","kurta","shirt",
+      "indian_dress","clothing"], "fashion"),
+
+    # ── ELECTRONICS & GADGETS ────────────────────────────────
+    (["electronic","mobile","phone","laptop","computer","tablet",
+      "accessory","cable","charger","earphone","speaker",
+      "computer_accessory","mobile_accessory"], "electronics"),
+
+    # ── CLIPART / ICONS / LOGOS / DESIGN ─────────────────────
+    (["clipart","icon","logo","badge","frame","border","pattern",
+      "texture","offer","effect","festival","pooja","background",
+      "abstract","text_effect","music","stationery","office",
+      "sport","vehicle","car","bike","medical","furniture",
+      "frames_border","offer_logo"], "design"),
+]
+
+def _get_category_group(category: str) -> str:
+    cat = category.lower()
+    for keywords, group in CATEGORY_GROUP_MAP:
+        if any(kw in cat for kw in keywords):
+            return group
+    return "general"
+
+# ── Per-group CHECK INSTRUCTIONS ─────────────────────────────
+GROUP_CHECK_RULES = {
+
+    "animals": """SUBJECT MATCH CHECK:
+- The prompt says: "{subject}" — does the image show EXACTLY that animal/species?
+- If it shows a COMPLETELY DIFFERENT species → subject_match: false
+  Examples: prompt=chicken but image=duck | prompt=crab but image=lobster | prompt=tiger but image=lion (different enough)
+- Same species in different pose/style/angle → subject_match: true
+- Cooked/prepared version when prompt expects live animal → subject_match: false
+
+BODY SHAPE CHECK (very important — check before quality):
+Every animal has a SPECIFIC expected body shape. If the body shape is wrong → shape_match: false → DELETE.
+
+SHAPE REFERENCE TABLE — check the animal against its correct shape:
+┌─────────────────┬──────────────────────────────────────────────────────────────┐
+│ Animal          │ Expected Shape                                               │
+├─────────────────┼──────────────────────────────────────────────────────────────┤
+│ CRAB            │ Wide, flat, fan/hexagonal body with 2 claws + 8 legs visible │
+│                 │ DELETE if: round blob, oval lump, egg shape, no claws/legs   │
+├─────────────────┼──────────────────────────────────────────────────────────────┤
+│ FISH (general)  │ Streamlined torpedo/oval body, clear tail fin, side fins     │
+│                 │ DELETE if: circular disc shape, square, blob with no fins    │
+├─────────────────┼──────────────────────────────────────────────────────────────┤
+│ PRAWN/SHRIMP    │ Curved C/U shape, segmented body, long antennae, fan tail    │
+│                 │ DELETE if: straight stick, ball shape, no segmentation       │
+├─────────────────┼──────────────────────────────────────────────────────────────┤
+│ LOBSTER         │ Long elongated body, large front claws, segmented tail       │
+│                 │ DELETE if: round shape, no claws, no tail fan                │
+├─────────────────┼──────────────────────────────────────────────────────────────┤
+│ SQUID/OCTOPUS   │ Squid=torpedo+tentacles | Octopus=round head+8 arms spread  │
+│                 │ DELETE if: no visible tentacles/arms, blob shape             │
+├─────────────────┼──────────────────────────────────────────────────────────────┤
+│ CHICKEN/HEN/    │ Plump round body, 2 wings, 2 legs, beak, comb visible        │
+│ ROOSTER         │ DELETE if: oval blob, no beak, no wings visible at all       │
+├─────────────────┼──────────────────────────────────────────────────────────────┤
+│ DUCK/GOOSE      │ Round body, flat bill (not pointed beak), webbed feet        │
+│                 │ DELETE if: pointed beak shown (that's a different bird)      │
+├─────────────────┼──────────────────────────────────────────────────────────────┤
+│ EAGLE/HAWK      │ Large wingspan when flying, hooked beak, talons visible      │
+│                 │ DELETE if: no wings visible, round blob, no hooked beak      │
+├─────────────────┼──────────────────────────────────────────────────────────────┤
+│ PARROT          │ Compact body, curved beak, long tail feathers, vivid colors  │
+│                 │ DELETE if: straight beak, no tail, blob shape                │
+├─────────────────┼──────────────────────────────────────────────────────────────┤
+│ BUTTERFLY       │ 4 wings with visible patterns, thin body/antennae            │
+│                 │ DELETE if: 2 wings only (that's a moth style but check), blob│
+├─────────────────┼──────────────────────────────────────────────────────────────┤
+│ COW/BUFFALO     │ Large rectangular body, 4 legs, horns, udder/tail visible    │
+│                 │ DELETE if: round shape, no legs visible, no distinguishing   │
+├─────────────────┼──────────────────────────────────────────────────────────────┤
+│ GOAT/SHEEP      │ Compact body, 4 legs, horns or woolly coat                   │
+│                 │ DELETE if: oval blob, no legs, no head features              │
+├─────────────────┼──────────────────────────────────────────────────────────────┤
+│ TIGER/LION      │ Large muscular cat body, 4 legs, distinctive markings/mane  │
+│                 │ DELETE if: round blob, no legs, no stripes/mane              │
+├─────────────────┼──────────────────────────────────────────────────────────────┤
+│ ELEPHANT        │ Very large body, long trunk, big ears, 4 pillar legs, tusks  │
+│                 │ DELETE if: no trunk visible, round shape, tiny               │
+├─────────────────┼──────────────────────────────────────────────────────────────┤
+│ SNAKE           │ Long thin elongated S/coil shape, scales, no legs            │
+│                 │ DELETE if: round ball, thick blob, has legs                  │
+├─────────────────┼──────────────────────────────────────────────────────────────┤
+│ RABBIT          │ Round body, LONG ears (key feature), short tail, 4 paws      │
+│                 │ DELETE if: short ears (looks like cat/rat), blob shape       │
+├─────────────────┼──────────────────────────────────────────────────────────────┤
+│ DOG/CAT         │ 4 legs, pointed ears (cat) or floppy ears (dog), tail        │
+│                 │ DELETE if: no legs, round blob, no distinctive ears/tail     │
+├─────────────────┼──────────────────────────────────────────────────────────────┤
+│ HORSE/CAMEL     │ Horse=tall slender 4-leg | Camel=hump(s) visible clearly     │
+│                 │ DELETE if: no hump (camel), blob shape, no legs              │
+└─────────────────┴──────────────────────────────────────────────────────────────┘
+
+For animals NOT in the table: use common sense — if the body shape is a blob/oval/circle
+with NO distinctive features of that animal → DELETE.
+
+QUALITY CHECK (only if subject matches AND shape is correct):
+- DELETE if: two or more heads on ONE body
+- DELETE if: two completely different species FUSED into one impossible creature
+- DELETE if: extra limbs growing from wrong body parts (e.g. wing from stomach)
+- DELETE if: face/head severely distorted with impossible features (3+ eyes, melted face)
+- KEEP if: group of 2–5 same species (completely normal)
+- KEEP if: AI/cartoon/illustrated style with correct body shape
+- KEEP if: minor artistic styling but animal is clearly recognizable
+
+Add shape_match field to your JSON response:
+"shape_match": true or false  (false = wrong body shape → DELETE)""",
+
+    "food": """SUBJECT MATCH CHECK:
+- The prompt says: "{subject}" — does the image show EXACTLY that dish/food item?
+- Chicken 65 prompt → must show fried spicy chicken pieces, NOT raw chicken, NOT butter chicken
+- Biryani prompt → must show layered rice dish with spices, NOT plain rice, NOT pulao
+- Dosa prompt → must show thin crispy crepe, NOT idli, NOT uttapam
+- If completely wrong food shown → subject_match: false
+- Same dish in slightly different presentation/plating → subject_match: true
+- Raw ingredient when cooked dish expected → subject_match: false
+
+QUALITY CHECK (only if subject matches):
+- DELETE if: food is clearly rotten, moldy, inedible-looking
+- DELETE if: completely unrecognizable blob with no food structure
+- DELETE if: wrong serving vessel that makes it unidentifiable
+- KEEP if: plated differently but same dish
+- KEEP if: AI/illustration style of the correct food
+- KEEP if: multiple portions of the same dish""",
+
+    "produce": """SUBJECT MATCH CHECK:
+- The prompt says: "{subject}" — does the image show EXACTLY that fruit/vegetable/herb?
+- Mango prompt → must show mango shape, NOT papaya or similar
+- Grapes prompt → must show grape cluster, NOT berries in general
+- If completely different produce shown → subject_match: false
+- Different variety/color of same fruit → subject_match: true (e.g., red mango vs yellow mango)
+
+QUALITY CHECK (only if subject matches):
+- DELETE if: severely rotten or moldy (not fresh/food-safe looking)
+- DELETE if: deformed beyond recognition (not natural shape at all)
+- KEEP if: slightly imperfect or bruised (normal)
+- KEEP if: multiple pieces of the same fruit/vegetable
+- KEEP if: cross-section/cut view of the correct item
+- KEEP if: illustrated/cartoon style""",
+
+    "nature": """SUBJECT MATCH CHECK:
+- The prompt says: "{subject}" — does the image show EXACTLY that flower/plant/tree?
+- Rose prompt → must show rose petals/shape, NOT generic flower
+- Lotus prompt → must show lotus, NOT water lily when clearly different
+- If completely different plant shown → subject_match: false
+- Different color variety of same flower → subject_match: true
+
+QUALITY CHECK (only if subject matches):
+- DELETE if: completely melted/unrecognizable plant structure
+- KEEP if: wilted (still recognizable)
+- KEEP if: bud/half-open/fully-open stages
+- KEEP if: single or bouquet arrangement
+- KEEP if: illustrated/watercolor/AI art style""",
+
+    "tools": """SUBJECT MATCH CHECK:
+- The prompt says: "{subject}" — does the image show EXACTLY that tool/object?
+- Hammer prompt → must show hammer, NOT wrench
+- Kadai (cooking pot) prompt → must show kadai, NOT regular pot
+- If completely wrong tool/object shown → subject_match: false
+- Different design/material of same tool → subject_match: true
+
+QUALITY CHECK (only if subject matches):
+- DELETE if: object is so distorted it cannot be identified
+- DELETE if: multiple completely different tools merged into one impossible object
+- KEEP if: stylized/metallic/illustrated version of correct tool
+- KEEP if: set of same tools
+- KEEP if: viewed from unusual angle but still identifiable""",
+
+    "fashion": """SUBJECT MATCH CHECK:
+- The prompt says: "{subject}" — does the image show EXACTLY that item?
+- Gold necklace prompt → must show necklace, NOT earring, NOT bracelet
+- Saree prompt → must show saree, NOT lehenga, NOT dupatta alone
+- Watch prompt → must show wristwatch, NOT wall clock
+- If completely wrong fashion item → subject_match: false
+- Different design/color/style of same item → subject_match: true
+
+QUALITY CHECK (only if subject matches):
+- DELETE if: item is so distorted it cannot be recognized as wearable
+- DELETE if: mixed with unrelated body parts in disturbing way
+- KEEP if: worn by model or shown standalone
+- KEEP if: different angle or artistic style""",
+
+    "electronics": """SUBJECT MATCH CHECK:
+- The prompt says: "{subject}" — does the image show EXACTLY that device/accessory?
+- iPhone prompt → must show smartphone, NOT tablet, NOT laptop
+- Earphone prompt → must show earphone/earbud, NOT speaker
+- If completely wrong device shown → subject_match: false
+- Different brand/color/model of same device type → subject_match: true
+
+QUALITY CHECK (only if subject matches):
+- DELETE if: device is so melted/distorted it cannot be identified
+- KEEP if: stylized/illustration version of correct device
+- KEEP if: shown with cables/accessories""",
+
+    "design": """SUBJECT MATCH CHECK:
+- The prompt says: "{subject}" — does the image show relevant design/graphic?
+- Offer banner prompt → must show promotional/sale design, NOT random clipart
+- Diwali frame prompt → must show festival-themed frame, NOT Christmas
+- If completely wrong design category shown → subject_match: false
+- Different style/color of same design type → subject_match: true
+
+QUALITY CHECK (only if subject matches):
+- DELETE if: completely blank or unrecognizable image
+- DELETE if: random noise with no design structure
+- KEEP if: any clear graphic, icon, frame, pattern
+- KEEP if: any recognizable festival/offer/clipart element""",
+
+    "general": """SUBJECT MATCH CHECK:
+- The prompt says: "{subject}" — does the image show the expected subject?
+- If a completely unrelated object/scene is shown → subject_match: false
+- Same subject in different style/angle → subject_match: true
+
+QUALITY CHECK (only if subject matches):
+- DELETE if: image is completely unrecognizable or blank
+- DELETE if: severely deformed beyond any recognition
+- KEEP if: any clear representation of the subject""",
 }
 
-# ══════════════════════════════════════════════════════════════
-# UTILITIES
-# ══════════════════════════════════════════════════════════════
-def log(msg):
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}", flush=True)
 
-def free_memory():
-    gc.collect()
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-        torch.cuda.synchronize()
-    used = torch.cuda.memory_allocated(0) / 1e9 if torch.cuda.is_available() else 0
-    log(f"  GPU used: {used:.1f}GB")
-
-def slugify(s, max_len=60):
-    s = re.sub(r'[^a-z0-9]+', '-', str(s).lower()).strip('-')
-    if len(s) > max_len:
-        cut = s[:max_len]
-        idx = cut.rfind('-')
-        s   = cut[:idx] if idx > max_len // 2 else cut
-    return s or 'untitled'
-
-def esc(s):
-    return (str(s or '')
-            .replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-            .replace('"', '&quot;').replace("'", "&#39;"))
-
-def preview_url(fid, size=800):
-    return f"https://lh3.googleusercontent.com/d/{fid}=s{size}"
-
-def download_url(fid):
-    return f"https://drive.usercontent.google.com/download?id={fid}&export=download&authuser=0"
-
-def send_telegram(message, parse_mode="HTML"):
-    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
-        return
-    try:
-        r = req.post(
-            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
-            json={"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": parse_mode},
-            timeout=15)
-        if not r.ok:
-            log(f"  Telegram warn: {r.status_code}")
-    except Exception as e:
-        log(f"  Telegram error (non-fatal): {e}")
-
-# ══════════════════════════════════════════════════════════════
-# CHECKPOINT SYSTEM
-# ══════════════════════════════════════════════════════════════
-def save_checkpoint(name, data):
-    path = CHECKPOINT_DIR / f"{name}.json"
-    tmp  = str(path) + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False)
-    os.replace(tmp, str(path))
-    log(f"  Checkpoint saved: {name} ({len(data)} items)")
-
-def load_checkpoint(name):
-    path = CHECKPOINT_DIR / f"{name}.json"
-    if path.exists():
-        with open(path, encoding="utf-8") as f:
-            data = json.load(f)
-        log(f"  Checkpoint loaded: {name} ({len(data)} items)")
-        return data
-    return None
-
-# ══════════════════════════════════════════════════════════════
-# GOOGLE DRIVE API
-# ══════════════════════════════════════════════════════════════
-_token_cache = {"value": None, "expires": 0}
-
-def get_drive_token():
-    if _token_cache["value"] and time.time() < _token_cache["expires"]:
-        return _token_cache["value"]
-    r = req.post("https://oauth2.googleapis.com/token", data={
-        "client_id":     GOOGLE_CLIENT_ID,
-        "client_secret": GOOGLE_CLIENT_SECRET,
-        "refresh_token": GOOGLE_REFRESH_TOKEN,
-        "grant_type":    "refresh_token",
-    }, timeout=30)
-    d = r.json()
-    if "access_token" not in d:
-        raise Exception(f"Token error: {d}")
-    _token_cache.update({"value": d["access_token"], "expires": time.time() + 3200})
-    return _token_cache["value"]
-
-def drive_folder(token, name, parent=None):
-    h = {"Authorization": f"Bearer {token}"}
-    q = f"name='{name}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
-    if parent:
-        q += f" and '{parent}' in parents"
-    r = req.get("https://www.googleapis.com/drive/v3/files",
-                headers=h, params={"q": q, "fields": "files(id)"}, timeout=30)
-    files = r.json().get("files", [])
-    if files:
-        return files[0]["id"]
-    meta = {"name": name, "mimeType": "application/vnd.google-apps.folder"}
-    if parent:
-        meta["parents"] = [parent]
-    return req.post(
-        "https://www.googleapis.com/drive/v3/files",
-        headers={**h, "Content-Type": "application/json"},
-        json=meta, timeout=30).json()["id"]
-
-def drive_upload(token, folder_id, name, data, mime="image/png", retries=3):
-    for attempt in range(1, retries + 1):
-        try:
-            h        = {"Authorization": f"Bearer {token}"}
-            metadata = json.dumps({"name": name, "parents": [folder_id]})
-            b        = "----UltraPNGPipe"
-            body = (
-                f"--{b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n{metadata}\r\n"
-                f"--{b}\r\nContent-Type: {mime}\r\n\r\n"
-            ).encode() + data + f"\r\n--{b}--".encode()
-            r = req.post(
-                "https://www.googleapis.com/upload/drive/v3/files"
-                "?uploadType=multipart&fields=id,name",
-                headers={**h, "Content-Type": f'multipart/related; boundary="{b}"'},
-                data=body, timeout=120)
-            if r.ok:
-                return r.json()
-            raise Exception(f"HTTP {r.status_code}: {r.text[:150]}")
-        except Exception as e:
-            if attempt < retries:
-                log(f"  Upload retry {attempt}/{retries}: {e}")
-                time.sleep(5 * attempt)
-            else:
-                raise
-
-def drive_share(token, fid):
-    try:
-        req.post(
-            f"https://www.googleapis.com/drive/v3/files/{fid}/permissions",
-            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-            json={"role": "reader", "type": "anyone"}, timeout=30)
-    except Exception:
-        pass
-
-def make_previews(png_path):
-    """Diagonal watermarked JPG + WebP previews with EXIF copyright."""
-    import piexif
-
-    with Image.open(png_path).convert("RGBA") as img_rgba:
-        w, h = img_rgba.size
-        if max(w, h) > 800:
-            r        = 800 / max(w, h)
-            img_rgba = img_rgba.resize((int(w * r), int(h * r)), Image.LANCZOS)
-        w, h = img_rgba.size
-
-        bg  = Image.new("RGB", (w, h), (255, 255, 255))
-        drw = ImageDraw.Draw(bg)
-        for ry in range(0, h, 20):
-            for cx in range(0, w, 20):
-                if (ry // 20 + cx // 20) % 2 == 1:
-                    drw.rectangle([cx, ry, cx + 20, ry + 20], fill=(232, 232, 232))
-        bg.paste(img_rgba.convert("RGB"), mask=img_rgba.split()[3])
-
-        try:
-            fnt = ImageFont.truetype(
-                "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 13)
-        except Exception:
-            fnt = ImageFont.load_default()
-
-        wm_layer = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-        wm_draw  = ImageDraw.Draw(wm_layer)
-        for ry in range(-h, h + 110, 110):
-            for cx in range(-w, w + 110, 110):
-                wm_draw.text((cx, ry), WATERMARK_TEXT, fill=(0, 0, 0, 42), font=fnt)
-        wm_rot  = wm_layer.rotate(-30, expand=False)
-        bg_rgba = bg.convert("RGBA")
-        bg_rgba.alpha_composite(wm_rot)
-        bg = bg_rgba.convert("RGB")
-
-        drw2 = ImageDraw.Draw(bg)
-        drw2.rectangle([0, h - 36, w, h], fill=(13, 13, 20))
-        try:
-            fnt2 = ImageFont.truetype(
-                "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 15)
-        except Exception:
-            fnt2 = fnt
-        drw2.text((w // 2 - 72, h - 26), WATERMARK_TEXT, fill=(245, 166, 35), font=fnt2)
-
-        exif_bytes = piexif.dump({
-            "0th": {
-                piexif.ImageIFD.Copyright: WATERMARK_TEXT.encode(),
-                piexif.ImageIFD.Artist:    SITE_NAME.encode(),
-                piexif.ImageIFD.Software:  b"UltraPNG Pipeline V5.5",
-            }
-        })
-
-        jpg_buf = io.BytesIO()
-        bg.save(jpg_buf, "JPEG", quality=85, optimize=True, exif=exif_bytes)
-
-        webp_buf = io.BytesIO()
-        bg.save(webp_buf, "WEBP", quality=82, method=4)
-
-    return jpg_buf.getvalue(), webp_buf.getvalue(), w, h
-
-# ══════════════════════════════════════════════════════════════
-# SKIP SET — from REPO2 JSON (fast, no Drive scan)
-# ══════════════════════════════════════════════════════════════
-def load_skip_set_from_json():
-    log("Building skip-set from REPO2 JSON files...")
-    skip_set = set()
-
-    if not REPO2_DIR.exists():
-        try:
-            repo_url = f"https://x-access-token:{GITHUB_TOKEN}@github.com/{GITHUB_REPO2}.git"
-            subprocess.run(
-                ["git", "clone", "--depth", "1", "--filter=blob:none",
-                 "--sparse", repo_url, str(REPO2_DIR)],
-                capture_output=True, check=True)
-            subprocess.run(
-                ["git", "sparse-checkout", "init", "--cone"],
-                cwd=str(REPO2_DIR), capture_output=True, check=True)
-            subprocess.run(
-                ["git", "sparse-checkout", "set", "data"],
-                cwd=str(REPO2_DIR), capture_output=True, check=True)
-        except Exception as e:
-            log(f"  Skip-set clone warning: {e}")
-            return skip_set
-
-    data_dir = REPO2_DIR / "data"
-    if not data_dir.exists():
-        log("  No data dir — starting fresh")
-        return skip_set
-
-    for jf in data_dir.glob("*.json"):
-        if jf.name.startswith("_"):
-            continue
-        try:
-            entries = json.loads(jf.read_text("utf-8"))
-            for e in entries:
-                fn = e.get("filename", "")
-                if fn:
-                    skip_set.add(fn)
-        except Exception:
-            pass
-
-    log(f"  Skip-set: {len(skip_set)} already-done filenames")
-    return skip_set
-
-def load_prompts():
-    log("Loading prompts...")
-    if GITHUB_REPO1 and not PROJECT_DIR.exists():
-        os.system(
-            f"git clone --depth 1 https://github.com/{GITHUB_REPO1} {PROJECT_DIR} 2>/dev/null")
-    if PROJECT_DIR.exists():
-        sys.path.insert(0, str(PROJECT_DIR))
-        try:
-            from prompts.prompt_engine import load_all_prompts
-            prompts = load_all_prompts(str(PROJECT_DIR / "prompts" / "splits"))
-            log(f"Loaded {len(prompts)} prompts")
-            return prompts
-        except Exception as e:
-            log(f"Prompt error: {e}")
-    log("FATAL: No prompts!")
-    return []
-
-# ══════════════════════════════════════════════════════════════
-# PHASE 1 — FLUX.2-Klein-4B  Image Generation
-# ══════════════════════════════════════════════════════════════
-def phase1_generate(batch, skip_set):
-    ckpt = load_checkpoint("phase1_generated")
-    if ckpt:
-        return ckpt
-
-    log("=" * 56)
-    log("PHASE 1: FLUX.2-Klein-4B — Image Generation")
-    log("=" * 56)
-
-    from diffusers import Flux2KleinPipeline
-
-    log("Loading FLUX.2 (instant from dataset)...")
-    pipe = Flux2KleinPipeline.from_pretrained(str(FLUX_DIR), torch_dtype=torch.bfloat16)
-    pipe.enable_model_cpu_offload(gpu_id=0)
-    pipe.set_progress_bar_config(disable=True)
-    log(f"FLUX.2 loaded | Batch: {len(batch)} | Skip: {len(skip_set)}\n")
-
-    generated, skipped, t0 = [], 0, time.time()
-
-    for i, item in enumerate(batch):
-        fname = item["filename"]
-
-        if fname in skip_set:
-            skipped += 1
-            if skipped <= 3 or skipped % 50 == 0:
-                log(f"  SKIP [{i+1}/{len(batch)}] {fname}")
-            continue
-
-        try:
-            out_dir = GENERATED_DIR / item["category"] / item.get("subcategory", "general")
-            out_dir.mkdir(parents=True, exist_ok=True)
-            out = out_dir / fname
-
-            if out.exists():
-                generated.append({"path": str(out), "item": item})
-                continue
-
-            gen = torch.Generator("cpu").manual_seed(item["seed"])
-            img = pipe(
-                prompt=item["prompt"],
-                num_inference_steps=4,
-                guidance_scale=1.0,
-                height=1024, width=1024,
-                generator=gen,
-            ).images[0]
-
-            # Blank image check (0.3% of pixels)
-            arr    = np.array(img)
-            n_px   = arr.shape[0] * arr.shape[1]
-            thresh = int(n_px * 0.003)
-            if arr.std() < 5 or (arr < 250).sum() < thresh:
-                log(f"  Retry (blank): {fname}")
-                gen2 = torch.Generator("cpu").manual_seed(item["seed"] + 99)
-                img  = pipe(
-                    prompt=item["prompt"],
-                    num_inference_steps=4,
-                    guidance_scale=1.0,
-                    height=1024, width=1024,
-                    generator=gen2,
-                ).images[0]
-
-            img.save(str(out), "PNG", compress_level=0)
-            generated.append({"path": str(out), "item": item})
-
-            done = len(generated)
-            rate = done / (time.time() - t0)
-            eta  = (len(batch) - i - 1) / rate / 60 if rate > 0 else 0
-            log(f"  [{i+1}/{len(batch)}] OK {fname} | {item['category']} | ETA {eta:.0f}min")
-
-        except torch.cuda.OutOfMemoryError:
-            torch.cuda.empty_cache()
-            log(f"  OOM: {fname}")
-        except Exception as e:
-            log(f"  FAIL {fname}: {e}")
-
-    log("\n  Deleting FLUX.2 -> freeing ~8GB VRAM...")
-    del pipe
-    free_memory()
-
-    save_checkpoint("phase1_generated", generated)
-    log(f"PHASE 1 DONE — Generated: {len(generated)} | Skipped: {skipped}\n")
-    return generated
-
-# ══════════════════════════════════════════════════════════════
-# PHASE 2 — Qwen2.5-VL-3B SINGLE PASS: Filter + SEO
-#
-# WORLD BEST: One Qwen load handles both quality filter AND
-# SEO content generation. Replaces CLIP entirely.
-#
-# FILTER RULES:
-#   DELETE: two-headed, fused species, severely deformed
-#   KEEP:   group photos same species, all tools/food/flowers
-# ══════════════════════════════════════════════════════════════
 def _build_qwen_prompt(item, subject, category, slug_base):
-    return f"""You are a quality inspector AND SEO writer for UltraPNG.com, a free transparent PNG image library.
+    group      = _get_category_group(category)
+    check_rule = GROUP_CHECK_RULES.get(group, GROUP_CHECK_RULES["general"])
+    check_rule = check_rule.replace("{subject}", subject)
 
-This image was AI-generated from this prompt: "{item.get('prompt', '')}"
-Subject: {subject} | Category: {category}
+    return f"""You are a STRICT quality inspector AND SEO writer for UltraPNG.com — a free transparent PNG library.
 
-STEP 1 — QUALITY CHECK
-Look very carefully. Answer DELETE if you see ANY of:
-- Animal/creature with TWO OR MORE heads (e.g. fish with 2 heads, crab with 2 faces)
-- TWO DIFFERENT species merged into ONE impossible body (e.g. fish body + crab claws as single creature)
-- Severely deformed anatomy impossible in real nature (extra limbs from wrong body parts)
-- Completely abstract monster with NO resemblance to any real creature
+IMAGE PROMPT USED: "{item.get('prompt', '')}"
+EXPECTED SUBJECT: {subject}
+CATEGORY: {category}
+GROUP: {group}
 
-Answer KEEP for ALL of these (they are correct):
-- Group of 2, 3 or more SAME species together (3 tilapia, 2 crabs = NORMAL, KEEP)
-- Single animal/fish/bird even if AI-style
-- Any flower, plant, tree, leaf
-- Any tool, hardware, equipment, object
-- Any food, vegetable, fruit
-- Any logo, icon, badge, clipart, frame, pattern
-- Festival decoration, pooja item, offer design
-- Slightly artistic/stylized animals (not deformed)
+════════════════════════════════════════
+STEP 1 — SUBJECT MATCH (Most Important)
+════════════════════════════════════════
+{check_rule}
 
-STEP 2 — SEO CONTENT (only if KEEP, empty strings if DELETE)
+════════════════════════════════════════
+STEP 2 — CONFIDENCE SCORE
+════════════════════════════════════════
+Give a confidence score 0–10:
+- 9–10: Perfect match, excellent quality
+- 7–8:  Good match, minor issues
+- 5–6:  Uncertain — borderline
+- 0–4:  Wrong subject OR severely deformed
 
-Return ONLY valid JSON starting with {{ — no markdown fences:
+RULE: If confidence < 6 → verdict must be DELETE
+
+════════════════════════════════════════
+STEP 3 — VERDICT
+════════════════════════════════════════
+verdict = DELETE if ANY of:
+  • subject_match is false (wrong item shown)
+  • confidence < 6
+  • image is blank/pure noise
+
+verdict = KEEP if:
+  • subject_match is true AND confidence >= 6
+
+════════════════════════════════════════
+STEP 4 — SEO CONTENT (only if KEEP)
+════════════════════════════════════════
+If verdict is KEEP, fill all SEO fields.
+If verdict is DELETE, use empty strings for SEO fields.
+
+Return ONLY valid JSON starting with {{ — no markdown, no explanation:
 
 {{
+  "subject_match": true or false,
+  "shape_match": true or false,
+  "confidence": 0-10,
   "verdict": "KEEP" or "DELETE",
-  "reason": "one line if DELETE else empty",
+  "reason": "one line reason if DELETE, else empty string",
   "title": "20+ words: {subject} [specific visual details] Transparent PNG HD Free Download | UltraPNG",
   "slug": "max 55 chars: {slug_base}-[2-3 visual words]-png-hd",
   "meta_desc": "max 155 chars: {subject} visual detail transparent free UltraPNG.com",
   "h1": "{subject} [visual details] PNG HD Image",
   "tags": "18 comma-separated: name, visual words, {subject} PNG free, {subject} transparent PNG, canva, flex banner, social media, ultrapng",
-  "description": "650+ words:\\n## About This {subject} PNG Image\\n[200+ words 2 paragraphs — describe exactly what you see]\\n## Image Quality & Technical Details\\n[100 words]\\n## Design Ideas & Creative Applications\\n[8 bullet points]\\n## Technical Specifications\\n[table: Format/Background/Resolution/Edge Quality/Compatible With/Print Ready/License]\\n## How to Download\\n[6 numbered steps]\\n## Frequently Asked Questions\\n[4 Q&A: free?/Canva?/watermark?/flex banner?]\\n## Why UltraPNG\\n[80 words]"
+  "description": "650+ words:\\n## About This {subject} PNG Image\\n[200+ words 2 paragraphs]\\n## Image Quality & Technical Details\\n[100 words]\\n## Design Ideas & Creative Applications\\n[8 bullet points]\\n## Technical Specifications\\n[table: Format/Background/Resolution/Edge Quality/Compatible With/Print Ready/License]\\n## How to Download\\n[6 numbered steps]\\n## Frequently Asked Questions\\n[4 Q&A: free?/Canva?/watermark?/flex banner?]\\n## Why UltraPNG\\n[80 words]"
 }}"""
 
+
+# ══════════════════════════════════════════════════════════════
+# PHASE 2 — Qwen2.5-VL-3B  SMART FILTER + SEO
+# ══════════════════════════════════════════════════════════════
 def phase2_qwen_filter_seo(generated):
-    # Full checkpoint
     ckpt = load_checkpoint("phase2_posts")
     if ckpt:
         return ckpt
 
     log("=" * 56)
-    log("PHASE 2: Qwen2.5-VL-3B — SINGLE PASS (Filter + SEO)")
-    log("  CLIP removed. Qwen sees image like a human.")
-    log("  Two-headed/fused/deformed -> DELETE")
-    log("  Group photos same species -> KEEP")
-    log("  Tools/Flowers/Food/Clipart -> KEEP always")
+    log("PHASE 2: Qwen2.5-VL-3B — SMART FILTER + SEO")
+    log("  Step 1: Subject Match  (wrong item → DELETE)")
+    log("  Step 2: Confidence <6  (uncertain → DELETE)")
+    log("  Step 3: Quality Check  (deformed → DELETE)")
+    log("  Step 4: SEO Generation (if KEEP)")
+    log("  NO category bypass — every image inspected")
     log("=" * 56)
 
     if not generated:
@@ -560,7 +487,7 @@ def phase2_qwen_filter_seo(generated):
     t0         = time.time()
 
     # Partial checkpoint recovery
-    partial = load_checkpoint("phase2_posts_partial")
+    partial     = load_checkpoint("phase2_posts_partial")
     resume_from = 0
     if partial:
         posts       = partial
@@ -568,23 +495,25 @@ def phase2_qwen_filter_seo(generated):
         resume_from = len(posts)
         log(f"  Partial checkpoint: resuming from item {resume_from}")
 
+    # Delete reason stats
+    stats = {"wrong_subject": 0, "low_confidence": 0, "deformed": 0, "parse_fail": 0}
+
     for i, item_data in enumerate(generated):
         if i < resume_from:
             continue
 
-        item     = item_data["item"]
-        category = item["category"]
-        subject  = category.replace("-", " ").replace("_", " ").title()
-        prompt   = item.get("prompt", f"a {subject}")
+        item      = item_data["item"]
+        category  = item["category"]
+        subject   = item.get("subject_name") or category.replace("-", " ").replace("_", " ").title()
+        prompt    = item.get("prompt", f"a {subject}")
         slug_base = slugify(subject)
-        path     = Path(item_data["path"])
+        path      = Path(item_data["path"])
+        group     = _get_category_group(category)
 
         approved_path = APPROVED_DIR / path.relative_to(GENERATED_DIR)
         approved_path.parent.mkdir(parents=True, exist_ok=True)
 
         try:
-            always_keep = any(ak in category.lower() for ak in ALWAYS_KEEP_CATEGORIES)
-
             with Image.open(path).convert("RGB") as img_orig:
                 iw, ih = img_orig.size
                 mxs    = 512
@@ -602,7 +531,7 @@ def phase2_qwen_filter_seo(generated):
                 ],
             }]
 
-            text       = processor.apply_chat_template(
+            text = processor.apply_chat_template(
                 messages, tokenize=False, add_generation_prompt=True)
             img_inputs, vid_inputs = process_vision_info(messages)
             inputs = processor(
@@ -613,8 +542,8 @@ def phase2_qwen_filter_seo(generated):
             with torch.no_grad():
                 out_ids = model.generate(
                     **inputs,
-                    max_new_tokens=2400,
-                    temperature=0.7,
+                    max_new_tokens=2500,
+                    temperature=0.3,      # lower = more deterministic for inspection
                     top_p=0.9,
                     do_sample=True,
                     pad_token_id=processor.tokenizer.eos_token_id,
@@ -626,6 +555,7 @@ def phase2_qwen_filter_seo(generated):
                 trimmed, skip_special_tokens=True,
                 clean_up_tokenization_spaces=True)[0].strip()
 
+            # Parse JSON
             ai = {}
             try:
                 j0, j1 = raw.find("{"), raw.rfind("}") + 1
@@ -639,24 +569,43 @@ def phase2_qwen_filter_seo(generated):
                 except Exception:
                     ai = {}
 
-            verdict = ai.get("verdict", "KEEP").strip().upper()
-            reason  = ai.get("reason", "")
+            # ── Extract decision fields ──
+            subject_match = ai.get("subject_match", True)
+            if isinstance(subject_match, str):
+                subject_match = subject_match.lower() not in ("false", "no", "0")
+            confidence    = int(ai.get("confidence", 7))
+            verdict       = ai.get("verdict", "KEEP").strip().upper()
+            reason        = ai.get("reason", "")
 
-            # Always-keep override
-            if always_keep and verdict == "DELETE":
-                log(f"  OVERRIDE KEEP (always-keep category): {path.name}")
-                verdict = "KEEP"
+            # ── Smart DELETE logic ──
+            shape_match = ai.get("shape_match", True)
+            if isinstance(shape_match, str):
+                shape_match = shape_match.lower() not in ("false", "no", "0")
 
-            if verdict == "DELETE":
-                log(f"  DELETE [{i+1}/{len(generated)}] {path.name} — {reason}")
+            delete_reason = None
+            if not subject_match:
+                delete_reason = f"Wrong subject (expected={subject}, group={group})"
+                stats["wrong_subject"] += 1
+            elif group == "animals" and not shape_match:
+                delete_reason = f"Wrong body shape for {subject}"
+                stats["wrong_shape"] = stats.get("wrong_shape", 0) + 1
+            elif confidence < 6:
+                delete_reason = f"Low confidence={confidence} — {reason}"
+                stats["low_confidence"] += 1
+            elif verdict == "DELETE":
+                delete_reason = reason or "Deformed/quality failed"
+                stats["deformed"] += 1
+
+            if delete_reason:
+                log(f"  DELETE [{i+1}/{len(generated)}] {path.name}")
+                log(f"         {delete_reason}")
                 path.unlink(missing_ok=True)
                 deleted += 1
                 continue
 
-            # KEEP — copy to approved
+            # ── KEEP ──
             shutil.copy2(str(path), str(approved_path))
 
-            # Unique slug
             raw_slug  = ai.get("slug") or f"{slug_base}-png-hd"
             slug      = slugify(raw_slug)
             base, sfx = slug, 1
@@ -676,7 +625,7 @@ def phase2_qwen_filter_seo(generated):
                 "original_prompt": prompt,
                 "slug":            slug,
                 "title":           ai.get("title") or f"{subject} Transparent PNG HD Free Download | UltraPNG",
-                "h1":              ai.get("h1") or f"{subject} PNG HD Image",
+                "h1":              ai.get("h1")    or f"{subject} PNG HD Image",
                 "meta_desc":       (ai.get("meta_desc") or
                                     f"Download {subject} PNG transparent background free HD. UltraPNG.com")[:155],
                 "alt_text":        (ai.get("h1") or f"{subject} PNG") +
@@ -686,6 +635,8 @@ def phase2_qwen_filter_seo(generated):
                 "description":     desc,
                 "word_count":      len(desc.split()),
                 "ai_generated":    bool(ai),
+                "qwen_confidence": confidence,
+                "qwen_group":      group,
                 "approved_path":   str(approved_path),
                 "png_file_id": "", "jpg_file_id": "", "webp_file_id": "",
                 "download_url": "", "preview_url": "", "preview_url_small": "",
@@ -696,10 +647,11 @@ def phase2_qwen_filter_seo(generated):
 
             rate = max((i + 1 - resume_from), 1) / (time.time() - t0)
             eta  = (len(generated) - i - 1) / rate / 60
-            log(f"  KEEP [{i+1}/{len(generated)}] {slug} ({post['word_count']}w) | ETA {eta:.0f}min")
+            log(f"  KEEP [{i+1}/{len(generated)}] {slug} (conf={confidence}, grp={group}, shape={'✓' if shape_match else 'n/a'}) | ETA {eta:.0f}min")
 
         except Exception as e:
             log(f"  Qwen FAIL [{i+1}] {item.get('filename','?')}: {e}")
+            stats["parse_fail"] += 1
             shutil.copy2(str(path), str(approved_path))
             posts.append(_fallback_post(item_data, subject, category, prompt,
                                         used_slugs, str(approved_path)))
@@ -714,71 +666,14 @@ def phase2_qwen_filter_seo(generated):
     free_memory()
 
     save_checkpoint("phase2_posts", posts)
-    log(f"PHASE 2 DONE — Kept: {len(posts)} | Deleted (unreal): {deleted}\n")
+    log(f"PHASE 2 DONE — Kept: {len(posts)} | Deleted: {deleted}")
+    log(f"  Delete breakdown → WrongSubject:{stats['wrong_subject']} "
+        f"WrongShape:{stats.get('wrong_shape',0)} "
+        f"LowConf:{stats['low_confidence']} Deformed:{stats['deformed']} "
+        f"ParseFail:{stats['parse_fail']}\n")
     return posts
 
-def _fallback_desc(subject, category, prompt=""):
-    ph = f' (prompt: "{prompt[:100]}")' if prompt else ""
-    return f"""## About This {subject} PNG Image
 
-This high-quality {subject} PNG image{ph} is available for free download from UltraPNG.com. The image features a completely transparent background, making it perfect for graphic designers working on flex banners, social media posts, YouTube thumbnails, and digital marketing designs. Every edge is precisely processed using RMBG-2.0 AI for seamless integration into any project.
-
-The {subject} collection at UltraPNG.com is updated daily with fresh AI-generated images across 50+ categories. This PNG delivers professional-grade transparency that works in Photoshop, Canva, CorelDRAW, and Figma — no manual background removal needed.
-
-## Image Quality & Technical Details
-
-This {subject} PNG is processed using RMBG-2.0 ONNX AI for pixel-perfect transparent edges. The HD resolution stays sharp at any scale, from 200px social media icons to 4096px flex banner prints. Clean alpha channel with anti-aliased edges blends naturally on any background.
-
-## Design Ideas & Creative Applications
-
-- Flex banner and large-format hoarding designs for businesses
-- Social media posts, Instagram stories, and WhatsApp status graphics
-- YouTube thumbnail and channel banner designs
-- Wedding invitation cards and event poster designs
-- Restaurant menu cards and food delivery app images
-- Birthday celebration and felicitation banners
-- E-commerce product catalog and online shop listings
-- PowerPoint, Google Slides, and Canva presentations
-
-## Technical Specifications
-
-| Specification | Details |
-|---|---|
-| Format | PNG with Full Alpha Channel |
-| Background | 100% Transparent |
-| Resolution | HD — print and digital ready |
-| Edge Quality | AI-processed (RMBG-2.0), clean anti-aliased |
-| Compatible With | Photoshop, Canva, CorelDRAW, Figma, GIMP |
-| Print Ready | Yes — flex, vinyl, hoarding printing |
-| License | Free personal and commercial use |
-| Watermark | Preview only — downloaded file is clean |
-
-## How to Download
-
-1. Click the **Download PNG Free** button on this page
-2. A 15-second countdown timer begins
-3. When the timer ends, click **Download Now!**
-4. The clean PNG saves to your Downloads folder
-5. Open in Photoshop or Canva, drag onto your canvas
-6. Resize freely — stays HD at any scale
-
-## Frequently Asked Questions
-
-**Is this {subject} PNG completely free?**
-Yes — 100% free personal and commercial use. No account, no sign-up. No watermark on downloaded file.
-
-**Can I use this in Canva?**
-Yes. Canva Uploads, upload PNG, drag onto canvas. Transparent background works perfectly.
-
-**Does the downloaded PNG have a watermark?**
-No. Preview shows watermark for protection — downloaded file is completely clean.
-
-**Can I print on flex banners?**
-Yes. HD resolution is print-ready for large-format flex, vinyl, and hoarding.
-
-## Why UltraPNG
-
-UltraPNG.com is a free transparent PNG library updated daily with quality-verified AI-generated images. Every PNG features pixel-perfect RMBG-2.0 transparency. Completely free — no fees, no signup, no watermarks. Trusted by designers and marketers worldwide."""
 
 def _fallback_post(item_data, subject, category, prompt, used_slugs, approved_path=""):
     item      = item_data["item"]
@@ -1192,8 +1087,8 @@ def build_category_page(cat, items):
         f'class="mpng-item-card cat-item" data-pg="{idx // ITEMS_PER_PAGE}" '
         f'title="{esc(it.get("h1",""))}">'
         f'<div class="mpng-item-thumb">'
-        f'{f\'<picture><source srcset="{esc(it.get("webp_preview_url","") or it.get("preview_url_small",""))}" type="image/webp"/><img src="{esc(it.get("preview_url_small",it.get("preview_url","")))}" alt="{esc(it.get("h1",""))}" loading="lazy" width="400" height="400"/></picture>\' if it.get("preview_url_small") or it.get("preview_url") else ""}'
-        f'</div><div class="mpng-item-label">{esc(it.get("h1",""))}</div></a>\n'
+        + (f'<picture><source srcset="{esc(it.get("webp_preview_url","") or it.get("preview_url_small",""))}" type="image/webp"/><img src="{esc(it.get("preview_url_small",it.get("preview_url","")))}" alt="{esc(it.get("h1",""))}" loading="lazy" width="400" height="400"/></picture>' if it.get("preview_url_small") or it.get("preview_url") else "")
+        + f'</div><div class="mpng-item-label">{esc(it.get("h1",""))}</div></a>\n'
         for idx, it in enumerate(items)
     )
     tp  = max(1, (total + ITEMS_PER_PAGE - 1) // ITEMS_PER_PAGE)
@@ -1202,9 +1097,9 @@ def build_category_page(cat, items):
            f'<span class="pg-info" id="cI">Page 1 of {tp}</span>'
            f'<button class="pg-btn pg-btn-next" id="cN" onclick="catPage(_cp+1)">Next &#8594;</button>'
            f'</nav>') if tp > 1 else ""
-    return (f'{_head(f"{label} PNG Images Free Download ({total}+) | UltraPNG",'
-            f'f"Download {total}+ free {label} transparent PNG. HD Photoshop Canva.",'
-            f'url, img)}\n</head><body>{_header()}\n'
+    _pg_title = f"{label} PNG Images Free Download ({total}+) | UltraPNG"
+    _pg_desc  = f"Download {total}+ free {label} transparent PNG. HD Photoshop Canva."
+    return (f'{_head(_pg_title, _pg_desc, url, img)}\n</head><body>{_header()}\n'
             f'<nav class="breadcrumb"><a href="/">Home</a><span>&rsaquo;</span>'
             f'<a href="/png-library/">PNG Library</a><span>&rsaquo;</span>'
             f'<span>{esc(label)}</span></nav>\n'
@@ -1253,9 +1148,9 @@ def build_main_page(all_data):
         f'<a href="/png-library/{it["category"]}/{it["slug"]}/" '
         f'class="mpng-item-card recent-item" data-rpg="{idx // ITEMS_PER_PAGE}">'
         f'<div class="mpng-item-thumb">'
-        f'{f\'<img src="{esc(it.get("preview_url_small",it.get("preview_url","")))}" alt="{esc(it.get("h1",""))}" loading="lazy" width="400" height="400"/>\' if it.get("preview_url_small") or it.get("preview_url") else ""}'
-        f'</div><div class="mpng-item-label">{esc(it.get("h1",""))}</div>'
-        f'<div class="mpng-item-cat">{esc(it.get("subject_name", it["category"]))}</div></a>\n'
+        + (f'<img src="{esc(it.get("preview_url_small",it.get("preview_url","")))}" alt="{esc(it.get("h1",""))}" loading="lazy" width="400" height="400"/>' if it.get("preview_url_small") or it.get("preview_url") else "")
+        + f'</div><div class="mpng-item-label">{esc(it.get("h1",""))}</div>'
+        + f'<div class="mpng-item-cat">{esc(it.get("subject_name", it["category"]))}</div></a>\n'
         for idx, it in enumerate(recent)
     )
 
@@ -1266,9 +1161,10 @@ def build_main_page(all_data):
            f'<button class="pg-btn pg-btn-next" id="rN" onclick="recentPage(_rcp+1)">Next &#8594;</button>'
            f'</nav>') if trp > 1 else ""
 
-    return (f'{_head(f"UltraPNG {ti}+ Free Transparent PNG Images HD",'
-            f'f"Download {ti}+ free HD transparent PNG. {tc} categories. No watermark no signup.",'
-            f'url, all_data[0].get("preview_url","") if all_data else "")}\n</head><body>{_header()}\n'
+    _mp_title = f"UltraPNG {ti}+ Free Transparent PNG Images HD"
+    _mp_desc  = f"Download {ti}+ free HD transparent PNG. {tc} categories. No watermark no signup."
+    _mp_img   = all_data[0].get("preview_url","") if all_data else ""
+    return (f'{_head(_mp_title, _mp_desc, url, _mp_img)}\n</head><body>{_header()}\n'
             f'<div class="mpng-hero">'
             f'<div class="mpng-hero-badge">&#127881; 100% Free &#8212; No Signup &#8212; Updated Daily</div>'
             f'<h1 class="mpng-hero-title">Ultra<span>PNG</span></h1>'
