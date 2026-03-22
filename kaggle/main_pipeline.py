@@ -1,8 +1,7 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║   UltraPNG.com — PNG Library Pipeline V5.6                  ║
+║   UltraPNG.com — PNG Library Pipeline V6.0                  ║
 ╠══════════════════════════════════════════════════════════════╣
-║  PHASE 0 → Auto-download models if not mounted              ║
 ║  PHASE 1 → FLUX.2-Klein-4B   Generate 1024x1024 images     ║
 ║  PHASE 2 → Qwen2.5-VL-3B    Filter + SEO (ONE PASS)        ║
 ║  PHASE 3 → RMBG-2.0 ONNX    Background removal (GPU)       ║
@@ -10,11 +9,10 @@
 ║  PHASE 5 → HTML Build + Git Push → REPO2 Live              ║
 ║  PHASE 6 → Save Run Logs → REPO1 (visible on GitHub!)      ║
 ╠══════════════════════════════════════════════════════════════╣
-║  V5.6 FIXES:                                                ║
-║  • Auto-download models if Kaggle dataset not mounted       ║
-║  • Fixed double-print (removed _TeeWriter)                  ║
-║  • Removed Telegram (not needed)                            ║
-║  • RMBG_ONNX resolved after model download                  ║
+║  V6.0 CHANGES:                                              ║
+║  • Models load directly from HuggingFace (no dataset)       ║
+║  • HF cache = /kaggle/working/hf_cache (persists in run)   ║
+║  • No Telegram, no double-print                             ║
 ╚══════════════════════════════════════════════════════════════╝
 
 inject_creds.py prepends os.environ[] lines before this file.
@@ -26,8 +24,22 @@ from datetime import datetime
 
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 
+# ── HuggingFace cache dir (writable in Kaggle) ────────────────
+HF_CACHE = Path("/kaggle/working/hf_cache")
+HF_CACHE.mkdir(parents=True, exist_ok=True)
+os.environ["HF_HOME"]            = str(HF_CACHE)
+os.environ["HUGGINGFACE_HUB_CACHE"] = str(HF_CACHE)
+os.environ["TRANSFORMERS_CACHE"] = str(HF_CACHE)
+
 # ══════════════════════════════════════════════════════════════
-# GLOBAL LOG CAPTURE  (no _TeeWriter — fixes double-print)
+# HuggingFace Model IDs  ← change here if repo name differs
+# ══════════════════════════════════════════════════════════════
+FLUX_HF_ID = "black-forest-labs/FLUX.2-klein-4B"
+QWEN_HF_ID = "Qwen/Qwen2.5-VL-3B-Instruct"
+RMBG_HF_ID = "briaai/RMBG-2.0"
+
+# ══════════════════════════════════════════════════════════════
+# GLOBAL LOG CAPTURE
 # ══════════════════════════════════════════════════════════════
 _LOG_LINES = []
 
@@ -42,6 +54,7 @@ print("Installing dependencies...")
 PKGS = [
     "diffusers>=0.33.0", "transformers>=4.47.0",
     "accelerate>=0.28.0", "sentencepiece",
+    "huggingface_hub>=0.23.0",
     "Pillow>=10.0", "numpy", "requests",
     "onnxruntime-gpu", "torchvision",
     "qwen-vl-utils", "bitsandbytes",
@@ -62,23 +75,6 @@ import requests as req
 # ══════════════════════════════════════════════════════════════
 # PATHS
 # ══════════════════════════════════════════════════════════════
-# Models dir: prefer /kaggle/input (mounted), fallback to /kaggle/working/models (downloaded)
-_MODELS_MOUNTED = Path("/kaggle/input/my-pipeline-models")
-_MODELS_WORKING = Path("/kaggle/working/models/my-pipeline-models")
-MODELS_DIR = _MODELS_MOUNTED if _MODELS_MOUNTED.exists() else _MODELS_WORKING
-
-FLUX_DIR = MODELS_DIR / "flux2-klein"
-QWEN_DIR = MODELS_DIR / "qwen-vision"
-
-def _find_onnx():
-    """Auto-find ONNX model — called AFTER ensure_models()."""
-    for d in [MODELS_DIR / "rembg" / "onnx", MODELS_DIR / "rembg"]:
-        if d.exists():
-            hits = list(d.glob("*.onnx"))
-            if hits:
-                return hits[0]
-    return MODELS_DIR / "rembg" / "onnx" / "model.onnx"
-
 WORKING_DIR     = Path("/kaggle/working")
 GENERATED_DIR   = WORKING_DIR / "generated"
 APPROVED_DIR    = WORKING_DIR / "approved"
@@ -103,7 +99,6 @@ GITHUB_REPO1         = os.environ.get("GITHUB_REPO", "")
 GITHUB_TOKEN_REPO1   = os.environ.get("GITHUB_TOKEN_REPO1", "")
 START_INDEX          = int(float(os.environ.get("START_INDEX", "0").strip()))
 END_INDEX            = int(float(os.environ.get("END_INDEX", "200").strip()))
-KAGGLE_DATASET       = os.environ.get("KAGGLE_DATASET", "gurumoorthirajagopal/my-pipeline-models")
 
 SITE_URL        = "https://www.ultrapng.com"
 SITE_NAME       = "UltraPNG"
@@ -140,66 +135,6 @@ def preview_url(fid, size=800):
 
 def download_url(fid):
     return f"https://drive.usercontent.google.com/download?id={fid}&export=download&authuser=0"
-
-# ══════════════════════════════════════════════════════════════
-# PHASE 0 — Auto-download models if not mounted
-# ══════════════════════════════════════════════════════════════
-def ensure_models():
-    """Ensure models are available. /kaggle/input is read-only (mounted by Kaggle).
-    If not mounted, download to /kaggle/working/models/ (writable)."""
-    global MODELS_DIR, FLUX_DIR, QWEN_DIR
-
-    # Check if already mounted by Kaggle (preferred path)
-    if _MODELS_MOUNTED.exists():
-        MODELS_DIR = _MODELS_MOUNTED
-        FLUX_DIR   = MODELS_DIR / "flux2-klein"
-        QWEN_DIR   = MODELS_DIR / "qwen-vision"
-        log(f"✅ Models mounted at {MODELS_DIR}")
-        contents = sorted(p.name for p in MODELS_DIR.iterdir())
-        log(f"   Contents: {contents}")
-        return
-
-    log("=" * 56)
-    log("PHASE 0: Models not mounted — downloading to working dir...")
-    log(f"  Dataset: {KAGGLE_DATASET}")
-    log("  Target : /kaggle/working/models/  (writable)")
-    log("=" * 56)
-
-    # /kaggle/input is READ-ONLY — must download to /kaggle/working/
-    dl_target = Path("/kaggle/working/models")
-    dl_target.mkdir(parents=True, exist_ok=True)
-
-    r = subprocess.run(
-        ["kaggle", "datasets", "download", KAGGLE_DATASET,
-         "--path", str(dl_target), "--unzip", "--quiet"],
-        capture_output=True, text=True, timeout=7200
-    )
-
-    if r.returncode != 0:
-        raise RuntimeError(
-            f"Dataset download failed (exit {r.returncode}).\n"
-            f"stdout: {r.stdout[:500]}\n"
-            f"stderr: {r.stderr[:500]}\n\n"
-            f"IMPORTANT FIX: Attach dataset via Kaggle UI:\n"
-            f"  Notebook → Settings (right panel) → Data → Add Data\n"
-            f"  Search: gurumoorthirajagopal/my-pipeline-models → Add"
-        )
-
-    # Update global paths to point to downloaded location
-    MODELS_DIR = _MODELS_WORKING
-    FLUX_DIR   = MODELS_DIR / "flux2-klein"
-    QWEN_DIR   = MODELS_DIR / "qwen-vision"
-
-    if not MODELS_DIR.exists():
-        items = sorted(p.name for p in dl_target.iterdir()) if dl_target.exists() else []
-        raise RuntimeError(
-            f"Download completed but {MODELS_DIR} missing.\n"
-            f"Contents of /kaggle/working/models: {items}"
-        )
-
-    log(f"✅ Models downloaded to {MODELS_DIR}")
-    contents = sorted(p.name for p in MODELS_DIR.iterdir())
-    log(f"   Contents: {contents}")
 
 # ══════════════════════════════════════════════════════════════
 # CHECKPOINT SYSTEM
@@ -296,14 +231,12 @@ def drive_share(token, fid):
 def make_previews(png_path):
     """Diagonal watermarked JPG + WebP previews with EXIF copyright."""
     import piexif
-
     with Image.open(png_path).convert("RGBA") as img_rgba:
         w, h = img_rgba.size
         if max(w, h) > 800:
             r        = 800 / max(w, h)
             img_rgba = img_rgba.resize((int(w * r), int(h * r)), Image.LANCZOS)
         w, h = img_rgba.size
-
         bg  = Image.new("RGB", (w, h), (255, 255, 255))
         drw = ImageDraw.Draw(bg)
         for ry in range(0, h, 20):
@@ -311,13 +244,11 @@ def make_previews(png_path):
                 if (ry // 20 + cx // 20) % 2 == 1:
                     drw.rectangle([cx, ry, cx + 20, ry + 20], fill=(232, 232, 232))
         bg.paste(img_rgba.convert("RGB"), mask=img_rgba.split()[3])
-
         try:
             fnt = ImageFont.truetype(
                 "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 13)
         except Exception:
             fnt = ImageFont.load_default()
-
         wm_layer = Image.new("RGBA", (w, h), (0, 0, 0, 0))
         wm_draw  = ImageDraw.Draw(wm_layer)
         for ry in range(-h, h + 110, 110):
@@ -327,7 +258,6 @@ def make_previews(png_path):
         bg_rgba = bg.convert("RGBA")
         bg_rgba.alpha_composite(wm_rot)
         bg = bg_rgba.convert("RGB")
-
         drw2 = ImageDraw.Draw(bg)
         drw2.rectangle([0, h - 36, w, h], fill=(13, 13, 20))
         try:
@@ -336,30 +266,25 @@ def make_previews(png_path):
         except Exception:
             fnt2 = fnt
         drw2.text((w // 2 - 72, h - 26), WATERMARK_TEXT, fill=(245, 166, 35), font=fnt2)
-
         exif_bytes = piexif.dump({
             "0th": {
                 piexif.ImageIFD.Copyright: WATERMARK_TEXT.encode(),
                 piexif.ImageIFD.Artist:    SITE_NAME.encode(),
-                piexif.ImageIFD.Software:  b"UltraPNG Pipeline V5.6",
+                piexif.ImageIFD.Software:  b"UltraPNG Pipeline V6.0",
             }
         })
-
         jpg_buf = io.BytesIO()
         bg.save(jpg_buf, "JPEG", quality=85, optimize=True, exif=exif_bytes)
-
         webp_buf = io.BytesIO()
         bg.save(webp_buf, "WEBP", quality=82, method=4)
-
     return jpg_buf.getvalue(), webp_buf.getvalue(), w, h
 
 # ══════════════════════════════════════════════════════════════
-# SKIP SET — from REPO2 JSON (fast, no Drive scan)
+# SKIP SET
 # ══════════════════════════════════════════════════════════════
 def load_skip_set_from_json():
     log("Building skip-set from REPO2 JSON files...")
     skip_set = set()
-
     if not REPO2_DIR.exists():
         try:
             repo_url = f"https://x-access-token:{GITHUB_TOKEN}@github.com/{GITHUB_REPO2}.git"
@@ -367,33 +292,27 @@ def load_skip_set_from_json():
                 ["git", "clone", "--depth", "1", "--filter=blob:none",
                  "--sparse", repo_url, str(REPO2_DIR)],
                 capture_output=True, check=True)
-            subprocess.run(
-                ["git", "sparse-checkout", "init", "--cone"],
-                cwd=str(REPO2_DIR), capture_output=True, check=True)
-            subprocess.run(
-                ["git", "sparse-checkout", "set", "data"],
-                cwd=str(REPO2_DIR), capture_output=True, check=True)
-        except Exception as e:
-            log(f"  Skip-set: REPO2 not set or empty — starting fresh (no duplicates check)")
+            subprocess.run(["git", "sparse-checkout", "init", "--cone"],
+                           cwd=str(REPO2_DIR), capture_output=True, check=True)
+            subprocess.run(["git", "sparse-checkout", "set", "data"],
+                           cwd=str(REPO2_DIR), capture_output=True, check=True)
+        except Exception:
+            log("  Skip-set: REPO2 empty — starting fresh")
             return skip_set
-
     data_dir = REPO2_DIR / "data"
     if not data_dir.exists():
         log("  No data dir — starting fresh")
         return skip_set
-
     for jf in data_dir.glob("*.json"):
         if jf.name.startswith("_"):
             continue
         try:
-            entries = json.loads(jf.read_text("utf-8"))
-            for e in entries:
+            for e in json.loads(jf.read_text("utf-8")):
                 fn = e.get("filename", "")
                 if fn:
                     skip_set.add(fn)
         except Exception:
             pass
-
     log(f"  Skip-set: {len(skip_set)} already-done filenames")
     return skip_set
 
@@ -415,7 +334,7 @@ def load_prompts():
     return []
 
 # ══════════════════════════════════════════════════════════════
-# PHASE 1 — FLUX.2-Klein-4B  Image Generation
+# PHASE 1 — FLUX.2-Klein-4B  (loads from HuggingFace)
 # ══════════════════════════════════════════════════════════════
 def phase1_generate(batch, skip_set):
     ckpt = load_checkpoint("phase1_generated")
@@ -424,44 +343,21 @@ def phase1_generate(batch, skip_set):
 
     log("=" * 56)
     log("PHASE 1: FLUX.2-Klein-4B — Image Generation")
+    log(f"  Loading from HuggingFace: {FLUX_HF_ID}")
     log("=" * 56)
 
     try:
         from diffusers import Flux2KleinPipeline as _FluxCls
-        log("Loading FLUX.2-Klein via Flux2KleinPipeline...")
+        log("  Using Flux2KleinPipeline")
     except ImportError:
         from diffusers import FluxPipeline as _FluxCls
-        log("Loading FLUX.2-Klein via FluxPipeline (diffusers fallback)...")
+        log("  Using FluxPipeline (diffusers fallback)")
 
-    log("Loading FLUX.2 from dataset...")
-
-    # Smart loader: works for full diffusers layout AND single .safetensors
-    _loaded = False
-    if FLUX_DIR.is_dir():
-        _ckpt_files     = sorted(FLUX_DIR.glob("*.safetensors"))
-        _has_components = (FLUX_DIR / "transformer").is_dir()
-
-        if _has_components:
-            log("  Mode: from_pretrained (full diffusers layout)")
-            pipe = _FluxCls.from_pretrained(str(FLUX_DIR), torch_dtype=torch.bfloat16)
-            _loaded = True
-        elif _ckpt_files:
-            log(f"  Mode: from_single_file ({_ckpt_files[0].name})")
-            pipe = _FluxCls.from_single_file(str(_ckpt_files[0]), torch_dtype=torch.bfloat16)
-            _loaded = True
-        else:
-            log(f"  FLUX_DIR exists but no .safetensors: {list(FLUX_DIR.iterdir())}")
-    else:
-        log(f"  FLUX_DIR not found: {FLUX_DIR}")
-
-    if not _loaded:
-        _contents = (sorted(p.name for p in FLUX_DIR.iterdir())
-                     if FLUX_DIR.exists() else "DIRECTORY MISSING")
-        raise FileNotFoundError(
-            f"FLUX model not found at: {FLUX_DIR}\n"
-            f"  Contents: {_contents}"
-        )
-
+    pipe = _FluxCls.from_pretrained(
+        FLUX_HF_ID,
+        torch_dtype=torch.bfloat16,
+        cache_dir=str(HF_CACHE),
+    )
     pipe.enable_model_cpu_offload(gpu_id=0)
     pipe.set_progress_bar_config(disable=True)
     log(f"FLUX.2 loaded | Batch: {len(batch)} | Skip: {len(skip_set)}\n")
@@ -524,7 +420,7 @@ def phase1_generate(batch, skip_set):
         except Exception as e:
             log(f"  FAIL {fname}: {e}")
 
-    log("\n  Deleting FLUX.2 -> freeing ~8GB VRAM...")
+    log("\n  Deleting FLUX.2 -> freeing VRAM...")
     del pipe
     free_memory()
 
@@ -535,7 +431,6 @@ def phase1_generate(batch, skip_set):
 # ══════════════════════════════════════════════════════════════
 # PHASE 2 — Qwen2.5-VL-3B SINGLE PASS: Filter + SEO
 # ══════════════════════════════════════════════════════════════
-
 CATEGORY_GROUP_MAP = [
     (["animal","bird","insect","fish","seafood","poultry","reptile",
       "butterfly","eagle","parrot","chicken","hen","cock",
@@ -543,7 +438,6 @@ CATEGORY_GROUP_MAP = [
       "deer","rabbit","horse","camel","bear","monkey","snake",
       "crab","prawn","shrimp","lobster","squid","octopus",
       "tilapia","salmon","tuna","rohu","catla"], "animals"),
-
     (["food","dish","recipe","meal","curry","rice","biryani","pulao",
       "chicken_65","butter_chicken","paneer","dosa","idli","vada",
       "sambar","rasam","roti","chapati","paratha","naan","puri",
@@ -554,28 +448,22 @@ CATEGORY_GROUP_MAP = [
       "sweet","halwa","ladoo","barfi","kheer","payasam",
       "indian_sweet","dairy","egg","poultry_chicken","raw_meat",
       "bakery_snacks","cool_drink","beverage"], "food"),
-
     (["fruit","vegetable","herb","spice","nut","dry_fruit",
       "ayurvedic","herbal"], "produce"),
-
     (["flower","plant","tree","leaf","nature","botanical",
       "garden","forest","sky","celestial","nature_tree",
       "sky_celestial"], "nature"),
-
     (["tool","hardware","equipment","machine","instrument",
       "kitchen","vessel","pot","pan","utensil","kitchen_vessel",
       "pots_vessel"], "tools"),
-
     (["jewel","jewelry","jewellery","necklace","ring","bangle",
       "earring","bracelet","watch","bag","purse","handbag",
       "shoe","footwear","sandal","slipper","boot","heel",
       "cloth","dress","saree","lehenga","kurta","shirt",
       "indian_dress","clothing"], "fashion"),
-
     (["electronic","mobile","phone","laptop","computer","tablet",
       "accessory","cable","charger","earphone","speaker",
       "computer_accessory","mobile_accessory"], "electronics"),
-
     (["clipart","icon","logo","badge","frame","border","pattern",
       "texture","offer","effect","festival","pooja","background",
       "abstract","text_effect","music","stationery","office",
@@ -583,7 +471,7 @@ CATEGORY_GROUP_MAP = [
       "frames_border","offer_logo"], "design"),
 ]
 
-def _get_category_group(category: str) -> str:
+def _get_category_group(category):
     cat = category.lower()
     for keywords, group in CATEGORY_GROUP_MAP:
         if any(kw in cat for kw in keywords):
@@ -592,154 +480,79 @@ def _get_category_group(category: str) -> str:
 
 GROUP_CHECK_RULES = {
     "animals": """SUBJECT MATCH CHECK:
-- The prompt says: "{subject}" — does the image show EXACTLY that animal/species?
-- If it shows a COMPLETELY DIFFERENT species → subject_match: false
-- Same species in different pose/style/angle → subject_match: true
-- Cooked/prepared version when prompt expects live animal → subject_match: false
-
-BODY SHAPE CHECK:
-- DELETE if body shape is a blob/oval/circle with NO distinctive features of that animal
-
-QUALITY CHECK (only if subject matches AND shape is correct):
-- DELETE if: two or more heads on ONE body
-- DELETE if: two completely different species FUSED into one impossible creature
-- DELETE if: extra limbs growing from wrong body parts
-- KEEP if: group of 2–5 same species (completely normal)
-- KEEP if: AI/cartoon/illustrated style with correct body shape
-
-Add shape_match field to your JSON response:
-"shape_match": true or false""",
-
+- Prompt says: "{subject}" — does image show EXACTLY that animal?
+- COMPLETELY DIFFERENT species → subject_match: false
+- Same species different pose → subject_match: true
+- Cooked version when live expected → subject_match: false
+BODY SHAPE CHECK: If body is a blob with NO distinctive features → shape_match: false → DELETE
+QUALITY: DELETE if two heads on one body, fused species, extra limbs from wrong parts
+KEEP if: group of same species, AI/cartoon style with correct shape
+Add: "shape_match": true or false""",
     "food": """SUBJECT MATCH CHECK:
-- The prompt says: "{subject}" — does the image show EXACTLY that dish/food item?
-- If completely wrong food shown → subject_match: false
-- Same dish in slightly different presentation/plating → subject_match: true
-
-QUALITY CHECK (only if subject matches):
-- DELETE if: food is clearly rotten, moldy, inedible-looking
-- KEEP if: plated differently but same dish
-- KEEP if: AI/illustration style of the correct food""",
-
+- Prompt says: "{subject}" — does image show EXACTLY that dish?
+- Wrong food → subject_match: false. Different presentation same dish → true
+QUALITY: DELETE if rotten/moldy. KEEP if plated differently or AI style.""",
     "produce": """SUBJECT MATCH CHECK:
-- The prompt says: "{subject}" — does the image show EXACTLY that fruit/vegetable/herb?
-- If completely different produce shown → subject_match: false
-- Different variety/color of same fruit → subject_match: true
-
-QUALITY CHECK (only if subject matches):
-- DELETE if: severely rotten or moldy
-- KEEP if: multiple pieces of the same fruit/vegetable""",
-
+- Prompt says: "{subject}" — correct fruit/vegetable? Different variety/color → true
+QUALITY: DELETE if severely rotten. KEEP if multiple pieces or cut view.""",
     "nature": """SUBJECT MATCH CHECK:
-- The prompt says: "{subject}" — does the image show EXACTLY that flower/plant/tree?
-- If completely different plant shown → subject_match: false
-
-QUALITY CHECK (only if subject matches):
-- DELETE if: completely melted/unrecognizable plant structure
-- KEEP if: illustrated/watercolor/AI art style""",
-
+- Prompt says: "{subject}" — correct flower/plant? Different color variety → true
+QUALITY: DELETE if completely unrecognizable. KEEP if illustrated/AI art.""",
     "tools": """SUBJECT MATCH CHECK:
-- The prompt says: "{subject}" — does the image show EXACTLY that tool/object?
-- If completely wrong tool/object shown → subject_match: false
-
-QUALITY CHECK (only if subject matches):
-- DELETE if: object is so distorted it cannot be identified
-- KEEP if: stylized/metallic/illustrated version of correct tool""",
-
+- Prompt says: "{subject}" — correct tool? Different design same tool → true
+QUALITY: DELETE if unidentifiable blob. KEEP if stylized or viewed from angle.""",
     "fashion": """SUBJECT MATCH CHECK:
-- The prompt says: "{subject}" — does the image show EXACTLY that item?
-- If completely wrong fashion item → subject_match: false
-
-QUALITY CHECK (only if subject matches):
-- DELETE if: item is so distorted it cannot be recognized as wearable
-- KEEP if: worn by model or shown standalone""",
-
+- Prompt says: "{subject}" — correct item? Different style same item → true
+QUALITY: DELETE if unrecognizable as wearable. KEEP if on model or standalone.""",
     "electronics": """SUBJECT MATCH CHECK:
-- The prompt says: "{subject}" — does the image show EXACTLY that device/accessory?
-- If completely wrong device shown → subject_match: false
-
-QUALITY CHECK (only if subject matches):
-- DELETE if: device is so melted/distorted it cannot be identified
-- KEEP if: stylized/illustration version of correct device""",
-
+- Prompt says: "{subject}" — correct device? Different brand same type → true
+QUALITY: DELETE if melted/unidentifiable. KEEP if illustrated version.""",
     "design": """SUBJECT MATCH CHECK:
-- The prompt says: "{subject}" — does the image show relevant design/graphic?
-- If completely wrong design category shown → subject_match: false
-
-QUALITY CHECK (only if subject matches):
-- DELETE if: completely blank or unrecognizable image
-- KEEP if: any clear graphic, icon, frame, pattern""",
-
+- Prompt says: "{subject}" — relevant design/graphic? Wrong category → false
+QUALITY: DELETE if blank/pure noise. KEEP if any clear graphic element.""",
     "general": """SUBJECT MATCH CHECK:
-- The prompt says: "{subject}" — does the image show the expected subject?
-- If a completely unrelated object/scene is shown → subject_match: false
-
-QUALITY CHECK (only if subject matches):
-- DELETE if: image is completely unrecognizable or blank
-- KEEP if: any clear representation of the subject""",
+- Prompt says: "{subject}" — does image show expected subject?
+- Unrelated object → subject_match: false
+QUALITY: DELETE if blank or completely unrecognizable. KEEP otherwise.""",
 }
-
 
 def _build_qwen_prompt(item, subject, category, slug_base):
     group      = _get_category_group(category)
     check_rule = GROUP_CHECK_RULES.get(group, GROUP_CHECK_RULES["general"])
     check_rule = check_rule.replace("{subject}", subject)
-
     return f"""You are a STRICT quality inspector AND SEO writer for UltraPNG.com — a free transparent PNG library.
 
 IMAGE PROMPT USED: "{item.get('prompt', '')}"
 EXPECTED SUBJECT: {subject}
-CATEGORY: {category}
-GROUP: {group}
+CATEGORY: {category} | GROUP: {group}
 
-════════════════════════════════════════
 STEP 1 — SUBJECT MATCH (Most Important)
-════════════════════════════════════════
 {check_rule}
 
-════════════════════════════════════════
-STEP 2 — CONFIDENCE SCORE
-════════════════════════════════════════
-Give a confidence score 0–10:
-- 9–10: Perfect match, excellent quality
-- 7–8:  Good match, minor issues
-- 5–6:  Uncertain — borderline
-- 0–4:  Wrong subject OR severely deformed
+STEP 2 — CONFIDENCE SCORE (0-10)
+9-10: Perfect. 7-8: Good. 5-6: Borderline. 0-4: Wrong/deformed.
+RULE: confidence < 6 → verdict = DELETE
 
-RULE: If confidence < 6 → verdict must be DELETE
-
-════════════════════════════════════════
 STEP 3 — VERDICT
-════════════════════════════════════════
-verdict = DELETE if ANY of:
-  • subject_match is false (wrong item shown)
-  • confidence < 6
-  • image is blank/pure noise
+DELETE if: subject_match=false OR confidence<6 OR blank image
+KEEP if: subject_match=true AND confidence>=6
 
-verdict = KEEP if:
-  • subject_match is true AND confidence >= 6
+STEP 4 — SEO (only if KEEP, empty strings if DELETE)
 
-════════════════════════════════════════
-STEP 4 — SEO CONTENT (only if KEEP)
-════════════════════════════════════════
-If verdict is KEEP, fill all SEO fields.
-If verdict is DELETE, use empty strings for SEO fields.
-
-Return ONLY valid JSON starting with {{ — no markdown, no explanation:
-
+Return ONLY valid JSON, no markdown:
 {{
   "subject_match": true or false,
   "shape_match": true or false,
   "confidence": 0-10,
   "verdict": "KEEP" or "DELETE",
-  "reason": "one line reason if DELETE, else empty string",
-  "title": "20+ words: {subject} [specific visual details] Transparent PNG HD Free Download | UltraPNG",
-  "slug": "max 55 chars: {slug_base}-[2-3 visual words]-png-hd",
-  "meta_desc": "max 155 chars: {subject} visual detail transparent free UltraPNG.com",
-  "h1": "{subject} [visual details] PNG HD Image",
-  "tags": "18 comma-separated: name, visual words, {subject} PNG free, {subject} transparent PNG, canva, flex banner, social media, ultrapng",
-  "description": "650+ words:\\n## About This {subject} PNG Image\\n[200+ words 2 paragraphs]\\n## Image Quality & Technical Details\\n[100 words]\\n## Design Ideas & Creative Applications\\n[8 bullet points]\\n## Technical Specifications\\n[table: Format/Background/Resolution/Edge Quality/Compatible With/Print Ready/License]\\n## How to Download\\n[6 numbered steps]\\n## Frequently Asked Questions\\n[4 Q&A: free?/Canva?/watermark?/flex banner?]\\n## Why UltraPNG\\n[80 words]"
+  "reason": "one line if DELETE else empty",
+  "title": "20+ words: {subject} [visual details] Transparent PNG HD Free Download | UltraPNG",
+  "slug": "max 55 chars: {slug_base}-[2-3 words]-png-hd",
+  "meta_desc": "max 155 chars",
+  "h1": "{subject} [details] PNG HD Image",
+  "tags": "18 comma-separated tags including PNG free, transparent PNG, canva, flex banner, ultrapng",
+  "description": "650+ words with sections: About, Quality Details, Design Ideas (8 bullets), Tech Specs (table), How to Download (6 steps), FAQ (4 Q&A), Why UltraPNG"
 }}"""
-
 
 def phase2_qwen_filter_seo(generated):
     ckpt = load_checkpoint("phase2_posts")
@@ -748,10 +561,7 @@ def phase2_qwen_filter_seo(generated):
 
     log("=" * 56)
     log("PHASE 2: Qwen2.5-VL-3B — SMART FILTER + SEO")
-    log("  Step 1: Subject Match  (wrong item → DELETE)")
-    log("  Step 2: Confidence <6  (uncertain → DELETE)")
-    log("  Step 3: Quality Check  (deformed → DELETE)")
-    log("  Step 4: SEO Generation (if KEEP)")
+    log(f"  Loading from HuggingFace: {QWEN_HF_ID}")
     log("=" * 56)
 
     if not generated:
@@ -760,20 +570,19 @@ def phase2_qwen_filter_seo(generated):
     from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
     from qwen_vl_utils import process_vision_info
 
-    log("Loading Qwen2.5-VL-3B from dataset...")
-    processor = AutoProcessor.from_pretrained(str(QWEN_DIR), use_fast=True)
+    processor = AutoProcessor.from_pretrained(
+        QWEN_HF_ID, use_fast=True, cache_dir=str(HF_CACHE))
     model     = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-        str(QWEN_DIR),
+        QWEN_HF_ID,
         torch_dtype=torch.float16,
         device_map="auto",
+        cache_dir=str(HF_CACHE),
     )
     model.eval()
     log(f"Qwen loaded! Processing {len(generated)} images...\n")
 
-    posts      = []
-    deleted    = 0
-    used_slugs = set()
-    t0         = time.time()
+    posts, deleted, used_slugs = [], 0, set()
+    t0 = time.time()
 
     partial     = load_checkpoint("phase2_posts_partial")
     resume_from = 0
@@ -781,9 +590,10 @@ def phase2_qwen_filter_seo(generated):
         posts       = partial
         used_slugs  = set(f"{p['category']}/{p['slug']}" for p in posts)
         resume_from = len(posts)
-        log(f"  Partial checkpoint: resuming from item {resume_from}")
+        log(f"  Partial checkpoint: resuming from {resume_from}")
 
-    stats = {"wrong_subject": 0, "low_confidence": 0, "deformed": 0, "parse_fail": 0}
+    stats = {"wrong_subject": 0, "wrong_shape": 0,
+             "low_confidence": 0, "deformed": 0, "parse_fail": 0}
 
     for i, item_data in enumerate(generated):
         if i < resume_from:
@@ -791,7 +601,8 @@ def phase2_qwen_filter_seo(generated):
 
         item      = item_data["item"]
         category  = item["category"]
-        subject   = item.get("subject_name") or category.replace("-", " ").replace("_", " ").title()
+        subject   = (item.get("subject_name") or
+                     category.replace("-", " ").replace("_", " ").title())
         prompt    = item.get("prompt", f"a {subject}")
         slug_base = slugify(subject)
         path      = Path(item_data["path"])
@@ -803,20 +614,16 @@ def phase2_qwen_filter_seo(generated):
         try:
             with Image.open(path).convert("RGB") as img_orig:
                 iw, ih = img_orig.size
-                mxs    = 512
-                if max(iw, ih) > mxs:
-                    r       = mxs / max(iw, ih)
+                if max(iw, ih) > 512:
+                    r       = 512 / max(iw, ih)
                     img_pil = img_orig.resize((int(iw * r), int(ih * r)), Image.LANCZOS).copy()
                 else:
                     img_pil = img_orig.copy()
 
-            messages = [{
-                "role": "user",
-                "content": [
-                    {"type": "image", "image": img_pil},
-                    {"type": "text",  "text":  _build_qwen_prompt(item, subject, category, slug_base)},
-                ],
-            }]
+            messages = [{"role": "user", "content": [
+                {"type": "image", "image": img_pil},
+                {"type": "text",  "text":  _build_qwen_prompt(item, subject, category, slug_base)},
+            ]}]
 
             text = processor.apply_chat_template(
                 messages, tokenize=False, add_generation_prompt=True)
@@ -858,39 +665,37 @@ def phase2_qwen_filter_seo(generated):
             subject_match = ai.get("subject_match", True)
             if isinstance(subject_match, str):
                 subject_match = subject_match.lower() not in ("false", "no", "0")
-            confidence    = int(ai.get("confidence", 7))
-            verdict       = ai.get("verdict", "KEEP").strip().upper()
-            reason        = ai.get("reason", "")
-
+            confidence = int(ai.get("confidence", 7))
+            verdict    = ai.get("verdict", "KEEP").strip().upper()
+            reason     = ai.get("reason", "")
             shape_match = ai.get("shape_match", True)
             if isinstance(shape_match, str):
                 shape_match = shape_match.lower() not in ("false", "no", "0")
 
             delete_reason = None
             if not subject_match:
-                delete_reason = f"Wrong subject (expected={subject}, group={group})"
+                delete_reason = f"Wrong subject (expected={subject})"
                 stats["wrong_subject"] += 1
             elif group == "animals" and not shape_match:
                 delete_reason = f"Wrong body shape for {subject}"
-                stats["wrong_shape"] = stats.get("wrong_shape", 0) + 1
+                stats["wrong_shape"] += 1
             elif confidence < 6:
-                delete_reason = f"Low confidence={confidence} — {reason}"
+                delete_reason = f"Low confidence={confidence}"
                 stats["low_confidence"] += 1
             elif verdict == "DELETE":
-                delete_reason = reason or "Deformed/quality failed"
+                delete_reason = reason or "Quality failed"
                 stats["deformed"] += 1
 
             if delete_reason:
-                log(f"  DELETE [{i+1}/{len(generated)}] {path.name}")
-                log(f"         {delete_reason}")
+                log(f"  DELETE [{i+1}/{len(generated)}] {path.name} | {delete_reason}")
                 path.unlink(missing_ok=True)
                 deleted += 1
                 continue
 
             shutil.copy2(str(path), str(approved_path))
 
-            raw_slug  = ai.get("slug") or f"{slug_base}-png-hd"
-            slug      = slugify(raw_slug)
+            raw_slug = ai.get("slug") or f"{slug_base}-png-hd"
+            slug     = slugify(raw_slug)
             base, sfx = slug, 1
             while f"{category}/{slug}" in used_slugs:
                 slug = f"{base}-{sfx}"; sfx += 1
@@ -930,7 +735,7 @@ def phase2_qwen_filter_seo(generated):
 
             rate = max((i + 1 - resume_from), 1) / (time.time() - t0)
             eta  = (len(generated) - i - 1) / rate / 60
-            log(f"  KEEP [{i+1}/{len(generated)}] {slug} (conf={confidence}, grp={group}) | ETA {eta:.0f}min")
+            log(f"  KEEP [{i+1}/{len(generated)}] {slug} (conf={confidence}) | ETA {eta:.0f}min")
 
         except Exception as e:
             log(f"  Qwen FAIL [{i+1}] {item.get('filename','?')}: {e}")
@@ -940,18 +745,16 @@ def phase2_qwen_filter_seo(generated):
                                         used_slugs, str(approved_path)))
 
         if (i + 1) % 10 == 0:
-            gc.collect()
-            torch.cuda.empty_cache()
+            gc.collect(); torch.cuda.empty_cache()
             save_checkpoint("phase2_posts_partial", posts)
 
-    log("\n  Deleting Qwen2.5-VL-3B -> freeing VRAM...")
+    log("\n  Deleting Qwen -> freeing VRAM...")
     del model, processor
     free_memory()
 
     save_checkpoint("phase2_posts", posts)
     log(f"PHASE 2 DONE — Kept: {len(posts)} | Deleted: {deleted}")
-    log(f"  Delete breakdown → WrongSubject:{stats['wrong_subject']} "
-        f"WrongShape:{stats.get('wrong_shape',0)} "
+    log(f"  WrongSubject:{stats['wrong_subject']} WrongShape:{stats['wrong_shape']} "
         f"LowConf:{stats['low_confidence']} Deformed:{stats['deformed']} "
         f"ParseFail:{stats['parse_fail']}\n")
     return posts
@@ -1008,7 +811,7 @@ This {subject} PNG is processed using RMBG-2.0 ONNX AI for pixel-perfect transpa
 Yes — 100% free personal and commercial use. No account, no sign-up. No watermark on downloaded file.
 
 **Can I use this in Canva?**
-Yes. Canva Uploads, upload PNG, drag onto canvas. Transparent background works perfectly.
+Yes. Canva Uploads → upload PNG → drag onto canvas. Transparent background works perfectly.
 
 **Does the downloaded PNG have a watermark?**
 No. Preview shows watermark for protection — downloaded file is completely clean.
@@ -1028,7 +831,6 @@ def _fallback_post(item_data, subject, category, prompt, used_slugs, approved_pa
     while f"{category}/{slug}" in used_slugs:
         slug = f"{base}-{sfx}"; sfx += 1
     used_slugs.add(f"{category}/{slug}")
-    desc = _fallback_desc(subject, category, prompt)
     return {
         "category": category, "subcategory": item.get("subcategory", "general"),
         "subject_name": subject, "filename": item.get("filename", ""),
@@ -1038,8 +840,8 @@ def _fallback_post(item_data, subject, category, prompt, used_slugs, approved_pa
         "meta_desc": f"Download {subject} PNG transparent background free HD. UltraPNG.com.",
         "alt_text": f"{subject} PNG Transparent Background Free Download UltraPNG",
         "tags": f"{subject},png,transparent,free download,hd,{subject} PNG free,ultrapng",
-        "description": desc, "word_count": len(desc.split()), "ai_generated": False,
-        "approved_path": approved_path,
+        "description": _fallback_desc(subject, category, prompt),
+        "word_count": 0, "ai_generated": False, "approved_path": approved_path,
         "png_file_id": "", "jpg_file_id": "", "webp_file_id": "",
         "download_url": "", "preview_url": "", "preview_url_small": "",
         "webp_preview_url": "", "preview_w": 800, "preview_h": 800,
@@ -1047,7 +849,7 @@ def _fallback_post(item_data, subject, category, prompt, used_slugs, approved_pa
     }
 
 # ══════════════════════════════════════════════════════════════
-# PHASE 3 — RMBG-2.0 ONNX  Background Removal
+# PHASE 3 — RMBG-2.0 ONNX  (downloads from HuggingFace)
 # ══════════════════════════════════════════════════════════════
 def phase3_bg_remove(posts):
     ckpt = load_checkpoint("phase3_transparent")
@@ -1056,6 +858,7 @@ def phase3_bg_remove(posts):
 
     log("=" * 56)
     log("PHASE 3: RMBG-2.0 ONNX — Background Removal (GPU)")
+    log(f"  Loading ONNX from HuggingFace: {RMBG_HF_ID}")
     log("=" * 56)
 
     if not posts:
@@ -1063,17 +866,52 @@ def phase3_bg_remove(posts):
 
     import onnxruntime as ort
     import cv2
+    from huggingface_hub import hf_hub_download
 
-    # Resolve ONNX path now (after ensure_models ran)
-    rmbg_onnx = _find_onnx()
-    if not rmbg_onnx.exists():
-        raise FileNotFoundError(f"ONNX model not found: {rmbg_onnx}")
+    # Download ONNX model file from HuggingFace
+    log("  Downloading RMBG ONNX model...")
+    onnx_candidates = ["model.onnx", "rmbg.onnx", "birefnet.onnx", "RMBG-2.0.onnx"]
+    onnx_path = None
+
+    for candidate in onnx_candidates:
+        try:
+            onnx_path = hf_hub_download(
+                repo_id=RMBG_HF_ID,
+                filename=candidate,
+                cache_dir=str(HF_CACHE),
+            )
+            log(f"  Found ONNX: {candidate}")
+            break
+        except Exception:
+            continue
+
+    if not onnx_path:
+        # Try listing files in the repo to find any .onnx
+        try:
+            from huggingface_hub import list_repo_files
+            files = list(list_repo_files(RMBG_HF_ID))
+            onnx_files = [f for f in files if f.endswith(".onnx")]
+            if onnx_files:
+                onnx_path = hf_hub_download(
+                    repo_id=RMBG_HF_ID,
+                    filename=onnx_files[0],
+                    cache_dir=str(HF_CACHE),
+                )
+                log(f"  Found ONNX via listing: {onnx_files[0]}")
+        except Exception as e:
+            log(f"  ONNX listing failed: {e}")
+
+    if not onnx_path or not Path(onnx_path).exists():
+        raise FileNotFoundError(
+            f"Could not find any .onnx file in {RMBG_HF_ID}.\n"
+            f"Check RMBG_HF_ID at top of script."
+        )
 
     providers = (["CUDAExecutionProvider", "CPUExecutionProvider"]
                  if ort.get_device() == "GPU" else ["CPUExecutionProvider"])
-    session  = ort.InferenceSession(str(rmbg_onnx), providers=providers)
+    session  = ort.InferenceSession(str(onnx_path), providers=providers)
     inp_name = session.get_inputs()[0].name
-    log(f"RMBG ONNX loaded | {session.get_providers()[0]}\n")
+    log(f"  RMBG loaded | Provider: {session.get_providers()[0]}\n")
 
     def remove_bg(img_pil):
         ow, oh  = img_pil.size
@@ -1126,7 +964,7 @@ def phase3_bg_remove(posts):
     return result_posts
 
 # ══════════════════════════════════════════════════════════════
-# PHASE 4 — Google Drive Upload + URL Capture
+# PHASE 4 — Google Drive Upload
 # ══════════════════════════════════════════════════════════════
 def phase4_upload(posts):
     ckpt = load_checkpoint("phase4_uploaded")
@@ -1153,7 +991,6 @@ def phase4_upload(posts):
 
         if i > 0 and i % 50 == 0:
             token = get_drive_token()
-            log(f"  Token refreshed at upload {i}")
 
         try:
             cat = post["category"]
@@ -1169,17 +1006,15 @@ def phase4_upload(posts):
                 fcache[f"r_{key}"] = sr
 
             png_bytes = path.read_bytes()
-            pr  = drive_upload(token, fcache[f"p_{key}"], path.name, png_bytes)
+            pr = drive_upload(token, fcache[f"p_{key}"], path.name, png_bytes)
             drive_share(token, pr["id"])
 
             jpg_bytes, webp_bytes, pw, ph = make_previews(path)
-
-            jr  = drive_upload(token, fcache[f"r_{key}"],
-                               path.stem + ".jpg", jpg_bytes, "image/jpeg")
+            jr = drive_upload(token, fcache[f"r_{key}"],
+                              path.stem + ".jpg", jpg_bytes, "image/jpeg")
             drive_share(token, jr["id"])
-
-            wr  = drive_upload(token, fcache[f"r_{key}"],
-                               path.stem + ".webp", webp_bytes, "image/webp")
+            wr = drive_upload(token, fcache[f"r_{key}"],
+                              path.stem + ".webp", webp_bytes, "image/webp")
             drive_share(token, wr["id"])
 
             uploaded.append({
@@ -1229,7 +1064,7 @@ def md_to_html(md):
     o = re.sub(r'(<li>.*?</li>\n?)+', lambda m: f'<ul>{m.group(0)}</ul>', o)
     o = re.sub(r'^\d+\. (.+)$', r'<oli>\1</oli>', o, flags=re.MULTILINE)
     o = re.sub(r'(<oli>.*?</oli>\n?)+',
-               lambda m: '<ol>' + m.group(0).replace('<oli>', '<li>').replace('</oli>', '</li>') + '</ol>', o)
+               lambda m: '<ol>' + m.group(0).replace('<oli>','<li>').replace('</oli>','</li>') + '</ol>', o)
     o = re.sub(r'\n{2,}', '</p><p>', o)
     o = f'<p>{o}</p>'
     o = re.sub(r'<p>\s*</p>', '', o)
@@ -1294,23 +1129,22 @@ def build_item_page(post, related):
         f'<a href="/png-library/?q={esc(t)}" class="png-tag">{esc(t)}</a>' for t in tags)
     share_text = json.dumps(f'{post.get("h1", "")} PNG Free Download — ')
 
-    img_tag = (
-        f'<picture>'
-        f'<source srcset="{esc(webp_img)}" type="image/webp"/>'
-        f'<img src="{esc(img)}" alt="{esc(post.get("alt_text",""))}" '
-        f'width="{post.get("preview_w",800)}" height="{post.get("preview_h",800)}" '
-        f'fetchpriority="high" onerror="this.src=\'/img/placeholder.png\'"/>'
-        f'</picture>'
-    ) if webp_img else (
-        f'<img src="{esc(img)}" alt="{esc(post.get("alt_text",""))}" '
-        f'width="{post.get("preview_w",800)}" height="{post.get("preview_h",800)}" '
-        f'fetchpriority="high" onerror="this.src=\'/img/placeholder.png\'"/>'
-    )
+    if webp_img:
+        img_tag = (f'<picture>'
+                   f'<source srcset="{esc(webp_img)}" type="image/webp"/>'
+                   f'<img src="{esc(img)}" alt="{esc(post.get("alt_text",""))}" '
+                   f'width="{post.get("preview_w",800)}" height="{post.get("preview_h",800)}" '
+                   f'fetchpriority="high" onerror="this.src=\'/img/placeholder.png\'"/>'
+                   f'</picture>')
+    else:
+        img_tag = (f'<img src="{esc(img)}" alt="{esc(post.get("alt_text",""))}" '
+                   f'width="{post.get("preview_w",800)}" height="{post.get("preview_h",800)}" '
+                   f'fetchpriority="high" onerror="this.src=\'/img/placeholder.png\'"/>')
 
     rel_html = "".join(
         f'<a href="/png-library/{r["category"]}/{r["slug"]}/" class="png-related-card">'
         f'<div class="png-related-thumb">'
-        f'<img src="{esc(r.get("preview_url_small",r.get("preview_url","")))} " '
+        f'<img src="{esc(r.get("preview_url_small", r.get("preview_url","")))} " '
         f'alt="{esc(r.get("h1",""))}" loading="lazy" width="300" height="300" '
         f'onerror="this.parentNode.style.display=\'none\'"/></div>'
         f'<span class="png-related-name">{esc(r.get("h1",""))}</span></a>\n'
@@ -1320,11 +1154,11 @@ def build_item_page(post, related):
     schema = json.dumps({
         "@context": "https://schema.org",
         "@graph": [
-            {"@type": "ImageObject", "name": post.get("h1", ""),
-             "description": post.get("meta_desc", ""),
-             "contentUrl": post.get("download_url", ""), "thumbnailUrl": img,
+            {"@type": "ImageObject", "name": post.get("h1",""),
+             "description": post.get("meta_desc",""),
+             "contentUrl": post.get("download_url",""), "thumbnailUrl": img,
              "encodingFormat": "image/png", "isAccessibleForFree": True,
-             "datePublished": post.get("date_added", ""),
+             "datePublished": post.get("date_added",""),
              "license": f"{SITE_URL}/pages/terms.html",
              "publisher": {"@type": "Organization", "name": "UltraPNG", "url": SITE_URL + "/"},
              "keywords": ", ".join(tags)},
@@ -1332,7 +1166,7 @@ def build_item_page(post, related):
                 {"@type": "ListItem", "position": 1, "name": "Home", "item": SITE_URL + "/"},
                 {"@type": "ListItem", "position": 2, "name": "PNG Library", "item": f"{SITE_URL}/png-library/"},
                 {"@type": "ListItem", "position": 3, "name": cat_label, "item": f"{SITE_URL}/png-library/{post['category']}/"},
-                {"@type": "ListItem", "position": 4, "name": post.get("h1", "")},
+                {"@type": "ListItem", "position": 4, "name": post.get("h1","")},
             ]},
             {"@type": "FAQPage", "mainEntity": [
                 {"@type": "Question", "name": f"Is this {cat_label} PNG free?",
@@ -1430,29 +1264,31 @@ def build_category_page(cat, items):
     url   = f"{SITE_URL}/png-library/{cat}/"
     img   = items[0].get("preview_url", "") if items else ""
     total = len(items)
-    def _cat_card(idx, it):
+
+    def _card(idx, it):
         thumb = ""
         if it.get("preview_url_small") or it.get("preview_url"):
             sw = esc(it.get("webp_preview_url","") or it.get("preview_url_small",""))
             sj = esc(it.get("preview_url_small", it.get("preview_url","")))
             al = esc(it.get("h1",""))
-            thumb = (f'<picture><source srcset="{sw}" type="image/webp"/>' +
+            thumb = (f'<picture><source srcset="{sw}" type="image/webp"/>'
                      f'<img src="{sj}" alt="{al}" loading="lazy" width="400" height="400"/></picture>')
-        return (f'<a href="/png-library/{it["category"]}/{it["slug"]}/" ' +
-                f'class="mpng-item-card cat-item" data-pg="{idx // ITEMS_PER_PAGE}" ' +
-                f'title="{esc(it.get("h1",""))}">' +
-                f'<div class="mpng-item-thumb">{thumb}</div>' +
+        pg  = idx // ITEMS_PER_PAGE
+        return (f'<a href="/png-library/{it["category"]}/{it["slug"]}/" '
+                f'class="mpng-item-card cat-item" data-pg="{pg}" title="{esc(it.get("h1",""))}">'
+                f'<div class="mpng-item-thumb">{thumb}</div>'
                 f'<div class="mpng-item-label">{esc(it.get("h1",""))}</div></a>\n')
-    cards = "".join(_cat_card(idx, it) for idx, it in enumerate(items))
-    tp  = max(1, (total + ITEMS_PER_PAGE - 1) // ITEMS_PER_PAGE)
-    pag = (f'<nav class="pg-nav">'
-           f'<button class="pg-btn pg-btn-prev" id="cP" onclick="catPage(_cp-1)" disabled>&#8592; Previous</button>'
-           f'<span class="pg-info" id="cI">Page 1 of {tp}</span>'
-           f'<button class="pg-btn pg-btn-next" id="cN" onclick="catPage(_cp+1)">Next &#8594;</button>'
-           f'</nav>') if tp > 1 else ""
-    _pg_title = f"{label} PNG Images Free Download ({total}+) | UltraPNG"
-    _pg_desc  = f"Download {total}+ free {label} transparent PNG. HD Photoshop Canva."
-    return (f'{_head(_pg_title, _pg_desc, url, img)}\n</head><body>{_header()}\n'
+
+    cards = "".join(_card(idx, it) for idx, it in enumerate(items))
+    tp    = max(1, (total + ITEMS_PER_PAGE - 1) // ITEMS_PER_PAGE)
+    pag   = (f'<nav class="pg-nav">'
+             f'<button class="pg-btn pg-btn-prev" id="cP" onclick="catPage(_cp-1)" disabled>&#8592; Previous</button>'
+             f'<span class="pg-info" id="cI">Page 1 of {tp}</span>'
+             f'<button class="pg-btn pg-btn-next" id="cN" onclick="catPage(_cp+1)">Next &#8594;</button>'
+             f'</nav>') if tp > 1 else ""
+    title = f"{label} PNG Images Free Download ({total}+) | UltraPNG"
+    desc  = f"Download {total}+ free {label} transparent PNG. HD Photoshop Canva."
+    return (f'{_head(title, desc, url, img)}\n</head><body>{_header()}\n'
             f'<nav class="breadcrumb"><a href="/">Home</a><span>&rsaquo;</span>'
             f'<a href="/png-library/">PNG Library</a><span>&rsaquo;</span>'
             f'<span>{esc(label)}</span></nav>\n'
@@ -1477,49 +1313,54 @@ def build_main_page(all_data):
     cats   = sorted(by_cat.keys())
     ti, tc = len(all_data), len(cats)
 
-    cat_cards = "".join(
-        f'<a href="/png-library/{cat}/" class="mpng-cat-card" '
-        f'data-cat="{esc(by_cat[cat][0].get("subject_name",cat).lower())}" '
-        f'data-search="{esc(",".join(set(t.strip() for item in by_cat[cat][:3] for t in item.get("tags","").lower().split(",") if t.strip()))[:200])}">'
-        f'<div class="mpng-cat-previews">'
-        + "".join(
+    def _cat_card(cat):
+        items = by_cat[cat]
+        name  = esc(items[0].get("subject_name", cat).lower())
+        tags  = esc(",".join(set(
+            t.strip() for it in items[:3]
+            for t in it.get("tags","").lower().split(",") if t.strip()
+        ))[:200])
+        previews = "".join(
             f'<img src="{esc(it.get("preview_url_small",it.get("preview_url","")))} " '
-            f'alt="{esc(by_cat[cat][0].get("subject_name",cat))}" loading="lazy" '
+            f'alt="{esc(items[0].get("subject_name",cat))}" loading="lazy" '
             f'width="200" height="200" onerror="this.remove()"/>'
-            for it in by_cat[cat][:4]
-            if it.get("preview_url_small") or it.get("preview_url")
+            for it in items[:4] if it.get("preview_url_small") or it.get("preview_url")
         )
-        + f'</div><div class="mpng-cat-footer">'
-        f'<span class="mpng-cat-name">{esc(by_cat[cat][0].get("subject_name",cat))}</span>'
-        f'<span class="mpng-cat-cnt">{len(by_cat[cat])} images</span>'
-        f'</div></a>\n'
-        for cat in cats
-    )
+        return (f'<a href="/png-library/{cat}/" class="mpng-cat-card" '
+                f'data-cat="{name}" data-search="{tags}">'
+                f'<div class="mpng-cat-previews">{previews}</div>'
+                f'<div class="mpng-cat-footer">'
+                f'<span class="mpng-cat-name">{esc(items[0].get("subject_name",cat))}</span>'
+                f'<span class="mpng-cat-cnt">{len(items)} images</span>'
+                f'</div></a>\n')
 
-    recent    = sorted(all_data, key=lambda x: x.get("date_added", ""), reverse=True)[:ITEMS_PER_PAGE * 5]
+    cat_cards = "".join(_cat_card(cat) for cat in cats)
+
+    recent = sorted(all_data, key=lambda x: x.get("date_added",""), reverse=True)[:ITEMS_PER_PAGE * 5]
+
     def _rec_card(idx, it):
         thumb = ""
         if it.get("preview_url_small") or it.get("preview_url"):
             src = esc(it.get("preview_url_small", it.get("preview_url","")))
             alt = esc(it.get("h1",""))
             thumb = f'<img src="{src}" alt="{alt}" loading="lazy" width="400" height="400"/>'
-        return (f'<a href="/png-library/{it["category"]}/{it["slug"]}/" ' +
-                f'class="mpng-item-card recent-item" data-rpg="{idx // ITEMS_PER_PAGE}">' +
-                f'<div class="mpng-item-thumb">{thumb}</div>' +
-                f'<div class="mpng-item-label">{esc(it.get("h1",""))}</div>' +
-                f'<div class="mpng-item-cat">{esc(it.get("subject_name", it["category"]))}</div></a>\n')
-    rec_cards = "".join(_rec_card(idx, it) for idx, it in enumerate(recent))
-    trp = max(1, (len(recent) + ITEMS_PER_PAGE - 1) // ITEMS_PER_PAGE)
-    pag = (f'<nav class="pg-nav">'
-           f'<button class="pg-btn pg-btn-prev" id="rP" onclick="recentPage(_rcp-1)" disabled>&#8592; Previous</button>'
-           f'<span class="pg-info" id="rI">Page 1 of {trp}</span>'
-           f'<button class="pg-btn pg-btn-next" id="rN" onclick="recentPage(_rcp+1)">Next &#8594;</button>'
-           f'</nav>') if trp > 1 else ""
+        return (f'<a href="/png-library/{it["category"]}/{it["slug"]}/" '
+                f'class="mpng-item-card recent-item" data-rpg="{idx // ITEMS_PER_PAGE}">'
+                f'<div class="mpng-item-thumb">{thumb}</div>'
+                f'<div class="mpng-item-label">{esc(it.get("h1",""))}</div>'
+                f'<div class="mpng-item-cat">{esc(it.get("subject_name",it["category"]))}</div></a>\n')
 
-    _mp_title = f"UltraPNG {ti}+ Free Transparent PNG Images HD"
-    _mp_desc  = f"Download {ti}+ free HD transparent PNG. {tc} categories. No watermark no signup."
-    _mp_img   = all_data[0].get("preview_url","") if all_data else ""
-    return (f'{_head(_mp_title, _mp_desc, url, _mp_img)}\n</head><body>{_header()}\n'
+    rec_cards = "".join(_rec_card(idx, it) for idx, it in enumerate(recent))
+    trp  = max(1, (len(recent) + ITEMS_PER_PAGE - 1) // ITEMS_PER_PAGE)
+    pag  = (f'<nav class="pg-nav">'
+            f'<button class="pg-btn pg-btn-prev" id="rP" onclick="recentPage(_rcp-1)" disabled>&#8592; Previous</button>'
+            f'<span class="pg-info" id="rI">Page 1 of {trp}</span>'
+            f'<button class="pg-btn pg-btn-next" id="rN" onclick="recentPage(_rcp+1)">Next &#8594;</button>'
+            f'</nav>') if trp > 1 else ""
+    title = f"UltraPNG {ti}+ Free Transparent PNG Images HD"
+    desc  = f"Download {ti}+ free HD transparent PNG. {tc} categories. No watermark no signup."
+    img   = all_data[0].get("preview_url","") if all_data else ""
+    return (f'{_head(title, desc, url, img)}\n</head><body>{_header()}\n'
             f'<div class="mpng-hero">'
             f'<div class="mpng-hero-badge">&#127881; 100% Free &#8212; No Signup &#8212; Updated Daily</div>'
             f'<h1 class="mpng-hero-title">Ultra<span>PNG</span></h1>'
@@ -1548,7 +1389,7 @@ def build_main_page(all_data):
             f'document.querySelectorAll(".mpng-cat-card").forEach(function(c){{'
             f'var n=(c.getAttribute("data-cat")||"").toLowerCase();'
             f'var s=(c.getAttribute("data-search")||"").toLowerCase();'
-            f'c.style.display=q.length<2||n.includes(q)||s.includes(q)?"":"none";}});}}' 
+            f'c.style.display=q.length<2||n.includes(q)||s.includes(q)?"":"none";}});}}'
             f'function recentPage(p){{if(p<0||p>=_rtp)return;_rcp=p;'
             f'document.querySelectorAll(".recent-item").forEach(function(c){{'
             f'c.style.display=parseInt(c.dataset.rpg||0)===p?"":"none";}});'
@@ -1559,10 +1400,9 @@ def build_main_page(all_data):
 
 def build_sitemaps(all_data, out_dir):
     today   = datetime.now().strftime("%Y-%m-%d")
-    entries = []
-    entries.append(
+    entries = [
         f'<url><loc>{SITE_URL}/png-library/</loc><lastmod>{today}</lastmod>'
-        f'<changefreq>daily</changefreq><priority>0.9</priority></url>')
+        f'<changefreq>daily</changefreq><priority>0.9</priority></url>']
     for cat in sorted(set(i["category"] for i in all_data)):
         entries.append(
             f'<url><loc>{SITE_URL}/png-library/{cat}/</loc><lastmod>{today}</lastmod>'
@@ -1575,20 +1415,18 @@ def build_sitemaps(all_data, out_dir):
             f'<url><loc>{SITE_URL}/png-library/{item["category"]}/{item["slug"]}/</loc>'
             f'<lastmod>{item.get("date_added",today)}</lastmod>'
             f'<changefreq>monthly</changefreq><priority>0.7</priority>{img_tag}</url>')
-
-    ns       = ('xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
-                'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"')
-    chunks   = [entries[i:i + SITEMAP_MAX_URL] for i in range(0, len(entries), SITEMAP_MAX_URL)]
+    ns     = ('xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
+              'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"')
+    chunks = [entries[i:i+SITEMAP_MAX_URL] for i in range(0, len(entries), SITEMAP_MAX_URL)]
     sm_files = []
     for idx, chunk in enumerate(chunks, 1):
-        fname   = f"sitemap-png-{idx}.xml"
-        content = f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset {ns}>\n' + "\n".join(chunk) + '\n</urlset>'
-        (out_dir / fname).write_text(content, "utf-8")
+        fname = f"sitemap-png-{idx}.xml"
+        (out_dir / fname).write_text(
+            f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset {ns}>\n' +
+            "\n".join(chunk) + '\n</urlset>', "utf-8")
         sm_files.append(fname)
-
-    today_str = datetime.now().strftime("%Y-%m-%d")
-    index     = "\n".join(
-        f'<sitemap><loc>{SITE_URL}/{f}</loc><lastmod>{today_str}</lastmod></sitemap>'
+    index = "\n".join(
+        f'<sitemap><loc>{SITE_URL}/{f}</loc><lastmod>{today}</lastmod></sitemap>'
         for f in sm_files)
     (out_dir / "sitemap-png.xml").write_text(
         f'<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -1598,18 +1436,17 @@ def build_sitemaps(all_data, out_dir):
 
 def build_robots_txt(out_dir):
     (out_dir / "robots.txt").write_text(
-        f"User-agent: *\nAllow: /\n\n"
-        f"User-agent: GPTBot\nDisallow: /\n\n"
-        f"User-agent: ClaudeBot\nDisallow: /\n\n"
-        f"User-agent: CCBot\nDisallow: /\n\n"
-        f"User-agent: anthropic-ai\nDisallow: /\n\n"
+        "User-agent: *\nAllow: /\n\n"
+        "User-agent: GPTBot\nDisallow: /\n\n"
+        "User-agent: ClaudeBot\nDisallow: /\n\n"
+        "User-agent: CCBot\nDisallow: /\n\n"
+        "User-agent: anthropic-ai\nDisallow: /\n\n"
         f"Sitemap: {SITE_URL}/sitemap-png.xml\n", "utf-8")
 
 def build_llms_txt(out_dir):
     (out_dir / "llms.txt").write_text(
-        f"# {SITE_NAME}\n\n"
-        f"> {SITE_URL} — Free Transparent PNG images\n\n"
-        f"## About\nFree HD transparent PNG images. Updated daily. No signup.\n\n"
+        f"# {SITE_NAME}\n\n> {SITE_URL} — Free Transparent PNG images\n\n"
+        "## About\nFree HD transparent PNG images. Updated daily. No signup.\n\n"
         f"## Collections\n{SITE_URL}/png-library/\n", "utf-8")
 
 def save_data_split(all_data, data_dir):
@@ -1652,7 +1489,7 @@ def phase5_build_push(new_posts):
     log("=" * 56)
 
     if not GITHUB_TOKEN or not GITHUB_REPO2:
-        log("  WARNING: GITHUB_REPO2 / GITHUB_TOKEN_REPO2 not set — skipping git push")
+        log("  WARNING: GITHUB_REPO2 / GITHUB_TOKEN_REPO2 not set — skipping")
         return
     if not new_posts:
         log("No new posts"); return
@@ -1687,9 +1524,7 @@ def phase5_build_push(new_posts):
     for post in new_posts:
         key = f"{post['category']}/{post['slug']}"
         if key not in existing_keys:
-            all_data.append(post)
-            existing_keys.add(key)
-            added += 1
+            all_data.append(post); existing_keys.add(key); added += 1
     log(f"Merged: +{added} | Total: {len(all_data)}")
 
     save_data_split(all_data, data_dir)
@@ -1720,7 +1555,6 @@ def phase5_build_push(new_posts):
 
     (out_dir / "index.html").write_text(build_main_page(all_data), "utf-8")
     pages_built += 1
-
     build_sitemaps(all_data, REPO2_DIR)
     build_robots_txt(REPO2_DIR)
     build_llms_txt(REPO2_DIR)
@@ -1742,7 +1576,7 @@ def phase5_build_push(new_posts):
             subprocess.run(["git", "commit", "-m", msg], check=True, capture_output=True)
             push = subprocess.run(["git", "push"], capture_output=True, text=True)
             if push.returncode == 0:
-                log(f"REPO2 pushed! Site: {len(all_data)} images total")
+                log(f"REPO2 pushed! Total: {len(all_data)} images")
             else:
                 log(f"Push failed: {push.stderr[:200]}")
         else:
@@ -1762,16 +1596,14 @@ def phase6_save_logs(stats: dict):
 
     token = GITHUB_TOKEN_REPO1 or GITHUB_TOKEN
     if not token or not GITHUB_REPO1:
-        log("  No REPO1 token/repo — skipping log save")
+        log("  No REPO1 token/repo — skipping")
         return
 
     repo_url = f"https://x-access-token:{token}@github.com/{GITHUB_REPO1}.git"
-
     try:
         if not REPO1_DIR.exists():
-            subprocess.run(
-                ["git", "clone", "--depth", "1", repo_url, str(REPO1_DIR)],
-                capture_output=True, check=True)
+            subprocess.run(["git", "clone", "--depth", "1", repo_url, str(REPO1_DIR)],
+                           capture_output=True, check=True)
         else:
             subprocess.run(["git", "pull", "--rebase", "--autostash"],
                            cwd=str(REPO1_DIR), capture_output=True)
@@ -1780,59 +1612,44 @@ def phase6_save_logs(stats: dict):
 
         logs_dir = REPO1_DIR / "logs"
         logs_dir.mkdir(parents=True, exist_ok=True)
-
         now      = datetime.now().strftime("%Y-%m-%d_%H-%M")
         log_file = logs_dir / f"{now}.log"
 
         summary = (
-            f"ULTRAPNG PIPELINE V5.6 — RUN REPORT\n"
-            f"{'=' * 60}\n"
+            f"ULTRAPNG PIPELINE V6.0 — RUN REPORT\n"
+            f"{'='*60}\n"
             f"Date       : {datetime.now().strftime('%Y-%m-%d %H:%M IST')}\n"
             f"Batch      : {START_INDEX} -> {END_INDEX}\n"
-            f"Generated  : {stats.get('generated', 0)}\n"
-            f"Deleted    : {stats.get('deleted', 0)}  (unreal/deformed by Qwen)\n"
-            f"Approved   : {stats.get('approved', 0)}\n"
-            f"Transparent: {stats.get('transparent', 0)}\n"
-            f"Uploaded   : {stats.get('uploaded', 0)}\n"
-            f"Posts      : {stats.get('posts', 0)}\n"
-            f"Duration   : {stats.get('duration', '?')}\n"
-            f"Status     : {stats.get('status', 'unknown')}\n"
-            f"{'=' * 60}\n\n"
-            f"FULL LOG\n"
-            f"{'=' * 60}\n"
+            f"Generated  : {stats.get('generated',0)}\n"
+            f"Deleted    : {stats.get('deleted',0)}\n"
+            f"Approved   : {stats.get('approved',0)}\n"
+            f"Transparent: {stats.get('transparent',0)}\n"
+            f"Uploaded   : {stats.get('uploaded',0)}\n"
+            f"Posts      : {stats.get('posts',0)}\n"
+            f"Duration   : {stats.get('duration','?')}\n"
+            f"Status     : {stats.get('status','unknown')}\n"
+            f"{'='*60}\n\nFULL LOG\n{'='*60}\n"
         )
         full_log = summary + "\n".join(_LOG_LINES)
         log_file.write_text(full_log, "utf-8")
 
-        all_logs = sorted(logs_dir.glob("????-??-??_??-??.log"))
-        for old in all_logs[:-30]:
+        for old in sorted(logs_dir.glob("????-??-??_??-??.log"))[:-30]:
             old.unlink()
-
         (logs_dir / "latest.log").write_text(full_log, "utf-8")
 
         readme = logs_dir / "README.md"
-        rows   = []
-        if readme.exists():
-            for line in readme.read_text("utf-8").split("\n"):
-                if line.startswith("| 20"):
-                    rows.append(line)
-        new_row = (
-            f"| {now.replace('_',' ')} "
-            f"| {stats.get('generated',0)} "
-            f"| {stats.get('deleted',0)} "
-            f"| {stats.get('approved',0)} "
-            f"| {stats.get('uploaded',0)} "
-            f"| {stats.get('posts',0)} "
-            f"| {stats.get('duration','?')} "
-            f"| {stats.get('status','?')} |"
-        )
-        rows.insert(0, new_row)
-        rows = rows[:50]
+        rows   = [l for l in (readme.read_text("utf-8").split("\n")
+                               if readme.exists() else []) if l.startswith("| 20")]
+        rows.insert(0, (f"| {now.replace('_',' ')} "
+                        f"| {stats.get('generated',0)} | {stats.get('deleted',0)} "
+                        f"| {stats.get('approved',0)} | {stats.get('uploaded',0)} "
+                        f"| {stats.get('posts',0)} | {stats.get('duration','?')} "
+                        f"| {stats.get('status','?')} |"))
         readme.write_text(
             "# UltraPNG Pipeline — Run History\n\n"
             "| Date & Time | Generated | Deleted | Approved | Uploaded | Posts | Duration | Status |\n"
             "|-------------|-----------|---------|----------|----------|-------|----------|--------|\n"
-            + "\n".join(rows) + "\n", "utf-8")
+            + "\n".join(rows[:50]) + "\n", "utf-8")
 
         orig_dir = os.getcwd()
         try:
@@ -1845,24 +1662,17 @@ def phase6_save_logs(stats: dict):
             subprocess.run(["git", "add", "logs/"], check=True, capture_output=True)
             diff = subprocess.run(["git", "diff", "--staged", "--quiet"], capture_output=True)
             if diff.returncode != 0:
-                commit_msg = (
-                    f"[logs] {now} | "
-                    f"gen={stats.get('generated',0)} "
-                    f"del={stats.get('deleted',0)} "
-                    f"posts={stats.get('posts',0)} "
-                    f"| {stats.get('status','?')}"
-                )
-                subprocess.run(["git", "commit", "-m", commit_msg],
-                               check=True, capture_output=True)
+                msg  = (f"[logs] {now} | gen={stats.get('generated',0)} "
+                        f"del={stats.get('deleted',0)} posts={stats.get('posts',0)} "
+                        f"| {stats.get('status','?')}")
+                subprocess.run(["git", "commit", "-m", msg], check=True, capture_output=True)
                 push = subprocess.run(["git", "push"], capture_output=True, text=True)
                 if push.returncode == 0:
-                    log(f"Logs pushed to REPO1!")
-                    log(f"  View: https://github.com/{GITHUB_REPO1}/tree/main/logs")
+                    log(f"Logs pushed! View: https://github.com/{GITHUB_REPO1}/tree/main/logs")
                 else:
                     log(f"  Log push failed: {push.stderr[:100]}")
         finally:
             os.chdir(orig_dir)
-
     except Exception as e:
         log(f"  Log save error (non-fatal): {e}")
 
@@ -1872,31 +1682,24 @@ def phase6_save_logs(stats: dict):
 def main():
     t0    = time.time()
     stats = {"status": "running", "generated": 0, "deleted": 0,
-             "approved": 0, "transparent": 0, "uploaded": 0, "posts": 0,
-             "duration": "?"}
+             "approved": 0, "transparent": 0, "uploaded": 0, "posts": 0, "duration": "?"}
 
     print("╔══════════════════════════════════════════════════════╗")
-    print("║  UltraPNG V5.6 — PIPELINE                          ║")
+    print("║  UltraPNG V6.0 — HuggingFace Direct Pipeline       ║")
     print("║  FLUX -> Qwen(Filter+SEO) -> RMBG -> Drive -> Git  ║")
     print("╚══════════════════════════════════════════════════════╝")
-    print(f"  Batch  : {START_INDEX} -> {END_INDEX} ({END_INDEX-START_INDEX} prompts)")
-    print(f"  REPO2  : {GITHUB_REPO2}")
+    print(f"  Batch : {START_INDEX} -> {END_INDEX} ({END_INDEX-START_INDEX} prompts)")
+    print(f"  REPO2 : {GITHUB_REPO2}")
+    print(f"  FLUX  : {FLUX_HF_ID}")
+    print(f"  Qwen  : {QWEN_HF_ID}")
+    print(f"  RMBG  : {RMBG_HF_ID}")
+    print(f"  Cache : {HF_CACHE}")
     if torch.cuda.is_available():
         p = torch.cuda.get_device_properties(0)
-        print(f"  GPU    : {p.name} | VRAM: {p.total_memory/1e9:.0f}GB")
+        print(f"  GPU   : {p.name} | VRAM: {p.total_memory/1e9:.0f}GB")
     print()
 
     try:
-        # PHASE 0: Ensure models are available (auto-download if needed)
-        ensure_models()
-
-        # Verify model paths after download
-        print("  Model paths:")
-        for lbl, pth in [("FLUX", FLUX_DIR), ("Qwen", QWEN_DIR), ("RMBG", _find_onnx())]:
-            ok = Path(pth).exists()
-            print(f"    {'✅' if ok else '❌'} {lbl}: {pth}")
-        print()
-
         prompts = load_prompts()
         if not prompts:
             raise Exception("No prompts loaded!")
@@ -1904,38 +1707,34 @@ def main():
         batch = prompts[START_INDEX:END_INDEX]
         log(f"Batch: {len(batch)} prompts\n")
 
-        skip_set  = load_skip_set_from_json()
+        skip_set = load_skip_set_from_json()
 
-        # PHASE 1: Generate
+        # PHASE 1
         generated = phase1_generate(batch, skip_set)
         stats["generated"] = len(generated)
         if not generated:
-            log("No new images generated — all skipped.")
-            return
+            log("No new images generated."); return
 
-        # PHASE 2: Qwen Single Pass (Filter + SEO)
+        # PHASE 2
         posts = phase2_qwen_filter_seo(generated)
         stats["approved"] = len(posts)
         stats["deleted"]  = len(generated) - len(posts)
         if not posts:
-            log("All images deleted by Qwen — nothing to upload.")
-            return
+            log("All images deleted by Qwen."); return
 
-        # PHASE 3: Background removal
+        # PHASE 3
         transparent = phase3_bg_remove(posts)
         stats["transparent"] = len(transparent)
         if not transparent:
-            log("BG removal produced no results.")
-            return
+            log("BG removal produced no results."); return
 
-        # PHASE 4: Upload to Drive
+        # PHASE 4
         uploaded = phase4_upload(transparent)
         stats["uploaded"] = len(uploaded)
         if not uploaded:
-            log("Drive upload failed — no images uploaded.")
-            return
+            log("Drive upload failed."); return
 
-        # PHASE 5: Build HTML + push to REPO2
+        # PHASE 5
         phase5_build_push(uploaded)
         stats["posts"] = len(uploaded)
 
