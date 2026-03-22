@@ -80,14 +80,20 @@ jobs:
           echo "Batch: $START → $END"
 
       - name: Inject Credentials
+        env:
+          GOOGLE_CLIENT_ID:       ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET:   ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN:   ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          GITHUB_TOKEN_REPO2_VAL: ${{ secrets.GITHUB_TOKEN_REPO2 }}
+          GITHUB_REPO2_VAL:       ${{ secrets.GITHUB_REPO2 }}
+          GITHUB_TOKEN_REPO1_VAL: ${{ secrets.GITHUB_TOKEN_REPO1 }}
+          TELEGRAM_BOT_TOKEN_VAL: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID_VAL:   ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           python3 inject_creds.py \
             "${{ steps.batch.outputs.start_index }}" \
             "${{ steps.batch.outputs.end_index }}" \
-            "${{ github.repository }}" \
-            "${{ secrets.GOOGLE_CLIENT_ID }}" \
-            "${{ secrets.GOOGLE_CLIENT_SECRET }}" \
-            "${{ secrets.GOOGLE_REFRESH_TOKEN }}"
+            "${{ github.repository }}"
 
       - name: Sync Kernel Metadata
         run: |
