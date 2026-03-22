@@ -52,7 +52,8 @@ def log(msg):
 print("=" * 56)
 print("Installing dependencies...")
 PKGS = [
-    "diffusers>=0.33.0", "transformers>=4.47.0",
+    "git+https://github.com/huggingface/diffusers.git",
+    "transformers>=4.47.0",
     "accelerate>=0.28.0", "sentencepiece",
     "huggingface_hub>=0.23.0",
     "Pillow>=10.0", "numpy", "requests",
@@ -104,7 +105,43 @@ SITE_URL        = "https://www.ultrapng.com"
 SITE_NAME       = "UltraPNG"
 WATERMARK_TEXT  = "www.ultrapng.com"
 ITEMS_PER_PAGE  = 24
+
 SITEMAP_MAX_URL = 45000
+
+# ══════════════════════════════════════════════════════════════
+# CATEGORY ENHANCERS — prompt quality boost per category
+# ══════════════════════════════════════════════════════════════
+CATEGORY_ENHANCERS = {
+    "indian_foods":     ", appetizing food styling, steam visible, glistening surface",
+    "food_indian":      ", appetizing food styling, steam visible, glistening surface",
+    "world_foods":      ", appetizing food styling, steam visible, glistening sauce",
+    "food_world":       ", appetizing food styling, steam visible, glistening sauce",
+    "fruits":           ", natural skin texture, juice droplets",
+    "vegetables":       ", natural surface texture, fresh harvest quality",
+    "flowers":          ", petal vein detail, natural color saturation",
+    "jewellery_models": ", gem facet reflections, gold metal mirror finish",
+    "jewellery":        ", gem facet reflections, gold metal mirror finish",
+    "vehicles":         ", automotive paint reflection, chrome detail",
+    "vehicles_cars":    ", automotive paint reflection, chrome detail",
+    "vehicles_bikes":   ", automotive paint reflection, chrome detail",
+    "poultry_animals":  ", fur and feather strand detail, catchlight in eyes",
+    "animals":          ", fur and feather strand detail, catchlight in eyes",
+    "raw_meat":         ", fresh meat texture, glistening moist surface",
+    "cool_drinks":      ", condensation droplets, liquid transparency",
+    "beverages":        ", condensation droplets, liquid transparency",
+    "footwear":         ", leather grain, stitching detail",
+    "shoes":            ", leather grain, stitching detail",
+    "indian_dress":     ", fabric weave, embroidery thread detail",
+    "clothing":         ", fabric weave, embroidery thread detail",
+    "office_models":    ", professional portrait, sharp clothing detail",
+}
+
+def enhance_prompt(raw_prompt, category):
+    cat = (category or "").lower()
+    for key, extra in CATEGORY_ENHANCERS.items():
+        if cat.startswith(key) or key in cat:
+            return raw_prompt + extra
+    return raw_prompt
 
 # ══════════════════════════════════════════════════════════════
 # UTILITIES
@@ -346,17 +383,13 @@ def phase1_generate(batch, skip_set):
     log(f"  Loading from HuggingFace: {FLUX_HF_ID}")
     log("=" * 56)
 
-    try:
-        from diffusers import Flux2KleinPipeline as _FluxCls
-        log("  Using Flux2KleinPipeline")
-    except ImportError:
-        from diffusers import FluxPipeline as _FluxCls
-        log("  Using FluxPipeline (diffusers fallback)")
+    from diffusers import Flux2KleinPipeline
 
-    pipe = _FluxCls.from_pretrained(
+    log(f"  Loading: {FLUX_HF_ID}")
+    log("  (First run: downloads ~8GB — ~5 min)")
+    pipe = Flux2KleinPipeline.from_pretrained(
         FLUX_HF_ID,
         torch_dtype=torch.bfloat16,
-        cache_dir=str(HF_CACHE),
     )
     pipe.enable_model_cpu_offload(gpu_id=0)
     pipe.set_progress_bar_config(disable=True)
@@ -382,9 +415,10 @@ def phase1_generate(batch, skip_set):
                 generated.append({"path": str(out), "item": item})
                 continue
 
-            gen = torch.Generator("cpu").manual_seed(item["seed"])
+            gen    = torch.Generator("cpu").manual_seed(item["seed"])
+            prompt = enhance_prompt(item["prompt"], item.get("category", ""))
             img = pipe(
-                prompt=item["prompt"],
+                prompt=prompt,
                 num_inference_steps=4,
                 guidance_scale=1.0,
                 height=1024, width=1024,
@@ -399,7 +433,7 @@ def phase1_generate(batch, skip_set):
                 log(f"  Retry (blank): {fname}")
                 gen2 = torch.Generator("cpu").manual_seed(item["seed"] + 99)
                 img  = pipe(
-                    prompt=item["prompt"],
+                    prompt=prompt,
                     num_inference_steps=4,
                     guidance_scale=1.0,
                     height=1024, width=1024,
@@ -857,78 +891,44 @@ def phase3_bg_remove(posts):
         return ckpt
 
     log("=" * 56)
-    log("PHASE 3: RMBG-2.0 ONNX — Background Removal (GPU)")
-    log(f"  Loading ONNX from HuggingFace: {RMBG_HF_ID}")
+    log("PHASE 3: RMBG-2.0 — Background Removal (GPU)")
+    log(f"  Loading from HuggingFace: {RMBG_HF_ID}")
     log("=" * 56)
 
     if not posts:
         return []
 
-    import onnxruntime as ort
-    import cv2
-    from huggingface_hub import hf_hub_download
+    from torchvision import transforms
+    from transformers import AutoModelForImageSegmentation
 
-    # Download ONNX model file from HuggingFace
-    log("  Downloading RMBG ONNX model...")
-    onnx_candidates = ["model.onnx", "rmbg.onnx", "birefnet.onnx", "RMBG-2.0.onnx"]
-    onnx_path = None
+    rmbg_model = AutoModelForImageSegmentation.from_pretrained(
+        RMBG_HF_ID,
+        trust_remote_code=True,
+        cache_dir=str(HF_CACHE),
+    )
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    rmbg_model = rmbg_model.to(device).eval()
+    log(f"  RMBG-2.0 loaded on {device.upper()}\n")
 
-    for candidate in onnx_candidates:
-        try:
-            onnx_path = hf_hub_download(
-                repo_id=RMBG_HF_ID,
-                filename=candidate,
-                cache_dir=str(HF_CACHE),
-            )
-            log(f"  Found ONNX: {candidate}")
-            break
-        except Exception:
-            continue
+    transform_img = transforms.Compose([
+        transforms.Resize((1024, 1024)),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406],
+                             [0.229, 0.224, 0.225]),
+    ])
 
-    if not onnx_path:
-        # Try listing files in the repo to find any .onnx
-        try:
-            from huggingface_hub import list_repo_files
-            files = list(list_repo_files(RMBG_HF_ID))
-            onnx_files = [f for f in files if f.endswith(".onnx")]
-            if onnx_files:
-                onnx_path = hf_hub_download(
-                    repo_id=RMBG_HF_ID,
-                    filename=onnx_files[0],
-                    cache_dir=str(HF_CACHE),
-                )
-                log(f"  Found ONNX via listing: {onnx_files[0]}")
-        except Exception as e:
-            log(f"  ONNX listing failed: {e}")
-
-    if not onnx_path or not Path(onnx_path).exists():
-        raise FileNotFoundError(
-            f"Could not find any .onnx file in {RMBG_HF_ID}.\n"
-            f"Check RMBG_HF_ID at top of script."
-        )
-
-    providers = (["CUDAExecutionProvider", "CPUExecutionProvider"]
-                 if ort.get_device() == "GPU" else ["CPUExecutionProvider"])
-    session  = ort.InferenceSession(str(onnx_path), providers=providers)
-    inp_name = session.get_inputs()[0].name
-    log(f"  RMBG loaded | Provider: {session.get_providers()[0]}\n")
-
-    def remove_bg(img_pil):
-        ow, oh  = img_pil.size
-        img_np  = np.array(img_pil.convert("RGB")).astype(np.float32) / 255.0
-        img_rs  = cv2.resize(img_np, (1024, 1024), interpolation=cv2.INTER_LINEAR)
-        mean    = np.array([0.485, 0.456, 0.406], dtype=np.float32)
-        std     = np.array([0.229, 0.224, 0.225], dtype=np.float32)
-        img_rs  = (img_rs - mean) / std
-        inp     = img_rs.transpose(2, 0, 1)[np.newaxis].astype(np.float32)
-        outputs = session.run(None, {inp_name: inp})
-        mask    = outputs[0][0, 0]
-        if mask.max() > 1.0 or mask.min() < 0.0:
-            mask = 1.0 / (1.0 + np.exp(-mask))
-        mask_full = cv2.resize(mask, (ow, oh), interpolation=cv2.INTER_LINEAR)
-        mask_full = (mask_full * 255).clip(0, 255).astype(np.uint8)
-        result    = img_pil.convert("RGBA")
-        result.putalpha(Image.fromarray(mask_full))
+    def remove_bg(pil_img):
+        ow, oh   = pil_img.size
+        inp      = transform_img(pil_img.convert("RGB")).unsqueeze(0).to(device)
+        with torch.no_grad():
+            preds = rmbg_model(inp)[-1].sigmoid()
+        mask = preds[0].squeeze().cpu().numpy()
+        # resize mask back to original size
+        from PIL import Image as _Im
+        import numpy as _np
+        mask_pil  = _Im.fromarray((mask * 255).astype(_np.uint8)).resize((ow, oh), _Im.LANCZOS)
+        result    = pil_img.convert("RGBA")
+        result.putalpha(mask_pil)
         return result
 
     result_posts, t0 = [], time.time()
@@ -944,8 +944,8 @@ def phase3_bg_remove(posts):
                 result_posts.append({**post, "transparent_path": str(out)})
                 continue
 
-            with Image.open(path).convert("RGB") as img_pil:
-                result = remove_bg(img_pil)
+            img    = Image.open(str(path)).convert("RGB")
+            result = remove_bg(img)
             result.save(str(out), "PNG", compress_level=0)
             result_posts.append({**post, "transparent_path": str(out)})
 
@@ -955,13 +955,15 @@ def phase3_bg_remove(posts):
         except Exception as e:
             log(f"  RMBG FAIL {path.name}: {e}")
 
-    log("\n  Deleting RMBG session...")
-    del session
+    # ── DELETE model → free VRAM for Phase 4 ──
+    log("\n  Deleting RMBG-2.0 → freeing VRAM...")
+    del rmbg_model, transform_img
     free_memory()
 
     save_checkpoint("phase3_transparent", result_posts)
     log(f"PHASE 3 DONE — Transparent PNGs: {len(result_posts)}\n")
     return result_posts
+
 
 # ══════════════════════════════════════════════════════════════
 # PHASE 4 — Google Drive Upload
