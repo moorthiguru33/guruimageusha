@@ -2,8 +2,10 @@
 
 | Date & Time | Generated | Deleted | Approved | Uploaded | Posts | Duration | Status |
 |-------------|-----------|---------|----------|----------|-------|----------|--------|
+| 2026-03-22 19-13 | 0 | 0 | 0 | 0 | 0 | 0.0h | FAILED: Dataset download failed (exit 1).
+stderr: 
+stdout: Dataset URL: https://www.kagg |
 | 2026-03-22 18-57 | 0 | 0 | 0 | 0 | 0 | 0.0h | FAILED: FLUX model not found at: /kaggle/input/my-pipeline-models/flux2-klein
-  Contents |
 | 2026-03-22 18-44 | 0 | 0 | 0 | 0 | 0 | 0.0h | FAILED: The provided pretrained_model_name_or_path "/kaggle/input/my-pipeline-models/flu |
 | 2026-03-22 18-31 | 0 | 0 | 0 | 0 | 0 | 0.0h | FAILED: The provided pretrained_model_name_or_path "/kaggle/input/my-pipeline-models/flu |
 | 2026-03-22 18-25 | 0 | 0 | 0 | 0 | 0 | 0.0h | FAILED: The provided pretrained_model_name_or_path "/kaggle/input/my-pipeline-models/flu |
