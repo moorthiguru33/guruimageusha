@@ -47,8 +47,8 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install Kaggle CLI
-        run: pip install kaggle
+      - name: Install Kaggle CLI + nbconvert
+        run: pip install kaggle nbconvert nbformat
 
       - name: Setup Kaggle Credentials
         run: |
@@ -56,6 +56,7 @@ jobs:
           echo '{"username":"${{ secrets.KAGGLE_USERNAME }}","key":"${{ secrets.KAGGLE_KEY }}"}' > ~/.kaggle/kaggle.json
           chmod 600 ~/.kaggle/kaggle.json
           kaggle --version
+          echo "Kaggle username: ${{ secrets.KAGGLE_USERNAME }}"
           kaggle kernels list --mine --page-size 1 || { echo "ERROR: Kaggle credentials invalid!"; exit 1; }
 
       - name: Calculate Batch
@@ -79,6 +80,28 @@ jobs:
           echo "end_index=$END" >> $GITHUB_OUTPUT
           echo "Batch: $START → $END"
 
+      - name: Clean Notebook Outputs (remove old data)
+        run: |
+          echo "Clearing old notebook outputs..."
+          python3 -c "
+          import json, copy
+          with open('kaggle/main_pipeline.ipynb', 'r', encoding='utf-8') as f:
+              nb = json.load(f)
+
+          # Remove ALL outputs and execution counts from every cell
+          for cell in nb.get('cells', []):
+              cell['outputs'] = []
+              cell['execution_count'] = None
+              # Remove any metadata that might carry old run info
+              if 'metadata' in cell:
+                  cell['metadata'] = {'trusted': True}
+
+          with open('kaggle/main_pipeline.ipynb', 'w', encoding='utf-8') as f:
+              json.dump(nb, f, ensure_ascii=False, indent=1)
+
+          print(f'Cleaned {len(nb[\"cells\"])} cells — all outputs removed!')
+          "
+
       - name: Inject Credentials
         env:
           GOOGLE_CLIENT_ID:       ${{ secrets.GOOGLE_CLIENT_ID }}
@@ -92,6 +115,7 @@ jobs:
             "${{ steps.batch.outputs.start_index }}" \
             "${{ steps.batch.outputs.end_index }}" \
             "${{ github.repository }}"
+          echo "Credentials injected for batch ${{ steps.batch.outputs.start_index }} → ${{ steps.batch.outputs.end_index }}"
 
       - name: Sync Kernel Metadata
         run: |
@@ -106,18 +130,40 @@ jobs:
           meta['dataset_sources'] = ['${DATASET_ID}']
           with open('kernel-metadata.json', 'w') as f:
               json.dump(meta, f, indent=2)
+          print('kernel-metadata.json updated:')
           print(json.dumps(meta, indent=2))
+          "
+
+      - name: Verify Notebook is Clean
+        run: |
+          python3 -c "
+          import json
+          with open('kaggle/main_pipeline.ipynb') as f:
+              nb = json.load(f)
+          cells = nb['cells']
+          print(f'Total cells: {len(cells)}')
+          for i, c in enumerate(cells):
+              src = ''.join(c.get('source',''))[:80].replace('\n',' ')
+              outs = len(c.get('outputs', []))
+              print(f'  Cell {i}: outputs={outs} | {src}')
+          total_outputs = sum(len(c.get('outputs',[])) for c in cells)
+          if total_outputs > 0:
+              print(f'WARNING: {total_outputs} old outputs still present!')
+          else:
+              print('✅ Notebook is clean — no old data!')
           "
 
       - name: Push to Kaggle
         run: |
           KERNEL="${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}"
+          echo "Pushing kernel: $KERNEL"
 
-          # ── Wait if kernel is active ──
+          # Wait if kernel is active
           for i in 1 2 3 4 5; do
             STATUS=$(kaggle kernels status "$KERNEL" 2>&1 || true)
             echo "[$i] $STATUS"
             if echo "$STATUS" | grep -qiE 'running|queued'; then
+              echo "Kernel busy — cancelling..."
               kaggle kernels cancel "$KERNEL" 2>/dev/null || true
               sleep 30
             else
@@ -125,7 +171,7 @@ jobs:
             fi
           done
 
-          # ── Push (simple retry, NO auto-delete) ──
+          # Push with retry
           cd kaggle
           MAX_RETRIES=3
           ATTEMPT=0
