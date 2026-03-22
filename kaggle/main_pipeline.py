@@ -62,9 +62,13 @@ import requests as req
 # ══════════════════════════════════════════════════════════════
 # PATHS
 # ══════════════════════════════════════════════════════════════
-MODELS_DIR      = Path("/kaggle/input/my-pipeline-models")
-FLUX_DIR        = MODELS_DIR / "flux2-klein"
-QWEN_DIR        = MODELS_DIR / "qwen-vision"
+# Models dir: prefer /kaggle/input (mounted), fallback to /kaggle/working/models (downloaded)
+_MODELS_MOUNTED = Path("/kaggle/input/my-pipeline-models")
+_MODELS_WORKING = Path("/kaggle/working/models/my-pipeline-models")
+MODELS_DIR = _MODELS_MOUNTED if _MODELS_MOUNTED.exists() else _MODELS_WORKING
+
+FLUX_DIR = MODELS_DIR / "flux2-klein"
+QWEN_DIR = MODELS_DIR / "qwen-vision"
 
 def _find_onnx():
     """Auto-find ONNX model — called AFTER ensure_models()."""
@@ -141,46 +145,59 @@ def download_url(fid):
 # PHASE 0 — Auto-download models if not mounted
 # ══════════════════════════════════════════════════════════════
 def ensure_models():
-    """Download dataset from Kaggle if /kaggle/input/my-pipeline-models is missing."""
-    if MODELS_DIR.exists():
-        log(f"✅ Models found at {MODELS_DIR}")
+    """Ensure models are available. /kaggle/input is read-only (mounted by Kaggle).
+    If not mounted, download to /kaggle/working/models/ (writable)."""
+    global MODELS_DIR, FLUX_DIR, QWEN_DIR
+
+    # Check if already mounted by Kaggle (preferred path)
+    if _MODELS_MOUNTED.exists():
+        MODELS_DIR = _MODELS_MOUNTED
+        FLUX_DIR   = MODELS_DIR / "flux2-klein"
+        QWEN_DIR   = MODELS_DIR / "qwen-vision"
+        log(f"✅ Models mounted at {MODELS_DIR}")
         contents = sorted(p.name for p in MODELS_DIR.iterdir())
         log(f"   Contents: {contents}")
         return
 
     log("=" * 56)
-    log("PHASE 0: Models not mounted — auto-downloading...")
+    log("PHASE 0: Models not mounted — downloading to working dir...")
     log(f"  Dataset: {KAGGLE_DATASET}")
+    log("  Target : /kaggle/working/models/  (writable)")
     log("=" * 56)
 
-    # Kaggle CLI is pre-installed and auto-authenticated in Kaggle kernels
-    dl_target = Path("/kaggle/input")
+    # /kaggle/input is READ-ONLY — must download to /kaggle/working/
+    dl_target = Path("/kaggle/working/models")
     dl_target.mkdir(parents=True, exist_ok=True)
 
     r = subprocess.run(
         ["kaggle", "datasets", "download", KAGGLE_DATASET,
          "--path", str(dl_target), "--unzip", "--quiet"],
-        capture_output=True, text=True, timeout=3600
+        capture_output=True, text=True, timeout=7200
     )
 
     if r.returncode != 0:
         raise RuntimeError(
             f"Dataset download failed (exit {r.returncode}).\n"
-            f"stderr: {r.stderr[:500]}\n"
-            f"stdout: {r.stdout[:500]}\n\n"
-            f"Fix: Go to Kaggle Notebook → Settings → Data → Add Data → "
-            f"search '{KAGGLE_DATASET}' and attach it manually."
+            f"stdout: {r.stdout[:500]}\n"
+            f"stderr: {r.stderr[:500]}\n\n"
+            f"IMPORTANT FIX: Attach dataset via Kaggle UI:\n"
+            f"  Notebook → Settings (right panel) → Data → Add Data\n"
+            f"  Search: gurumoorthirajagopal/my-pipeline-models → Add"
         )
+
+    # Update global paths to point to downloaded location
+    MODELS_DIR = _MODELS_WORKING
+    FLUX_DIR   = MODELS_DIR / "flux2-klein"
+    QWEN_DIR   = MODELS_DIR / "qwen-vision"
 
     if not MODELS_DIR.exists():
-        # Check what was actually downloaded
         items = sorted(p.name for p in dl_target.iterdir()) if dl_target.exists() else []
         raise RuntimeError(
-            f"Download completed but {MODELS_DIR} still missing.\n"
-            f"Contents of /kaggle/input: {items}"
+            f"Download completed but {MODELS_DIR} missing.\n"
+            f"Contents of /kaggle/working/models: {items}"
         )
 
-    log(f"✅ Models downloaded successfully!")
+    log(f"✅ Models downloaded to {MODELS_DIR}")
     contents = sorted(p.name for p in MODELS_DIR.iterdir())
     log(f"   Contents: {contents}")
 
