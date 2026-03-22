@@ -121,6 +121,362 @@ ITEMS_PER_PAGE  = 24
 SITEMAP_MAX_URL = 45000
 
 # ══════════════════════════════════════════════════════════════
+# UTILITIES
+# ══════════════════════════════════════════════════════════════
+def log(msg):
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}", flush=True)
+
+def free_memory():
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        torch.cuda.synchronize()
+    used = torch.cuda.memory_allocated(0) / 1e9 if torch.cuda.is_available() else 0
+    log(f"  GPU used: {used:.1f}GB")
+
+def slugify(s, max_len=60):
+    s = re.sub(r'[^a-z0-9]+', '-', str(s).lower()).strip('-')
+    if len(s) > max_len:
+        cut = s[:max_len]
+        idx = cut.rfind('-')
+        s   = cut[:idx] if idx > max_len // 2 else cut
+    return s or 'untitled'
+
+def esc(s):
+    return (str(s or '')
+            .replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+            .replace('"', '&quot;').replace("'", "&#39;"))
+
+def preview_url(fid, size=800):
+    return f"https://lh3.googleusercontent.com/d/{fid}=s{size}"
+
+def download_url(fid):
+    return f"https://drive.usercontent.google.com/download?id={fid}&export=download&authuser=0"
+
+def send_telegram(message, parse_mode="HTML"):
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        return
+    try:
+        r = req.post(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+            json={"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": parse_mode},
+            timeout=15)
+        if not r.ok:
+            log(f"  Telegram warn: {r.status_code}")
+    except Exception as e:
+        log(f"  Telegram error (non-fatal): {e}")
+
+# ══════════════════════════════════════════════════════════════
+# CHECKPOINT SYSTEM
+# ══════════════════════════════════════════════════════════════
+def save_checkpoint(name, data):
+    path = CHECKPOINT_DIR / f"{name}.json"
+    tmp  = str(path) + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False)
+    os.replace(tmp, str(path))
+    log(f"  Checkpoint saved: {name} ({len(data)} items)")
+
+def load_checkpoint(name):
+    path = CHECKPOINT_DIR / f"{name}.json"
+    if path.exists():
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+        log(f"  Checkpoint loaded: {name} ({len(data)} items)")
+        return data
+    return None
+
+# ══════════════════════════════════════════════════════════════
+# GOOGLE DRIVE API
+# ══════════════════════════════════════════════════════════════
+_token_cache = {"value": None, "expires": 0}
+
+def get_drive_token():
+    if _token_cache["value"] and time.time() < _token_cache["expires"]:
+        return _token_cache["value"]
+    r = req.post("https://oauth2.googleapis.com/token", data={
+        "client_id":     GOOGLE_CLIENT_ID,
+        "client_secret": GOOGLE_CLIENT_SECRET,
+        "refresh_token": GOOGLE_REFRESH_TOKEN,
+        "grant_type":    "refresh_token",
+    }, timeout=30)
+    d = r.json()
+    if "access_token" not in d:
+        raise Exception(f"Token error: {d}")
+    _token_cache.update({"value": d["access_token"], "expires": time.time() + 3200})
+    return _token_cache["value"]
+
+def drive_folder(token, name, parent=None):
+    h = {"Authorization": f"Bearer {token}"}
+    q = f"name='{name}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
+    if parent:
+        q += f" and '{parent}' in parents"
+    r = req.get("https://www.googleapis.com/drive/v3/files",
+                headers=h, params={"q": q, "fields": "files(id)"}, timeout=30)
+    files = r.json().get("files", [])
+    if files:
+        return files[0]["id"]
+    meta = {"name": name, "mimeType": "application/vnd.google-apps.folder"}
+    if parent:
+        meta["parents"] = [parent]
+    return req.post(
+        "https://www.googleapis.com/drive/v3/files",
+        headers={**h, "Content-Type": "application/json"},
+        json=meta, timeout=30).json()["id"]
+
+def drive_upload(token, folder_id, name, data, mime="image/png", retries=3):
+    for attempt in range(1, retries + 1):
+        try:
+            h        = {"Authorization": f"Bearer {token}"}
+            metadata = json.dumps({"name": name, "parents": [folder_id]})
+            b        = "----UltraPNGPipe"
+            body = (
+                f"--{b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n{metadata}\r\n"
+                f"--{b}\r\nContent-Type: {mime}\r\n\r\n"
+            ).encode() + data + f"\r\n--{b}--".encode()
+            r = req.post(
+                "https://www.googleapis.com/upload/drive/v3/files"
+                "?uploadType=multipart&fields=id,name",
+                headers={**h, "Content-Type": f'multipart/related; boundary="{b}"'},
+                data=body, timeout=120)
+            if r.ok:
+                return r.json()
+            raise Exception(f"HTTP {r.status_code}: {r.text[:150]}")
+        except Exception as e:
+            if attempt < retries:
+                log(f"  Upload retry {attempt}/{retries}: {e}")
+                time.sleep(5 * attempt)
+            else:
+                raise
+
+def drive_share(token, fid):
+    try:
+        req.post(
+            f"https://www.googleapis.com/drive/v3/files/{fid}/permissions",
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            json={"role": "reader", "type": "anyone"}, timeout=30)
+    except Exception:
+        pass
+
+def make_previews(png_path):
+    """Diagonal watermarked JPG + WebP previews with EXIF copyright."""
+    import piexif
+
+    with Image.open(png_path).convert("RGBA") as img_rgba:
+        w, h = img_rgba.size
+        if max(w, h) > 800:
+            r        = 800 / max(w, h)
+            img_rgba = img_rgba.resize((int(w * r), int(h * r)), Image.LANCZOS)
+        w, h = img_rgba.size
+
+        bg  = Image.new("RGB", (w, h), (255, 255, 255))
+        drw = ImageDraw.Draw(bg)
+        for ry in range(0, h, 20):
+            for cx in range(0, w, 20):
+                if (ry // 20 + cx // 20) % 2 == 1:
+                    drw.rectangle([cx, ry, cx + 20, ry + 20], fill=(232, 232, 232))
+        bg.paste(img_rgba.convert("RGB"), mask=img_rgba.split()[3])
+
+        try:
+            fnt = ImageFont.truetype(
+                "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 13)
+        except Exception:
+            fnt = ImageFont.load_default()
+
+        wm_layer = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        wm_draw  = ImageDraw.Draw(wm_layer)
+        for ry in range(-h, h + 110, 110):
+            for cx in range(-w, w + 110, 110):
+                wm_draw.text((cx, ry), WATERMARK_TEXT, fill=(0, 0, 0, 42), font=fnt)
+        wm_rot  = wm_layer.rotate(-30, expand=False)
+        bg_rgba = bg.convert("RGBA")
+        bg_rgba.alpha_composite(wm_rot)
+        bg = bg_rgba.convert("RGB")
+
+        drw2 = ImageDraw.Draw(bg)
+        drw2.rectangle([0, h - 36, w, h], fill=(13, 13, 20))
+        try:
+            fnt2 = ImageFont.truetype(
+                "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 15)
+        except Exception:
+            fnt2 = fnt
+        drw2.text((w // 2 - 72, h - 26), WATERMARK_TEXT, fill=(245, 166, 35), font=fnt2)
+
+        exif_bytes = piexif.dump({
+            "0th": {
+                piexif.ImageIFD.Copyright: WATERMARK_TEXT.encode(),
+                piexif.ImageIFD.Artist:    SITE_NAME.encode(),
+                piexif.ImageIFD.Software:  b"UltraPNG Pipeline V5.5",
+            }
+        })
+
+        jpg_buf = io.BytesIO()
+        bg.save(jpg_buf, "JPEG", quality=85, optimize=True, exif=exif_bytes)
+
+        webp_buf = io.BytesIO()
+        bg.save(webp_buf, "WEBP", quality=82, method=4)
+
+    return jpg_buf.getvalue(), webp_buf.getvalue(), w, h
+
+# ══════════════════════════════════════════════════════════════
+# SKIP SET — from REPO2 JSON (fast, no Drive scan)
+# ══════════════════════════════════════════════════════════════
+def load_skip_set_from_json():
+    log("Building skip-set from REPO2 JSON files...")
+    skip_set = set()
+
+    if not REPO2_DIR.exists():
+        try:
+            repo_url = f"https://x-access-token:{GITHUB_TOKEN}@github.com/{GITHUB_REPO2}.git"
+            subprocess.run(
+                ["git", "clone", "--depth", "1", "--filter=blob:none",
+                 "--sparse", repo_url, str(REPO2_DIR)],
+                capture_output=True, check=True)
+            subprocess.run(
+                ["git", "sparse-checkout", "init", "--cone"],
+                cwd=str(REPO2_DIR), capture_output=True, check=True)
+            subprocess.run(
+                ["git", "sparse-checkout", "set", "data"],
+                cwd=str(REPO2_DIR), capture_output=True, check=True)
+        except Exception as e:
+            log(f"  Skip-set clone warning: {e}")
+            return skip_set
+
+    data_dir = REPO2_DIR / "data"
+    if not data_dir.exists():
+        log("  No data dir — starting fresh")
+        return skip_set
+
+    for jf in data_dir.glob("*.json"):
+        if jf.name.startswith("_"):
+            continue
+        try:
+            entries = json.loads(jf.read_text("utf-8"))
+            for e in entries:
+                fn = e.get("filename", "")
+                if fn:
+                    skip_set.add(fn)
+        except Exception:
+            pass
+
+    log(f"  Skip-set: {len(skip_set)} already-done filenames")
+    return skip_set
+
+def load_prompts():
+    log("Loading prompts...")
+    if GITHUB_REPO1 and not PROJECT_DIR.exists():
+        os.system(
+            f"git clone --depth 1 https://github.com/{GITHUB_REPO1} {PROJECT_DIR} 2>/dev/null")
+    if PROJECT_DIR.exists():
+        sys.path.insert(0, str(PROJECT_DIR))
+        try:
+            from prompts.prompt_engine import load_all_prompts
+            prompts = load_all_prompts(str(PROJECT_DIR / "prompts" / "splits"))
+            log(f"Loaded {len(prompts)} prompts")
+            return prompts
+        except Exception as e:
+            log(f"Prompt error: {e}")
+    log("FATAL: No prompts!")
+    return []
+
+# ══════════════════════════════════════════════════════════════
+# PHASE 1 — FLUX.2-Klein-4B  Image Generation
+# ══════════════════════════════════════════════════════════════
+def phase1_generate(batch, skip_set):
+    ckpt = load_checkpoint("phase1_generated")
+    if ckpt:
+        return ckpt
+
+    log("=" * 56)
+    log("PHASE 1: FLUX.2-Klein-4B — Image Generation")
+    log("=" * 56)
+
+    from diffusers import Flux2KleinPipeline
+
+    log("Loading FLUX.2 (instant from dataset)...")
+    pipe = Flux2KleinPipeline.from_pretrained(str(FLUX_DIR), torch_dtype=torch.bfloat16)
+    pipe.enable_model_cpu_offload(gpu_id=0)
+    pipe.set_progress_bar_config(disable=True)
+    log(f"FLUX.2 loaded | Batch: {len(batch)} | Skip: {len(skip_set)}\n")
+
+    generated, skipped, t0 = [], 0, time.time()
+
+    for i, item in enumerate(batch):
+        fname = item["filename"]
+
+        if fname in skip_set:
+            skipped += 1
+            if skipped <= 3 or skipped % 50 == 0:
+                log(f"  SKIP [{i+1}/{len(batch)}] {fname}")
+            continue
+
+        try:
+            out_dir = GENERATED_DIR / item["category"] / item.get("subcategory", "general")
+            out_dir.mkdir(parents=True, exist_ok=True)
+            out = out_dir / fname
+
+            if out.exists():
+                generated.append({"path": str(out), "item": item})
+                continue
+
+            gen = torch.Generator("cpu").manual_seed(item["seed"])
+            img = pipe(
+                prompt=item["prompt"],
+                num_inference_steps=4,
+                guidance_scale=1.0,
+                height=1024, width=1024,
+                generator=gen,
+            ).images[0]
+
+            # Blank image check (0.3% of pixels)
+            arr    = np.array(img)
+            n_px   = arr.shape[0] * arr.shape[1]
+            thresh = int(n_px * 0.003)
+            if arr.std() < 5 or (arr < 250).sum() < thresh:
+                log(f"  Retry (blank): {fname}")
+                gen2 = torch.Generator("cpu").manual_seed(item["seed"] + 99)
+                img  = pipe(
+                    prompt=item["prompt"],
+                    num_inference_steps=4,
+                    guidance_scale=1.0,
+                    height=1024, width=1024,
+                    generator=gen2,
+                ).images[0]
+
+            img.save(str(out), "PNG", compress_level=0)
+            generated.append({"path": str(out), "item": item})
+
+            done = len(generated)
+            rate = done / (time.time() - t0)
+            eta  = (len(batch) - i - 1) / rate / 60 if rate > 0 else 0
+            log(f"  [{i+1}/{len(batch)}] OK {fname} | {item['category']} | ETA {eta:.0f}min")
+
+        except torch.cuda.OutOfMemoryError:
+            torch.cuda.empty_cache()
+            log(f"  OOM: {fname}")
+        except Exception as e:
+            log(f"  FAIL {fname}: {e}")
+
+    log("\n  Deleting FLUX.2 -> freeing ~8GB VRAM...")
+    del pipe
+    free_memory()
+
+    save_checkpoint("phase1_generated", generated)
+    log(f"PHASE 1 DONE — Generated: {len(generated)} | Skipped: {skipped}\n")
+    return generated
+
+# ══════════════════════════════════════════════════════════════
+# PHASE 2 — Qwen2.5-VL-3B SINGLE PASS: Filter + SEO
+#
+# WORLD BEST: One Qwen load handles both quality filter AND
+# SEO content generation. Replaces CLIP entirely.
+#
+# FILTER RULES:
+#   DELETE: two-headed, fused species, severely deformed
+#   KEEP:   group photos same species, all tools/food/flowers
+# ══════════════════════════════════════════════════════════════
+
+# ══════════════════════════════════════════════════════════════
 # CATEGORY GROUPS — Smart filter rules per group
 # Every category gets subject-match + quality check (no bypass)
 # ══════════════════════════════════════════════════════════════
@@ -673,6 +1029,70 @@ def phase2_qwen_filter_seo(generated):
         f"ParseFail:{stats['parse_fail']}\n")
     return posts
 
+
+
+def _fallback_desc(subject, category, prompt=""):
+    ph = f' (prompt: "{prompt[:100]}")' if prompt else ""
+    return f"""## About This {subject} PNG Image
+
+This high-quality {subject} PNG image{ph} is available for free download from UltraPNG.com. The image features a completely transparent background, making it perfect for graphic designers working on flex banners, social media posts, YouTube thumbnails, and digital marketing designs. Every edge is precisely processed using RMBG-2.0 AI for seamless integration into any project.
+
+The {subject} collection at UltraPNG.com is updated daily with fresh AI-generated images across 50+ categories. This PNG delivers professional-grade transparency that works in Photoshop, Canva, CorelDRAW, and Figma — no manual background removal needed.
+
+## Image Quality & Technical Details
+
+This {subject} PNG is processed using RMBG-2.0 ONNX AI for pixel-perfect transparent edges. The HD resolution stays sharp at any scale, from 200px social media icons to 4096px flex banner prints. Clean alpha channel with anti-aliased edges blends naturally on any background.
+
+## Design Ideas & Creative Applications
+
+- Flex banner and large-format hoarding designs for businesses
+- Social media posts, Instagram stories, and WhatsApp status graphics
+- YouTube thumbnail and channel banner designs
+- Wedding invitation cards and event poster designs
+- Restaurant menu cards and food delivery app images
+- Birthday celebration and felicitation banners
+- E-commerce product catalog and online shop listings
+- PowerPoint, Google Slides, and Canva presentations
+
+## Technical Specifications
+
+| Specification | Details |
+|---|---|
+| Format | PNG with Full Alpha Channel |
+| Background | 100% Transparent |
+| Resolution | HD — print and digital ready |
+| Edge Quality | AI-processed (RMBG-2.0), clean anti-aliased |
+| Compatible With | Photoshop, Canva, CorelDRAW, Figma, GIMP |
+| Print Ready | Yes — flex, vinyl, hoarding printing |
+| License | Free personal and commercial use |
+| Watermark | Preview only — downloaded file is clean |
+
+## How to Download
+
+1. Click the **Download PNG Free** button on this page
+2. A 15-second countdown timer begins
+3. When the timer ends, click **Download Now!**
+4. The clean PNG saves to your Downloads folder
+5. Open in Photoshop or Canva, drag onto your canvas
+6. Resize freely — stays HD at any scale
+
+## Frequently Asked Questions
+
+**Is this {subject} PNG completely free?**
+Yes — 100% free personal and commercial use. No account, no sign-up. No watermark on downloaded file.
+
+**Can I use this in Canva?**
+Yes. Canva Uploads, upload PNG, drag onto canvas. Transparent background works perfectly.
+
+**Does the downloaded PNG have a watermark?**
+No. Preview shows watermark for protection — downloaded file is completely clean.
+
+**Can I print on flex banners?**
+Yes. HD resolution is print-ready for large-format flex, vinyl, and hoarding.
+
+## Why UltraPNG
+
+UltraPNG.com is a free transparent PNG library updated daily with quality-verified AI-generated images. Every PNG features pixel-perfect RMBG-2.0 transparency. Completely free — no fees, no signup, no watermarks. Trusted by designers and marketers worldwide."""
 
 
 def _fallback_post(item_data, subject, category, prompt, used_slugs, approved_path=""):
