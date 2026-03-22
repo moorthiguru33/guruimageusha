@@ -1348,3 +1348,464 @@ if __name__ == "__main__":
     for sub, cnt in subs.most_common(20):
         print(f"    {sub:<35} {cnt:>3} → {cnt*2:>4} images")
     print(f"\n🎯 DONE! {len(items)} base → {len(items)*2} unique images")
+
+# ══════════════════════════════════════════════════
+# MISSING CATEGORIES (from prompt_engine.py)
+# ══════════════════════════════════════════════════
+
+def spices():
+    items = []
+    s = (f"{_BG}, professional studio product photography, Canon EOS R5 macro lens, "
+         "8k ultra realistic, accurate spice color and texture, sharp detail, centered composition")
+    spice_list = {
+        "turmeric_powder": ["turmeric powder in a small white bowl, bright yellow", "turmeric powder heaped on a spoon", "turmeric root and powder together"],
+        "red_chili_powder": ["red chili powder in a white bowl, deep red", "red chili powder heaped, rich red color", "chili powder close-up texture"],
+        "coriander_powder": ["coriander powder in a white bowl, earthy brown", "coriander seeds and powder together", "coriander powder close-up"],
+        "cumin_seeds": ["cumin jeera seeds in a small bowl", "cumin seeds scattered on surface", "cumin seeds close-up detail"],
+        "mustard_seeds": ["black mustard seeds in a small bowl", "mustard seeds scattered on surface", "mustard seeds close-up"],
+        "black_pepper": ["whole black peppercorns in a bowl", "black pepper ground in a bowl", "peppercorns close-up on surface"],
+        "cardamom": ["green cardamom pods in a bowl", "cardamom pods and seeds together", "cardamom close-up detail"],
+        "cinnamon": ["cinnamon sticks bundle tied together", "cinnamon sticks and powder together", "cinnamon stick close-up"],
+        "cloves": ["whole cloves in a small bowl", "cloves scattered on surface", "cloves close-up detail"],
+        "star_anise": ["star anise whole pieces in a bowl", "star anise arranged on surface", "star anise close-up pattern"],
+        "bay_leaves": ["dried bay leaves in a pile", "bay leaves on white surface", "bay leaves close-up texture"],
+        "fenugreek": ["fenugreek methi seeds in a bowl", "fenugreek powder in a bowl", "fenugreek seeds close-up"],
+        "saffron": ["saffron strands in a small bowl, orange-red", "saffron on white surface close-up", "saffron in a spoon"],
+        "garam_masala": ["garam masala spice blend in a bowl", "garam masala powder mixed spice", "garam masala close-up texture"],
+        "mixed_spices": ["assorted Indian spices in small bowls arranged flat lay", "five spice bowls arranged together", "colorful spices collection overhead"],
+    }
+    for sub, descs in spice_list.items():
+        items += expand_standard("spices", sub, descs, VIEWS_STD[:3], s)
+    return dedup(items)
+
+def pooja_items():
+    items = []
+    s = (f"{_BG}, professional studio photography, Canon EOS R5, "
+         "8k ultra realistic, vibrant colors, sharp detail, centered composition")
+    pooja = {
+        "diya_clay": ["single small clay diya lamp, round earthen, single wick", "clay diya top view showing wick hole", "diya with cotton wick inside"],
+        "diya_lit": ["lit clay diya with golden flame burning, warm light", "lit diya flame close-up, warm glow", "burning diya from above, flame visible"],
+        "agarbatti": ["agarbatti incense sticks bundle tied, white and fragrant", "burning agarbatti with white smoke", "agarbatti stick holder with sticks"],
+        "camphor": ["white camphor tablets in a silver plate", "camphor block on plate", "camphor close-up white texture"],
+        "kumkum": ["red kumkum powder in small silver bowl", "kumkum on white surface close-up", "kumkum in a traditional box"],
+        "turmeric_haldi": ["yellow turmeric haldi powder in small bowl", "haldi on banana leaf", "turmeric powder close-up on surface"],
+        "flowers_pooja": ["fresh marigold and jasmine flowers arranged for pooja", "rose petals scattered on banana leaf", "mixed pooja flowers arranged"],
+        "coconut": ["whole coconut with tuft on top, pooja coconut", "coconut on banana leaf", "coconut with red marking for pooja"],
+        "brass_lamp": ["shiny brass oil lamp diya, decorative", "brass diya with multiple wicks", "brass lamp from side close-up"],
+        "silver_plate": ["clean round silver plate thali for pooja", "silver plate with items arranged", "silver thali from above empty"],
+        "bell_brass": ["shiny brass pooja bell with handle", "brass bell from side", "brass bell close-up detail"],
+        "sandalwood": ["sandalwood paste in small bowl", "sandalwood stick piece", "sandalwood powder on surface"],
+        "banana_leaf": ["fresh green banana leaf flat lay", "banana leaf piece on surface", "banana leaf top view clean"],
+        "pooja_set": ["complete pooja items arranged on a silver plate", "pooja thali with diya, flowers and kumkum", "traditional pooja setup flat lay"],
+    }
+    for sub, descs in pooja.items():
+        items += expand_standard("pooja_items", sub, descs, VIEWS_STD[:3], s)
+    return dedup(items)
+
+def tools():
+    items = []
+    s = (f"{_BG}, professional studio product photography, Canon EOS R5, "
+         "8k ultra realistic, metal surface detail, sharp focus, centered composition")
+    tool_list = {
+        "hammer": ["steel hammer with wooden handle, front view", "hammer from side", "hammer from above showing head"],
+        "screwdriver_flat": ["flat head screwdriver with yellow handle", "screwdriver from side", "screwdriver tip close-up"],
+        "screwdriver_phillips": ["Phillips cross head screwdriver with red handle", "screwdriver from side", "screwdriver from above"],
+        "wrench_spanner": ["adjustable wrench spanner, silver steel", "spanner from side", "wrench from above"],
+        "pliers": ["long nose pliers, steel handles", "pliers from side", "pliers open close-up"],
+        "saw": ["hand saw with wooden handle, steel blade", "saw from side showing teeth", "saw from above"],
+        "drill": ["electric power drill, black and yellow", "drill from side", "drill from above"],
+        "measuring_tape": ["yellow measuring tape extended", "measuring tape coiled from above", "tape measure close-up numbers"],
+        "level": ["spirit level tool, yellow", "level from side showing bubble", "level from above"],
+        "chisel": ["flat chisel with wooden handle", "chisel from side", "chisel tip close-up"],
+        "file_tool": ["metal file tool, flat bastard file", "file from side", "file surface close-up"],
+        "scissors_large": ["large heavy duty scissors", "scissors from side", "scissors open front view"],
+        "wire_cutter": ["wire cutter pliers", "wire cutter from side", "wire cutter tip close-up"],
+        "toolbox": ["red metal toolbox open with tools inside", "toolbox from above showing contents", "closed toolbox from front"],
+        "tool_set": ["set of 12 hand tools arranged flat lay", "5 tools arranged together", "screwdriver hammer pliers set"],
+    }
+    for sub, descs in tool_list.items():
+        items += expand_standard("tools", sub, descs, VIEWS_STD[:3], s)
+    return dedup(items)
+
+def raw_meat():
+    items = []
+    s = (f"{_BG}, professional studio food photography, Canon EOS R5, "
+         "8k ultra realistic, accurate meat color and texture, sharp detail, centered composition")
+    meat = {
+        "chicken_whole_raw": ["whole raw broiler chicken on white surface, pale skin", "raw whole chicken from above", "whole raw chicken from side"],
+        "chicken_pieces": ["raw chicken pieces on white plate, bone-in cuts", "chicken cut pieces top view", "raw chicken drumstick close-up"],
+        "chicken_breast": ["raw chicken breast fillet, pale pink", "chicken breast from above on plate", "chicken breast side view"],
+        "mutton_pieces": ["fresh raw mutton pieces on white plate, red meat", "mutton cuts top view", "raw mutton close-up"],
+        "mutton_leg": ["whole raw mutton leg on white surface", "mutton leg from side", "mutton leg from above"],
+        "beef_slice": ["raw beef slices on white plate, red", "beef cuts top view", "raw beef close-up texture"],
+        "pork_ribs": ["raw pork ribs on white plate", "pork ribs from above", "pork ribs from side"],
+        "fish_fillet": ["raw fish fillet on white plate, pink flesh", "fish fillet from above", "fish fillet close-up texture"],
+        "prawn_raw": ["raw fresh prawns on white plate, grey-pink", "raw prawns pile top view", "raw prawn close-up"],
+        "keema_mince": ["raw minced meat keema on plate, red ground meat", "mince top view in bowl", "minced meat close-up"],
+    }
+    for sub, descs in meat.items():
+        items += expand_food("raw_meat", sub, descs, VIEWS_3, s)
+    return dedup(items)
+
+def medical():
+    items = []
+    s = (f"{_BG}, professional studio product photography, Canon EOS R5, "
+         "8k ultra realistic, clean clinical look, sharp detail, centered composition")
+    med = {
+        "tablets": ["white round tablets on white plate", "medicine tablets in strip blister pack", "tablets scattered close-up"],
+        "capsules": ["colored capsules in a row on surface", "capsules in blister strip pack", "capsule close-up detail"],
+        "syrup_bottle": ["glass syrup medicine bottle", "syrup bottle from side", "syrup bottle from above"],
+        "injection": ["medical syringe with needle, clear body", "syringe from side", "syringe close-up tip"],
+        "stethoscope": ["black stethoscope coiled on surface", "stethoscope from above flat lay", "stethoscope end piece close-up"],
+        "thermometer": ["digital thermometer on white surface", "thermometer from side", "thermometer close-up display"],
+        "blood_pressure": ["blood pressure monitor device", "BP monitor from above", "BP monitor from side"],
+        "bandage": ["white bandage roll", "bandage unrolled on surface", "adhesive bandage strips arranged"],
+        "first_aid_box": ["red first aid kit box closed", "first aid box open showing contents", "first aid box from above"],
+        "mask": ["white surgical face mask", "mask from above", "mask from side"],
+        "gloves": ["latex medical gloves blue pair", "gloves from above", "gloves from side"],
+        "pill_organizer": ["weekly pill organizer box with compartments", "pill box from above showing days", "pill organizer close-up"],
+    }
+    for sub, descs in med.items():
+        items += expand_standard("medical", sub, descs, VIEWS_STD[:3], s)
+    return dedup(items)
+
+def music():
+    items = []
+    s = (f"{_BG}, professional studio photography, Canon EOS R5, "
+         "8k ultra realistic, sharp detail, centered composition")
+    instruments = {
+        "guitar_acoustic": ["acoustic guitar brown wooden body, front view", "acoustic guitar from side", "guitar from above flat lay"],
+        "guitar_electric": ["electric guitar red body Stratocaster style, front view", "electric guitar from side", "guitar close-up headstock"],
+        "tabla": ["pair of Indian tabla drums, front view", "tabla from above", "tabla from side"],
+        "sitar": ["Indian sitar instrument, long neck, front view", "sitar from side", "sitar close-up frets"],
+        "violin": ["violin with bow, front view", "violin from side", "violin from above"],
+        "keyboard": ["digital piano keyboard front view", "keyboard from above", "keyboard from side"],
+        "flute": ["wooden Indian flute bansuri, front view", "flute from side", "flute close-up"],
+        "veena": ["Indian veena instrument, front view", "veena from side"],
+        "mridangam": ["mridangam Indian drum, front view", "mridangam from side"],
+        "harmonium": ["harmonium pump organ, front view", "harmonium from side", "harmonium from above"],
+        "dholak": ["dholak barrel drum, front view", "dholak from side"],
+        "drums_kit": ["drum kit on grey background, front view", "drum kit from side", "drum kit from above"],
+        "microphone": ["professional microphone on stand, front view", "microphone close-up from side", "microphone from above"],
+        "headphones_music": ["studio headphones over-ear, front view", "headphones from side", "headphones from above"],
+        "speaker": ["portable Bluetooth speaker, front view", "speaker from side", "speaker from above"],
+        "music_notes": ["colorful music notes arranged on surface", "musical notes flat lay", "music symbols arrangement"],
+    }
+    for sub, descs in instruments.items():
+        items += expand_standard("music", sub, descs, VIEWS_STD[:3], s)
+    return dedup(items)
+
+def nature_trees():
+    items = []
+    s = (f"{_BG}, professional studio botanical photography, Canon EOS R5, "
+         "8k ultra realistic, accurate botanical detail, natural color, sharp focus, centered composition")
+    nature = {
+        "banyan_tree": ["banyan tree with aerial roots, full body", "banyan tree from side", "banyan tree close-up roots"],
+        "coconut_tree": ["tall coconut palm tree with coconuts, full body", "coconut tree from side", "coconut palm close-up fronds"],
+        "mango_tree": ["mango tree with green fruits, full body", "mango tree from side", "mango tree branch with fruits"],
+        "neem_tree": ["neem tree full body", "neem branch with leaves", "neem leaves close-up"],
+        "peepal_tree": ["sacred peepal tree full body", "peepal tree from side", "peepal heart-shaped leaves close-up"],
+        "bamboo": ["bamboo stalks cluster, green", "bamboo from side", "bamboo close-up texture"],
+        "cactus": ["green cactus with spines, front view", "cactus from side", "cactus close-up spines"],
+        "aloe_plant": ["aloe vera plant in pot, front view", "aloe plant from side", "aloe leaf close-up"],
+        "tulsi_plant": ["tulsi holy basil plant in clay pot", "tulsi from side", "tulsi leaves close-up"],
+        "rose_plant": ["rose bush with red flowers, front view", "rose plant from side", "rose plant close-up flower"],
+        "lotus_plant": ["pink lotus flower on water leaf, front view", "lotus from above", "lotus close-up flower"],
+        "sunflower_plant": ["sunflower on tall green stem, full plant", "sunflower plant from side", "sunflower from above"],
+        "banana_plant": ["banana plant with large leaves, full body", "banana plant from side", "banana plant leaves close-up"],
+        "papaya_plant": ["papaya tree with fruits hanging, full body", "papaya plant from side", "papaya plant close-up fruits"],
+        "paddy_rice": ["paddy rice stalks with grain, full body", "paddy field stalks from side", "rice grains on stalk close-up"],
+        "sugarcane": ["sugarcane stalks bundle, full body", "sugarcane from side", "sugarcane node close-up"],
+        "wheat_crop": ["wheat crop stalks with grain heads", "wheat from side", "wheat grain head close-up"],
+        "grass_green": ["fresh green grass patch, front view", "grass from above", "grass blade close-up"],
+        "fern": ["green fern plant with fronds", "fern from side", "fern frond close-up"],
+        "money_plant": ["money plant with heart-shaped leaves, in pot", "money plant from side", "money plant leaves close-up"],
+    }
+    for sub, descs in nature.items():
+        items += expand_standard("nature_trees", sub, descs, VIEWS_STD[:3], s)
+    return dedup(items)
+
+def offer_logos():
+    items = []
+    s = (f"{_BG}, professional graphic design studio, Canon EOS R5, "
+         "8k ultra high definition, vibrant colors, sharp crisp edges, centered composition")
+    logos = {
+        "offer_50_off": ["bold red 50% OFF sale badge, round shape, white text", "50% discount sticker red round", "50% off badge front view"],
+        "offer_buy_one": ["Buy One Get One Free badge, green circular badge", "BOGO offer label green", "buy one get one badge"],
+        "offer_new": ["NEW launch badge, blue star burst shape", "NEW arrival sticker badge", "new product launch label"],
+        "offer_free": ["FREE offer badge, orange rounded rectangle", "free gift badge orange", "free offer sticker"],
+        "offer_sale": ["SALE banner red rectangular badge with gold text", "sale tag red sticker", "sale badge front view"],
+        "offer_discount": ["discount price tag, yellow with black text", "price off badge yellow", "discount label sticker"],
+        "offer_best": ["BEST SELLER golden star badge", "best seller badge golden", "top seller label badge"],
+        "offer_limited": ["LIMITED OFFER red circular badge with clock icon", "limited time offer badge", "limited deal sticker"],
+        "offer_hot": ["HOT DEAL red fire badge with flame", "hot offer badge red", "hot deal label sticker"],
+        "offer_flat": ["FLAT 30% OFF badge, bold typography", "flat discount badge", "percent off label"],
+        "logo_star_gold": ["golden star logo badge, 5-pointed star", "gold star award badge", "star logo front view"],
+        "logo_crown": ["gold royal crown logo, ornate design", "crown badge golden", "crown logo front view"],
+        "logo_shield": ["blue shield logo with checkmark", "security shield badge", "shield logo front view"],
+        "logo_circle_badge": ["professional circular logo badge template, gold border", "round company badge", "circle badge design"],
+        "logo_ribbon": ["red award ribbon with gold center circle", "first place ribbon badge", "award ribbon front view"],
+        "logo_starburst": ["yellow starburst promotional badge", "star burst offer badge", "starburst label design"],
+        "logo_stamp": ["round rubber stamp effect badge, red ink", "official stamp badge", "stamp design front view"],
+        "logo_tag": ["price tag shape with string hole", "hang tag badge design", "product tag label"],
+        "logo_banner": ["promotional banner ribbon shape, red with gold text area", "ribbon banner design", "banner label shape"],
+        "logo_seal": ["official gold wax seal badge", "quality seal stamp gold", "seal badge front view"],
+    }
+    for sub, descs in logos.items():
+        items += expand_standard("offer_logos", sub, descs, VIEWS_STD[:3], s)
+    return dedup(items)
+
+def sky_celestial():
+    items = []
+    s = (f"{_BG}, professional studio photography, Canon EOS R5, "
+         "8k ultra realistic, vibrant colors, sharp crisp detail, centered composition")
+    sky = {
+        "sun": ["bright yellow glowing sun with rays, full circle", "sun from front view", "sun close-up with corona rays"],
+        "moon_full": ["full moon bright white circle", "full moon front view", "moon surface texture close-up"],
+        "moon_crescent": ["gold crescent moon shape", "crescent moon side view", "crescent moon close-up"],
+        "star_gold": ["single shining gold star five-pointed", "gold star from above", "star close-up shimmer"],
+        "stars_cluster": ["cluster of twinkling stars arranged", "stars scattered arrangement", "stars close-up"],
+        "cloud_white": ["white fluffy cloud shape", "cloud from front view", "cloud from below"],
+        "rainbow": ["full rainbow arc colorful", "rainbow front view", "rainbow close-up colors"],
+        "lightning_bolt": ["yellow lightning bolt electric", "lightning from front", "lightning close-up"],
+        "snowflake": ["detailed crystalline snowflake", "snowflake from above", "snowflake close-up"],
+        "comet": ["comet with glowing tail", "comet from front view", "comet tail close-up"],
+        "planet_earth": ["planet Earth blue and green sphere", "Earth from front", "Earth from side"],
+        "planet_saturn": ["Saturn with rings, gold planet", "Saturn from front", "Saturn from side"],
+        "solar_system": ["solar system planets arranged", "planets in a row overhead", "planet collection"],
+        "sunrise": ["orange sunrise glow effect", "sunrise light rays", "sunrise close-up horizon glow"],
+        "night_sky": ["night sky with stars and moon", "starry night from above", "night sky close-up stars"],
+    }
+    for sub, descs in sky.items():
+        items += expand_standard("sky_celestial", sub, descs, VIEWS_STD[:3], s)
+    return dedup(items)
+
+def pots_vessels():
+    items = []
+    s = (f"{_BG}, professional studio product photography, Canon EOS R5, "
+         "8k ultra realistic, surface detail visible, sharp focus, centered composition")
+    pots = {
+        "clay_pot_round": ["round brown clay pot with lid, traditional", "clay pot from side", "clay pot from above"],
+        "clay_pot_large": ["large brown clay matka pot", "clay matka from side", "clay matka from above"],
+        "flower_pot_red": ["red terracotta flower pot with plant", "flower pot from side", "flower pot from above"],
+        "copper_pot": ["shiny copper pot with lid, traditional", "copper pot from side", "copper pot from above"],
+        "brass_pot": ["golden brass lota pot, traditional", "brass pot from side", "brass pot from above"],
+        "steel_bucket": ["shiny stainless steel bucket with handle", "steel bucket from side", "steel bucket from above"],
+        "plastic_bucket_blue": ["blue plastic bucket with handle", "bucket from side", "bucket from above"],
+        "water_pot_clay": ["large clay water pot, traditional matka", "water pot from side", "water pot from above"],
+        "uruli": ["wide Kerala brass uruli vessel", "uruli from side", "uruli from above"],
+        "kendai": ["traditional South Indian brass kendai vessel", "kendai from side", "kendai from above"],
+        "milk_vessel": ["steel milk vessel with handle", "milk vessel from side", "milk vessel from above"],
+        "vessel_with_lid": ["steel vessel with lid, cooking pot", "vessel from side", "vessel from above"],
+        "garden_pot": ["ceramic garden flower pot", "garden pot from side", "garden pot from above"],
+        "watering_can": ["green plastic watering can", "watering can from side", "watering can from above"],
+        "drum_barrel": ["blue plastic water storage drum", "drum from side", "drum from above"],
+    }
+    for sub, descs in pots.items():
+        items += expand_standard("pots_vessels", sub, descs, VIEWS_STD[:3], s)
+    return dedup(items)
+
+def vehicles_full():
+    items = []
+    s = (f"{_BG}, professional studio automotive photography, Canon EOS R5, "
+         "8k ultra realistic, clean polished bodywork, studio car photography, centered composition")
+    # Cars
+    cars = {
+        "maruti_alto": ["Maruti Alto hatchback car, front view", "Maruti Alto side profile view", "Maruti Alto 3/4 front view"],
+        "maruti_swift": ["Maruti Swift hatchback, front view", "Maruti Swift side profile", "Maruti Swift 3/4 view"],
+        "hyundai_creta": ["Hyundai Creta SUV, front view", "Hyundai Creta side profile", "Hyundai Creta 3/4 view"],
+        "tata_nexon": ["Tata Nexon SUV, front view", "Tata Nexon side profile", "Tata Nexon 3/4 view"],
+        "honda_city": ["Honda City sedan, front view", "Honda City side profile", "Honda City 3/4 view"],
+        "toyota_innova": ["Toyota Innova MPV, front view", "Toyota Innova side profile", "Toyota Innova 3/4 view"],
+        "mahindra_scorpio": ["Mahindra Scorpio SUV, front view", "Mahindra Scorpio side profile", "Mahindra Scorpio 3/4 view"],
+        "auto_rickshaw": ["Indian auto rickshaw three-wheeler, front view", "auto rickshaw side profile", "auto rickshaw 3/4 view"],
+    }
+    for sub, descs in cars.items():
+        items += expand_standard("vehicles_cars", sub, descs, VIEWS_STD[:2], s)
+
+    # Bikes
+    bikes_s = (f"{_BG}, professional studio motorcycle photography, Canon EOS R5, "
+               "8k ultra realistic, clean polished bodywork, studio motorcycle photography, centered composition")
+    bikes = {
+        "hero_splendor": ["Hero Splendor motorcycle, side profile", "Hero Splendor front view", "Hero Splendor 3/4 view"],
+        "bajaj_pulsar": ["Bajaj Pulsar 150 motorcycle, side profile", "Bajaj Pulsar front view", "Bajaj Pulsar 3/4 view"],
+        "royal_enfield_classic": ["Royal Enfield Classic 350, side profile", "Royal Enfield front view", "Royal Enfield 3/4 view"],
+        "yamaha_r15": ["Yamaha R15 sports bike, side profile", "Yamaha R15 front view", "Yamaha R15 3/4 view"],
+        "honda_activa": ["Honda Activa scooter, side profile", "Activa front view", "Activa 3/4 view"],
+        "tvs_jupiter": ["TVS Jupiter scooter, side profile", "TVS Jupiter front view", "TVS Jupiter 3/4 view"],
+        "cycle": ["bicycle front view", "bicycle side profile", "bicycle 3/4 view"],
+    }
+    for sub, descs in bikes.items():
+        items += expand_standard("vehicles_bikes", sub, descs, VIEWS_STD[:2], bikes_s)
+
+    return dedup(items)
+
+def jewellery_models():
+    items = []
+    s = (f"{_BG}, professional studio fashion portrait photography, "
+         "Canon EOS R5 85mm portrait lens, 8k ultra realistic, "
+         "razor sharp focus, softbox studio lighting, centered composition")
+    models = {
+        "necklace_model": ["Indian woman wearing gold necklace, elegant studio portrait", "South Indian woman with temple gold necklace portrait", "woman in silk saree wearing layered gold necklace portrait"],
+        "earrings_model": ["Indian woman wearing gold jhumka earrings, studio portrait", "woman gold chandbali earrings portrait", "woman with diamond earrings elegant portrait"],
+        "bangles_model": ["Indian woman hands with gold bangles close-up", "woman bridal gold bangles wrist portrait", "woman with colorful glass bangles hands portrait"],
+        "bridal_model": ["South Indian bride full bridal gold jewellery portrait", "Tamil bride temple jewellery portrait", "Indian bride gold necklace earring set portrait"],
+        "ring_model": ["woman showing diamond ring close-up hands", "Indian woman gold ring on finger portrait", "woman hand with gold ring close-up"],
+        "maang_tikka_model": ["Indian woman wearing maang tikka forehead jewellery portrait", "bride with maang tikka and nose ring portrait", "woman forehead tikka close-up portrait"],
+    }
+    for sub, descs in models.items():
+        items += expand_standard("jewellery_models", sub, descs, ["front view", "three-quarter view", "close-up"], s)
+    return dedup(items)
+
+def office_models():
+    items = []
+    s = (f"{_BG}, professional studio fashion portrait photography, "
+         "Canon EOS R5 85mm portrait lens, 8k ultra realistic, "
+         "razor sharp focus, softbox studio lighting, centered composition")
+    office = {
+        "professional_woman": ["Indian professional woman in formal office blazer, confident portrait", "businesswoman in formal suit, studio portrait", "Indian corporate woman smart formal portrait"],
+        "professional_man": ["Indian businessman in formal suit, confident studio portrait", "man in formal shirt and trousers, professional portrait", "Indian corporate man in blazer portrait"],
+        "casual_woman": ["Indian woman in smart casual kurta and jeans, portrait", "young Indian woman modern casual dress portrait", "woman in western casual top, friendly portrait"],
+        "casual_man": ["Indian man in casual shirt, friendly portrait", "young man smart casual portrait", "Indian boy casual modern portrait"],
+        "doctor": ["Indian doctor in white coat, stethoscope, portrait", "female doctor professional portrait", "male doctor studio portrait"],
+        "teacher": ["Indian woman teacher in formal dress, portrait", "male teacher formal portrait", "teacher with book studio portrait"],
+    }
+    for sub, descs in office.items():
+        items += expand_standard("office_models", sub, descs, ["front view", "three-quarter view", "close-up head shot"], s)
+    return dedup(items)
+
+def sports():
+    items = []
+    s = (f"{_BG}, professional sports photography, Canon EOS R5, "
+         "8k ultra realistic, action frozen detail, sharp focus, centered composition")
+    sport = {
+        "cricket_bat_action": ["cricket bat ready to bat stance, front view", "cricket bat swing action side view", "cricket bat grip close-up"],
+        "cricket_bowl": ["cricket bowler action pose, side view", "bowler delivery stride", "bowling action front view"],
+        "football_kick": ["football player kicking ball action", "footballer running with ball", "football kick close-up"],
+        "badminton_smash": ["badminton player smash action, side view", "badminton serve action", "badminton player front view"],
+        "kabaddi": ["kabaddi player action pose, front view", "kabaddi raid pose side view", "kabaddi player stance"],
+        "boxing": ["boxer in fighting stance, front view", "boxer gloves raised side view", "boxing punch action"],
+        "chess_game": ["chess game in progress top view", "chess pieces on board front view", "chess king piece close-up"],
+        "running": ["sprinter running action, side view", "runner in full stride front view", "running shoes close-up action"],
+        "yoga_pose": ["yoga tree pose front view", "yoga downward dog pose", "yoga meditation pose front view"],
+        "swimming": ["swimmer action in water side view", "swimming stroke overhead view", "swimmer goggles close-up"],
+    }
+    for sub, descs in sport.items():
+        items += expand_standard("sports", sub, descs, ["front view", "side profile view", "45 degree angle view"], s)
+    return dedup(items)
+
+# ══════════════════════════════════════════════════
+# UPDATE build_all() to include new categories
+# ══════════════════════════════════════════════════
+def build_all_complete():
+    """Complete build including all categories from both generators."""
+    print("Building COMPLETE prompt library (ALL categories)...")
+    print("=" * 60)
+    registry = [
+        # Original generate_prompts.py categories
+        ("food_indian",          food_indian),
+        ("poultry_chicken",      poultry_chicken),
+        ("fish_seafood",         fish_seafood),
+        ("flowers",              flowers),
+        ("fruits",               fruits),
+        ("vegetables",           vegetables),
+        ("cool_drinks",          cool_drinks),
+        ("animals",              animals),
+        ("birds_insects",        birds_insects),
+        ("indian_sweets",        indian_sweets),
+        ("frames_borders",       frames_borders),
+        ("food_world",           food_world),
+        ("watches",              watches),
+        ("jewellery",            jewellery),
+        ("mobile_accessories",   mobile_accessories),
+        ("computer_accessories", computer_accessories),
+        ("footwear",             footwear),
+        ("indian_dress",         indian_dress),
+        ("bakery_snacks",        bakery_snacks),
+        ("dairy_products",       dairy_products),
+        ("beverages",            beverages),
+        ("eggs",                 eggs),
+        ("bags",                 bags),
+        ("clothing",             clothing),
+        ("cosmetics",            cosmetics),
+        ("electronics",          electronics),
+        ("furniture",            furniture),
+        ("festivals",            festivals),
+        ("dry_fruits_nuts",      dry_fruits_nuts),
+        ("ayurvedic_herbal",     ayurvedic_herbal),
+        ("cliparts",             cliparts),
+        ("stationery",           stationery),
+        ("kitchen_vessels",      kitchen_vessels),
+        ("sports_equipment",     sports_equipment),
+        ("indian_foods",         indian_foods_street),
+        # NEW categories added in final version
+        ("spices",               spices),
+        ("pooja_items",          pooja_items),
+        ("tools",                tools),
+        ("raw_meat",             raw_meat),
+        ("medical",              medical),
+        ("music",                music),
+        ("nature_trees",         nature_trees),
+        ("offer_logos",          offer_logos),
+        ("sky_celestial",        sky_celestial),
+        ("pots_vessels",         pots_vessels),
+        ("effects",              lambda: __import__('generate_prompts').build_effects()),
+        ("sports",               sports),
+        ("jewellery_models",     jewellery_models),
+        ("office_models",        office_models),
+    ]
+
+    out_dir = Path("prompts/splits")
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    from collections import defaultdict
+    grand_total = 0
+    all_file_names = []
+
+    for cat_name, fn in registry:
+        try:
+            items = fn()
+        except Exception as e:
+            print(f"  SKIP {cat_name}: {e}")
+            continue
+
+        grand_total += len(items)
+        fpath = out_dir / f"{cat_name}.json"
+        random.shuffle(items)
+        for i, item in enumerate(items):
+            item["index"]    = i
+            item["filename"] = f"img_{i:06d}.png"
+            item["status"]   = "pending"
+        with open(fpath, "w", encoding="utf-8") as f:
+            json.dump(items, f, ensure_ascii=False, indent=2)
+        all_file_names.append(f"{cat_name}.json")
+        print(f"  OK  {cat_name:<30} {len(items):>5} base → ~{len(items)*2:>5} images")
+
+    # Rebuild index
+    index = {
+        "total":      grand_total,
+        "categories": [f.replace(".json","") for f in all_file_names],
+        "files":      all_file_names,
+    }
+    with open(out_dir / "index.json", "w") as f:
+        json.dump(index, f, ensure_ascii=False, indent=2)
+
+    print("=" * 60)
+    print(f"  TOTAL base prompts : {grand_total}")
+    print(f"  Expected images    : ~{grand_total * 2}")
+    print(f"  Categories         : {len(all_file_names)}")
+    print("  DONE!")
+    return grand_total
+
+
+if __name__ == "__main__":
+    build_all_complete()
+
+def build_effects():
+    """Effects prompts (called from build_all_complete)."""
+    import json
+    from pathlib import Path
+    eff = Path("prompts/splits/effects.json")
+    if eff.exists():
+        return json.loads(eff.read_text("utf-8"))
+    return []
