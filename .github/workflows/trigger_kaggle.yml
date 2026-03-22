@@ -84,21 +84,16 @@ jobs:
         run: |
           echo "Clearing old notebook outputs..."
           python3 -c "
-          import json, copy
+          import json
           with open('kaggle/main_pipeline.ipynb', 'r', encoding='utf-8') as f:
               nb = json.load(f)
-
-          # Remove ALL outputs and execution counts from every cell
           for cell in nb.get('cells', []):
               cell['outputs'] = []
               cell['execution_count'] = None
-              # Remove any metadata that might carry old run info
               if 'metadata' in cell:
                   cell['metadata'] = {'trusted': True}
-
           with open('kaggle/main_pipeline.ipynb', 'w', encoding='utf-8') as f:
               json.dump(nb, f, ensure_ascii=False, indent=1)
-
           print(f'Cleaned {len(nb[\"cells\"])} cells — all outputs removed!')
           "
 
@@ -121,36 +116,36 @@ jobs:
         run: |
           cd kaggle
           KERNEL_ID="${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}"
-          DATASET_ID="${{ secrets.KAGGLE_USERNAME }}/my-pipeline-models"
           python3 -c "
           import json
           with open('kernel-metadata.json', 'r') as f:
               meta = json.load(f)
+          # Only update kernel ID — DO NOT touch dataset_sources
+          # dataset_sources = gurumoorthirajagopal/my-pipeline-models (correct in file)
           meta['id'] = '${KERNEL_ID}'
-          meta['dataset_sources'] = ['${DATASET_ID}']
           with open('kernel-metadata.json', 'w') as f:
               json.dump(meta, f, indent=2)
           print('kernel-metadata.json updated:')
           print(json.dumps(meta, indent=2))
           "
 
-      - name: Verify Notebook is Clean
+      - name: Verify Before Push
         run: |
+          echo "=== kernel-metadata.json ==="
+          cat kaggle/kernel-metadata.json
+          echo ""
           python3 -c "
           import json
           with open('kaggle/main_pipeline.ipynb') as f:
               nb = json.load(f)
           cells = nb['cells']
-          print(f'Total cells: {len(cells)}')
-          for i, c in enumerate(cells):
-              src = ''.join(c.get('source',''))[:80].replace('\n',' ')
-              outs = len(c.get('outputs', []))
-              print(f'  Cell {i}: outputs={outs} | {src}')
           total_outputs = sum(len(c.get('outputs',[])) for c in cells)
-          if total_outputs > 0:
-              print(f'WARNING: {total_outputs} old outputs still present!')
+          print(f'Notebook cells: {len(cells)}')
+          print(f'Old outputs: {total_outputs}')
+          if total_outputs == 0:
+              print('Notebook is clean!')
           else:
-              print('✅ Notebook is clean — no old data!')
+              print('WARNING: old outputs present!')
           "
 
       - name: Push to Kaggle
@@ -186,17 +181,16 @@ jobs:
             echo "Output: $OUTPUT"
 
             if [ $EXIT_CODE -eq 0 ] && ! echo "$OUTPUT" | grep -qiE 'conflict|cannot change'; then
-              echo "✅ PUSH SUCCESSFUL!"
+              echo "PUSH SUCCESSFUL!"
               break
             else
-              echo "❌ Push failed"
+              echo "Push failed"
               if [ $ATTEMPT -lt $MAX_RETRIES ]; then
                 echo "Retrying in ${DELAY}s..."
                 sleep $DELAY
                 DELAY=$((DELAY * 2))
               else
                 echo "ALL ATTEMPTS FAILED"
-                echo "Manual fix: Delete notebook on kaggle.com → Re-run"
                 exit 1
               fi
             fi
@@ -215,7 +209,6 @@ jobs:
 
           echo "Monitoring: $KERNEL"
           echo "Timeout: ${MAX}s (~4 hours)"
-          echo "════════════════════════════════════════"
 
           while [ $ELAPSED -lt $MAX ]; do
             FULL=$(kaggle kernels status "$KERNEL" 2>&1 || true)
@@ -232,21 +225,18 @@ jobs:
                 ;;
               complete)
                 if [ "$SEEN_RUNNING" = true ] || [ $ELAPSED -ge 300 ]; then
-                  echo "════════════════════════════════════════"
-                  echo "✅ KERNEL COMPLETED!"
+                  echo "KERNEL COMPLETED!"
                   exit 0
                 else
-                  echo "  ⚠ Stale status — waiting for new run..."
+                  echo "  Stale status — waiting for new run..."
                 fi
                 ;;
               error)
                 if [ "$SEEN_RUNNING" = true ]; then
-                  echo "════════════════════════════════════════"
-                  echo "❌ KERNEL FAILED"
-                  echo "Check logs: https://www.kaggle.com → Your Work → Code"
+                  echo "KERNEL FAILED"
                   exit 1
                 else
-                  echo "  ⚠ Stale error — waiting for new run..."
+                  echo "  Stale error — waiting for new run..."
                 fi
                 ;;
             esac
@@ -255,7 +245,7 @@ jobs:
             ELAPSED=$((ELAPSED + POLL))
           done
 
-          echo "⏰ TIMEOUT"
+          echo "TIMEOUT"
           exit 1
 
       - name: Save Progress
