@@ -40,7 +40,7 @@ if _hf_token:
 # ══════════════════════════════════════════════════════════════
 FLUX_HF_ID = "black-forest-labs/FLUX.2-klein-4B"
 QWEN_HF_ID = "Qwen/Qwen2.5-VL-3B-Instruct"
-RMBG_HF_ID = "ZhengPeng7/BiRefNet-HR"  # Highest quality: trained at 2048x2048, public MIT, no gating
+RMBG_HF_ID = "ZhengPeng7/BiRefNet_HR"  # Highest quality: 2048x2048 trained, public MIT, no gating, verified working
 
 # ══════════════════════════════════════════════════════════════
 # GLOBAL LOG CAPTURE
@@ -936,7 +936,7 @@ def phase3_bg_remove(posts):
         return ckpt
 
     log("=" * 56)
-    log("PHASE 3: BiRefNet-HR 2048x2048 — Background Removal (GPU)")
+    log("PHASE 3: BiRefNet_HR — 2048x2048 FP16 — Background Removal (GPU)")
     log(f"  Loading from HuggingFace: {RMBG_HF_ID}")
     log("=" * 56)
 
@@ -952,10 +952,11 @@ def phase3_bg_remove(posts):
         cache_dir=str(HF_CACHE),
     )
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    rmbg_model = rmbg_model.to(device).eval()
-    log(f"  RMBG-2.0 loaded on {device.upper()}\n")
+    torch.set_float32_matmul_precision("high")
+    rmbg_model = rmbg_model.to(device).eval().half()  # FP16 official recommendation
+    log(f"  BiRefNet_HR loaded on {device.upper()} | FP16 | 2048x2048\n")
 
-    # BiRefNet-HR is trained at 2048x2048 → better edge quality at higher res
+    # Official inference code from ZhengPeng7/BiRefNet_HR HuggingFace page
     transform_img = transforms.Compose([
         transforms.Resize((2048, 2048)),
         transforms.ToTensor(),
@@ -965,15 +966,12 @@ def phase3_bg_remove(posts):
 
     def remove_bg(pil_img):
         ow, oh   = pil_img.size
-        inp      = transform_img(pil_img.convert("RGB")).unsqueeze(0).to(device)
+        inp      = transform_img(pil_img.convert("RGB")).unsqueeze(0).to(device).half()
         with torch.no_grad():
-            preds = rmbg_model(inp)[-1].sigmoid()
-        mask = preds[0].squeeze().cpu().numpy()
-        # resize mask back to original size
-        from PIL import Image as _Im
-        import numpy as _np
-        mask_pil  = _Im.fromarray((mask * 255).astype(_np.uint8)).resize((ow, oh), _Im.LANCZOS)
-        result    = pil_img.convert("RGBA")
+            preds = rmbg_model(inp)[-1].sigmoid().cpu()
+        pred     = preds[0].squeeze()
+        mask_pil = transforms.ToPILImage()(pred).resize((ow, oh), Image.LANCZOS)
+        result   = pil_img.convert("RGBA")
         result.putalpha(mask_pil)
         return result
 
