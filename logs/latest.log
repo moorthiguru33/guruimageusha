@@ -1,0 +1,58 @@
+ULTRAPNG PIPELINE V5.5 — RUN REPORT
+============================================================
+Date       : 2026-03-22 17:03 IST
+Batch      : 0 -> 10
+Generated  : 0
+Deleted    : 0  (unreal/deformed by Qwen)
+Approved   : 0
+Transparent: 0
+Uploaded   : 0
+Posts      : 0
+Duration   : 0.0h
+Status     : FAILED: The provided pretrained_model_name_or_path "/kaggle/input/my-pipeline-models/flu
+============================================================
+
+FULL LOG
+============================================================
+========================================================
+Installing dependencies...
+  OK   diffusers>=0.33.0
+  OK   transformers>=4.47.0
+  OK   accelerate>=0.28.0
+  OK   sentencepiece
+  OK   Pillow>=10.0
+  OK   numpy
+  OK   requests
+  OK   onnxruntime-gpu
+  OK   torchvision
+  OK   qwen-vl-utils
+  OK   bitsandbytes
+  OK   opencv-python-headless
+  OK   piexif
+Done!
+╔══════════════════════════════════════════════════════╗
+║  UltraPNG V5.5 — WORLD BEST PIPELINE               ║
+║  FLUX -> Qwen(Filter+SEO) -> RMBG -> Drive -> Git  ║
+╚══════════════════════════════════════════════════════╝
+  Batch  : 0 -> 10 (10 prompts)
+  REPO2  : moorthiguru33/ultrapng
+  GPU    : Tesla P100-PCIE-16GB | VRAM: 17GB
+  Dataset model paths:
+    ❌ FLUX  : /kaggle/input/my-pipeline-models/flux2-klein
+    ❌ Qwen  : /kaggle/input/my-pipeline-models/qwen-vision
+    ❌ RMBG  : /kaggle/input/my-pipeline-models/rembg/onnx/model.onnx
+[17:03:00] Loading prompts...
+📦 Loaded 20035 prompts from 55 files.
+[17:03:02] Loaded 20035 prompts
+[17:03:02] Batch: 10 prompts
+[17:03:02] Building skip-set from REPO2 JSON files...
+[17:03:03]   No data dir — starting fresh
+[17:03:03] ========================================================
+[17:03:03] PHASE 1: FLUX.2-Klein-4B — Image Generation
+[17:03:03] ========================================================
+[17:03:34] Loading FLUX.2-Klein via FluxPipeline (diffusers fallback)...
+[17:03:34] Loading FLUX.2 (instant from dataset)...
+[17:03:34] FATAL: The provided pretrained_model_name_or_path "/kaggle/input/my-pipeline-models/flux2-klein" is neither a valid local path nor a valid repo id. Please check the parameter.
+[17:03:34] ========================================================
+[17:03:34] PHASE 6: Saving run logs to REPO1/logs/ (GitHub visible)
+[17:03:34] ========================================================
