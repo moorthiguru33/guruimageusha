@@ -60,7 +60,7 @@ sys.stdout = _TeeWriter(sys.__stdout__)
 print("=" * 56)
 print("Installing dependencies...")
 PKGS = [
-    "diffusers>=0.31.0", "transformers>=4.47.0",
+    "diffusers>=0.33.0", "transformers>=4.47.0",
     "accelerate>=0.28.0", "sentencepiece",
     "Pillow>=10.0", "numpy", "requests",
     "onnxruntime-gpu", "torchvision",
@@ -391,10 +391,17 @@ def phase1_generate(batch, skip_set):
     log("PHASE 1: FLUX.2-Klein-4B — Image Generation")
     log("=" * 56)
 
-    from diffusers import Flux2KleinPipeline
+    # Flux2KleinPipeline was added in diffusers 0.33+
+    # Fallback to FluxPipeline if older version installed
+    try:
+        from diffusers import Flux2KleinPipeline as _FluxCls
+        log("Loading FLUX.2-Klein via Flux2KleinPipeline...")
+    except ImportError:
+        from diffusers import FluxPipeline as _FluxCls
+        log("Loading FLUX.2-Klein via FluxPipeline (diffusers fallback)...")
 
     log("Loading FLUX.2 (instant from dataset)...")
-    pipe = Flux2KleinPipeline.from_pretrained(str(FLUX_DIR), torch_dtype=torch.bfloat16)
+    pipe = _FluxCls.from_pretrained(str(FLUX_DIR), torch_dtype=torch.bfloat16)
     pipe.enable_model_cpu_offload(gpu_id=0)
     pipe.set_progress_bar_config(disable=True)
     log(f"FLUX.2 loaded | Batch: {len(batch)} | Skip: {len(skip_set)}\n")

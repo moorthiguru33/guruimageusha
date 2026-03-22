@@ -1,9 +1,6 @@
 """
 inject_creds.py — Injects credentials as first cell into main_pipeline.ipynb
-Secrets via ENV VARS only (never sys.argv).
-
-FIX: Filter uses exact marker line to avoid deleting main pipeline code
-     (which also contains "START_INDEX" as os.environ.get call)
+Reads ALL secrets from environment variables (set by GitHub Actions secrets).
 """
 import sys, os, json
 
@@ -11,6 +8,7 @@ start  = sys.argv[1] if len(sys.argv) > 1 else "0"
 end    = sys.argv[2] if len(sys.argv) > 2 else "200"
 repo1  = sys.argv[3] if len(sys.argv) > 3 else ""
 
+# All secrets from environment variables
 client_id       = os.environ.get("GOOGLE_CLIENT_ID", "")
 client_secret   = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 refresh_token   = os.environ.get("GOOGLE_REFRESH_TOKEN", "")
@@ -37,6 +35,9 @@ os.environ["GITHUB_TOKEN_REPO1"]   = "{github_token_r1}"
 os.environ["TELEGRAM_BOT_TOKEN"]   = "{telegram_token}"
 os.environ["TELEGRAM_CHAT_ID"]     = "{telegram_chat}"
 print("Credentials loaded. Batch: {start} -> {end}")
+print(f"  REPO2: {github_repo2 or '(not set)'}")
+print(f"  Google: {'OK' if client_id else '(not set)'}")
+print(f"  Telegram: {'OK' if telegram_token else '(not set)'}")
 '''
 
 nb_path = "kaggle/main_pipeline.ipynb"
@@ -50,7 +51,6 @@ def cell_source(c):
     return src
 
 # Remove ONLY previous creds cells (identified by unique marker)
-# Never remove the main pipeline cell!
 cells = [c for c in nb.get("cells", [])
          if CREDS_MARKER not in cell_source(c)]
 
@@ -62,14 +62,12 @@ creds_cell = {
     "source": inject_code
 }
 
-# Insert credentials as first cell
 cells.insert(0, creds_cell)
 nb["cells"] = cells
 
 with open(nb_path, "w", encoding="utf-8") as f:
     json.dump(nb, f, ensure_ascii=False, indent=1)
 
-total_cells = len(cells)
 print(f"Injected credentials into {nb_path}")
-print(f"Total cells in notebook: {total_cells}")
+print(f"Total cells: {len(cells)}")
 print(f"Batch: {start} -> {end}")
