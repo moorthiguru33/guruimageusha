@@ -1,0 +1,2702 @@
+[
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga choli set flat lay, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Lehenga",
+    "seed": 193568,
+    "index": 47,
+    "filename": "img_000047.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga top view showing embroidery, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Lehenga",
+    "seed": 630930,
+    "index": 141,
+    "filename": "img_000141.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A embroidered kurta flat lay, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Kurta",
+    "seed": 564943,
+    "index": 183,
+    "filename": "img_000183.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A palazzo suit flat lay, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 103806,
+    "index": 202,
+    "filename": "img_000202.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A saree draped showing fabric texture, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 115065,
+    "index": 224,
+    "filename": "img_000224.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A boys sherwani flat lay, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Kids Dress",
+    "seed": 485792,
+    "index": 238,
+    "filename": "img_000238.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A saree draped showing fabric texture, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Saree",
+    "seed": 969250,
+    "index": 269,
+    "filename": "img_000269.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A kurta pajama set arranged flat lay, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 942456,
+    "index": 331,
+    "filename": "img_000331.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A silk saree neatly folded showing zari border, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Saree",
+    "seed": 219074,
+    "index": 337,
+    "filename": "img_000337.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A printed salwar kameez flat lay, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 346768,
+    "index": 342,
+    "filename": "img_000342.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A boys sherwani flat lay, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Kids Dress",
+    "seed": 651380,
+    "index": 351,
+    "filename": "img_000351.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A Banarasi saree folded showing embroidery, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Saree",
+    "seed": 920231,
+    "index": 376,
+    "filename": "img_000376.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A anarkali suit flat lay full length, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Salwar Kameez",
+    "seed": 492906,
+    "index": 387,
+    "filename": "img_000387.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez set flat lay showing embroidery, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 15433,
+    "index": 406,
+    "filename": "img_000406.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A printed salwar kameez flat lay, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Salwar Kameez",
+    "seed": 850435,
+    "index": 412,
+    "filename": "img_000412.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A kids lehenga choli flat lay, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Kids Dress",
+    "seed": 290724,
+    "index": 471,
+    "filename": "img_000471.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez set flat lay showing embroidery, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Salwar Kameez",
+    "seed": 283662,
+    "index": 472,
+    "filename": "img_000472.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A Banarasi saree folded showing embroidery, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 739988,
+    "index": 494,
+    "filename": "img_000494.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A cotton saree folded showing print, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Saree",
+    "seed": 804299,
+    "index": 527,
+    "filename": "img_000527.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A baby girl frock flat lay, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 205243,
+    "index": 543,
+    "filename": "img_000543.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A printed salwar kameez flat lay, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 802630,
+    "index": 561,
+    "filename": "img_000561.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A printed salwar kameez flat lay, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 311198,
+    "index": 574,
+    "filename": "img_000574.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A silk kurta folded, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 682464,
+    "index": 577,
+    "filename": "img_000577.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez set flat lay showing embroidery, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 984231,
+    "index": 631,
+    "filename": "img_000631.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A kids lehenga choli flat lay, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 858102,
+    "index": 644,
+    "filename": "img_000644.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A Kanchipuram saree folded showing gold border, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Saree",
+    "seed": 243057,
+    "index": 651,
+    "filename": "img_000651.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A palazzo suit flat lay, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Salwar Kameez",
+    "seed": 982348,
+    "index": 733,
+    "filename": "img_000733.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A bridal lehenga folded showing embroidery, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Lehenga",
+    "seed": 962671,
+    "index": 774,
+    "filename": "img_000774.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A mens kurta folded flat lay showing print, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Kurta",
+    "seed": 128679,
+    "index": 778,
+    "filename": "img_000778.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A bridal lehenga folded showing embroidery, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Lehenga",
+    "seed": 976232,
+    "index": 804,
+    "filename": "img_000804.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga top view showing embroidery, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Lehenga",
+    "seed": 836236,
+    "index": 809,
+    "filename": "img_000809.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A saree border close-up showing embroidery detail, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 356337,
+    "index": 824,
+    "filename": "img_000824.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A silk saree neatly folded showing zari border, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 234381,
+    "index": 900,
+    "filename": "img_000900.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga choli set flat lay, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Lehenga",
+    "seed": 387348,
+    "index": 949,
+    "filename": "img_000949.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A cotton saree folded showing print, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Saree",
+    "seed": 526777,
+    "index": 953,
+    "filename": "img_000953.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A palazzo suit flat lay, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 693984,
+    "index": 959,
+    "filename": "img_000959.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A printed salwar kameez flat lay, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 735242,
+    "index": 998,
+    "filename": "img_000998.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A Kanchipuram saree folded showing gold border, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Saree",
+    "seed": 138801,
+    "index": 1019,
+    "filename": "img_001019.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A bridal saree folded showing heavy embroidery, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 712371,
+    "index": 1032,
+    "filename": "img_001032.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga fabric detail close-up, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Lehenga",
+    "seed": 426278,
+    "index": 1044,
+    "filename": "img_001044.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A kids lehenga choli flat lay, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Kids Dress",
+    "seed": 495648,
+    "index": 1071,
+    "filename": "img_001071.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A bridal saree folded showing heavy embroidery, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Saree",
+    "seed": 983687,
+    "index": 1094,
+    "filename": "img_001094.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A boys sherwani flat lay, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 605361,
+    "index": 1104,
+    "filename": "img_001104.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A kurta pajama set arranged flat lay, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Kurta",
+    "seed": 988102,
+    "index": 1112,
+    "filename": "img_001112.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A mens kurta folded flat lay showing print, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 924663,
+    "index": 1124,
+    "filename": "img_001124.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga top view showing embroidery, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Lehenga",
+    "seed": 205361,
+    "index": 1145,
+    "filename": "img_001145.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A kids kurta pajama flat lay, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 776634,
+    "index": 1172,
+    "filename": "img_001172.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez set flat lay showing embroidery, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 880097,
+    "index": 1235,
+    "filename": "img_001235.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A baby girl frock flat lay, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Kids Dress",
+    "seed": 152201,
+    "index": 1299,
+    "filename": "img_001299.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A anarkali suit flat lay full length, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 175613,
+    "index": 1330,
+    "filename": "img_001330.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A Banarasi saree folded showing embroidery, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Saree",
+    "seed": 284533,
+    "index": 1357,
+    "filename": "img_001357.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A bridal saree folded showing heavy embroidery, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Saree",
+    "seed": 980605,
+    "index": 1367,
+    "filename": "img_001367.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A kurta pajama set arranged flat lay, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Kurta",
+    "seed": 931145,
+    "index": 1388,
+    "filename": "img_001388.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A cotton saree folded showing print, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 786880,
+    "index": 1413,
+    "filename": "img_001413.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez on hanger full view, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Salwar Kameez",
+    "seed": 922370,
+    "index": 1440,
+    "filename": "img_001440.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A silk kurta folded, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Kurta",
+    "seed": 428961,
+    "index": 1453,
+    "filename": "img_001453.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A embroidered kurta flat lay, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 19717,
+    "index": 1492,
+    "filename": "img_001492.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga fabric detail close-up, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Lehenga",
+    "seed": 533021,
+    "index": 1537,
+    "filename": "img_001537.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A baby girl frock flat lay, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 363487,
+    "index": 1556,
+    "filename": "img_001556.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A cotton saree folded showing print, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 655584,
+    "index": 1634,
+    "filename": "img_001634.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A Banarasi saree folded showing embroidery, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Saree",
+    "seed": 857568,
+    "index": 1723,
+    "filename": "img_001723.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A printed salwar kameez flat lay, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 480631,
+    "index": 1741,
+    "filename": "img_001741.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A sherwani flat lay showing embroidery, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Kurta",
+    "seed": 870883,
+    "index": 1768,
+    "filename": "img_001768.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A bridal lehenga folded showing embroidery, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Lehenga",
+    "seed": 992169,
+    "index": 1780,
+    "filename": "img_001780.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A children traditional festive wear flat lay, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 194019,
+    "index": 1793,
+    "filename": "img_001793.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A boys sherwani flat lay, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Kids Dress",
+    "seed": 910926,
+    "index": 1802,
+    "filename": "img_001802.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez embroidery close-up, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Salwar Kameez",
+    "seed": 424291,
+    "index": 1833,
+    "filename": "img_001833.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A silk saree neatly folded showing zari border, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Saree",
+    "seed": 357516,
+    "index": 1839,
+    "filename": "img_001839.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A saree draped showing fabric texture, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Saree",
+    "seed": 647312,
+    "index": 1856,
+    "filename": "img_001856.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez embroidery close-up, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 834649,
+    "index": 1859,
+    "filename": "img_001859.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A Banarasi saree folded showing embroidery, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 599318,
+    "index": 1922,
+    "filename": "img_001922.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga top view showing embroidery, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Lehenga",
+    "seed": 992105,
+    "index": 1929,
+    "filename": "img_001929.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A mens kurta folded flat lay showing print, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 313528,
+    "index": 1932,
+    "filename": "img_001932.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga fabric detail close-up, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Lehenga",
+    "seed": 989288,
+    "index": 1933,
+    "filename": "img_001933.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A anarkali suit flat lay full length, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 990452,
+    "index": 2013,
+    "filename": "img_002013.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez embroidery close-up, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 612022,
+    "index": 2041,
+    "filename": "img_002041.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A sherwani flat lay showing embroidery, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Kurta",
+    "seed": 820861,
+    "index": 2111,
+    "filename": "img_002111.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga fabric detail close-up, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Lehenga",
+    "seed": 974306,
+    "index": 2128,
+    "filename": "img_002128.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A kids kurta pajama flat lay, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Kids Dress",
+    "seed": 193298,
+    "index": 2136,
+    "filename": "img_002136.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A Banarasi saree folded showing embroidery, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 294815,
+    "index": 2143,
+    "filename": "img_002143.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A bridal lehenga folded showing embroidery, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Lehenga",
+    "seed": 901638,
+    "index": 2146,
+    "filename": "img_002146.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A sherwani flat lay showing embroidery, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Kurta",
+    "seed": 373342,
+    "index": 2158,
+    "filename": "img_002158.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A silk kurta folded, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 361317,
+    "index": 2190,
+    "filename": "img_002190.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A saree border close-up showing embroidery detail, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 115428,
+    "index": 2196,
+    "filename": "img_002196.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A embroidered kurta flat lay, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Kurta",
+    "seed": 242703,
+    "index": 2255,
+    "filename": "img_002255.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A bridal lehenga folded showing embroidery, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Lehenga",
+    "seed": 967590,
+    "index": 2299,
+    "filename": "img_002299.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A silk saree neatly folded showing zari border, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Saree",
+    "seed": 301238,
+    "index": 2384,
+    "filename": "img_002384.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A kids kurta pajama flat lay, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 763504,
+    "index": 2392,
+    "filename": "img_002392.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A bridal saree folded showing heavy embroidery, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Saree",
+    "seed": 347507,
+    "index": 2472,
+    "filename": "img_002472.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A silk kurta folded, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Kurta",
+    "seed": 641448,
+    "index": 2542,
+    "filename": "img_002542.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A saree draped showing fabric texture, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 65040,
+    "index": 2556,
+    "filename": "img_002556.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A palazzo suit flat lay, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 72036,
+    "index": 2566,
+    "filename": "img_002566.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A silk kurta folded, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Kurta",
+    "seed": 265488,
+    "index": 2585,
+    "filename": "img_002585.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A saree draped showing fabric texture, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 678933,
+    "index": 2599,
+    "filename": "img_002599.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A baby girl frock flat lay, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 839179,
+    "index": 2678,
+    "filename": "img_002678.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A baby girl frock flat lay, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 782399,
+    "index": 2682,
+    "filename": "img_002682.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A bridal lehenga folded showing embroidery, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Lehenga",
+    "seed": 415504,
+    "index": 2699,
+    "filename": "img_002699.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga top view showing embroidery, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Lehenga",
+    "seed": 529447,
+    "index": 2773,
+    "filename": "img_002773.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez on hanger full view, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 510641,
+    "index": 2795,
+    "filename": "img_002795.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A kids kurta pajama flat lay, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 689776,
+    "index": 2843,
+    "filename": "img_002843.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A anarkali suit flat lay full length, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 933425,
+    "index": 2863,
+    "filename": "img_002863.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A printed salwar kameez flat lay, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Salwar Kameez",
+    "seed": 122097,
+    "index": 2878,
+    "filename": "img_002878.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez set flat lay showing embroidery, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 818206,
+    "index": 2886,
+    "filename": "img_002886.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A cotton saree folded showing print, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Saree",
+    "seed": 429153,
+    "index": 2894,
+    "filename": "img_002894.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A Kanchipuram saree folded showing gold border, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Saree",
+    "seed": 267099,
+    "index": 2905,
+    "filename": "img_002905.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A bridal saree folded showing heavy embroidery, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 566837,
+    "index": 3023,
+    "filename": "img_003023.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga choli set flat lay, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Lehenga",
+    "seed": 935100,
+    "index": 3025,
+    "filename": "img_003025.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A saree draped showing fabric texture, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Saree",
+    "seed": 624548,
+    "index": 3049,
+    "filename": "img_003049.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A anarkali suit flat lay full length, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 436673,
+    "index": 3053,
+    "filename": "img_003053.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A kids lehenga choli flat lay, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 356747,
+    "index": 3056,
+    "filename": "img_003056.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A embroidered kurta flat lay, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 122512,
+    "index": 3066,
+    "filename": "img_003066.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A bridal saree folded showing heavy embroidery, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Saree",
+    "seed": 698708,
+    "index": 3080,
+    "filename": "img_003080.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A kids lehenga choli flat lay, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 212177,
+    "index": 3150,
+    "filename": "img_003150.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A bridal lehenga folded showing embroidery, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Lehenga",
+    "seed": 507341,
+    "index": 3160,
+    "filename": "img_003160.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A kids kurta pajama flat lay, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Kids Dress",
+    "seed": 778540,
+    "index": 3335,
+    "filename": "img_003335.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A kids kurta pajama flat lay, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Kids Dress",
+    "seed": 124085,
+    "index": 3373,
+    "filename": "img_003373.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A Kanchipuram saree folded showing gold border, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 294303,
+    "index": 3393,
+    "filename": "img_003393.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez embroidery close-up, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Salwar Kameez",
+    "seed": 951706,
+    "index": 3409,
+    "filename": "img_003409.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga fabric detail close-up, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Lehenga",
+    "seed": 852233,
+    "index": 3418,
+    "filename": "img_003418.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A kurta pajama set arranged flat lay, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 527904,
+    "index": 3445,
+    "filename": "img_003445.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A mens kurta folded flat lay showing print, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Kurta",
+    "seed": 772528,
+    "index": 3459,
+    "filename": "img_003459.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A saree border close-up showing embroidery detail, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Saree",
+    "seed": 728958,
+    "index": 3482,
+    "filename": "img_003482.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A children traditional festive wear flat lay, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 679752,
+    "index": 3491,
+    "filename": "img_003491.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A kurta pajama set arranged flat lay, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Kurta",
+    "seed": 819064,
+    "index": 3501,
+    "filename": "img_003501.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A Kanchipuram saree folded showing gold border, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Saree",
+    "seed": 542519,
+    "index": 3526,
+    "filename": "img_003526.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A cotton saree folded showing print, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Saree",
+    "seed": 412453,
+    "index": 3554,
+    "filename": "img_003554.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez on hanger full view, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 358313,
+    "index": 3564,
+    "filename": "img_003564.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez set flat lay showing embroidery, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 543410,
+    "index": 3602,
+    "filename": "img_003602.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A kids lehenga choli flat lay, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Kids Dress",
+    "seed": 534631,
+    "index": 3609,
+    "filename": "img_003609.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A anarkali suit flat lay full length, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Salwar Kameez",
+    "seed": 614178,
+    "index": 3612,
+    "filename": "img_003612.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A saree draped showing fabric texture, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Saree",
+    "seed": 912767,
+    "index": 3698,
+    "filename": "img_003698.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A kurta pajama set arranged flat lay, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 994152,
+    "index": 3700,
+    "filename": "img_003700.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga fabric detail close-up, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Lehenga",
+    "seed": 963185,
+    "index": 3723,
+    "filename": "img_003723.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A boys sherwani flat lay, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 319355,
+    "index": 3734,
+    "filename": "img_003734.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A saree border close-up showing embroidery detail, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Saree",
+    "seed": 445281,
+    "index": 3867,
+    "filename": "img_003867.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga top view showing embroidery, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Lehenga",
+    "seed": 731364,
+    "index": 3972,
+    "filename": "img_003972.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A palazzo suit flat lay, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 962040,
+    "index": 4043,
+    "filename": "img_004043.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez embroidery close-up, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 227982,
+    "index": 4065,
+    "filename": "img_004065.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A children traditional festive wear flat lay, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 907734,
+    "index": 4082,
+    "filename": "img_004082.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A children traditional festive wear flat lay, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Kids Dress",
+    "seed": 313013,
+    "index": 4138,
+    "filename": "img_004138.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A silk kurta folded, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 486419,
+    "index": 4143,
+    "filename": "img_004143.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A bridal lehenga folded showing embroidery, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Lehenga",
+    "seed": 49110,
+    "index": 4159,
+    "filename": "img_004159.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A mens kurta folded flat lay showing print, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Kurta",
+    "seed": 873624,
+    "index": 4161,
+    "filename": "img_004161.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez embroidery close-up, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Salwar Kameez",
+    "seed": 347864,
+    "index": 4178,
+    "filename": "img_004178.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A cotton saree folded showing print, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 625336,
+    "index": 4179,
+    "filename": "img_004179.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A Banarasi saree folded showing embroidery, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 153941,
+    "index": 4221,
+    "filename": "img_004221.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A cotton saree folded showing print, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 264235,
+    "index": 4237,
+    "filename": "img_004237.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez on hanger full view, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 692139,
+    "index": 4290,
+    "filename": "img_004290.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A boys sherwani flat lay, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 804068,
+    "index": 4291,
+    "filename": "img_004291.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A Kanchipuram saree folded showing gold border, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 878170,
+    "index": 4307,
+    "filename": "img_004307.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez embroidery close-up, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 768243,
+    "index": 4310,
+    "filename": "img_004310.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A kids lehenga choli flat lay, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Kids Dress",
+    "seed": 335391,
+    "index": 4325,
+    "filename": "img_004325.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga fabric detail close-up, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Lehenga",
+    "seed": 886822,
+    "index": 4329,
+    "filename": "img_004329.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A saree border close-up showing embroidery detail, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 724281,
+    "index": 4383,
+    "filename": "img_004383.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez on hanger full view, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 218448,
+    "index": 4390,
+    "filename": "img_004390.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga choli set flat lay, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Lehenga",
+    "seed": 268010,
+    "index": 4411,
+    "filename": "img_004411.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A saree border close-up showing embroidery detail, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Saree",
+    "seed": 910749,
+    "index": 4436,
+    "filename": "img_004436.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A saree border close-up showing embroidery detail, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Saree",
+    "seed": 873048,
+    "index": 4468,
+    "filename": "img_004468.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez set flat lay showing embroidery, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 587086,
+    "index": 4497,
+    "filename": "img_004497.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A palazzo suit flat lay, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Salwar Kameez",
+    "seed": 679577,
+    "index": 4544,
+    "filename": "img_004544.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A anarkali suit flat lay full length, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 387883,
+    "index": 4643,
+    "filename": "img_004643.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A kids lehenga choli flat lay, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 128118,
+    "index": 4715,
+    "filename": "img_004715.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A mens kurta folded flat lay showing print, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 981023,
+    "index": 4787,
+    "filename": "img_004787.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga top view showing embroidery, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Lehenga",
+    "seed": 832411,
+    "index": 4809,
+    "filename": "img_004809.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A kids kurta pajama flat lay, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 491206,
+    "index": 4811,
+    "filename": "img_004811.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A silk kurta folded, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Kurta",
+    "seed": 186226,
+    "index": 4827,
+    "filename": "img_004827.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez on hanger full view, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Salwar Kameez",
+    "seed": 597920,
+    "index": 4830,
+    "filename": "img_004830.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A Kanchipuram saree folded showing gold border, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 988346,
+    "index": 4834,
+    "filename": "img_004834.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez set flat lay showing embroidery, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Salwar Kameez",
+    "seed": 944986,
+    "index": 4885,
+    "filename": "img_004885.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A kurta pajama set arranged flat lay, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 579691,
+    "index": 4973,
+    "filename": "img_004973.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A printed salwar kameez flat lay, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 309279,
+    "index": 4985,
+    "filename": "img_004985.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A bridal lehenga folded showing embroidery, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Lehenga",
+    "seed": 411870,
+    "index": 5010,
+    "filename": "img_005010.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A kids lehenga choli flat lay, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Kids Dress",
+    "seed": 308314,
+    "index": 5013,
+    "filename": "img_005013.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga choli set flat lay, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Lehenga",
+    "seed": 526024,
+    "index": 5018,
+    "filename": "img_005018.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A kurta pajama set arranged flat lay, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Kurta",
+    "seed": 900234,
+    "index": 5035,
+    "filename": "img_005035.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A boys sherwani flat lay, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 717160,
+    "index": 5145,
+    "filename": "img_005145.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A children traditional festive wear flat lay, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Kids Dress",
+    "seed": 618152,
+    "index": 5167,
+    "filename": "img_005167.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez set flat lay showing embroidery, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 154144,
+    "index": 5188,
+    "filename": "img_005188.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A baby girl frock flat lay, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Kids Dress",
+    "seed": 729557,
+    "index": 5194,
+    "filename": "img_005194.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A embroidered kurta flat lay, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Kurta",
+    "seed": 292664,
+    "index": 5209,
+    "filename": "img_005209.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A saree draped showing fabric texture, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 443377,
+    "index": 5212,
+    "filename": "img_005212.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A kids kurta pajama flat lay, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Kids Dress",
+    "seed": 307897,
+    "index": 5264,
+    "filename": "img_005264.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga choli set flat lay, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Lehenga",
+    "seed": 762021,
+    "index": 5324,
+    "filename": "img_005324.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A cotton saree folded showing print, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Saree",
+    "seed": 158014,
+    "index": 5371,
+    "filename": "img_005371.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga fabric detail close-up, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Lehenga",
+    "seed": 48105,
+    "index": 5463,
+    "filename": "img_005463.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A silk saree neatly folded showing zari border, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Saree",
+    "seed": 687019,
+    "index": 5511,
+    "filename": "img_005511.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A Kanchipuram saree folded showing gold border, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 574739,
+    "index": 5612,
+    "filename": "img_005612.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A kurta pajama set arranged flat lay, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Kurta",
+    "seed": 573421,
+    "index": 5622,
+    "filename": "img_005622.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga fabric detail close-up, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Lehenga",
+    "seed": 593975,
+    "index": 5647,
+    "filename": "img_005647.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A embroidered kurta flat lay, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 605551,
+    "index": 5658,
+    "filename": "img_005658.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga choli set flat lay, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Lehenga",
+    "seed": 888292,
+    "index": 5684,
+    "filename": "img_005684.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A sherwani flat lay showing embroidery, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 500755,
+    "index": 5726,
+    "filename": "img_005726.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A children traditional festive wear flat lay, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Kids Dress",
+    "seed": 335388,
+    "index": 5739,
+    "filename": "img_005739.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A palazzo suit flat lay, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 816066,
+    "index": 5759,
+    "filename": "img_005759.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A embroidered kurta flat lay, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 322886,
+    "index": 5790,
+    "filename": "img_005790.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A sherwani flat lay showing embroidery, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Kurta",
+    "seed": 938366,
+    "index": 5792,
+    "filename": "img_005792.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A silk saree neatly folded showing zari border, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 278900,
+    "index": 5821,
+    "filename": "img_005821.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A saree border close-up showing embroidery detail, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 762204,
+    "index": 5853,
+    "filename": "img_005853.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A sherwani flat lay showing embroidery, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 150718,
+    "index": 5876,
+    "filename": "img_005876.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A baby girl frock flat lay, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 24768,
+    "index": 5900,
+    "filename": "img_005900.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A embroidered kurta flat lay, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Kurta",
+    "seed": 758816,
+    "index": 5948,
+    "filename": "img_005948.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga top view showing embroidery, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Lehenga",
+    "seed": 468948,
+    "index": 5996,
+    "filename": "img_005996.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A anarkali suit flat lay full length, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 694607,
+    "index": 6038,
+    "filename": "img_006038.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A palazzo suit flat lay, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 794391,
+    "index": 6120,
+    "filename": "img_006120.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga choli set flat lay, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Lehenga",
+    "seed": 951703,
+    "index": 6125,
+    "filename": "img_006125.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A saree border close-up showing embroidery detail, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Saree",
+    "seed": 194632,
+    "index": 6201,
+    "filename": "img_006201.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A kids lehenga choli flat lay, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 180387,
+    "index": 6231,
+    "filename": "img_006231.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A Banarasi saree folded showing embroidery, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Saree",
+    "seed": 993933,
+    "index": 6303,
+    "filename": "img_006303.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A cotton saree folded showing print, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 260905,
+    "index": 6326,
+    "filename": "img_006326.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez on hanger full view, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 508807,
+    "index": 6336,
+    "filename": "img_006336.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A children traditional festive wear flat lay, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Kids Dress",
+    "seed": 952924,
+    "index": 6380,
+    "filename": "img_006380.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A bridal lehenga folded showing embroidery, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Lehenga",
+    "seed": 512064,
+    "index": 6430,
+    "filename": "img_006430.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A Banarasi saree folded showing embroidery, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Saree",
+    "seed": 790666,
+    "index": 6450,
+    "filename": "img_006450.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A saree border close-up showing embroidery detail, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 505351,
+    "index": 6455,
+    "filename": "img_006455.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez on hanger full view, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 219144,
+    "index": 6476,
+    "filename": "img_006476.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A silk kurta folded, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 308384,
+    "index": 6513,
+    "filename": "img_006513.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A sherwani flat lay showing embroidery, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 538705,
+    "index": 6520,
+    "filename": "img_006520.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A bridal saree folded showing heavy embroidery, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 63231,
+    "index": 6526,
+    "filename": "img_006526.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez embroidery close-up, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 253500,
+    "index": 6530,
+    "filename": "img_006530.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A saree draped showing fabric texture, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Saree",
+    "seed": 364039,
+    "index": 6560,
+    "filename": "img_006560.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A printed salwar kameez flat lay, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Salwar Kameez",
+    "seed": 961264,
+    "index": 6584,
+    "filename": "img_006584.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A boys sherwani flat lay, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Kids Dress",
+    "seed": 114800,
+    "index": 6595,
+    "filename": "img_006595.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A boys sherwani flat lay, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 212544,
+    "index": 6630,
+    "filename": "img_006630.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A baby girl frock flat lay, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Kids Dress",
+    "seed": 748024,
+    "index": 6663,
+    "filename": "img_006663.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A silk saree neatly folded showing zari border, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Saree",
+    "seed": 586706,
+    "index": 6666,
+    "filename": "img_006666.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A mens kurta folded flat lay showing print, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Kurta",
+    "seed": 952941,
+    "index": 6688,
+    "filename": "img_006688.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A embroidered kurta flat lay, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 642063,
+    "index": 6721,
+    "filename": "img_006721.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A bridal saree folded showing heavy embroidery, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 246633,
+    "index": 6760,
+    "filename": "img_006760.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez embroidery close-up, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 571147,
+    "index": 6764,
+    "filename": "img_006764.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A embroidered kurta flat lay, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Kurta",
+    "seed": 520124,
+    "index": 6810,
+    "filename": "img_006810.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A children traditional festive wear flat lay, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 650632,
+    "index": 6925,
+    "filename": "img_006925.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A anarkali suit flat lay full length, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Salwar Kameez",
+    "seed": 528212,
+    "index": 6927,
+    "filename": "img_006927.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A sherwani flat lay showing embroidery, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 902400,
+    "index": 6963,
+    "filename": "img_006963.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A baby girl frock flat lay, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Kids Dress",
+    "seed": 835325,
+    "index": 7047,
+    "filename": "img_007047.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez set flat lay showing embroidery, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 251286,
+    "index": 7102,
+    "filename": "img_007102.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A palazzo suit flat lay, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 351318,
+    "index": 7103,
+    "filename": "img_007103.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez embroidery close-up, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 784568,
+    "index": 7142,
+    "filename": "img_007142.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga choli set flat lay, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Lehenga",
+    "seed": 448184,
+    "index": 7172,
+    "filename": "img_007172.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga top view showing embroidery, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Lehenga",
+    "seed": 795386,
+    "index": 7175,
+    "filename": "img_007175.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A kids kurta pajama flat lay, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Kids Dress",
+    "seed": 757066,
+    "index": 7265,
+    "filename": "img_007265.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A Kanchipuram saree folded showing gold border, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Saree",
+    "seed": 370948,
+    "index": 7267,
+    "filename": "img_007267.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A Banarasi saree folded showing embroidery, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 124532,
+    "index": 7295,
+    "filename": "img_007295.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A bridal saree folded showing heavy embroidery, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 959154,
+    "index": 7357,
+    "filename": "img_007357.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A printed salwar kameez flat lay, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 687273,
+    "index": 7410,
+    "filename": "img_007410.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A children traditional festive wear flat lay, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Kids Dress",
+    "seed": 967442,
+    "index": 7424,
+    "filename": "img_007424.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A kurta pajama set arranged flat lay, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 559787,
+    "index": 7433,
+    "filename": "img_007433.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A silk saree neatly folded showing zari border, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 512351,
+    "index": 7465,
+    "filename": "img_007465.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A Kanchipuram saree folded showing gold border, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 221883,
+    "index": 7470,
+    "filename": "img_007470.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A silk kurta folded, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Kurta",
+    "seed": 904894,
+    "index": 7487,
+    "filename": "img_007487.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A mens kurta folded flat lay showing print, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 929331,
+    "index": 7513,
+    "filename": "img_007513.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A mens kurta folded flat lay showing print, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Kurta",
+    "seed": 575279,
+    "index": 7554,
+    "filename": "img_007554.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A baby girl frock flat lay, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Kids Dress",
+    "seed": 256501,
+    "index": 7614,
+    "filename": "img_007614.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A anarkali suit flat lay full length, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Salwar Kameez",
+    "seed": 718115,
+    "index": 7677,
+    "filename": "img_007677.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A mens kurta folded flat lay showing print, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 49286,
+    "index": 7682,
+    "filename": "img_007682.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A sherwani flat lay showing embroidery, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Kurta",
+    "seed": 966929,
+    "index": 7689,
+    "filename": "img_007689.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A bridal saree folded showing heavy embroidery, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Saree",
+    "seed": 194693,
+    "index": 7719,
+    "filename": "img_007719.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A boys sherwani flat lay, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Kids Dress",
+    "seed": 694797,
+    "index": 7757,
+    "filename": "img_007757.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A palazzo suit flat lay, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Salwar Kameez",
+    "seed": 824233,
+    "index": 7780,
+    "filename": "img_007780.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga top view showing embroidery, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Lehenga",
+    "seed": 964446,
+    "index": 7831,
+    "filename": "img_007831.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A kids kurta pajama flat lay, fabric embroidery detail close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 279761,
+    "index": 7873,
+    "filename": "img_007873.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A silk saree neatly folded showing zari border, hanging full length, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 793641,
+    "index": 7918,
+    "filename": "img_007918.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez on hanger full view, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Salwar Kameez",
+    "seed": 672255,
+    "index": 7920,
+    "filename": "img_007920.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga fabric detail close-up, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Lehenga",
+    "seed": 960085,
+    "index": 7928,
+    "filename": "img_007928.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A silk kurta folded, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 983555,
+    "index": 7985,
+    "filename": "img_007985.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kids_dress",
+    "prompt": "A children traditional festive wear flat lay, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids Dress",
+    "seed": 950617,
+    "index": 7989,
+    "filename": "img_007989.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "kurta",
+    "prompt": "A sherwani flat lay showing embroidery, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kurta",
+    "seed": 296090,
+    "index": 8010,
+    "filename": "img_008010.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A silk saree neatly folded showing zari border, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 697836,
+    "index": 8047,
+    "filename": "img_008047.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "lehenga",
+    "prompt": "A lehenga choli set flat lay, fabric texture close-up, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Lehenga",
+    "seed": 194327,
+    "index": 8093,
+    "filename": "img_008093.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "saree",
+    "prompt": "A saree draped showing fabric texture, flat lay top view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Saree",
+    "seed": 254146,
+    "index": 8098,
+    "filename": "img_008098.png",
+    "status": "pending"
+  },
+  {
+    "category": "indian_dress",
+    "subcategory": "salwar_kameez",
+    "prompt": "A salwar kameez on hanger full view, neatly folded on a clean surface, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Salwar Kameez",
+    "seed": 931068,
+    "index": 8108,
+    "filename": "img_008108.png",
+    "status": "pending"
+  }
+]

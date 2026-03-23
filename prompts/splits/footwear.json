@@ -1,0 +1,3482 @@
+[
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A chappal sole view showing pattern, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 544473,
+    "index": 7,
+    "filename": "img_000007.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pair of heels front view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 899587,
+    "index": 85,
+    "filename": "img_000085.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A single running shoe side view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Sports Shoes",
+    "seed": 311559,
+    "index": 131,
+    "filename": "img_000131.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A baby shoes tiny pair top view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Kids",
+    "seed": 257782,
+    "index": 143,
+    "filename": "img_000143.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A pair of chappals front view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Chappals",
+    "seed": 515623,
+    "index": 149,
+    "filename": "img_000149.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A pair of sports shoes front view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 287203,
+    "index": 154,
+    "filename": "img_000154.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pair of heels front view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 772736,
+    "index": 156,
+    "filename": "img_000156.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids sandal pair arranged, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Kids",
+    "seed": 730437,
+    "index": 174,
+    "filename": "img_000174.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids school shoes pair front view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Kids",
+    "seed": 948228,
+    "index": 189,
+    "filename": "img_000189.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A pair of chappals front view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Chappals",
+    "seed": 981913,
+    "index": 218,
+    "filename": "img_000218.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A children sneakers front view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Kids",
+    "seed": 647639,
+    "index": 223,
+    "filename": "img_000223.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoe sole view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Shoes",
+    "seed": 465823,
+    "index": 254,
+    "filename": "img_000254.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A running shoes 45 degree, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Sports Shoes",
+    "seed": 575244,
+    "index": 263,
+    "filename": "img_000263.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sneakers side by side top view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Sports Shoes",
+    "seed": 598355,
+    "index": 279,
+    "filename": "img_000279.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A pair of chappals front view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 489187,
+    "index": 297,
+    "filename": "img_000297.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoes side by side top view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Shoes",
+    "seed": 680684,
+    "index": 322,
+    "filename": "img_000322.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pointed heel close-up, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Heels",
+    "seed": 807905,
+    "index": 338,
+    "filename": "img_000338.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A single strappy sandal side view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Sandals",
+    "seed": 608069,
+    "index": 341,
+    "filename": "img_000341.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A rubber chappal pair top view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Chappals",
+    "seed": 809381,
+    "index": 366,
+    "filename": "img_000366.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A two sandals arranged, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 248596,
+    "index": 371,
+    "filename": "img_000371.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A leather sandal close-up detail, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Sandals",
+    "seed": 201013,
+    "index": 401,
+    "filename": "img_000401.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A children sneakers front view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Kids",
+    "seed": 757203,
+    "index": 405,
+    "filename": "img_000405.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sneakers side by side top view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 595196,
+    "index": 407,
+    "filename": "img_000407.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A single stiletto heel side view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Heels",
+    "seed": 461908,
+    "index": 424,
+    "filename": "img_000424.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A single stiletto heel side view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 925215,
+    "index": 427,
+    "filename": "img_000427.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A baby shoes tiny pair top view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 853700,
+    "index": 446,
+    "filename": "img_000446.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A ladies heels arranged, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 491992,
+    "index": 448,
+    "filename": "img_000448.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A baby shoes tiny pair top view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 54109,
+    "index": 473,
+    "filename": "img_000473.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A block heel shoe pair top view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 350839,
+    "index": 478,
+    "filename": "img_000478.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sneakers side by side top view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 245790,
+    "index": 495,
+    "filename": "img_000495.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A pair of sports shoes front view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 649711,
+    "index": 504,
+    "filename": "img_000504.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A single leather chappal side view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 153693,
+    "index": 506,
+    "filename": "img_000506.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A two sandals arranged, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 615693,
+    "index": 536,
+    "filename": "img_000536.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids school shoes pair front view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Kids",
+    "seed": 963930,
+    "index": 556,
+    "filename": "img_000556.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A running shoes 45 degree, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 513110,
+    "index": 563,
+    "filename": "img_000563.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A single formal leather shoe side view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Shoes",
+    "seed": 564053,
+    "index": 568,
+    "filename": "img_000568.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A children sneakers front view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Kids",
+    "seed": 254920,
+    "index": 570,
+    "filename": "img_000570.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A rubber chappal pair top view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 344002,
+    "index": 599,
+    "filename": "img_000599.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A single formal leather shoe side view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 621868,
+    "index": 616,
+    "filename": "img_000616.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sports shoe sole detail close-up, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 313042,
+    "index": 648,
+    "filename": "img_000648.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A running shoes 45 degree, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 989055,
+    "index": 667,
+    "filename": "img_000667.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A pair of shoes front view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Shoes",
+    "seed": 611133,
+    "index": 753,
+    "filename": "img_000753.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoe sole view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 440311,
+    "index": 773,
+    "filename": "img_000773.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A pair of shoes front view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 766215,
+    "index": 840,
+    "filename": "img_000840.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A single running shoe side view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 852690,
+    "index": 917,
+    "filename": "img_000917.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pair of heels front view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 75306,
+    "index": 934,
+    "filename": "img_000934.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoe sole view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 168787,
+    "index": 999,
+    "filename": "img_000999.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A pair of shoes front view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 892027,
+    "index": 1049,
+    "filename": "img_001049.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A block heel shoe pair top view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Heels",
+    "seed": 664570,
+    "index": 1054,
+    "filename": "img_001054.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A pair of sandals front view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 396251,
+    "index": 1067,
+    "filename": "img_001067.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sports shoe sole detail close-up, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 733769,
+    "index": 1110,
+    "filename": "img_001110.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A block heel shoe pair top view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Heels",
+    "seed": 789719,
+    "index": 1117,
+    "filename": "img_001117.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A traditional chappal side view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Chappals",
+    "seed": 228725,
+    "index": 1173,
+    "filename": "img_001173.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A single stiletto heel side view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Heels",
+    "seed": 159191,
+    "index": 1175,
+    "filename": "img_001175.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A pair of chappals front view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 506756,
+    "index": 1220,
+    "filename": "img_001220.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A baby shoes tiny pair top view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 820616,
+    "index": 1240,
+    "filename": "img_001240.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids school shoes pair front view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 844042,
+    "index": 1243,
+    "filename": "img_001243.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A pair of sandals front view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 124928,
+    "index": 1244,
+    "filename": "img_001244.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pointed heel close-up, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Heels",
+    "seed": 204917,
+    "index": 1285,
+    "filename": "img_001285.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A leather sandal close-up detail, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Sandals",
+    "seed": 793193,
+    "index": 1318,
+    "filename": "img_001318.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A ladies heels arranged, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 338993,
+    "index": 1334,
+    "filename": "img_001334.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A pair of sports shoes front view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Sports Shoes",
+    "seed": 521556,
+    "index": 1352,
+    "filename": "img_001352.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A ladies sandal pair top view flat lay, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Sandals",
+    "seed": 501219,
+    "index": 1360,
+    "filename": "img_001360.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoe sole view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 443020,
+    "index": 1414,
+    "filename": "img_001414.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A single strappy sandal side view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Sandals",
+    "seed": 392438,
+    "index": 1417,
+    "filename": "img_001417.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A pair of sandals front view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 716537,
+    "index": 1441,
+    "filename": "img_001441.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A single formal leather shoe side view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 188794,
+    "index": 1477,
+    "filename": "img_001477.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A pair of sandals front view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Sandals",
+    "seed": 131167,
+    "index": 1487,
+    "filename": "img_001487.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A pair of sports shoes front view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Sports Shoes",
+    "seed": 199335,
+    "index": 1527,
+    "filename": "img_001527.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A leather shoe close-up showing grain, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Shoes",
+    "seed": 496149,
+    "index": 1528,
+    "filename": "img_001528.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sneakers side by side top view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Sports Shoes",
+    "seed": 319927,
+    "index": 1568,
+    "filename": "img_001568.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A leather sandal close-up detail, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 731466,
+    "index": 1587,
+    "filename": "img_001587.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A single strappy sandal side view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 865374,
+    "index": 1608,
+    "filename": "img_001608.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A single stiletto heel side view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Heels",
+    "seed": 356092,
+    "index": 1625,
+    "filename": "img_001625.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sneakers side by side top view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 818634,
+    "index": 1636,
+    "filename": "img_001636.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A traditional chappal side view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Chappals",
+    "seed": 723861,
+    "index": 1660,
+    "filename": "img_001660.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A block heel shoe pair top view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 598132,
+    "index": 1668,
+    "filename": "img_001668.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A pair of chappals front view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 166175,
+    "index": 1705,
+    "filename": "img_001705.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A ladies heels arranged, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Heels",
+    "seed": 592516,
+    "index": 1708,
+    "filename": "img_001708.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A two sandals arranged, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 830934,
+    "index": 1729,
+    "filename": "img_001729.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A single running shoe side view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 684558,
+    "index": 1749,
+    "filename": "img_001749.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A ladies heels arranged, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Heels",
+    "seed": 947591,
+    "index": 1814,
+    "filename": "img_001814.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A pair of sandals front view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 357329,
+    "index": 1853,
+    "filename": "img_001853.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoe sole view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Shoes",
+    "seed": 147310,
+    "index": 1915,
+    "filename": "img_001915.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A single stiletto heel side view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 975236,
+    "index": 1921,
+    "filename": "img_001921.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A ladies sandal pair top view flat lay, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 622056,
+    "index": 1944,
+    "filename": "img_001944.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids school shoes pair front view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Kids",
+    "seed": 704864,
+    "index": 1961,
+    "filename": "img_001961.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A traditional chappal side view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 323769,
+    "index": 2001,
+    "filename": "img_002001.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A leather shoe close-up showing grain, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Shoes",
+    "seed": 809348,
+    "index": 2038,
+    "filename": "img_002038.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A single formal leather shoe side view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 559697,
+    "index": 2068,
+    "filename": "img_002068.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A leather sandal close-up detail, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 635905,
+    "index": 2093,
+    "filename": "img_002093.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A single formal leather shoe side view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Shoes",
+    "seed": 429839,
+    "index": 2095,
+    "filename": "img_002095.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A two sandals arranged, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Sandals",
+    "seed": 551313,
+    "index": 2101,
+    "filename": "img_002101.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A baby shoes tiny pair top view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Kids",
+    "seed": 970542,
+    "index": 2114,
+    "filename": "img_002114.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pointed heel close-up, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 368955,
+    "index": 2125,
+    "filename": "img_002125.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A pair of shoes front view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Shoes",
+    "seed": 696487,
+    "index": 2134,
+    "filename": "img_002134.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A ladies sandal pair top view flat lay, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Sandals",
+    "seed": 622332,
+    "index": 2272,
+    "filename": "img_002272.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids sandal pair arranged, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 92868,
+    "index": 2292,
+    "filename": "img_002292.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A leather shoe close-up showing grain, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 29857,
+    "index": 2311,
+    "filename": "img_002311.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A pair of shoes front view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 822233,
+    "index": 2357,
+    "filename": "img_002357.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A single stiletto heel side view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Heels",
+    "seed": 457833,
+    "index": 2374,
+    "filename": "img_002374.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A children sneakers front view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 423697,
+    "index": 2377,
+    "filename": "img_002377.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids sandal pair arranged, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 758831,
+    "index": 2404,
+    "filename": "img_002404.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sports shoe sole detail close-up, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Sports Shoes",
+    "seed": 309795,
+    "index": 2434,
+    "filename": "img_002434.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A single stiletto heel side view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Heels",
+    "seed": 202078,
+    "index": 2464,
+    "filename": "img_002464.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A traditional chappal side view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Chappals",
+    "seed": 455081,
+    "index": 2515,
+    "filename": "img_002515.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids school shoes pair front view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 296741,
+    "index": 2532,
+    "filename": "img_002532.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A two sandals arranged, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Sandals",
+    "seed": 901075,
+    "index": 2537,
+    "filename": "img_002537.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids sandal pair arranged, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 473864,
+    "index": 2602,
+    "filename": "img_002602.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A single formal leather shoe side view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 766442,
+    "index": 2603,
+    "filename": "img_002603.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoes side by side top view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 164954,
+    "index": 2610,
+    "filename": "img_002610.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A block heel shoe pair top view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 511608,
+    "index": 2615,
+    "filename": "img_002615.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A traditional chappal side view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 785232,
+    "index": 2617,
+    "filename": "img_002617.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A leather shoe close-up showing grain, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 338930,
+    "index": 2622,
+    "filename": "img_002622.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A block heel shoe pair top view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 227413,
+    "index": 2632,
+    "filename": "img_002632.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A ladies heels arranged, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Heels",
+    "seed": 496086,
+    "index": 2637,
+    "filename": "img_002637.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A ladies sandal pair top view flat lay, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 770557,
+    "index": 2640,
+    "filename": "img_002640.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A pair of sports shoes front view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 302559,
+    "index": 2656,
+    "filename": "img_002656.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A leather shoe close-up showing grain, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 472462,
+    "index": 2728,
+    "filename": "img_002728.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A single running shoe side view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Sports Shoes",
+    "seed": 981202,
+    "index": 2778,
+    "filename": "img_002778.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A single leather chappal side view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 853019,
+    "index": 2796,
+    "filename": "img_002796.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A single leather chappal side view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 50804,
+    "index": 2804,
+    "filename": "img_002804.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A baby shoes tiny pair top view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Kids",
+    "seed": 764721,
+    "index": 2819,
+    "filename": "img_002819.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A pair of sandals front view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Sandals",
+    "seed": 362867,
+    "index": 2827,
+    "filename": "img_002827.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A single running shoe side view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Sports Shoes",
+    "seed": 378035,
+    "index": 2850,
+    "filename": "img_002850.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoes side by side top view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Shoes",
+    "seed": 614382,
+    "index": 2855,
+    "filename": "img_002855.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A block heel shoe pair top view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 553878,
+    "index": 2885,
+    "filename": "img_002885.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoes side by side top view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 610383,
+    "index": 2901,
+    "filename": "img_002901.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A single running shoe side view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 765944,
+    "index": 2914,
+    "filename": "img_002914.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A baby shoes tiny pair top view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Kids",
+    "seed": 985126,
+    "index": 2974,
+    "filename": "img_002974.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A single formal leather shoe side view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Shoes",
+    "seed": 791442,
+    "index": 2994,
+    "filename": "img_002994.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A single strappy sandal side view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Sandals",
+    "seed": 732464,
+    "index": 2999,
+    "filename": "img_002999.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoes side by side top view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Shoes",
+    "seed": 689567,
+    "index": 3003,
+    "filename": "img_003003.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A ladies sandal pair top view flat lay, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Sandals",
+    "seed": 260155,
+    "index": 3016,
+    "filename": "img_003016.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sneakers side by side top view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 997219,
+    "index": 3017,
+    "filename": "img_003017.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A running shoes 45 degree, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Sports Shoes",
+    "seed": 755322,
+    "index": 3071,
+    "filename": "img_003071.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A rubber chappal pair top view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 550546,
+    "index": 3073,
+    "filename": "img_003073.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids sandal pair arranged, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Kids",
+    "seed": 777424,
+    "index": 3091,
+    "filename": "img_003091.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A two sandals arranged, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 616574,
+    "index": 3131,
+    "filename": "img_003131.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A leather sandal close-up detail, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Sandals",
+    "seed": 311740,
+    "index": 3153,
+    "filename": "img_003153.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A children sneakers front view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Kids",
+    "seed": 481969,
+    "index": 3193,
+    "filename": "img_003193.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoes side by side top view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 871574,
+    "index": 3224,
+    "filename": "img_003224.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A rubber chappal pair top view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 652848,
+    "index": 3241,
+    "filename": "img_003241.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pair of heels front view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Heels",
+    "seed": 346019,
+    "index": 3309,
+    "filename": "img_003309.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A leather sandal close-up detail, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Sandals",
+    "seed": 794255,
+    "index": 3321,
+    "filename": "img_003321.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A children sneakers front view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 719489,
+    "index": 3343,
+    "filename": "img_003343.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A leather shoe close-up showing grain, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 744549,
+    "index": 3401,
+    "filename": "img_003401.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A single running shoe side view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Sports Shoes",
+    "seed": 766311,
+    "index": 3403,
+    "filename": "img_003403.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A block heel shoe pair top view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Heels",
+    "seed": 139193,
+    "index": 3412,
+    "filename": "img_003412.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A single leather chappal side view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Chappals",
+    "seed": 427162,
+    "index": 3415,
+    "filename": "img_003415.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A chappal sole view showing pattern, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 541958,
+    "index": 3429,
+    "filename": "img_003429.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoe sole view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Shoes",
+    "seed": 902364,
+    "index": 3439,
+    "filename": "img_003439.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A traditional chappal side view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 180395,
+    "index": 3461,
+    "filename": "img_003461.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids school shoes pair front view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 766719,
+    "index": 3462,
+    "filename": "img_003462.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids sandal pair arranged, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 978894,
+    "index": 3473,
+    "filename": "img_003473.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sneakers side by side top view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 322999,
+    "index": 3481,
+    "filename": "img_003481.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sneakers side by side top view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Sports Shoes",
+    "seed": 934301,
+    "index": 3489,
+    "filename": "img_003489.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A pair of sandals front view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 446774,
+    "index": 3492,
+    "filename": "img_003492.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoe sole view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 223795,
+    "index": 3502,
+    "filename": "img_003502.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sports shoe sole detail close-up, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Sports Shoes",
+    "seed": 521843,
+    "index": 3536,
+    "filename": "img_003536.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pair of heels front view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Heels",
+    "seed": 189067,
+    "index": 3542,
+    "filename": "img_003542.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A leather sandal close-up detail, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Sandals",
+    "seed": 931239,
+    "index": 3563,
+    "filename": "img_003563.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A chappal sole view showing pattern, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 632565,
+    "index": 3644,
+    "filename": "img_003644.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A traditional chappal side view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Chappals",
+    "seed": 481377,
+    "index": 3667,
+    "filename": "img_003667.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A children sneakers front view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Kids",
+    "seed": 693616,
+    "index": 3679,
+    "filename": "img_003679.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A rubber chappal pair top view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Chappals",
+    "seed": 513989,
+    "index": 3730,
+    "filename": "img_003730.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A pair of sports shoes front view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Sports Shoes",
+    "seed": 985194,
+    "index": 3750,
+    "filename": "img_003750.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A pair of shoes front view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 669580,
+    "index": 3766,
+    "filename": "img_003766.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A ladies heels arranged, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Heels",
+    "seed": 123316,
+    "index": 3772,
+    "filename": "img_003772.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoe sole view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Shoes",
+    "seed": 977589,
+    "index": 3793,
+    "filename": "img_003793.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids sandal pair arranged, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Kids",
+    "seed": 379901,
+    "index": 3810,
+    "filename": "img_003810.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A two sandals arranged, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Sandals",
+    "seed": 460307,
+    "index": 3857,
+    "filename": "img_003857.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A single leather chappal side view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Chappals",
+    "seed": 297955,
+    "index": 3882,
+    "filename": "img_003882.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A pair of sports shoes front view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Sports Shoes",
+    "seed": 196424,
+    "index": 3890,
+    "filename": "img_003890.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoe sole view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 734042,
+    "index": 3919,
+    "filename": "img_003919.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A single leather chappal side view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Chappals",
+    "seed": 336845,
+    "index": 3925,
+    "filename": "img_003925.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A single leather chappal side view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Chappals",
+    "seed": 981946,
+    "index": 3930,
+    "filename": "img_003930.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A single leather chappal side view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 359218,
+    "index": 3936,
+    "filename": "img_003936.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sports shoe sole detail close-up, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 522756,
+    "index": 3968,
+    "filename": "img_003968.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A single leather chappal side view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 758255,
+    "index": 3978,
+    "filename": "img_003978.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pointed heel close-up, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 569024,
+    "index": 4018,
+    "filename": "img_004018.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A single running shoe side view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 919801,
+    "index": 4028,
+    "filename": "img_004028.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A baby shoes tiny pair top view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Kids",
+    "seed": 818596,
+    "index": 4045,
+    "filename": "img_004045.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A ladies sandal pair top view flat lay, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 924462,
+    "index": 4080,
+    "filename": "img_004080.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A chappal sole view showing pattern, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 568198,
+    "index": 4084,
+    "filename": "img_004084.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A single stiletto heel side view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 504514,
+    "index": 4148,
+    "filename": "img_004148.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A traditional chappal side view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 656447,
+    "index": 4162,
+    "filename": "img_004162.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A ladies heels arranged, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 561002,
+    "index": 4236,
+    "filename": "img_004236.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A pair of sandals front view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Sandals",
+    "seed": 621429,
+    "index": 4254,
+    "filename": "img_004254.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A block heel shoe pair top view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Heels",
+    "seed": 695642,
+    "index": 4270,
+    "filename": "img_004270.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A leather sandal close-up detail, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 288428,
+    "index": 4308,
+    "filename": "img_004308.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A ladies sandal pair top view flat lay, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Sandals",
+    "seed": 812197,
+    "index": 4362,
+    "filename": "img_004362.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A single formal leather shoe side view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Shoes",
+    "seed": 285460,
+    "index": 4364,
+    "filename": "img_004364.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A pair of chappals front view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Chappals",
+    "seed": 804743,
+    "index": 4415,
+    "filename": "img_004415.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A pair of shoes front view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 408658,
+    "index": 4421,
+    "filename": "img_004421.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids sandal pair arranged, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Kids",
+    "seed": 525581,
+    "index": 4434,
+    "filename": "img_004434.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pair of heels front view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 750058,
+    "index": 4440,
+    "filename": "img_004440.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A rubber chappal pair top view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Chappals",
+    "seed": 648051,
+    "index": 4446,
+    "filename": "img_004446.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids school shoes pair front view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 611334,
+    "index": 4455,
+    "filename": "img_004455.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A leather shoe close-up showing grain, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 210051,
+    "index": 4477,
+    "filename": "img_004477.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pointed heel close-up, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 582808,
+    "index": 4531,
+    "filename": "img_004531.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A children sneakers front view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 408138,
+    "index": 4559,
+    "filename": "img_004559.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A ladies heels arranged, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 405129,
+    "index": 4612,
+    "filename": "img_004612.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A two sandals arranged, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Sandals",
+    "seed": 374375,
+    "index": 4625,
+    "filename": "img_004625.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pointed heel close-up, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Heels",
+    "seed": 452287,
+    "index": 4632,
+    "filename": "img_004632.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A traditional chappal side view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 893532,
+    "index": 4679,
+    "filename": "img_004679.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoe sole view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Shoes",
+    "seed": 129514,
+    "index": 4694,
+    "filename": "img_004694.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A children sneakers front view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 949272,
+    "index": 4699,
+    "filename": "img_004699.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A children sneakers front view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Kids",
+    "seed": 994199,
+    "index": 4706,
+    "filename": "img_004706.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A single strappy sandal side view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Sandals",
+    "seed": 598940,
+    "index": 4751,
+    "filename": "img_004751.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A single strappy sandal side view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Sandals",
+    "seed": 905305,
+    "index": 4779,
+    "filename": "img_004779.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A leather shoe close-up showing grain, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 125233,
+    "index": 4789,
+    "filename": "img_004789.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A pair of chappals front view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Chappals",
+    "seed": 806906,
+    "index": 4808,
+    "filename": "img_004808.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pointed heel close-up, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 381496,
+    "index": 4829,
+    "filename": "img_004829.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids sandal pair arranged, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Kids",
+    "seed": 987060,
+    "index": 4876,
+    "filename": "img_004876.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A baby shoes tiny pair top view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 371899,
+    "index": 4926,
+    "filename": "img_004926.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A ladies sandal pair top view flat lay, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Sandals",
+    "seed": 752179,
+    "index": 4938,
+    "filename": "img_004938.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A rubber chappal pair top view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 156570,
+    "index": 4954,
+    "filename": "img_004954.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A children sneakers front view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 579576,
+    "index": 5050,
+    "filename": "img_005050.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A running shoes 45 degree, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 597713,
+    "index": 5103,
+    "filename": "img_005103.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pair of heels front view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 154789,
+    "index": 5108,
+    "filename": "img_005108.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A rubber chappal pair top view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Chappals",
+    "seed": 225008,
+    "index": 5120,
+    "filename": "img_005120.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A leather shoe close-up showing grain, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Shoes",
+    "seed": 618721,
+    "index": 5138,
+    "filename": "img_005138.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A baby shoes tiny pair top view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 163591,
+    "index": 5139,
+    "filename": "img_005139.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pointed heel close-up, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Heels",
+    "seed": 744693,
+    "index": 5141,
+    "filename": "img_005141.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A chappal sole view showing pattern, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 362713,
+    "index": 5171,
+    "filename": "img_005171.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sneakers side by side top view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Sports Shoes",
+    "seed": 453200,
+    "index": 5183,
+    "filename": "img_005183.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sports shoe sole detail close-up, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Sports Shoes",
+    "seed": 783185,
+    "index": 5201,
+    "filename": "img_005201.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A single formal leather shoe side view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Shoes",
+    "seed": 502265,
+    "index": 5206,
+    "filename": "img_005206.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A pair of chappals front view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 554559,
+    "index": 5271,
+    "filename": "img_005271.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A pair of chappals front view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 645710,
+    "index": 5279,
+    "filename": "img_005279.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A pair of sports shoes front view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 211603,
+    "index": 5286,
+    "filename": "img_005286.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sneakers side by side top view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Sports Shoes",
+    "seed": 170537,
+    "index": 5309,
+    "filename": "img_005309.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A pair of sandals front view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Sandals",
+    "seed": 873637,
+    "index": 5335,
+    "filename": "img_005335.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A leather sandal close-up detail, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 37941,
+    "index": 5354,
+    "filename": "img_005354.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A single leather chappal side view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Chappals",
+    "seed": 996915,
+    "index": 5395,
+    "filename": "img_005395.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pair of heels front view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Heels",
+    "seed": 220031,
+    "index": 5400,
+    "filename": "img_005400.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A pair of sandals front view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Sandals",
+    "seed": 970645,
+    "index": 5461,
+    "filename": "img_005461.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A rubber chappal pair top view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 353897,
+    "index": 5483,
+    "filename": "img_005483.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A pair of sandals front view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Sandals",
+    "seed": 758894,
+    "index": 5518,
+    "filename": "img_005518.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A leather shoe close-up showing grain, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Shoes",
+    "seed": 510396,
+    "index": 5534,
+    "filename": "img_005534.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A ladies heels arranged, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 191594,
+    "index": 5546,
+    "filename": "img_005546.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A pair of shoes front view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Shoes",
+    "seed": 241021,
+    "index": 5559,
+    "filename": "img_005559.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A two sandals arranged, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Sandals",
+    "seed": 673172,
+    "index": 5655,
+    "filename": "img_005655.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pair of heels front view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Heels",
+    "seed": 168681,
+    "index": 5687,
+    "filename": "img_005687.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A chappal sole view showing pattern, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Chappals",
+    "seed": 893041,
+    "index": 5705,
+    "filename": "img_005705.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pair of heels front view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 781581,
+    "index": 5735,
+    "filename": "img_005735.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A single running shoe side view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Sports Shoes",
+    "seed": 324479,
+    "index": 5754,
+    "filename": "img_005754.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A running shoes 45 degree, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 342441,
+    "index": 5777,
+    "filename": "img_005777.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A running shoes 45 degree, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 989878,
+    "index": 5786,
+    "filename": "img_005786.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A single strappy sandal side view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 324353,
+    "index": 5845,
+    "filename": "img_005845.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A pair of chappals front view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Chappals",
+    "seed": 288006,
+    "index": 5846,
+    "filename": "img_005846.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A single strappy sandal side view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 753167,
+    "index": 5848,
+    "filename": "img_005848.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sports shoe sole detail close-up, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 749142,
+    "index": 5866,
+    "filename": "img_005866.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids school shoes pair front view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 311769,
+    "index": 5874,
+    "filename": "img_005874.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A traditional chappal side view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 422042,
+    "index": 5984,
+    "filename": "img_005984.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoe sole view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Shoes",
+    "seed": 712333,
+    "index": 5993,
+    "filename": "img_005993.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A traditional chappal side view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Chappals",
+    "seed": 978821,
+    "index": 6004,
+    "filename": "img_006004.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sports shoe sole detail close-up, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 749233,
+    "index": 6021,
+    "filename": "img_006021.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pointed heel close-up, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 718699,
+    "index": 6031,
+    "filename": "img_006031.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A running shoes 45 degree, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Sports Shoes",
+    "seed": 758342,
+    "index": 6093,
+    "filename": "img_006093.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A block heel shoe pair top view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Heels",
+    "seed": 121393,
+    "index": 6094,
+    "filename": "img_006094.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A single strappy sandal side view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 600268,
+    "index": 6126,
+    "filename": "img_006126.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A single stiletto heel side view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 822617,
+    "index": 6210,
+    "filename": "img_006210.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A ladies sandal pair top view flat lay, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 332623,
+    "index": 6215,
+    "filename": "img_006215.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A pair of chappals front view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Chappals",
+    "seed": 812120,
+    "index": 6278,
+    "filename": "img_006278.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoes side by side top view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 723793,
+    "index": 6328,
+    "filename": "img_006328.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A single stiletto heel side view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 536195,
+    "index": 6338,
+    "filename": "img_006338.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pair of heels front view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Heels",
+    "seed": 278026,
+    "index": 6396,
+    "filename": "img_006396.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A block heel shoe pair top view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Heels",
+    "seed": 541631,
+    "index": 6406,
+    "filename": "img_006406.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A ladies heels arranged, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Heels",
+    "seed": 509260,
+    "index": 6408,
+    "filename": "img_006408.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A ladies heels arranged, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Heels",
+    "seed": 700350,
+    "index": 6423,
+    "filename": "img_006423.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A single stiletto heel side view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 651181,
+    "index": 6503,
+    "filename": "img_006503.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A chappal sole view showing pattern, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Chappals",
+    "seed": 903180,
+    "index": 6509,
+    "filename": "img_006509.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A leather shoe close-up showing grain, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Shoes",
+    "seed": 903702,
+    "index": 6522,
+    "filename": "img_006522.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoes side by side top view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Shoes",
+    "seed": 665593,
+    "index": 6570,
+    "filename": "img_006570.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A chappal sole view showing pattern, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Chappals",
+    "seed": 392047,
+    "index": 6576,
+    "filename": "img_006576.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sports shoe sole detail close-up, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Sports Shoes",
+    "seed": 553939,
+    "index": 6578,
+    "filename": "img_006578.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A single formal leather shoe side view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 513787,
+    "index": 6593,
+    "filename": "img_006593.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A pair of sports shoes front view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 517699,
+    "index": 6610,
+    "filename": "img_006610.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A ladies heels arranged, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 966431,
+    "index": 6636,
+    "filename": "img_006636.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A baby shoes tiny pair top view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Kids",
+    "seed": 530189,
+    "index": 6662,
+    "filename": "img_006662.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A single running shoe side view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 736991,
+    "index": 6702,
+    "filename": "img_006702.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids school shoes pair front view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Kids",
+    "seed": 768914,
+    "index": 6736,
+    "filename": "img_006736.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A running shoes 45 degree, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 375746,
+    "index": 6747,
+    "filename": "img_006747.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoes side by side top view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Shoes",
+    "seed": 631297,
+    "index": 6749,
+    "filename": "img_006749.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sports shoe sole detail close-up, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Sports Shoes",
+    "seed": 666176,
+    "index": 6804,
+    "filename": "img_006804.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A single formal leather shoe side view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 63849,
+    "index": 6885,
+    "filename": "img_006885.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids sandal pair arranged, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 311602,
+    "index": 6886,
+    "filename": "img_006886.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A pair of chappals front view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 946516,
+    "index": 6902,
+    "filename": "img_006902.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A pair of shoes front view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 659840,
+    "index": 6926,
+    "filename": "img_006926.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A single stiletto heel side view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Heels",
+    "seed": 531939,
+    "index": 6953,
+    "filename": "img_006953.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sports shoe sole detail close-up, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Sports Shoes",
+    "seed": 629152,
+    "index": 6968,
+    "filename": "img_006968.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A two sandals arranged, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 697436,
+    "index": 6971,
+    "filename": "img_006971.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A single strappy sandal side view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 507960,
+    "index": 6975,
+    "filename": "img_006975.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A leather sandal close-up detail, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 507643,
+    "index": 7048,
+    "filename": "img_007048.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A running shoes 45 degree, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Sports Shoes",
+    "seed": 641300,
+    "index": 7064,
+    "filename": "img_007064.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoes side by side top view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 263961,
+    "index": 7104,
+    "filename": "img_007104.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids sandal pair arranged, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Kids",
+    "seed": 368903,
+    "index": 7111,
+    "filename": "img_007111.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sneakers side by side top view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Sports Shoes",
+    "seed": 940104,
+    "index": 7140,
+    "filename": "img_007140.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids sandal pair arranged, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 373188,
+    "index": 7177,
+    "filename": "img_007177.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A single leather chappal side view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Chappals",
+    "seed": 527066,
+    "index": 7222,
+    "filename": "img_007222.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A pair of sports shoes front view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Sports Shoes",
+    "seed": 754911,
+    "index": 7266,
+    "filename": "img_007266.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A two sandals arranged, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 823864,
+    "index": 7271,
+    "filename": "img_007271.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pointed heel close-up, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Heels",
+    "seed": 456032,
+    "index": 7292,
+    "filename": "img_007292.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A children sneakers front view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 868130,
+    "index": 7315,
+    "filename": "img_007315.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoe sole view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 449122,
+    "index": 7385,
+    "filename": "img_007385.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A chappal sole view showing pattern, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Chappals",
+    "seed": 722487,
+    "index": 7392,
+    "filename": "img_007392.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A single leather chappal side view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 57504,
+    "index": 7400,
+    "filename": "img_007400.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A pair of sports shoes front view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 268494,
+    "index": 7412,
+    "filename": "img_007412.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A two sandals arranged, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Sandals",
+    "seed": 614064,
+    "index": 7436,
+    "filename": "img_007436.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A running shoes 45 degree, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Sports Shoes",
+    "seed": 900527,
+    "index": 7439,
+    "filename": "img_007439.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A single strappy sandal side view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 523641,
+    "index": 7444,
+    "filename": "img_007444.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A traditional chappal side view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Chappals",
+    "seed": 276919,
+    "index": 7468,
+    "filename": "img_007468.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids school shoes pair front view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Kids",
+    "seed": 323297,
+    "index": 7490,
+    "filename": "img_007490.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A chappal sole view showing pattern, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Chappals",
+    "seed": 519677,
+    "index": 7507,
+    "filename": "img_007507.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A block heel shoe pair top view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 704395,
+    "index": 7529,
+    "filename": "img_007529.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A leather sandal close-up detail, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 669827,
+    "index": 7573,
+    "filename": "img_007573.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A leather sandal close-up detail, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Sandals",
+    "seed": 904857,
+    "index": 7604,
+    "filename": "img_007604.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A chappal sole view showing pattern, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Chappals",
+    "seed": 860427,
+    "index": 7606,
+    "filename": "img_007606.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A pair of shoes front view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Shoes",
+    "seed": 850490,
+    "index": 7618,
+    "filename": "img_007618.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A ladies sandal pair top view flat lay, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 952425,
+    "index": 7624,
+    "filename": "img_007624.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A pair of shoes front view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Shoes",
+    "seed": 840356,
+    "index": 7645,
+    "filename": "img_007645.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A leather shoe close-up showing grain, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Shoes",
+    "seed": 436050,
+    "index": 7657,
+    "filename": "img_007657.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A pair of sports shoes front view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, ultra sharp fine detail",
+    "subject_name": "Sports Shoes",
+    "seed": 411762,
+    "index": 7662,
+    "filename": "img_007662.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pointed heel close-up, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Heels",
+    "seed": 627191,
+    "index": 7725,
+    "filename": "img_007725.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A running shoes 45 degree, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Sports Shoes",
+    "seed": 289373,
+    "index": 7727,
+    "filename": "img_007727.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A ladies sandal pair top view flat lay, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Sandals",
+    "seed": 128048,
+    "index": 7745,
+    "filename": "img_007745.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A chappal sole view showing pattern, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 878524,
+    "index": 7769,
+    "filename": "img_007769.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A baby shoes tiny pair top view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 314561,
+    "index": 7781,
+    "filename": "img_007781.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoes side by side top view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Shoes",
+    "seed": 592640,
+    "index": 7814,
+    "filename": "img_007814.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A ladies sandal pair top view flat lay, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 845457,
+    "index": 7832,
+    "filename": "img_007832.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A rubber chappal pair top view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, fine surface texture detail",
+    "subject_name": "Chappals",
+    "seed": 206663,
+    "index": 7846,
+    "filename": "img_007846.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A pair of shoes front view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, crisp clean commercial quality",
+    "subject_name": "Shoes",
+    "seed": 615353,
+    "index": 7856,
+    "filename": "img_007856.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A pair of sandals front view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sandals",
+    "seed": 27445,
+    "index": 7863,
+    "filename": "img_007863.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pair of heels front view, front view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Heels",
+    "seed": 427260,
+    "index": 7887,
+    "filename": "img_007887.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A rubber chappal pair top view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Chappals",
+    "seed": 828799,
+    "index": 7891,
+    "filename": "img_007891.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A single formal leather shoe side view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Shoes",
+    "seed": 137728,
+    "index": 7915,
+    "filename": "img_007915.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "shoes",
+    "prompt": "A shoes side by side top view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Shoes",
+    "seed": 43104,
+    "index": 7932,
+    "filename": "img_007932.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A single running shoe side view, side profile view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, true to life color accuracy",
+    "subject_name": "Sports Shoes",
+    "seed": 480983,
+    "index": 7935,
+    "filename": "img_007935.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "heels",
+    "prompt": "A pointed heel close-up, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Heels",
+    "seed": 819489,
+    "index": 7956,
+    "filename": "img_007956.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "chappals",
+    "prompt": "A rubber chappal pair top view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Chappals",
+    "seed": 986610,
+    "index": 8013,
+    "filename": "img_008013.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A single running shoe side view, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 723813,
+    "index": 8065,
+    "filename": "img_008065.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids school shoes pair front view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Kids",
+    "seed": 137794,
+    "index": 8069,
+    "filename": "img_008069.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sneakers side by side top view, sole view, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 322071,
+    "index": 8091,
+    "filename": "img_008091.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sports_shoes",
+    "prompt": "A sports shoe sole detail close-up, top view flat lay, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality",
+    "subject_name": "Sports Shoes",
+    "seed": 227346,
+    "index": 8100,
+    "filename": "img_008100.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "kids",
+    "prompt": "A kids school shoes pair front view, 45 degree angle, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, studio grade photographic quality",
+    "subject_name": "Kids",
+    "seed": 589994,
+    "index": 8107,
+    "filename": "img_008107.png",
+    "status": "pending"
+  },
+  {
+    "category": "footwear",
+    "subcategory": "sandals",
+    "prompt": "A single strappy sandal side view, close-up detail, isolated on a solid plain light grey background, not black, not white, clean light grey studio backdrop, soft even studio lighting, ultra sharp commercial product photography quality, lifelike photographic detail",
+    "subject_name": "Sandals",
+    "seed": 213284,
+    "index": 8116,
+    "filename": "img_008116.png",
+    "status": "pending"
+  }
+]
