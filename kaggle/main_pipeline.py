@@ -387,9 +387,15 @@ def phase1_generate(batch, skip_set):
     log(f"PHASE 1: FLUX.2-Klein-4B — {FLUX_HF_ID}")
     log("=" * 56)
 
-    from diffusers import FluxPipeline
+    from diffusers import Flux2KleinPipeline
 
-    pipe = FluxPipeline.from_pretrained(FLUX_HF_ID, torch_dtype=torch.bfloat16)
+    # FLUX.2-Klein-4B requires Flux2KleinPipeline — NOT FluxPipeline.
+    # FluxPipeline expects text_encoder_2, tokenizer_2, image_encoder,
+    # feature_extractor which Klein does not have → ValueError.
+    pipe = Flux2KleinPipeline.from_pretrained(
+        FLUX_HF_ID,
+        torch_dtype=torch.bfloat16,
+    )
     pipe.enable_model_cpu_offload(gpu_id=0)
     pipe.set_progress_bar_config(disable=True)
     log(f"FLUX loaded | Batch: {len(batch)} | Skip: {len(skip_set)}\n")
