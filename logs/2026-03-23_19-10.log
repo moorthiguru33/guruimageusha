@@ -1,0 +1,28 @@
+ULTRAPNG V8.0 — RUN REPORT
+============================================================
+Date: 2026-03-23 19:10
+Batch: 0->10
+status: FAILED: Pipeline <class 'diffusers.pipelines.flux.pipeline_flux.FluxPipeline'> expected 
+generated: 0
+deleted: 0
+approved: 0
+transparent: 0
+uploaded: 0
+posts: 0
+duration: 0.0h
+============================================================
+
+FULL LOG
+============================================================
+[19:09:02] Loading prompts...
+[19:09:03] Loaded 8132 prompts
+[19:09:03] Batch: 10 prompts
+
+[19:09:03] Building skip-set...
+[19:09:06]   Skip-set: 4 filenames
+[19:09:06] ========================================================
+[19:09:06] PHASE 1: FLUX.2-Klein-4B — black-forest-labs/FLUX.2-klein-4B
+[19:09:06] ========================================================
+[19:10:36] FATAL: Pipeline <class 'diffusers.pipelines.flux.pipeline_flux.FluxPipeline'> expected ['feature_extractor', 'image_encoder', 'scheduler', 'text_encoder', 'text_encoder_2', 'tokenizer', 'tokenizer_2', 'transformer', 'vae'], but only {'transformer', 'text_encoder', 'tokenizer', 'scheduler', 'vae'} were passed.
+[19:10:36] ========================================================
+[19:10:36] PHASE 6: Save logs
