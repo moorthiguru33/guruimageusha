@@ -1,4 +1,4 @@
-name: PNG Library Generator
+name: PNG Library Generator V9.0
 
 on:
   workflow_dispatch:
@@ -8,9 +8,9 @@ on:
         required: false
         default: "0"
       end_index:
-        description: End index
+        description: End index (200 per run = ~3.5 hours on Kaggle)
         required: false
-        default: "800"
+        default: "200"
       action:
         description: What to do
         required: false
@@ -20,7 +20,8 @@ on:
           - generate
           - status_check
   schedule:
-    - cron: "30 20 * * *"
+    # Daily at 01:00 UTC = 06:30 IST (Kaggle off-peak, lower queue wait)
+    - cron: "0 1 * * *"
 
 env:
   NOTEBOOK_SLUG: notebook8c5ae1ecf2
@@ -59,28 +60,40 @@ jobs:
           echo "Kaggle username: ${{ secrets.KAGGLE_USERNAME }}"
           kaggle kernels list --mine --page-size 1 || { echo "ERROR: Kaggle credentials invalid!"; exit 1; }
 
-      - name: Calculate Batch
+      - name: Calculate Batch (200 per day)
         id: batch
         run: |
           START="${{ github.event.inputs.start_index }}"
           END="${{ github.event.inputs.end_index }}"
+
+          # For scheduled runs, auto-calculate from batch_tracker
           if [ -z "$START" ] || [ "${{ github.event_name }}" = "schedule" ]; then
             if [ -f "progress/batch_tracker.txt" ]; then
               LAST=$(cat progress/batch_tracker.txt)
               START=$LAST
-              END=$((LAST + 800))
+              END=$((LAST + 200))
             else
               START=0
-              END=800
+              END=200
             fi
           fi
-          if [ "$END" -gt "43082" ]; then END=43082; fi
-          if [ "$START" -ge "43082" ]; then echo "All done!"; exit 0; fi
+
+          # Safety caps
+          TOTAL=8132
+          if [ "$END" -gt "$TOTAL" ]; then END=$TOTAL; fi
+          if [ "$START" -ge "$TOTAL" ]; then
+            echo "All prompts processed! Total: $TOTAL"
+            echo "start_index=0" >> $GITHUB_OUTPUT
+            echo "end_index=0" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
           echo "start_index=$START" >> $GITHUB_OUTPUT
           echo "end_index=$END" >> $GITHUB_OUTPUT
-          echo "Batch: $START → $END"
+          echo "Batch V9.0: $START → $END ($(( END - START )) prompts)"
+          echo "Progress: $START / $TOTAL ($(( START * 100 / TOTAL ))%)"
 
-      - name: Clean Notebook Outputs (remove old data)
+      - name: Clean Notebook Outputs
         run: |
           echo "Clearing old notebook outputs..."
           python3 -c "
@@ -120,8 +133,6 @@ jobs:
           import json
           with open('kernel-metadata.json', 'r') as f:
               meta = json.load(f)
-          # Only update kernel ID — DO NOT touch dataset_sources
-          # dataset_sources = gurumoorthirajagopal/my-pipeline-models (correct in file)
           meta['id'] = '${KERNEL_ID}'
           with open('kernel-metadata.json', 'w') as f:
               json.dump(meta, f, indent=2)
@@ -143,7 +154,7 @@ jobs:
           print(f'Notebook cells: {len(cells)}')
           print(f'Old outputs: {total_outputs}')
           if total_outputs == 0:
-              print('Notebook is clean!')
+              print('Notebook is clean — ready to push!')
           else:
               print('WARNING: old outputs present!')
           "
@@ -152,8 +163,9 @@ jobs:
         run: |
           KERNEL="${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}"
           echo "Pushing kernel: $KERNEL"
+          echo "Batch: ${{ steps.batch.outputs.start_index }} → ${{ steps.batch.outputs.end_index }}"
 
-          # Wait if kernel is active
+          # Cancel if kernel is already running
           for i in 1 2 3 4 5; do
             STATUS=$(kaggle kernels status "$KERNEL" 2>&1 || true)
             echo "[$i] $STATUS"
@@ -196,19 +208,20 @@ jobs:
             fi
           done
 
-          echo "Waiting 90s for kernel to start..."
+          echo "Waiting 90s for Kaggle kernel to start..."
           sleep 90
 
       - name: Wait for Kaggle Completion
         run: |
           KERNEL="${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}"
-          MAX=14400
+          # V9.0: Batch 200 = ~3.5 hours, timeout = 5 hours
+          MAX=18000
           ELAPSED=0
           POLL=120
           SEEN_RUNNING=false
 
           echo "Monitoring: $KERNEL"
-          echo "Timeout: ${MAX}s (~4 hours)"
+          echo "Timeout: ${MAX}s (~5 hours)"
 
           while [ $ELAPSED -lt $MAX ]; do
             FULL=$(kaggle kernels status "$KERNEL" 2>&1 || true)
@@ -221,19 +234,19 @@ jobs:
                 SEEN_RUNNING=true
                 ;;
               queued)
-                echo "  Waiting for GPU..."
+                echo "  Waiting for GPU allocation..."
                 ;;
               complete)
                 if [ "$SEEN_RUNNING" = true ] || [ $ELAPSED -ge 300 ]; then
-                  echo "KERNEL COMPLETED!"
+                  echo "KERNEL COMPLETED SUCCESSFULLY!"
                   exit 0
                 else
-                  echo "  Stale status — waiting for new run..."
+                  echo "  Stale complete status — waiting for new run..."
                 fi
                 ;;
               error)
                 if [ "$SEEN_RUNNING" = true ]; then
-                  echo "KERNEL FAILED"
+                  echo "KERNEL FAILED WITH ERROR"
                   exit 1
                 else
                   echo "  Stale error — waiting for new run..."
@@ -245,18 +258,20 @@ jobs:
             ELAPSED=$((ELAPSED + POLL))
           done
 
-          echo "TIMEOUT"
+          echo "TIMEOUT after ${MAX}s"
           exit 1
 
       - name: Save Progress
         if: success()
-        run: echo "${{ steps.batch.outputs.end_index }}" > progress/batch_tracker.txt
+        run: |
+          echo "${{ steps.batch.outputs.end_index }}" > progress/batch_tracker.txt
+          echo "Progress saved: ${{ steps.batch.outputs.end_index }}"
 
       - name: Commit Progress
         if: success()
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Batch ${{ steps.batch.outputs.start_index }}-${{ steps.batch.outputs.end_index }} done"
+          commit_message: "V9.0 batch ${{ steps.batch.outputs.start_index }}-${{ steps.batch.outputs.end_index }} done"
           file_pattern: progress/batch_tracker.txt
 
   status-check:
@@ -265,13 +280,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Progress Report
         run: |
+          TOTAL=8132
           if [ -f "progress/batch_tracker.txt" ]; then
             DONE=$(cat progress/batch_tracker.txt)
-            echo "Done: $DONE / 43082 ($((DONE * 100 / 43082))%)"
-            echo "Remaining: $((43082 - DONE))"
-            echo "Est. days: ~$(((43082 - DONE) / 800))"
+            REMAINING=$((TOTAL - DONE))
+            PCT=$((DONE * 100 / TOTAL))
+            DAYS_LEFT=$((REMAINING / 200))
+            echo "==========================="
+            echo "V9.0 Progress Report"
+            echo "==========================="
+            echo "Done     : $DONE / $TOTAL ($PCT%)"
+            echo "Remaining: $REMAINING prompts"
+            echo "Days left: ~$DAYS_LEFT days (200/day)"
+            echo "==========================="
           else
-            echo "Not started yet!"
+            echo "Not started yet! Run 'generate' to begin."
           fi
