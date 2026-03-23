@@ -101,21 +101,44 @@ jobs:
           commit_message: "Auto-generated prompt splits [skip ci]"
           file_pattern: prompts/splits/*.json
 
-      - name: Clean Notebook Outputs (remove old data)
+      - name: Rebuild Notebook FRESH from main_pipeline.py
         run: |
-          echo "Clearing old notebook outputs..."
+          echo "Rebuilding notebook fresh from main_pipeline.py..."
           python3 -c "
           import json
-          with open('kaggle/main_pipeline.ipynb', 'r', encoding='utf-8') as f:
-              nb = json.load(f)
-          for cell in nb.get('cells', []):
-              cell['outputs'] = []
-              cell['execution_count'] = None
-              if 'metadata' in cell:
-                  cell['metadata'] = {'trusted': True}
+
+          # Always read latest code from .py file
+          with open('kaggle/main_pipeline.py', 'r', encoding='utf-8') as f:
+              code = f.read()
+
+          # Build completely fresh notebook — zero old outputs, zero old cache
+          nb = {
+              'nbformat': 4,
+              'nbformat_minor': 5,
+              'metadata': {
+                  'kernelspec': {
+                      'display_name': 'Python 3',
+                      'language': 'python',
+                      'name': 'python3'
+                  },
+                  'language_info': {'name': 'python', 'version': '3.10.0'}
+              },
+              'cells': [
+                  {
+                      'cell_type': 'code',
+                      'execution_count': None,
+                      'metadata': {'trusted': True},
+                      'outputs': [],
+                      'source': code
+                  }
+              ]
+          }
+
           with open('kaggle/main_pipeline.ipynb', 'w', encoding='utf-8') as f:
               json.dump(nb, f, ensure_ascii=False, indent=1)
-          print(f'Cleaned {len(nb[\"cells\"])} cells — all outputs removed!')
+
+          print('Notebook rebuilt FRESH from main_pipeline.py')
+          print(f'Code: {len(code)} chars | Outputs: 0 | Cache: cleared')
           "
 
       - name: Inject Credentials
