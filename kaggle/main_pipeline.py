@@ -1,20 +1,18 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║   UltraPNG.com — PNG Library Pipeline V7.0                  ║
+║   UltraPNG.com — PNG Library Pipeline V6.0                  ║
 ╠══════════════════════════════════════════════════════════════╣
 ║  PHASE 1 → FLUX.2-Klein-4B   Generate 1024x1024 images     ║
 ║  PHASE 2 → Qwen2.5-VL-3B    Filter + SEO (ONE PASS)        ║
 ║  PHASE 3 → RMBG-2.0 ONNX    Background removal (GPU)       ║
 ║  PHASE 4 → Google Drive      Upload PNG + JPG + WebP        ║
-║  PHASE 5 → JSON Data Only    Git Push → REPO2               ║
+║  PHASE 5 → HTML Build + Git Push → REPO2 Live              ║
 ║  PHASE 6 → Save Run Logs → REPO1 (visible on GitHub!)      ║
 ╠══════════════════════════════════════════════════════════════╣
-║  V7.0 CHANGES:                                              ║
-║  • Confidence threshold raised to 7+ (was 6+)              ║
-║  • Full anatomy checks ALL categories (legs/wings/face)     ║
-║  • Human-like 300-400 word descriptions, no sections        ║
-║  • Title-based slugs for 100% uniqueness                    ║
-║  • Phase 5: JSON data push only, no HTML build              ║
+║  V6.0 CHANGES:                                              ║
+║  • Models load directly from HuggingFace (no dataset)       ║
+║  • HF cache = /kaggle/working/hf_cache (persists in run)   ║
+║  • No Telegram, no double-print                             ║
 ╚══════════════════════════════════════════════════════════════╝
 
 inject_creds.py prepends os.environ[] lines before this file.
@@ -530,105 +528,41 @@ def _get_category_group(category):
     return "general"
 
 GROUP_CHECK_RULES = {
-    "animals": """SUBJECT MATCH:
-- Does image show exactly "{subject}"? Different species → subject_match: false
-- Cooked animal when live expected → subject_match: false
-
-ANATOMY CHECK (score 0-5, store as anatomy_score):
-- LEG COUNT: cow/horse/dog/cat/goat/buffalo/deer/camel = 4 legs. Bird/chicken/duck/parrot/eagle = 2 legs. Snake/worm = 0 legs. Fish = 0 legs, fins only. Spider/crab = 8 legs. Wrong count → anatomy_score 0
-- WINGS: Only flying birds/insects/bats should have wings. Cow/dog/horse/cat/fish/reptile having wings → anatomy_score 0. Bird must have exactly 2 wings, not 4
-- HEAD: Every animal must have exactly 1 head, 1 face matching its species. Dog face on cat body → anatomy_score 0. Two heads on one body → anatomy_score 0
-- BODY SHAPE: Blob with no distinct body outline → anatomy_score 0. Melted/fused body → anatomy_score 0
-- FLOATING PARTS: Limbs or wings disconnected from body floating in air → anatomy_score 0
-
-DELETE if anatomy_score < 2 OR subject_match=false OR body is unrecognizable blob""",
-
-    "food": """SUBJECT MATCH:
-- Does image show exactly "{subject}"? Wrong dish entirely → subject_match: false
-
-ANATOMY CHECK (score 0-5):
-- SHAPE: Does food look recognizable and correctly shaped? Pizza should be round, biryani should look like rice dish, burger should have bun layers
-- COLOR: Natural food color? Green meat/blue rice (not natural) → anatomy_score 1
-- CONTAMINATION: Mold, rotten, decayed look → anatomy_score 0
-- FLOATING PARTS: Random unrelated objects floating near food → anatomy_score -1
-- WHOLE ITEM: Is the main dish clearly visible and centered?
-
-DELETE if anatomy_score < 2 OR completely unrecognizable food blob""",
-
-    "produce": """SUBJECT MATCH:
-- Does image show exactly "{subject}"? Wrong fruit/vegetable → subject_match: false
-
-ANATOMY CHECK (score 0-5):
-- SHAPE: Recognizable natural shape of the fruit/vegetable?
-- COLOR: Natural color for that produce? (unnatural fluorescent → score -1)
-- DEFORMITY: Severely melted or blob-like shape → anatomy_score 0
-- EXTRA PARTS: Random limbs/wings attached to fruit → anatomy_score 0
-
-DELETE if anatomy_score < 2 OR completely unrecognizable""",
-
-    "nature": """SUBJECT MATCH:
-- Does image show exactly "{subject}"? Wrong flower/tree/plant → subject_match: false
-
-ANATOMY CHECK (score 0-5):
-- STRUCTURE: Does plant/flower have natural structure? Stem, petals, leaves in right places?
-- DEFORMITY: Melted blob where flower should be → anatomy_score 0
-- FLOATING PARTS: Petals/leaves completely detached and floating randomly → anatomy_score 1
-
-DELETE if anatomy_score < 2 OR completely unrecognizable""",
-
-    "tools": """SUBJECT MATCH:
-- Does image show exactly "{subject}"? Wrong tool entirely → subject_match: false
-
-ANATOMY CHECK (score 0-5):
-- SHAPE: Recognizable tool shape? Hammer should look like a hammer, knife like a knife
-- INTEGRITY: Melted/morphed beyond recognition → anatomy_score 0
-- FLOATING PARTS: Handle disconnected, blade floating separately → anatomy_score 1
-- EXTRA ELEMENTS: Random legs/wings growing from tool → anatomy_score 0
-
-DELETE if anatomy_score < 2 OR unidentifiable blob""",
-
-    "fashion": """SUBJECT MATCH:
-- Does image show exactly "{subject}"? Wrong garment/item → subject_match: false
-
-ANATOMY CHECK (score 0-5):
-- WEARABLE SHAPE: Does it look like a real wearable item?
-- STRUCTURE: Saree/dress/shoe has recognizable structure?
-- FLOATING PARTS: Sleeves/straps completely detached and floating → anatomy_score 1
-- DEFORMITY: Melted fabric blob with no shape → anatomy_score 0
-- IF ON MODEL: Model must have correct human body — 2 arms, 2 legs, 1 head. Extra limbs → anatomy_score 0
-
-DELETE if anatomy_score < 2 OR completely unrecognizable""",
-
-    "electronics": """SUBJECT MATCH:
-- Does image show exactly "{subject}"? Wrong device type → subject_match: false
-
-ANATOMY CHECK (score 0-5):
-- SHAPE: Device has recognizable form? Phone should look like phone, laptop like laptop
-- SCREEN: If device has screen, is it properly placed on front face?
-- MELTED: Device melting/morphing into unrecognizable shape → anatomy_score 0
-- FLOATING PARTS: Buttons/keys floating separately from device → anatomy_score 1
-
-DELETE if anatomy_score < 2 OR unidentifiable""",
-
-    "design": """SUBJECT MATCH:
-- Does image show exactly "{subject}"? Completely wrong graphic → subject_match: false
-
-ANATOMY CHECK (score 0-5):
-- CLARITY: Is the design element clearly visible?
-- BLANK: Blank or pure noise → anatomy_score 0
-- COHERENT: Does it make visual sense as a design element?
-
-DELETE if anatomy_score < 2 OR blank/pure noise""",
-
-    "general": """SUBJECT MATCH:
-- Does image show exactly "{subject}"? Unrelated object → subject_match: false
-
-ANATOMY CHECK (score 0-5):
-- RECOGNIZABLE: Is subject clearly identifiable?
-- NO DEFORMITY: No melted/blob/fused body parts?
-- COHERENT: Image makes visual sense?
-
-DELETE if anatomy_score < 2 OR blank or completely unrecognizable""",
+    "animals": """SUBJECT MATCH CHECK:
+- Prompt says: "{subject}" — does image show EXACTLY that animal?
+- COMPLETELY DIFFERENT species → subject_match: false
+- Same species different pose → subject_match: true
+- Cooked version when live expected → subject_match: false
+BODY SHAPE CHECK: If body is a blob with NO distinctive features → shape_match: false → DELETE
+QUALITY: DELETE if two heads on one body, fused species, extra limbs from wrong parts
+KEEP if: group of same species, AI/cartoon style with correct shape
+Add: "shape_match": true or false""",
+    "food": """SUBJECT MATCH CHECK:
+- Prompt says: "{subject}" — does image show EXACTLY that dish?
+- Wrong food → subject_match: false. Different presentation same dish → true
+QUALITY: DELETE if rotten/moldy. KEEP if plated differently or AI style.""",
+    "produce": """SUBJECT MATCH CHECK:
+- Prompt says: "{subject}" — correct fruit/vegetable? Different variety/color → true
+QUALITY: DELETE if severely rotten. KEEP if multiple pieces or cut view.""",
+    "nature": """SUBJECT MATCH CHECK:
+- Prompt says: "{subject}" — correct flower/plant? Different color variety → true
+QUALITY: DELETE if completely unrecognizable. KEEP if illustrated/AI art.""",
+    "tools": """SUBJECT MATCH CHECK:
+- Prompt says: "{subject}" — correct tool? Different design same tool → true
+QUALITY: DELETE if unidentifiable blob. KEEP if stylized or viewed from angle.""",
+    "fashion": """SUBJECT MATCH CHECK:
+- Prompt says: "{subject}" — correct item? Different style same item → true
+QUALITY: DELETE if unrecognizable as wearable. KEEP if on model or standalone.""",
+    "electronics": """SUBJECT MATCH CHECK:
+- Prompt says: "{subject}" — correct device? Different brand same type → true
+QUALITY: DELETE if melted/unidentifiable. KEEP if illustrated version.""",
+    "design": """SUBJECT MATCH CHECK:
+- Prompt says: "{subject}" — relevant design/graphic? Wrong category → false
+QUALITY: DELETE if blank/pure noise. KEEP if any clear graphic element.""",
+    "general": """SUBJECT MATCH CHECK:
+- Prompt says: "{subject}" — does image show expected subject?
+- Unrelated object → subject_match: false
+QUALITY: DELETE if blank or completely unrecognizable. KEEP otherwise.""",
 }
 
 def _build_qwen_prompt(item, subject, category, slug_base):
@@ -645,48 +579,41 @@ STEP 1 — SUBJECT MATCH (Most Important)
 {check_rule}
 
 STEP 2 — CONFIDENCE SCORE (0-10)
-9-10: Perfect anatomy, exactly right subject.
-7-8: Good — minor imperfection but clearly correct subject.
-5-6: Borderline — partially wrong or unclear.
-0-4: Wrong subject, deformed, melted, or blob.
-RULE: confidence < 7 → verdict = DELETE
+9-10: Perfect. 7-8: Good. 5-6: Borderline. 0-4: Wrong/deformed.
+RULE: confidence < 6 → verdict = DELETE
 
 STEP 3 — VERDICT
-DELETE if ANY of:
-  - subject_match = false
-  - confidence < 7
-  - anatomy_score < 2
-  - blank/pure noise image
-KEEP only if: subject_match=true AND confidence>=7 AND anatomy_score>=2
+DELETE if: subject_match=false OR confidence<6 OR blank image
+KEEP if: subject_match=true AND confidence>=6
 
-STEP 4 — SEO CONTENT (only fill if KEEP, use empty strings if DELETE)
-
-Write like a human journalist who genuinely finds this image interesting.
-For title: Be specific about what YOU SEE in this exact image — color, pose, angle, style, material.
-For description: Write 300-400 words of FLOWING NATURAL PROSE. No section headers. No bullet points. No tables. Write like a knowledgeable person describing this image to a friend — include what the subject is, how it looks in this specific image, interesting facts about the subject, and why someone would want this PNG for their designs. Sound organic and enthusiastic, not robotic.
+STEP 4 — SEO (only if KEEP, empty strings if DELETE)
 
 Return ONLY valid JSON, no markdown:
 {{
   "subject_match": true or false,
-  "anatomy_score": 0-5,
+  "shape_match": true or false,
   "confidence": 0-10,
   "verdict": "KEEP" or "DELETE",
-  "reason": "specific one-line reason if DELETE, else empty string",
-  "title": "UNIQUE 20+ words — describe exactly what is visible: specific color + pose/style + {subject} + use case + Transparent PNG Free Download | UltraPNG. Example style: 'Majestic Golden Brown Cow Standing Sideways on Grass Transparent PNG Free Download for Flex Banner Canva Design | UltraPNG'",
-  "meta_desc": "max 155 chars — describe THIS specific image uniquely with color and style",
-  "h1": "UNIQUE — describe exactly what is visible in this specific image in 8-15 words",
-  "tags": "18 comma-separated tags — mix subject name, color, style, material, use case, transparent PNG, PNG free, canva, flex banner, social media, ultrapng, HD, free download, {subject} PNG",
-  "description": "300-400 words of pure natural flowing prose. NO headers like ## or ###. NO bullet points. NO tables. Write like a journalist: describe what this specific image looks like, interesting facts about {subject}, why this PNG is useful for designers, what projects suit it. Start with a vivid observation about the image, not with 'This high-quality'. Sound human and enthusiastic."
+  "reason": "one line if DELETE else empty",
+  "title": "20+ words: {subject} [visual details] Transparent PNG HD Free Download | UltraPNG",
+  "slug": "max 55 chars: {slug_base}-[2-3 words]-png-hd",
+  "meta_desc": "max 155 chars",
+  "h1": "{subject} [details] PNG HD Image",
+  "tags": "18 comma-separated tags including PNG free, transparent PNG, canva, flex banner, ultrapng",
+  "title": "UNIQUE 20+ words — include specific visual details seen in THIS image (color, style, angle, material). Must differ from generic pattern. Include: {subject} + 2-3 specific visual adjectives + Transparent PNG HD Free Download | UltraPNG",
+  "slug": "max 55 chars — include 2-3 specific visual words seen in image, not just subject name",
+  "meta_desc": "max 155 chars — describe THIS specific image uniquely, mention color/style/use case",
+  "h1": "UNIQUE — describe exactly what is visible in this specific image",
+  "tags": "18 comma-separated — mix of: subject name, color, style, material, use case, design terms, PNG free, transparent PNG, canva, flex banner, social media, ultrapng, HD, free download",
+  "description": "650+ UNIQUE words. DO NOT use generic boilerplate. Write fresh content describing THIS specific image:\n## About This {subject} PNG Image\n[describe visual details of THIS image — color, style, composition, 200+ words]\n## Image Quality & Technical Details\n[100 words about quality]\n## Design Ideas & Creative Applications\n[8 bullet points — specific use cases for THIS image]\n## Technical Specifications\n[table: Format/Background/Resolution/Edge Quality/Compatible With/Print Ready/License]\n## How to Download\n[6 numbered steps]\n## Frequently Asked Questions\n[4 Q&A: free?/Canva?/watermark?/flex banner?]\n## Why UltraPNG\n[80 words — keep brief]"
 }}
 
-CRITICAL RULES:
-- confidence < 7 → DELETE, no exceptions
-- anatomy_score < 2 → DELETE even if subject looks right
-- Title must be 20+ words with specific visual details from THIS image
-- Description must be 300-400 words, pure prose, NO section headings
-- Slug is generated from title by the system — just focus on a great unique title
-- Never write generic filler like "This high-quality PNG image is perfect for all designers"
-- Every output must describe THIS specific image, not a generic version of {subject}"""
+CRITICAL UNIQUENESS RULES:
+- Every title MUST contain specific visual details (color, pose, style) from THIS image
+- Never write "High Quality {subject} PNG" — too generic
+- Never start description with "This high-quality" — use specific visual observation instead
+- Each slug must have 2-3 unique words beyond the base subject name
+- Tags must include at least 5 specific descriptive terms about THIS image"""
 
 def phase2_qwen_filter_seo(generated):
     ckpt = load_checkpoint("phase2_posts")
@@ -799,20 +726,22 @@ def phase2_qwen_filter_seo(generated):
             subject_match = ai.get("subject_match", True)
             if isinstance(subject_match, str):
                 subject_match = subject_match.lower() not in ("false", "no", "0")
-            confidence    = int(ai.get("confidence", 7))
-            verdict       = ai.get("verdict", "KEEP").strip().upper()
-            reason        = ai.get("reason", "")
-            anatomy_score = int(ai.get("anatomy_score", 3))
+            confidence = int(ai.get("confidence", 7))
+            verdict    = ai.get("verdict", "KEEP").strip().upper()
+            reason     = ai.get("reason", "")
+            shape_match = ai.get("shape_match", True)
+            if isinstance(shape_match, str):
+                shape_match = shape_match.lower() not in ("false", "no", "0")
 
             delete_reason = None
             if not subject_match:
                 delete_reason = f"Wrong subject (expected={subject})"
                 stats["wrong_subject"] += 1
-            elif anatomy_score < 2:
-                delete_reason = f"Bad anatomy score={anatomy_score} for {subject}"
+            elif group == "animals" and not shape_match:
+                delete_reason = f"Wrong body shape for {subject}"
                 stats["wrong_shape"] += 1
-            elif confidence < 7:
-                delete_reason = f"Low confidence={confidence} (need 7+)"
+            elif confidence < 6:
+                delete_reason = f"Low confidence={confidence}"
                 stats["low_confidence"] += 1
             elif verdict == "DELETE":
                 delete_reason = reason or "Quality failed"
@@ -826,26 +755,15 @@ def phase2_qwen_filter_seo(generated):
 
             shutil.copy2(str(path), str(approved_path))
 
-            # ── Slug from TITLE (unique per image) ─────────────────
-            ai_title  = ai.get("title") or f"{subject} Transparent PNG Free Download | UltraPNG"
-            # Strip site suffix for slug, keep the descriptive part
-            title_for_slug = re.sub(r'\s*\|\s*UltraPNG\s*$', '', ai_title, flags=re.IGNORECASE).strip()
-            # Remove "Transparent PNG", "Free Download", "HD" from slug to keep it concise
-            title_for_slug = re.sub(
-                r'\b(transparent png|free download|hd|png)\b', '', title_for_slug, flags=re.IGNORECASE
-            ).strip()
-            raw_slug = slugify(title_for_slug)
-            # Trim to max 65 chars
-            if len(raw_slug) > 65:
-                raw_slug = "-".join(raw_slug.split("-")[:10])
-            slug = raw_slug or slugify(f"{subject}-png")
+            raw_slug = ai.get("slug") or f"{slug_base}-png-hd"
+            slug     = slugify(raw_slug)
             base, sfx = slug, 1
             while f"{category}/{slug}" in used_slugs:
                 slug = f"{base}-{sfx}"; sfx += 1
             used_slugs.add(f"{category}/{slug}")
 
             desc = ai.get("description", "")
-            if not desc or len(desc.split()) < 80:
+            if not desc or len(desc.split()) < 100:
                 desc = _fallback_desc(subject, category, prompt)
 
             post = {
@@ -855,7 +773,7 @@ def phase2_qwen_filter_seo(generated):
                 "filename":        item["filename"],
                 "original_prompt": prompt,
                 "slug":            slug,
-                "title":           ai_title,
+                "title":           ai.get("title") or f"{subject} Transparent PNG HD Free Download | UltraPNG",
                 "h1":              ai.get("h1")    or f"{subject} PNG HD Image",
                 "meta_desc":       (ai.get("meta_desc") or
                                     f"Download {subject} PNG transparent background free HD. UltraPNG.com")[:155],
@@ -867,7 +785,6 @@ def phase2_qwen_filter_seo(generated):
                 "word_count":      len(desc.split()),
                 "ai_generated":    bool(ai),
                 "qwen_confidence": confidence,
-                "qwen_anatomy":    anatomy_score,
                 "qwen_group":      group,
                 "approved_path":   str(approved_path),
                 "png_file_id": "", "jpg_file_id": "", "webp_file_id": "",
@@ -879,7 +796,7 @@ def phase2_qwen_filter_seo(generated):
 
             rate = max((i + 1 - resume_from), 1) / (time.time() - t0)
             eta  = (len(generated) - i - 1) / rate / 60
-            log(f"  KEEP [{i+1}/{len(generated)}] {slug} (conf={confidence} anat={anatomy_score}) | ETA {eta:.0f}min")
+            log(f"  KEEP [{i+1}/{len(generated)}] {slug} (conf={confidence}) | ETA {eta:.0f}min")
 
         except Exception as e:
             log(f"  Qwen FAIL [{i+1}] {item.get('filename','?')}: {e}")
@@ -923,48 +840,72 @@ def phase2_qwen_filter_seo(generated):
 
 
 def _fallback_desc(subject, category, prompt=""):
-    cat_label = category.replace("-", " ").replace("_", " ").title()
-    return (
-        f"{subject} is one of those subjects that instantly catches the eye, "
-        f"and this transparent PNG captures it with remarkable clarity and detail. "
-        f"Whether you stumbled across this image while searching for the perfect graphic element "
-        f"or you specifically needed a high-quality {subject} PNG for your project, "
-        f"you have landed in the right place. UltraPNG.com offers this image completely free, "
-        f"with a fully transparent background that makes it ready to drop into any design without "
-        f"any extra editing work on your part.\n\n"
-        f"What makes a good {subject} PNG great is the quality of the edges and the natural feel of "
-        f"the subject itself. This image has been processed using RMBG-2.0 AI technology, which means "
-        f"the background removal is clean down to the finest details. You will not find any white halos, "
-        f"jagged edges, or leftover background pixels here. The result is a professional-grade transparent "
-        f"image that blends smoothly onto any background colour or texture you place it on.\n\n"
-        f"Designers working on flex banners, posters, social media graphics, YouTube thumbnails, "
-        f"wedding invitation cards, restaurant menus, or e-commerce product pages will find this "
-        f"{subject} PNG genuinely useful. Canva users can upload it directly to their project and "
-        f"the transparent background works immediately without any extra steps. Photoshop and "
-        f"CorelDRAW users will appreciate the clean alpha channel that makes masking and compositing "
-        f"a smooth experience. Even on printed materials like vinyl banners and flex hoardings, "
-        f"this image holds up at large sizes.\n\n"
-        f"The {cat_label} collection at UltraPNG.com is one of the most visited on the site, "
-        f"and for good reason. These images are generated fresh using advanced AI and then carefully "
-        f"filtered for quality before being made available. Not every image makes it through — only "
-        f"the ones that meet the quality standard get published, so what you are downloading has "
-        f"already passed a strict review. The file is completely free for both personal and commercial "
-        f"use, with no watermark on the downloaded version, no sign-up required, and no hidden fees. "
-        f"Just click download and it is yours to use however you need."
-    )
+    ph = f' (prompt: "{prompt[:100]}")' if prompt else ""
+    return f"""## About This {subject} PNG Image
+
+This high-quality {subject} PNG image{ph} is available for free download from UltraPNG.com. The image features a completely transparent background, making it perfect for graphic designers working on flex banners, social media posts, YouTube thumbnails, and digital marketing designs. Every edge is precisely processed using RMBG-2.0 AI for seamless integration into any project.
+
+The {subject} collection at UltraPNG.com is updated daily with fresh AI-generated images across 50+ categories. This PNG delivers professional-grade transparency that works in Photoshop, Canva, CorelDRAW, and Figma — no manual background removal needed.
+
+## Image Quality & Technical Details
+
+This {subject} PNG is processed using RMBG-2.0 ONNX AI for pixel-perfect transparent edges. The HD resolution stays sharp at any scale, from 200px social media icons to 4096px flex banner prints. Clean alpha channel with anti-aliased edges blends naturally on any background.
+
+## Design Ideas & Creative Applications
+
+- Flex banner and large-format hoarding designs for businesses
+- Social media posts, Instagram stories, and WhatsApp status graphics
+- YouTube thumbnail and channel banner designs
+- Wedding invitation cards and event poster designs
+- Restaurant menu cards and food delivery app images
+- Birthday celebration and felicitation banners
+- E-commerce product catalog and online shop listings
+- PowerPoint, Google Slides, and Canva presentations
+
+## Technical Specifications
+
+| Specification | Details |
+|---|---|
+| Format | PNG with Full Alpha Channel |
+| Background | 100% Transparent |
+| Resolution | HD — print and digital ready |
+| Edge Quality | AI-processed (RMBG-2.0), clean anti-aliased |
+| Compatible With | Photoshop, Canva, CorelDRAW, Figma, GIMP |
+| Print Ready | Yes — flex, vinyl, hoarding printing |
+| License | Free personal and commercial use |
+| Watermark | Preview only — downloaded file is clean |
+
+## How to Download
+
+1. Click the **Download PNG Free** button on this page
+2. A 15-second countdown timer begins
+3. When the timer ends, click **Download Now!**
+4. The clean PNG saves to your Downloads folder
+5. Open in Photoshop or Canva, drag onto your canvas
+6. Resize freely — stays HD at any scale
+
+## Frequently Asked Questions
+
+**Is this {subject} PNG completely free?**
+Yes — 100% free personal and commercial use. No account, no sign-up. No watermark on downloaded file.
+
+**Can I use this in Canva?**
+Yes. Canva Uploads → upload PNG → drag onto canvas. Transparent background works perfectly.
+
+**Does the downloaded PNG have a watermark?**
+No. Preview shows watermark for protection — downloaded file is completely clean.
+
+**Can I print on flex banners?**
+Yes. HD resolution is print-ready for large-format flex, vinyl, and hoarding.
+
+## Why UltraPNG
+
+UltraPNG.com is a free transparent PNG library updated daily with quality-verified AI-generated images. Every PNG features pixel-perfect RMBG-2.0 transparency. Completely free — no fees, no signup, no watermarks. Trusted by designers and marketers worldwide."""
 
 
 def _fallback_post(item_data, subject, category, prompt, used_slugs, approved_path=""):
-    item       = item_data["item"]
-    fb_title   = f"{subject} Transparent PNG Free Download | UltraPNG"
-    title_slug_base = re.sub(
-        r'\b(transparent png|free download|hd|png)\b', '',
-        fb_title.replace("| UltraPNG", ""), flags=re.IGNORECASE
-    ).strip()
-    slug      = slugify(title_slug_base)
-    if len(slug) > 65:
-        slug = "-".join(slug.split("-")[:10])
-    slug      = slug or slugify(f"{subject}-png")
+    item      = item_data["item"]
+    slug      = slugify(f"{subject}-png-hd")
     base, sfx = slug, 1
     while f"{category}/{slug}" in used_slugs:
         slug = f"{base}-{sfx}"; sfx += 1
@@ -973,7 +914,7 @@ def _fallback_post(item_data, subject, category, prompt, used_slugs, approved_pa
         "category": category, "subcategory": item.get("subcategory", "general"),
         "subject_name": subject, "filename": item.get("filename", ""),
         "original_prompt": prompt, "slug": slug,
-        "title": fb_title,
+        "title": f"{subject} Transparent PNG HD Free Download | UltraPNG",
         "h1": f"{subject} PNG HD Image",
         "meta_desc": f"Download {subject} PNG transparent background free HD. UltraPNG.com.",
         "alt_text": f"{subject} PNG Transparent Background Free Download UltraPNG",
@@ -1612,11 +1553,11 @@ def load_all_data(data_dir):
     return all_data
 
 # ══════════════════════════════════════════════════════════════
-# PHASE 5 — JSON Data Push to REPO2 (No HTML Build)
+# PHASE 5 — HTML Build + Git Push to REPO2
 # ══════════════════════════════════════════════════════════════
 def phase5_build_push(new_posts):
     log("=" * 56)
-    log("PHASE 5: JSON Data Push to REPO2")
+    log("PHASE 5: HTML Build + Git Push to REPO2")
     log("=" * 56)
 
     if not GITHUB_TOKEN or not GITHUB_REPO2:
@@ -1655,17 +1596,41 @@ def phase5_build_push(new_posts):
     for post in new_posts:
         key = f"{post['category']}/{post['slug']}"
         if key not in existing_keys:
-            # Strip internal fields not needed in JSON output
-            clean_post = {k: v for k, v in post.items()
-                          if k not in ("approved_path", "transparent_path")}
-            all_data.append(clean_post)
-            existing_keys.add(key)
-            added += 1
-    log(f"Merged: +{added} new | Total: {len(all_data)}")
+            all_data.append(post); existing_keys.add(key); added += 1
+    log(f"Merged: +{added} | Total: {len(all_data)}")
 
-    # Save JSON data only
     save_data_split(all_data, data_dir)
-    log(f"JSON files saved to data/")
+
+    out_dir = REPO2_DIR / "png-library"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    by_cat = {}
+    for item in all_data:
+        by_cat.setdefault(item["category"], []).append(item)
+
+    pages_built   = 0
+    affected_cats = set(p["category"] for p in new_posts)
+
+    for post in new_posts:
+        cat     = post["category"]
+        related = [i for i in by_cat.get(cat, []) if i["slug"] != post["slug"]][:24]
+        d       = out_dir / cat / post["slug"]
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "index.html").write_text(build_item_page(post, related), "utf-8")
+        pages_built += 1
+
+    for cat in affected_cats:
+        d = out_dir / cat
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "index.html").write_text(
+            build_category_page(cat, by_cat.get(cat, [])), "utf-8")
+        pages_built += 1
+
+    (out_dir / "index.html").write_text(build_main_page(all_data), "utf-8")
+    pages_built += 1
+    build_sitemaps(all_data, REPO2_DIR)
+    build_robots_txt(REPO2_DIR)
+    build_llms_txt(REPO2_DIR)
+    log(f"Pages built: {pages_built}")
 
     today    = datetime.now().strftime("%Y-%m-%d")
     orig_dir = os.getcwd()
@@ -1676,15 +1641,14 @@ def phase5_build_push(new_posts):
         subprocess.run(["git", "config", "user.email",
                         "github-actions[bot]@users.noreply.github.com"],
                        check=True, capture_output=True)
-        # Only add the data/ folder — no HTML, no sitemap
-        subprocess.run(["git", "add", "data/"], check=True, capture_output=True)
+        subprocess.run(["git", "add", "-A"], check=True, capture_output=True)
         diff = subprocess.run(["git", "diff", "--staged", "--quiet"], capture_output=True)
         if diff.returncode != 0:
-            msg  = f"data: +{added} images ({len(all_data)} total) [{today}]"
+            msg  = f"PNG Library: +{added} images ({len(all_data)} total) [{today}]"
             subprocess.run(["git", "commit", "-m", msg], check=True, capture_output=True)
             push = subprocess.run(["git", "push"], capture_output=True, text=True)
             if push.returncode == 0:
-                log(f"REPO2 JSON pushed! Total entries: {len(all_data)}")
+                log(f"REPO2 pushed! Total: {len(all_data)} images")
             else:
                 log(f"Push failed: {push.stderr[:200]}")
         else:
@@ -1793,8 +1757,8 @@ def main():
              "approved": 0, "transparent": 0, "uploaded": 0, "posts": 0, "duration": "?"}
 
     print("╔══════════════════════════════════════════════════════╗")
-    print("║  UltraPNG V7.0 — JSON Data Pipeline                ║")
-    print("║  FLUX -> Qwen(Filter+SEO) -> RMBG -> Drive -> JSON ║")
+    print("║  UltraPNG V6.0 — HuggingFace Direct Pipeline       ║")
+    print("║  FLUX -> Qwen(Filter+SEO) -> RMBG -> Drive -> Git  ║")
     print("╚══════════════════════════════════════════════════════╝")
     print(f"  Batch : {START_INDEX} -> {END_INDEX} ({END_INDEX-START_INDEX} prompts)")
     print(f"  REPO2 : {GITHUB_REPO2}")
