@@ -1,0 +1,277 @@
+name: PNG Library Generator
+
+on:
+  workflow_dispatch:
+    inputs:
+      start_index:
+        description: Start index
+        required: false
+        default: "0"
+      end_index:
+        description: End index
+        required: false
+        default: "800"
+      action:
+        description: What to do
+        required: false
+        default: generate
+        type: choice
+        options:
+          - generate
+          - status_check
+  schedule:
+    - cron: "30 20 * * *"
+
+env:
+  NOTEBOOK_SLUG: notebook8c5ae1ecf2
+
+permissions:
+  contents: write
+
+jobs:
+
+  trigger-kaggle:
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'schedule' ||
+      github.event.inputs.action == 'generate'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Kaggle CLI + nbconvert
+        run: pip install kaggle nbconvert nbformat
+
+      - name: Setup Kaggle Credentials
+        run: |
+          mkdir -p ~/.kaggle
+          echo '{"username":"${{ secrets.KAGGLE_USERNAME }}","key":"${{ secrets.KAGGLE_KEY }}"}' > ~/.kaggle/kaggle.json
+          chmod 600 ~/.kaggle/kaggle.json
+          kaggle --version
+          echo "Kaggle username: ${{ secrets.KAGGLE_USERNAME }}"
+          kaggle kernels list --mine --page-size 1 || { echo "ERROR: Kaggle credentials invalid!"; exit 1; }
+
+      - name: Calculate Batch
+        id: batch
+        run: |
+          START="${{ github.event.inputs.start_index }}"
+          END="${{ github.event.inputs.end_index }}"
+          if [ -z "$START" ] || [ "${{ github.event_name }}" = "schedule" ]; then
+            if [ -f "progress/batch_tracker.txt" ]; then
+              LAST=$(cat progress/batch_tracker.txt)
+              START=$LAST
+              END=$((LAST + 800))
+            else
+              START=0
+              END=800
+            fi
+          fi
+          if [ "$END" -gt "43082" ]; then END=43082; fi
+          if [ "$START" -ge "43082" ]; then echo "All done!"; exit 0; fi
+          echo "start_index=$START" >> $GITHUB_OUTPUT
+          echo "end_index=$END" >> $GITHUB_OUTPUT
+          echo "Batch: $START → $END"
+
+      - name: Clean Notebook Outputs (remove old data)
+        run: |
+          echo "Clearing old notebook outputs..."
+          python3 -c "
+          import json
+          with open('kaggle/main_pipeline.ipynb', 'r', encoding='utf-8') as f:
+              nb = json.load(f)
+          for cell in nb.get('cells', []):
+              cell['outputs'] = []
+              cell['execution_count'] = None
+              if 'metadata' in cell:
+                  cell['metadata'] = {'trusted': True}
+          with open('kaggle/main_pipeline.ipynb', 'w', encoding='utf-8') as f:
+              json.dump(nb, f, ensure_ascii=False, indent=1)
+          print(f'Cleaned {len(nb[\"cells\"])} cells — all outputs removed!')
+          "
+
+      - name: Inject Credentials
+        env:
+          GOOGLE_CLIENT_ID:       ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET:   ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN:   ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          GITHUB_TOKEN_REPO2_VAL: ${{ secrets.REPO_2_TOKEN }}
+          GITHUB_REPO2_VAL:       ${{ secrets.REPO_2 }}
+          GITHUB_TOKEN_REPO1_VAL: ${{ secrets.REPO_1_TOKEN }}
+        run: |
+          python3 inject_creds.py \
+            "${{ steps.batch.outputs.start_index }}" \
+            "${{ steps.batch.outputs.end_index }}" \
+            "${{ github.repository }}"
+          echo "Credentials injected for batch ${{ steps.batch.outputs.start_index }} → ${{ steps.batch.outputs.end_index }}"
+
+      - name: Sync Kernel Metadata
+        run: |
+          cd kaggle
+          KERNEL_ID="${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}"
+          python3 -c "
+          import json
+          with open('kernel-metadata.json', 'r') as f:
+              meta = json.load(f)
+          # Only update kernel ID — DO NOT touch dataset_sources
+          # dataset_sources = gurumoorthirajagopal/my-pipeline-models (correct in file)
+          meta['id'] = '${KERNEL_ID}'
+          with open('kernel-metadata.json', 'w') as f:
+              json.dump(meta, f, indent=2)
+          print('kernel-metadata.json updated:')
+          print(json.dumps(meta, indent=2))
+          "
+
+      - name: Verify Before Push
+        run: |
+          echo "=== kernel-metadata.json ==="
+          cat kaggle/kernel-metadata.json
+          echo ""
+          python3 -c "
+          import json
+          with open('kaggle/main_pipeline.ipynb') as f:
+              nb = json.load(f)
+          cells = nb['cells']
+          total_outputs = sum(len(c.get('outputs',[])) for c in cells)
+          print(f'Notebook cells: {len(cells)}')
+          print(f'Old outputs: {total_outputs}')
+          if total_outputs == 0:
+              print('Notebook is clean!')
+          else:
+              print('WARNING: old outputs present!')
+          "
+
+      - name: Push to Kaggle
+        run: |
+          KERNEL="${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}"
+          echo "Pushing kernel: $KERNEL"
+
+          # Wait if kernel is active
+          for i in 1 2 3 4 5; do
+            STATUS=$(kaggle kernels status "$KERNEL" 2>&1 || true)
+            echo "[$i] $STATUS"
+            if echo "$STATUS" | grep -qiE 'running|queued'; then
+              echo "Kernel busy — cancelling..."
+              kaggle kernels cancel "$KERNEL" 2>/dev/null || true
+              sleep 30
+            else
+              break
+            fi
+          done
+
+          # Push with retry
+          cd kaggle
+          MAX_RETRIES=3
+          ATTEMPT=0
+          DELAY=30
+
+          while [ $ATTEMPT -lt $MAX_RETRIES ]; do
+            ATTEMPT=$((ATTEMPT + 1))
+            echo "Push attempt $ATTEMPT/$MAX_RETRIES..."
+
+            OUTPUT=$(kaggle kernels push -p . 2>&1)
+            EXIT_CODE=$?
+            echo "Output: $OUTPUT"
+
+            if [ $EXIT_CODE -eq 0 ] && ! echo "$OUTPUT" | grep -qiE 'conflict|cannot change'; then
+              echo "PUSH SUCCESSFUL!"
+              break
+            else
+              echo "Push failed"
+              if [ $ATTEMPT -lt $MAX_RETRIES ]; then
+                echo "Retrying in ${DELAY}s..."
+                sleep $DELAY
+                DELAY=$((DELAY * 2))
+              else
+                echo "ALL ATTEMPTS FAILED"
+                exit 1
+              fi
+            fi
+          done
+
+          echo "Waiting 90s for kernel to start..."
+          sleep 90
+
+      - name: Wait for Kaggle Completion
+        run: |
+          KERNEL="${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}"
+          MAX=14400
+          ELAPSED=0
+          POLL=120
+          SEEN_RUNNING=false
+
+          echo "Monitoring: $KERNEL"
+          echo "Timeout: ${MAX}s (~4 hours)"
+
+          while [ $ELAPSED -lt $MAX ]; do
+            FULL=$(kaggle kernels status "$KERNEL" 2>&1 || true)
+            S=$(echo "$FULL" | grep -oiE 'complete|running|error|queued' | head -1 | tr '[:upper:]' '[:lower:]')
+            MINS=$((ELAPSED / 60))
+            echo "[${MINS}m] Status: ${S:-unknown}"
+
+            case "$S" in
+              running)
+                SEEN_RUNNING=true
+                ;;
+              queued)
+                echo "  Waiting for GPU..."
+                ;;
+              complete)
+                if [ "$SEEN_RUNNING" = true ] || [ $ELAPSED -ge 300 ]; then
+                  echo "KERNEL COMPLETED!"
+                  exit 0
+                else
+                  echo "  Stale status — waiting for new run..."
+                fi
+                ;;
+              error)
+                if [ "$SEEN_RUNNING" = true ]; then
+                  echo "KERNEL FAILED"
+                  exit 1
+                else
+                  echo "  Stale error — waiting for new run..."
+                fi
+                ;;
+            esac
+
+            sleep $POLL
+            ELAPSED=$((ELAPSED + POLL))
+          done
+
+          echo "TIMEOUT"
+          exit 1
+
+      - name: Save Progress
+        if: success()
+        run: echo "${{ steps.batch.outputs.end_index }}" > progress/batch_tracker.txt
+
+      - name: Commit Progress
+        if: success()
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Batch ${{ steps.batch.outputs.start_index }}-${{ steps.batch.outputs.end_index }} done"
+          file_pattern: progress/batch_tracker.txt
+
+  status-check:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'status_check'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Progress Report
+        run: |
+          if [ -f "progress/batch_tracker.txt" ]; then
+            DONE=$(cat progress/batch_tracker.txt)
+            echo "Done: $DONE / 43082 ($((DONE * 100 / 43082))%)"
+            echo "Remaining: $((43082 - DONE))"
+            echo "Est. days: ~$(((43082 - DONE) / 800))"
+          else
+            echo "Not started yet!"
+          fi
