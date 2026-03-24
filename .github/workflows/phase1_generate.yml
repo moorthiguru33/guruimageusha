@@ -1,0 +1,219 @@
+name: Phase 1 — Image Generation (Kaggle)
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Run mode"
+        required: true
+        default: scheduled
+        type: choice
+        options:
+          - scheduled
+          - instant
+      images_per_day:
+        description: "Images per day (scheduled mode)"
+        required: false
+        default: "200"
+      total_days:
+        description: "Total days to run (scheduled mode)"
+        required: false
+        default: "30"
+      instant_count:
+        description: "Images for instant mode (3, 5, or 10)"
+        required: false
+        default: "5"
+  schedule:
+    - cron: "0 2 * * *"  # Daily at 2 AM UTC
+
+env:
+  NOTEBOOK_SLUG: ultrapng-phase1
+
+permissions:
+  contents: write
+
+jobs:
+  run-phase1:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Kaggle CLI
+        run: pip install kaggle --quiet
+
+      - name: Setup Kaggle Credentials
+        run: |
+          mkdir -p ~/.kaggle
+          echo '{"username":"${{ secrets.KAGGLE_USERNAME }}","key":"${{ secrets.KAGGLE_KEY }}"}' > ~/.kaggle/kaggle.json
+          chmod 600 ~/.kaggle/kaggle.json
+          kaggle kernels list --mine --page-size 1 || { echo "ERROR: Kaggle credentials invalid"; exit 1; }
+
+      - name: Calculate Batch Indices
+        id: batch
+        run: |
+          MODE="${{ github.event.inputs.mode }}"
+          if [ -z "$MODE" ]; then MODE="scheduled"; fi
+
+          if [ "$MODE" = "instant" ]; then
+            COUNT="${{ github.event.inputs.instant_count }}"
+            if [ -z "$COUNT" ]; then COUNT="5"; fi
+            # Read current position from config
+            CURRENT=$(python3 -c "import json; d=json.load(open('progress/config.json')); print(d.get('total_generated',0))")
+            START=$CURRENT
+            END=$((CURRENT + COUNT))
+            echo "Instant mode: $COUNT images ($START → $END)"
+          else
+            # Scheduled mode
+            PER_DAY="${{ github.event.inputs.images_per_day }}"
+            TOTAL_DAYS="${{ github.event.inputs.total_days }}"
+            if [ -z "$PER_DAY" ]; then PER_DAY="200"; fi
+            if [ -z "$TOTAL_DAYS" ]; then TOTAL_DAYS="30"; fi
+
+            CURRENT_DAY=$(python3 -c "import json; d=json.load(open('progress/config.json')); print(d.get('current_day',0))")
+            if [ "$CURRENT_DAY" -ge "$TOTAL_DAYS" ]; then
+              echo "All $TOTAL_DAYS days complete. Exiting."
+              exit 0
+            fi
+            START=$(python3 -c "import json; d=json.load(open('progress/config.json')); print(d.get('total_generated',0))")
+            END=$((START + PER_DAY))
+            echo "Scheduled mode: Day $((CURRENT_DAY+1))/$TOTAL_DAYS | $PER_DAY images ($START → $END)"
+          fi
+
+          echo "start=$START"   >> $GITHUB_OUTPUT
+          echo "end=$END"       >> $GITHUB_OUTPUT
+          echo "mode=$MODE"     >> $GITHUB_OUTPUT
+          echo "per_day=$PER_DAY"     >> $GITHUB_OUTPUT
+          echo "total_days=$TOTAL_DAYS" >> $GITHUB_OUTPUT
+
+      - name: Clean Notebook Outputs
+        run: |
+          python3 - <<'EOF'
+          import json
+          with open("kaggle/phase1_pipeline.ipynb", "r") as f:
+              nb = json.load(f)
+          for cell in nb.get("cells", []):
+              cell["outputs"] = []
+              cell["execution_count"] = None
+              cell["metadata"] = {"trusted": True}
+          with open("kaggle/phase1_pipeline.ipynb", "w") as f:
+              json.dump(nb, f, ensure_ascii=False, indent=1)
+          print(f"Cleaned {len(nb['cells'])} cells")
+          EOF
+
+      - name: Inject Credentials
+        env:
+          GOOGLE_CLIENT_ID:       ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET:   ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN:   ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          GITHUB_TOKEN_REPO2_VAL: ${{ secrets.REPO_2_TOKEN }}
+          GITHUB_REPO2_VAL:       ${{ secrets.REPO_2 }}
+          GITHUB_TOKEN_REPO1_VAL: ${{ secrets.GITHUB_TOKEN }}
+          GOOGLE_SHEETS_ID:       ${{ secrets.GOOGLE_SHEETS_ID }}
+          DRIVE_ROOT_FOLDER_ID:   ${{ secrets.DRIVE_ROOT_FOLDER_ID }}
+        run: |
+          python3 inject_creds.py \
+            "${{ steps.batch.outputs.start }}" \
+            "${{ steps.batch.outputs.end }}" \
+            "${{ github.repository }}"
+
+      - name: Update Kernel Metadata
+        run: |
+          KERNEL="${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}"
+          python3 -c "
+          import json
+          with open('kaggle/kernel-metadata.json') as f:
+              m = json.load(f)
+          m['id'] = '${KERNEL}'
+          with open('kaggle/kernel-metadata.json', 'w') as f:
+              json.dump(m, f, indent=2)
+          "
+
+      - name: Push to Kaggle
+        run: |
+          KERNEL="${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}"
+
+          # Cancel if running
+          STATUS=$(kaggle kernels status "$KERNEL" 2>&1 || true)
+          if echo "$STATUS" | grep -qiE 'running|queued'; then
+            echo "Cancelling running kernel..."
+            kaggle kernels cancel "$KERNEL" 2>/dev/null || true
+            sleep 20
+          fi
+
+          cd kaggle
+          for attempt in 1 2 3; do
+            OUT=$(kaggle kernels push -p . 2>&1)
+            echo "$OUT"
+            if echo "$OUT" | grep -qiE 'conflict|error'; then
+              sleep $((attempt * 20))
+            else
+              echo "Push successful"
+              break
+            fi
+          done
+          echo "Waiting 90s for kernel to start..."
+          sleep 90
+
+      - name: Wait for Kaggle Completion
+        run: |
+          KERNEL="${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}"
+          MAX=14400
+          ELAPSED=0
+          SEEN_RUNNING=false
+
+          while [ $ELAPSED -lt $MAX ]; do
+            FULL=$(kaggle kernels status "$KERNEL" 2>&1 || true)
+            S=$(echo "$FULL" | grep -oiE 'complete|running|error|queued' | head -1 | tr '[:upper:]' '[:lower:]')
+            echo "[$(( ELAPSED/60 ))m] Status: ${S:-unknown}"
+            case "$S" in
+              running)  SEEN_RUNNING=true ;;
+              complete) [ "$SEEN_RUNNING" = true ] && { echo "KERNEL COMPLETED"; exit 0; } ;;
+              error)    [ "$SEEN_RUNNING" = true ] && { echo "KERNEL FAILED";    exit 1; } ;;
+            esac
+            sleep 120
+            ELAPSED=$((ELAPSED + 120))
+          done
+          echo "TIMEOUT" && exit 1
+
+      - name: Update Progress
+        if: ${{ success() && steps.batch.outputs.mode != '' }}
+        run: |
+          python3 - <<'EOF'
+          import json
+
+          with open("progress/config.json") as f:
+              cfg = json.load(f)
+
+          mode      = "${{ steps.batch.outputs.mode }}"
+          per_day   = int("${{ steps.batch.outputs.per_day }}" or cfg.get("images_per_day", 200))
+          total_days = int("${{ steps.batch.outputs.total_days }}" or cfg.get("total_days", 30))
+          added     = int("${{ steps.batch.outputs.end }}") - int("${{ steps.batch.outputs.start }}")
+
+          cfg["total_generated"] = cfg.get("total_generated", 0) + added
+          cfg["images_per_day"]  = per_day
+          cfg["total_days"]      = total_days
+
+          if mode == "scheduled":
+              cfg["current_day"] = cfg.get("current_day", 0) + 1
+
+          with open("progress/config.json", "w") as f:
+              json.dump(cfg, f, indent=2)
+
+          print(f"Progress: day {cfg['current_day']}/{cfg['total_days']} | total {cfg['total_generated']} images")
+          EOF
+
+      - name: Commit Progress
+        if: success()
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Phase1 batch ${{ steps.batch.outputs.start }}-${{ steps.batch.outputs.end }} complete"
+          file_pattern: "progress/config.json kaggle/phase1_pipeline.py"
