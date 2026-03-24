@@ -35,14 +35,35 @@ RMBG_HF_ID = "ZhengPeng7/BiRefNet_HR"
 # ── Install deps ──────────────────────────────────────────────
 print("=" * 56)
 print("Installing dependencies...")
+
+# First, install PyTorch with CUDA 11.8 (supports P100 sm_60)
+torch_install = subprocess.run(
+    [sys.executable, "-m", "pip", "install", "-q",
+     "torch==2.1.2", "torchvision==0.16.2",
+     "--index-url", "https://download.pytorch.org/whl/cu118"],
+    capture_output=True, text=True
+)
+if torch_install.returncode != 0:
+    print("  WARN: PyTorch install failed, trying fallback")
+    subprocess.run(
+        [sys.executable, "-m", "pip", "install", "-q",
+         "torch==2.1.2", "torchvision==0.16.2",
+         "--index-url", "https://download.pytorch.org/whl/cu118"],
+        capture_output=True, text=True, check=False
+    )
+
+# Then install the rest, but don't upgrade torch (use --upgrade-strategy only-if-needed)
 PKGS = [
     "git+https://github.com/huggingface/diffusers.git",
-    "transformers>=4.47.0", "accelerate>=0.28.0",
-    "huggingface_hub>=0.23.0", "Pillow>=10.0",
-    "numpy", "requests", "torchvision", "piexif",
+    "transformers>=4.47.0", "accelerate>=0.28.0", "sentencepiece",
+    "huggingface_hub>=0.23.0", "Pillow>=10.0", "numpy", "requests",
+    "onnxruntime-gpu", "qwen-vl-utils",
+    "bitsandbytes>=0.43.0",
+    "opencv-python-headless", "piexif",
 ]
 r = subprocess.run(
-    [sys.executable, "-m", "pip", "install", "-q", "--no-warn-conflicts"] + PKGS,
+    [sys.executable, "-m", "pip", "install", "-q", "--no-warn-conflicts",
+     "--upgrade-strategy", "only-if-needed"] + PKGS,
     capture_output=True, text=True)
 print(f"  pip: {'OK' if r.returncode == 0 else 'WARN'}")
 print("Done!\n")
