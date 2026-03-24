@@ -2,27 +2,39 @@ name: "Trigger 1 — Generate Images"
 
 # ─────────────────────────────────────────────────────────────
 # HOW IT WORKS:
-#   1. You manually run this with "days" input (e.g. 1000)
-#   2. It saves remaining_days to progress/remaining_days.txt
-#   3. After each successful Kaggle run it auto-triggers itself
-#   4. Runs until remaining_days reaches 0 or you STOP it
+#   NORMAL MODE  → Pushes to Kaggle → waits for completion →
+#                  auto-triggers next day (days countdown)
+#   INSTANT MODE → Pushes to Kaggle → immediately triggers
+#                  next batch without waiting (count batches)
 #
-# TO START: Actions → "Trigger 1" → Run workflow → set days
-# TO STOP:  Cancel the running workflow  OR
-#           Actions → "Trigger 1" → Run workflow → set days=0
+# TO START (Normal):  Actions → "Trigger 1" → set days (e.g. 7)
+# TO START (Instant): Actions → "Trigger 1" → instant_trigger=true → set count
+# TO STOP:            Cancel running workflow  OR  set days=0
 # ─────────────────────────────────────────────────────────────
 
 on:
   workflow_dispatch:
     inputs:
       days:
-        description: "How many days to run? (0 = stop)"
-        required: true
+        description: "Normal mode: How many days to run? (0 = stop)"
+        required: false
         default: "7"
       start_index:
-        description: "Start index (leave blank = auto)"
+        description: "Start index (leave blank = auto from tracker)"
         required: false
         default: ""
+      instant_trigger:
+        description: "Instant mode? (fire next batch immediately, no wait)"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      count:
+        description: "Instant mode: How many batches to fire? (e.g. 3)"
+        required: false
+        default: "1"
 
 env:
   NOTEBOOK_SLUG: pipeline_generate_nb
@@ -42,18 +54,30 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # ── 2. Check stop condition ───────────────────────────────
+      # ── 2. Check stop condition (Normal mode only) ────────────
       - name: Check days
         id: days_check
         run: |
+          INSTANT="${{ github.event.inputs.instant_trigger }}"
           DAYS="${{ github.event.inputs.days }}"
-          echo "Requested days: $DAYS"
-          if [ "$DAYS" -le "0" ]; then
-            echo "Days = 0 — stopping pipeline."
-            echo "should_run=false" >> $GITHUB_OUTPUT
-          else
+          COUNT="${{ github.event.inputs.count }}"
+
+          if [ "$INSTANT" = "true" ]; then
+            echo "=== INSTANT MODE: $COUNT batches ==="
             echo "should_run=true"  >> $GITHUB_OUTPUT
-            echo "days=$DAYS"       >> $GITHUB_OUTPUT
+            echo "instant=true"     >> $GITHUB_OUTPUT
+            echo "count=$COUNT"     >> $GITHUB_OUTPUT
+            echo "days=0"           >> $GITHUB_OUTPUT
+          else
+            echo "=== NORMAL MODE: $DAYS days ==="
+            echo "instant=false" >> $GITHUB_OUTPUT
+            if [ "$DAYS" -le "0" ]; then
+              echo "Days = 0 — stopping pipeline."
+              echo "should_run=false" >> $GITHUB_OUTPUT
+            else
+              echo "should_run=true" >> $GITHUB_OUTPUT
+              echo "days=$DAYS"      >> $GITHUB_OUTPUT
+            fi
           fi
 
       # ── 3. Setup ─────────────────────────────────────────────
@@ -164,7 +188,8 @@ jobs:
             "${{ github.repository }}"               \
             "kaggle/pipeline_generate.ipynb"
 
-      # ── 8. Sync kernel metadata ───────────────────────────────
+      # ── 8. Sync kernel metadata → kernel-metadata.json ───────
+      # FIX: Write directly to kernel-metadata.json (what kaggle CLI reads)
       - name: Sync kernel metadata
         if: steps.days_check.outputs.should_run == 'true'
         run: |
@@ -174,9 +199,11 @@ jobs:
           with open('kaggle/kernel_generate_metadata.json') as f:
               meta = json.load(f)
           meta['id'] = kid
-          with open('kaggle/kernel_generate_metadata.json', 'w') as f:
+          # Write to kernel-metadata.json — this is what 'kaggle kernels push -p .' reads
+          with open('kaggle/kernel-metadata.json', 'w') as f:
               json.dump(meta, f, indent=2)
-          print('Kernel ID:', kid)
+          print('Kernel ID set to:', kid)
+          print('Written to: kaggle/kernel-metadata.json')
           "
 
       # ── 9. Push to Kaggle ─────────────────────────────────────
@@ -213,9 +240,39 @@ jobs:
           echo "Waiting 90s for kernel to start..."
           sleep 90
 
-      # ── 10. Wait for Kaggle completion ────────────────────────
-      - name: Wait for Kaggle completion
-        if: steps.days_check.outputs.should_run == 'true'
+      # ── 10. INSTANT MODE — trigger next immediately ───────────
+      # Fires next batch WITHOUT waiting for Kaggle to finish
+      - name: "INSTANT: Trigger next batch immediately"
+        if: steps.days_check.outputs.should_run == 'true' && steps.days_check.outputs.instant == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NEXT_START="${{ steps.batch.outputs.end_index }}"
+          REMAINING=$(( ${{ github.event.inputs.count }} - 1 ))
+
+          # Save progress immediately (don't wait for Kaggle)
+          echo "$NEXT_START" > progress/batch_tracker.txt
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add progress/batch_tracker.txt
+          git commit -m "Instant batch ${{ steps.batch.outputs.start_index }}-${{ steps.batch.outputs.end_index }} fired ⚡ | remaining: $REMAINING" || true
+          git push || true
+
+          if [ "$REMAINING" -gt "0" ]; then
+            echo "Firing next instant batch (remaining: $REMAINING)..."
+            gh workflow run trigger_generate.yml \
+              --ref "${{ github.ref_name }}" \
+              --field instant_trigger="true" \
+              --field count="$REMAINING" \
+              --field start_index="$NEXT_START"
+            echo "Next instant batch triggered ⚡"
+          else
+            echo "All ${{ github.event.inputs.count }} instant batches fired! 🎉"
+          fi
+
+      # ── 11. NORMAL MODE — wait for Kaggle completion ──────────
+      - name: "NORMAL: Wait for Kaggle completion"
+        if: steps.days_check.outputs.should_run == 'true' && steps.days_check.outputs.instant != 'true'
         run: |
           KERNEL="${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}"
           MAX=18000
@@ -231,11 +288,14 @@ jobs:
               running)  SEEN_RUNNING=true ;;
               queued)   echo "  Waiting for GPU..." ;;
               complete)
-                if [ "$SEEN_RUNNING" = true ] || [ $ELAPSED -ge 300 ]; then
-                  echo "Kaggle run COMPLETE!"; exit 0
+                # FIX: Only accept complete if we actually saw it running first
+                if [ "$SEEN_RUNNING" = true ]; then
+                  echo "Kaggle run COMPLETE! ✅"; exit 0
+                else
+                  echo "  Stale complete status — waiting for actual run..."
                 fi ;;
               error)
-                if [ "$SEEN_RUNNING" = true ]; then echo "Kaggle run FAILED"; exit 1; fi ;;
+                if [ "$SEEN_RUNNING" = true ]; then echo "Kaggle run FAILED ❌"; exit 1; fi ;;
             esac
 
             sleep 120
@@ -243,25 +303,25 @@ jobs:
           done
           echo "TIMEOUT after 5h"; exit 1
 
-      # ── 11. Save progress ─────────────────────────────────────
-      - name: Save progress
-        if: steps.days_check.outputs.should_run == 'true' && success()
+      # ── 12. NORMAL MODE — Save progress ───────────────────────
+      - name: "NORMAL: Save progress"
+        if: steps.days_check.outputs.should_run == 'true' && steps.days_check.outputs.instant != 'true' && success()
         run: |
           echo "${{ steps.batch.outputs.end_index }}" > progress/batch_tracker.txt
           REMAINING=$(( ${{ steps.days_check.outputs.days }} - 1 ))
           echo "$REMAINING" > progress/remaining_days.txt
           echo "Remaining days: $REMAINING"
 
-      - name: Commit progress
-        if: steps.days_check.outputs.should_run == 'true' && success()
+      - name: "NORMAL: Commit progress"
+        if: steps.days_check.outputs.should_run == 'true' && steps.days_check.outputs.instant != 'true' && success()
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Batch ${{ steps.batch.outputs.start_index }}-${{ steps.batch.outputs.end_index }} done ✅ | remaining days: $(( ${{ steps.days_check.outputs.days }} - 1 ))"
           file_pattern: "progress/*.txt"
 
-      # ── 12. Auto-trigger next day ─────────────────────────────
-      - name: Trigger next day
-        if: steps.days_check.outputs.should_run == 'true' && success()
+      # ── 13. NORMAL MODE — Auto-trigger next day ───────────────
+      - name: "NORMAL: Trigger next day"
+        if: steps.days_check.outputs.should_run == 'true' && steps.days_check.outputs.instant != 'true' && success()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
