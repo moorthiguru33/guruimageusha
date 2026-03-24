@@ -1,0 +1,13 @@
+{
+  "id": "placeholder/pipeline_seo_nb",
+  "title": "pipeline_seo_nb",
+  "code_file": "pipeline_seo.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [],
+  "competition_sources": [],
+  "kernel_sources": []
+}
