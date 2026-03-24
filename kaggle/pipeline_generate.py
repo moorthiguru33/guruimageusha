@@ -36,67 +36,36 @@ RMBG_HF_ID = "ZhengPeng7/BiRefNet_HR"
 print("=" * 56)
 print("Installing dependencies...")
 
-# Step 1: Remove any existing torch (to avoid conflicts)
-subprocess.run([sys.executable, "-m", "pip", "uninstall", "-y", "torch", "torchvision", "torchaudio"],
-               capture_output=True)
+# Check if system torch supports the current GPU (P100=sm_60 needs older torch)
+import subprocess as _sp, sys as _sys
+_gpu_check = _sp.run(
+    [_sys.executable, "-c",
+     "import torch; c=torch.cuda.get_device_capability(0) if torch.cuda.is_available() else (0,0); print(f'{c[0]}.{c[1]}')"],
+    capture_output=True, text=True
+)
+_gpu_cap = _gpu_check.stdout.strip()
+print(f"  GPU compute capability: {_gpu_cap}")
 
-# Step 2: Install PyTorch 2.1.2 with CUDA 11.8 (supports P100 sm_60)
-def install_torch():
-    cmd = [sys.executable, "-m", "pip", "install", "--force-reinstall", "--no-cache-dir",
-           "torch==2.1.2", "torchvision==0.16.2", "torchaudio==2.1.2",
-           "--index-url", "https://download.pytorch.org/whl/cu118"]
-    return subprocess.run(cmd, capture_output=True, text=True)
+# P100 = sm_60 → needs torch with CUDA 11.x (sm_60 support dropped in torch 2.x nightlies)
+# Install compatible torch first if needed
+if _gpu_cap.startswith("6."):
+    print("  P100 detected (sm_60) — installing torch with CUDA 11.8 compatibility...")
+    _sp.run([_sys.executable, "-m", "pip", "install", "-q",
+             "torch==2.1.2", "torchvision==0.16.2",
+             "--index-url", "https://download.pytorch.org/whl/cu118"],
+            capture_output=True)
+    print("  torch 2.1.2+cu118 installed (P100 compatible)")
 
-# Retry up to 3 times
-for attempt in range(1, 4):
-    result = install_torch()
-    if result.returncode == 0:
-        print("  PyTorch installed successfully.")
-        break
-    else:
-        print(f"  Attempt {attempt} failed: {result.stderr[:100]}")
-        if attempt == 3:
-            # Last resort: use the official PyTorch stable (but may not support sm_60)
-            print("  Trying official PyTorch stable (may not work on P100)...")
-            result = subprocess.run([sys.executable, "-m", "pip", "install", "--force-reinstall",
-                                     "torch", "torchvision", "torchaudio"],
-                                    capture_output=True, text=True)
-        time.sleep(5)
-
-# Verify installation
-try:
-    import torch
-    print(f"  PyTorch version: {torch.__version__}")
-    print(f"  CUDA available: {torch.cuda.is_available()}")
-    if torch.cuda.is_available():
-        print(f"  GPU: {torch.cuda.get_device_name(0)}")
-    else:
-        print("  WARNING: CUDA not available. GPU may not work.")
-except Exception as e:
-    print(f"  WARN: Could not verify torch: {e}")
-
-# Step 3: Install other packages, but prevent torch upgrade
-# First, install without dependencies to avoid pulling torch again
 PKGS = [
     "git+https://github.com/huggingface/diffusers.git",
-    "transformers>=4.47.0", "accelerate>=0.28.0", "sentencepiece",
-    "huggingface_hub>=0.23.0", "Pillow>=10.0", "numpy", "requests",
-    "onnxruntime-gpu", "qwen-vl-utils",
-    "bitsandbytes>=0.43.0",
-    "opencv-python-headless", "piexif",
+    "transformers>=4.47.0", "accelerate>=0.28.0",
+    "huggingface_hub>=0.23.0", "Pillow>=10.0",
+    "numpy", "requests", "torchvision", "piexif",
 ]
-# First pass: install with --no-deps to avoid any torch change
-r = subprocess.run(
-    [sys.executable, "-m", "pip", "install", "--no-deps", "--no-warn-conflicts"] + PKGS,
+r = _sp.run(
+    [_sys.executable, "-m", "pip", "install", "-q", "--no-warn-conflicts"] + PKGS,
     capture_output=True, text=True)
-print(f"  pip (no-deps): {'OK' if r.returncode == 0 else 'WARN'}")
-
-# Second pass: install dependencies (except torch) using upgrade-strategy
-r2 = subprocess.run(
-    [sys.executable, "-m", "pip", "install", "--upgrade-strategy", "only-if-needed",
-     "--no-warn-conflicts"] + PKGS,
-    capture_output=True, text=True)
-print(f"  pip final: {'OK' if r2.returncode == 0 else 'WARN'}")
+print(f"  pip: {'OK' if r.returncode == 0 else 'WARN'}")
 print("Done!\n")
 
 import torch
@@ -476,7 +445,7 @@ def phase1_generate(batch, skip_set, prompt_lookup):
 
     from diffusers import Flux2KleinPipeline
 
-    pipe = Flux2KleinPipeline.from_pretrained(FLUX_HF_ID, torch_dtype=torch.bfloat16)
+    pipe = Flux2KleinPipeline.from_pretrained(FLUX_HF_ID, torch_dtype=_TORCH_DTYPE)
     pipe.enable_model_cpu_offload(gpu_id=0)
     pipe.set_progress_bar_config(disable=True)
     log(f"  FLUX loaded | Batch: {len(batch)} | Skip: {len(skip_set)}\n")
@@ -784,15 +753,25 @@ def main():
         except Exception:
             pass
 
-        # ── Clone project repo if not already present ─────────────
-        if GITHUB_REPO1 and not PROJECT_DIR.exists():
-            log("Cloning project repo for prompts...")
-            repo_url = f"https://github.com/{GITHUB_REPO1}.git"
-            if GITHUB_TOKEN_REPO1:
-                repo_url = f"https://x-access-token:{GITHUB_TOKEN_REPO1}@github.com/{GITHUB_REPO1}.git"
-            subprocess.run(["git", "clone", "--depth", "1", repo_url, str(PROJECT_DIR)],
-                           capture_output=True, check=True)
-            log("  Repo cloned successfully")
+        # ── Clone Repo1 → PROJECT_DIR (needed for prompt splits) ──
+        # PROJECT_DIR = /kaggle/working/project
+        # Prompt splits live in repo at prompts/splits/*.json
+        log("Cloning Repo1 → PROJECT_DIR for prompt splits...")
+        try:
+            if PROJECT_DIR.exists():
+                shutil.rmtree(str(PROJECT_DIR))
+            clone_url = f"https://x-access-token:{GITHUB_TOKEN_REPO1}@github.com/{GITHUB_REPO1}.git"
+            r = subprocess.run(
+                ["git", "clone", "--depth=1", clone_url, str(PROJECT_DIR)],
+                capture_output=True, text=True
+            )
+            if r.returncode != 0:
+                log(f"  WARN: Clone failed: {r.stderr.strip()}")
+            else:
+                splits_count = len(list((PROJECT_DIR / "prompts" / "splits").glob("*.json")))
+                log(f"  Repo cloned OK → {splits_count} split files found ✅")
+        except Exception as e:
+            log(f"  WARN: Clone error: {e}")
 
         # Load prompt lookup for subject_name
         prompt_lookup = load_prompt_lookup()
