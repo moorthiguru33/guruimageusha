@@ -1,3 +1,17 @@
+# <<<CREDS_START>>>
+import os
+os.environ["GOOGLE_CLIENT_ID"] = "308212866102-sd27dv5pjsr2bff3fioj4frr0ul58a1h.apps.googleusercontent.com"
+os.environ["GOOGLE_CLIENT_SECRET"] = "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"
+os.environ["GOOGLE_REFRESH_TOKEN"] = "1//0gK-Pq9Wd5D1OCgYIARAAGBASNwF-L9IriEGWY1hzEOsDtGLe5jwqrtN9J8CkpeFFMo605QtjdnphjbNotyA69oixHjt66gIiOtE"
+os.environ["GITHUB_TOKEN_REPO2"] = "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"
+os.environ["GITHUB_REPO2"] = "moorthiguru33/ultrapng"
+os.environ["GITHUB_REPO1"] = "moorthiguru33/guruimageusha"
+os.environ["GITHUB_TOKEN_REPO1"] = "ghs_prDnoZxrEPOyyLCnZR8WicI7tOKlTu2eCHqv"
+os.environ["GOOGLE_SHEETS_ID"] = "1Qtl-_X4-GsSnEZ_Vd-d8oeZDZZmEer0hF-Q2UA2xmd4"
+os.environ["DRIVE_ROOT_FOLDER_ID"] = "1zvBogYwh_73BMTkEmLCf_rOjKCYmjHX4"
+os.environ["START_INDEX"] = "0"
+os.environ["END_INDEX"] = "5"
+# <<<CREDS_END>>>
 """
 UltraPNG — Phase 1 Kaggle Pipeline
 FLUX.2-Klein-4B → BiRefNet_HR BG Remove → PNG + WebP → Google Drive → Google Sheets → Trigger Phase 2
