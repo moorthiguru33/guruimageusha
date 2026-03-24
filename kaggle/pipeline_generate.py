@@ -732,6 +732,16 @@ def main():
         except Exception:
             pass
 
+        # ── Clone project repo if not already present ─────────────
+        if GITHUB_REPO1 and not PROJECT_DIR.exists():
+            log("Cloning project repo for prompts...")
+            repo_url = f"https://github.com/{GITHUB_REPO1}.git"
+            if GITHUB_TOKEN_REPO1:
+                repo_url = f"https://x-access-token:{GITHUB_TOKEN_REPO1}@github.com/{GITHUB_REPO1}.git"
+            subprocess.run(["git", "clone", "--depth", "1", repo_url, str(PROJECT_DIR)],
+                           capture_output=True, check=True)
+            log("  Repo cloned successfully")
+
         # Load prompt lookup for subject_name
         prompt_lookup = load_prompt_lookup()
 
