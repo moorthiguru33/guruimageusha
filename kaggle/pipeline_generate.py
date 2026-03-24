@@ -48,7 +48,9 @@ print(f"  GPU compute capability: {_gpu_cap}")
 
 # P100 = sm_60 → needs torch with CUDA 11.x (sm_60 support dropped in torch 2.x nightlies)
 # Install compatible torch first if needed
-if _gpu_cap.startswith("6."):
+# FIX: Added _IS_P100 flag (was missing — caused _TORCH_DTYPE NameError crash)
+_IS_P100 = _gpu_cap.startswith("6.")
+if _IS_P100:
     print("  P100 detected (sm_60) — installing torch with CUDA 11.8 compatibility...")
     _sp.run([_sys.executable, "-m", "pip", "install", "-q",
              "torch==2.1.2", "torchvision==0.16.2",
@@ -56,11 +58,16 @@ if _gpu_cap.startswith("6."):
             capture_output=True)
     print("  torch 2.1.2+cu118 installed (P100 compatible)")
 
+# FIX: torchvision pinned for P100 — without pin, pip installs latest torchvision
+# which requires torch>=2.2 and overwrites the P100-compatible torch 2.1.2,
+# causing "CUDA error: no kernel image is available" on ALL images.
+_TORCHVISION_PKG = "torchvision==0.16.2" if _IS_P100 else "torchvision"
+
 PKGS = [
     "git+https://github.com/huggingface/diffusers.git",
     "transformers>=4.47.0", "accelerate>=0.28.0",
     "huggingface_hub>=0.23.0", "Pillow>=10.0",
-    "numpy", "requests", "torchvision", "piexif",
+    "numpy", "requests", _TORCHVISION_PKG, "piexif",
 ]
 r = _sp.run(
     [_sys.executable, "-m", "pip", "install", "-q", "--no-warn-conflicts"] + PKGS,
@@ -69,6 +76,10 @@ print(f"  pip: {'OK' if r.returncode == 0 else 'WARN'}")
 print("Done!\n")
 
 import torch
+
+# FIX: _TORCH_DTYPE was completely missing in this file (present in pipeline_seo.py but not here)
+# P100 has no bfloat16 support → must use float16
+_TORCH_DTYPE = torch.float16 if _IS_P100 else torch.bfloat16
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 import requests as req
@@ -797,6 +808,9 @@ def main():
         batch = all_prompts[START_INDEX:END_INDEX]
         if not batch:
             log("Batch is empty — all done!")
+            # FIX: stats status was left as "RUNNING" on early exits — now marked SUCCESS
+            hrs = (time.time() - t0) / 3600
+            stats.update({"duration": f"{hrs:.1f}h", "status": "SUCCESS"})
             return
 
         # Download manifest to build skip set
@@ -810,6 +824,9 @@ def main():
         stats["generated"] = len(generated)
         if not generated:
             log("No new images generated.")
+            # FIX: stats status was left as "RUNNING" on early exits — now marked SUCCESS
+            hrs = (time.time() - t0) / 3600
+            stats.update({"duration": f"{hrs:.1f}h", "status": "SUCCESS"})
             return
 
         # Phase 2: Background remove
@@ -817,6 +834,9 @@ def main():
         stats["transparent"] = len(transparent)
         if not transparent:
             log("Background removal produced no results.")
+            # FIX: stats status was left as "RUNNING" on early exits — now marked SUCCESS
+            hrs = (time.time() - t0) / 3600
+            stats.update({"duration": f"{hrs:.1f}h", "status": "SUCCESS"})
             return
 
         # Phase 3: Upload to Drive + update manifest
