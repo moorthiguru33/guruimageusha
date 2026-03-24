@@ -32,7 +32,7 @@ on:
           - "false"
           - "true"
       count:
-        description: "Instant mode: How many batches to fire? (e.g. 3)"
+        description: "Instant mode: How many IMAGES to generate? (e.g. 10 = exactly 10 images, NOT batches)"
         required: false
         default: "1"
 
