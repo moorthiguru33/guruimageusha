@@ -380,7 +380,7 @@ def phase1_generate(batch, skip_set):
 
     from diffusers import Flux2KleinPipeline
 
-    pipe = Flux2KleinPipeline.from_pretrained(FLUX_MODEL, torch_dtype=torch.bfloat16)
+    pipe = Flux2KleinPipeline.from_pretrained(FLUX_MODEL, torch_dtype=torch.float16)
     pipe.enable_model_cpu_offload(gpu_id=0)
     pipe.set_progress_bar_config(disable=True)
 
