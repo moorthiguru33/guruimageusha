@@ -36,8 +36,29 @@ GEMMA_HF_ID = "google/gemma-3-4b-it"
 # ── Install deps ──────────────────────────────────────────────
 print("=" * 56)
 print("Installing dependencies...")
-r = subprocess.run(
-    [sys.executable, "-m", "pip", "install", "-q", "--no-warn-conflicts",
+
+# Check GPU capability — P100 = sm_60, not supported by latest torch
+import subprocess as _sp, sys as _sys
+_gpu_check = _sp.run(
+    [_sys.executable, "-c",
+     "import torch; c=torch.cuda.get_device_capability(0) if torch.cuda.is_available() else (0,0); print(f'{c[0]}.{c[1]}')"],
+    capture_output=True, text=True
+)
+_gpu_cap = _gpu_check.stdout.strip()
+print(f"  GPU compute capability: {_gpu_cap}")
+
+# P100 (sm_60) → install compatible torch, and force float16 (P100 has no bfloat16)
+_IS_P100 = _gpu_cap.startswith("6.")
+if _IS_P100:
+    print("  P100 detected (sm_60) — installing torch 2.1.2+cu118...")
+    _sp.run([_sys.executable, "-m", "pip", "install", "-q",
+             "torch==2.1.2", "torchvision==0.16.2",
+             "--index-url", "https://download.pytorch.org/whl/cu118"],
+            capture_output=True)
+    print("  torch 2.1.2+cu118 installed ✅")
+
+r = _sp.run(
+    [_sys.executable, "-m", "pip", "install", "-q", "--no-warn-conflicts",
      "transformers>=4.50.0", "accelerate>=0.28.0",
      "huggingface_hub>=0.23.0", "Pillow>=10.0",
      "requests", "torchvision", "piexif"],
@@ -46,6 +67,9 @@ print(f"  pip: {'OK' if r.returncode == 0 else 'WARN'}")
 print("Done!\n")
 
 import torch
+
+# P100 does NOT support bfloat16 — use float16 instead
+_TORCH_DTYPE = torch.float16 if _IS_P100 else torch.bfloat16
 import requests as req
 from PIL import Image, ImageDraw, ImageFont
 
@@ -70,6 +94,11 @@ SITE_NAME      = "UltraPNG"
 WATERMARK_TEXT = "www.ultrapng.com"
 WEBP_SIZE      = 800
 MANIFEST_NAME  = "ultrapng_manifest.csv"
+
+# ── SEO Run Options (injected via trigger_seo.yml) ────────────
+SEO_CATEGORY_FILTER = os.environ.get("SEO_CATEGORY_FILTER", "").strip()
+SEO_LIMIT           = int(os.environ.get("SEO_LIMIT", "0") or "0")
+SEO_FORCE_REPROCESS = os.environ.get("SEO_FORCE_REPROCESS", "false").lower() == "true"
 
 # ── LOG ───────────────────────────────────────────────────────
 _LOG_LINES = []
@@ -469,9 +498,22 @@ def generate_seo(manifest_rows, published_fnames, token):
     log(f"Loading Gemma 3 4B — {GEMMA_HF_ID}")
     log("=" * 56)
 
-    # Filter: only rows not yet published
-    pending = [r for r in manifest_rows if r.get("filename") not in published_fnames]
-    log(f"  Pending: {len(pending)} | Already published: {len(published_fnames)}")
+    # ── Apply run options ─────────────────────────────────────
+    if SEO_CATEGORY_FILTER:
+        manifest_rows = [r for r in manifest_rows
+                         if r.get("category", "").lower() == SEO_CATEGORY_FILTER.lower()]
+        log(f"  Category filter: '{SEO_CATEGORY_FILTER}' → {len(manifest_rows)} rows")
+
+    if SEO_FORCE_REPROCESS:
+        pending = manifest_rows
+        log(f"  Force reprocess ON → {len(pending)} rows (ignoring published)")
+    else:
+        pending = [r for r in manifest_rows if r.get("filename") not in published_fnames]
+        log(f"  Pending: {len(pending)} | Already published: {len(published_fnames)}")
+
+    if SEO_LIMIT and SEO_LIMIT > 0:
+        pending = pending[:SEO_LIMIT]
+        log(f"  Limit applied → processing {len(pending)} items")
 
     if not pending:
         log("  Nothing to process — all published!")
@@ -532,15 +574,17 @@ def generate_seo(manifest_rows, published_fnames, token):
     from transformers import AutoTokenizer, AutoModelForCausalLM
 
     tokenizer = AutoTokenizer.from_pretrained(GEMMA_HF_ID, cache_dir=str(HF_CACHE))
+    dtype_name = "float16" if _IS_P100 else "bfloat16"
+    log(f"  Loading Gemma with {dtype_name} (GPU: {'P100' if _IS_P100 else 'modern'})")
     model = AutoModelForCausalLM.from_pretrained(
         GEMMA_HF_ID,
-        torch_dtype=torch.bfloat16,
+        torch_dtype=_TORCH_DTYPE,
         device_map="auto",
         cache_dir=str(HF_CACHE),
     )
     model.eval()
     device = next(model.parameters()).device
-    log(f"  Gemma 3 4B loaded on {device} | bfloat16\n")
+    log(f"  Gemma 3 4B loaded on {device} | {dtype_name}\n")
 
     results  = []
     total    = len(to_process)
