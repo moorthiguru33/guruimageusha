@@ -99,13 +99,17 @@ jobs:
           chmod 600 ~/.kaggle/kaggle.json
           kaggle kernels list --mine --page-size 1 || { echo "ERROR: Kaggle credentials invalid!"; exit 1; }
 
-      # ── 4. Calculate batch ────────────────────────────────────
-      - name: Calculate batch
+      # ── 4. Calculate range ────────────────────────────────────
+      # Normal mode : END = START + 200  (full batch per day)
+      # Instant mode: END = START + count (exact image count)
+      - name: Calculate range
         if: steps.days_check.outputs.should_run == 'true'
         id: batch
         run: |
           TOTAL=43082
           OVERRIDE="${{ github.event.inputs.start_index }}"
+          INSTANT="${{ github.event.inputs.instant_trigger }}"
+          COUNT="${{ github.event.inputs.count }}"
 
           if [ -n "$OVERRIDE" ]; then
             START=$OVERRIDE
@@ -115,18 +119,25 @@ jobs:
             START=0
           fi
 
-          END=$((START + 200))
-          if [ "$END" -gt "$TOTAL" ]; then END=$TOTAL; fi
-
           if [ "$START" -ge "$TOTAL" ]; then
             echo "All $TOTAL prompts done! Resetting to 0."
             START=0
-            END=200
           fi
+
+          # Instant = exact count, Normal = 200 per batch
+          if [ "$INSTANT" = "true" ]; then
+            END=$((START + COUNT))
+            echo "INSTANT mode: generating exactly $COUNT images"
+          else
+            END=$((START + 200))
+            echo "NORMAL mode: generating 200 images (full batch)"
+          fi
+
+          if [ "$END" -gt "$TOTAL" ]; then END=$TOTAL; fi
 
           echo "start_index=$START" >> $GITHUB_OUTPUT
           echo "end_index=$END"     >> $GITHUB_OUTPUT
-          echo "Batch: $START → $END ($(( END - START )) images)"
+          echo "Range: $START → $END  |  $(( END - START )) images"
 
       # ── 5. Auto-generate prompt splits if missing ─────────────
       - name: Generate prompt splits
@@ -241,34 +252,24 @@ jobs:
           sleep 90
 
       # ── 10. INSTANT MODE — trigger next immediately ───────────
-      # Fires next batch WITHOUT waiting for Kaggle to finish
-      - name: "INSTANT: Trigger next batch immediately"
+      # Fires immediately WITHOUT waiting for Kaggle to finish
+      # count = exact number of images, not batches
+      - name: "INSTANT: Trigger next run immediately"
         if: steps.days_check.outputs.should_run == 'true' && steps.days_check.outputs.instant == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           NEXT_START="${{ steps.batch.outputs.end_index }}"
-          REMAINING=$(( ${{ github.event.inputs.count }} - 1 ))
 
           # Save progress immediately (don't wait for Kaggle)
           echo "$NEXT_START" > progress/batch_tracker.txt
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add progress/batch_tracker.txt
-          git commit -m "Instant batch ${{ steps.batch.outputs.start_index }}-${{ steps.batch.outputs.end_index }} fired ⚡ | remaining: $REMAINING" || true
+          git commit -m "Instant run: ${{ steps.batch.outputs.start_index }}-${{ steps.batch.outputs.end_index }} fired ⚡ (${{ github.event.inputs.count }} images)" || true
           git push || true
-
-          if [ "$REMAINING" -gt "0" ]; then
-            echo "Firing next instant batch (remaining: $REMAINING)..."
-            gh workflow run trigger_generate.yml \
-              --ref "${{ github.ref_name }}" \
-              --field instant_trigger="true" \
-              --field count="$REMAINING" \
-              --field start_index="$NEXT_START"
-            echo "Next instant batch triggered ⚡"
-          else
-            echo "All ${{ github.event.inputs.count }} instant batches fired! 🎉"
-          fi
+          echo "Instant run of ${{ github.event.inputs.count }} images fired ⚡"
+          echo "Tracker updated to $NEXT_START for next run."
 
       # ── 11. NORMAL MODE — wait for Kaggle completion ──────────
       - name: "NORMAL: Wait for Kaggle completion"
