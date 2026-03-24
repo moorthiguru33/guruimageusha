@@ -125,56 +125,66 @@ jobs:
 
       - name: Update Kernel Metadata
         run: |
-          KERNEL="${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}"
+          SLUG="${{ env.NOTEBOOK_SLUG }}"
+          USERNAME="${{ secrets.KAGGLE_USERNAME }}"
+          KERNEL="${USERNAME}/${SLUG}"
+
+          # Title MUST resolve to the same slug as the id
+          # "ultrapng-phase1" → title must be "ultrapng phase1" (lowercase, hyphen→space)
+          TITLE=$(echo "$SLUG" | tr '-' ' ')
+
           python3 -c "
           import json
           with open('kaggle/kernel-metadata.json') as f:
               m = json.load(f)
-          m['id'] = '${KERNEL}'
+          m['id']         = '${KERNEL}'
+          m['title']      = '${TITLE}'
+          m['kernel_type'] = 'script'
+          m['code_file']  = 'phase1_pipeline.py'
           with open('kaggle/kernel-metadata.json', 'w') as f:
               json.dump(m, f, indent=2)
+          print('kernel-metadata.json updated:')
+          print(f'  id    = ${KERNEL}')
+          print(f'  title = ${TITLE}')
           "
 
-      # ── CLEAR OLD KAGGLE KERNEL CACHE ──────────────────────────────────
-      - name: Clear Old Kaggle Kernel & Cache
+      # ── CANCEL IF RUNNING (no delete — causes 409) ─────────────────────
+      - name: Cancel Running Kernel
         run: |
           KERNEL="${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}"
 
           echo "=== Checking kernel status ==="
           STATUS=$(kaggle kernels status "$KERNEL" 2>&1 || true)
-          echo "Current status: $STATUS"
+          echo "Status: $STATUS"
 
-          # Cancel if already running or queued
           if echo "$STATUS" | grep -qiE 'running|queued'; then
             echo "Cancelling active kernel..."
             kaggle kernels cancel "$KERNEL" 2>/dev/null || true
-            echo "Waiting 30s for cancel to complete..."
-            sleep 30
+            echo "Waiting 40s for cancel..."
+            sleep 40
+          else
+            echo "No active kernel to cancel."
           fi
 
-          # Delete the old kernel to clear all cache (fresh run)
-          echo "Deleting old kernel to clear cache..."
-          kaggle kernels delete "$KERNEL" 2>/dev/null || true
-          echo "Waiting 20s after delete..."
-          sleep 20
-
-          echo "Cache cleared ✓"
-
-      # ── PUSH FRESH KERNEL ───────────────────────────────────────────────
-      - name: Push Fresh Kernel to Kaggle
+      # ── PUSH KERNEL (update existing) ──────────────────────────────────
+      - name: Push Kernel to Kaggle
         run: |
           cd kaggle
 
           PUSH_SUCCESS=false
           for attempt in 1 2 3; do
             echo "=== Push attempt $attempt/3 ==="
-            # Use || true so bash -e does NOT exit on non-zero
             OUT=$(kaggle kernels push -p . 2>&1) || true
             echo "$OUT"
 
-            if echo "$OUT" | grep -qiE 'conflict|error|failed|invalid'; then
-              echo "Attempt $attempt failed. Waiting $((attempt * 30))s..."
-              sleep $((attempt * 30))
+            # 409 Conflict = kernel busy, wait and retry
+            # Other errors = fail
+            if echo "$OUT" | grep -qi '409\|conflict'; then
+              echo "409 Conflict — kernel busy. Waiting $((attempt * 40))s..."
+              sleep $((attempt * 40))
+            elif echo "$OUT" | grep -qiE 'error|failed|invalid|exception'; then
+              echo "Push error on attempt $attempt. Waiting $((attempt * 20))s..."
+              sleep $((attempt * 20))
             else
               echo "Push successful ✓"
               PUSH_SUCCESS=true
