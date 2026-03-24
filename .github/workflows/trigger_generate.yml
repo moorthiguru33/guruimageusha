@@ -173,7 +173,7 @@ jobs:
                   'kernelspec': {'display_name': 'Python 3', 'language': 'python', 'name': 'python3'},
                   'language_info': {'name': 'python', 'version': '3.10.0'}
               },
-              'cells': [{'cell_type': 'code', 'execution_count': None,
+              'cells': [{'cell_type': 'code', 'id': 'main-cell-001', 'execution_count': None,
                          'metadata': {'trusted': True}, 'outputs': [],
                          'source': code}]
           }
