@@ -59,9 +59,12 @@ if _IS_P100:
 
 r = _sp.run(
     [_sys.executable, "-m", "pip", "install", "-q", "--no-warn-conflicts",
+     # FIX: torchvision pinned for P100 — without pin, pip installs latest torchvision
+     # which requires torch>=2.2 and silently overwrites the P100-compatible torch 2.1.2,
+     # causing CUDA sm_60 errors on ALL operations.
      "transformers>=4.50.0", "accelerate>=0.28.0",
      "huggingface_hub>=0.23.0", "Pillow>=10.0",
-     "requests", "torchvision", "piexif"],
+     "requests", "torchvision==0.16.2" if _IS_P100 else "torchvision", "piexif"],
     capture_output=True, text=True)
 print(f"  pip: {'OK' if r.returncode == 0 else 'WARN'}")
 print("Done!\n")
@@ -649,10 +652,23 @@ def _get_or_create_webp_root(token, row):
     """Get/create webp folder for this row's category/subcategory."""
     cat = row.get("category", "general")
     sub = row.get("subcategory", "general")
-    from functools import lru_cache
-    root = _find_or_make_folder(token, "ultrapng_webp", None)
-    croot = _find_or_make_folder(token, cat, root)
-    return _find_or_make_folder(token, sub, croot)
+    # FIX: lru_cache was imported inside this function but never applied to anything.
+    # _find_or_make_folder was called fresh every time, making 3 Drive API calls per image.
+    # Now using a simple dict cache so repeated cat/sub combos skip Drive API entirely.
+    root = _find_or_make_folder_cached(token, "ultrapng_webp", None)
+    croot = _find_or_make_folder_cached(token, cat, root)
+    return _find_or_make_folder_cached(token, sub, croot)
+
+_folder_cache = {}
+
+def _find_or_make_folder_cached(token, name, parent):
+    """Cached wrapper — avoids repeated Drive API calls for same folder."""
+    key = (name, parent)
+    if key in _folder_cache:
+        return _folder_cache[key]
+    fid = _find_or_make_folder(token, name, parent)
+    _folder_cache[key] = fid
+    return fid
 
 def _find_or_make_folder(token, name, parent):
     h = {"Authorization": f"Bearer {token}"}
@@ -699,6 +715,9 @@ def main():
 
         if not manifest_rows:
             log("  No manifest rows — run Trigger 1 first!")
+            # FIX: stats status was left as "RUNNING" — now marked correctly
+            hrs = (time.time() - t0) / 3600
+            stats.update({"duration": f"{hrs:.1f}h", "status": "SUCCESS"})
             return
 
         # Step 2: Clone Repo2 + load published filenames
@@ -715,6 +734,9 @@ def main():
 
         if not seo_results:
             log("  No SEO results to push.")
+            # FIX: stats status was left as "RUNNING" — now marked correctly
+            hrs = (time.time() - t0) / 3600
+            stats.update({"duration": f"{hrs:.1f}h", "status": "SUCCESS"})
             return
 
         # Step 5: Build category JSONs + push to Repo2
