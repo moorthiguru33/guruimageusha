@@ -1,17 +1,3 @@
-# <<<CREDS_START>>>
-import os
-os.environ["GOOGLE_CLIENT_ID"] = "308212866102-sd27dv5pjsr2bff3fioj4frr0ul58a1h.apps.googleusercontent.com"
-os.environ["GOOGLE_CLIENT_SECRET"] = "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"
-os.environ["GOOGLE_REFRESH_TOKEN"] = "1//0gK-Pq9Wd5D1OCgYIARAAGBASNwF-L9IriEGWY1hzEOsDtGLe5jwqrtN9J8CkpeFFMo605QtjdnphjbNotyA69oixHjt66gIiOtE"
-os.environ["GITHUB_TOKEN_REPO2"] = "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"
-os.environ["GITHUB_REPO2"] = "moorthiguru33/ultrapng"
-os.environ["GITHUB_REPO1"] = "moorthiguru33/guruimageusha"
-os.environ["GITHUB_TOKEN_REPO1"] = "ghs_prDnoZxrEPOyyLCnZR8WicI7tOKlTu2eCHqv"
-os.environ["GOOGLE_SHEETS_ID"] = "1Qtl-_X4-GsSnEZ_Vd-d8oeZDZZmEer0hF-Q2UA2xmd4"
-os.environ["DRIVE_ROOT_FOLDER_ID"] = "1zvBogYwh_73BMTkEmLCf_rOjKCYmjHX4"
-os.environ["START_INDEX"] = "0"
-os.environ["END_INDEX"] = "5"
-# <<<CREDS_END>>>
 """
 UltraPNG — Phase 1 Kaggle Pipeline
 FLUX.2-Klein-4B → BiRefNet_HR BG Remove → PNG + WebP → Google Drive → Google Sheets → Trigger Phase 2
@@ -58,13 +44,33 @@ REPO1_DIR   = WORK / "repo1"
 for _d in [GENERATED, TRANSPARENT, CHECKPOINT]:
     _d.mkdir(parents=True, exist_ok=True)
 
+# ── Step 0: Fix PyTorch for P100 (sm_60) if needed ────────────
+def _check_and_fix_torch():
+    try:
+        import torch as _t
+        if _t.cuda.is_available():
+            major, _ = _t.cuda.get_device_capability(0)
+            if major < 7:
+                print(f"  P100/sm_60 detected — reinstalling torch==2.1.2 (sm_60 compatible)...")
+                subprocess.run([
+                    sys.executable, "-m", "pip", "install", "-q",
+                    "torch==2.1.2+cu118", "torchvision==0.16.2+cu118",
+                    "--index-url", "https://download.pytorch.org/whl/cu118",
+                    "--force-reinstall"
+                ], capture_output=True, text=True)
+                print("  torch==2.1.2 installed ✓ — continuing...")
+    except Exception as e:
+        print(f"  torch check skipped: {e}")
+
+_check_and_fix_torch()
+
 # ── Install dependencies ───────────────────────────────────────
 print("Installing dependencies...")
 _PKGS = [
     "git+https://github.com/huggingface/diffusers.git",
     "transformers>=4.47.0", "accelerate>=0.28.0", "sentencepiece",
     "huggingface_hub>=0.23.0", "Pillow>=10.0", "numpy",
-    "onnxruntime-gpu", "torchvision", "piexif", "opencv-python-headless",
+    "onnxruntime-gpu", "torchvision==0.16.2", "piexif", "opencv-python-headless",
 ]
 for _pkg in _PKGS:
     r = subprocess.run([sys.executable, "-m", "pip", "install", "-q", _pkg],
@@ -89,6 +95,17 @@ def free_gpu():
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
         torch.cuda.synchronize()
+
+def get_safe_device():
+    """Returns 'cuda' only if GPU CUDA capability >= 7.0, else 'cpu'."""
+    if not torch.cuda.is_available():
+        return "cpu"
+    major, minor = torch.cuda.get_device_capability(0)
+    if major < 7:
+        log(f"  WARNING: GPU sm_{major}{minor} not supported by PyTorch (need sm_70+). Using CPU.")
+        return "cpu"
+    log(f"  GPU sm_{major}{minor} detected — using CUDA ✓")
+    return "cuda"
 
 def slugify(s, max_len=60):
     s = re.sub(r"[^a-z0-9]+", "-", str(s).lower()).strip("-")
@@ -394,8 +411,15 @@ def phase1_generate(batch, skip_set):
 
     from diffusers import Flux2KleinPipeline
 
-    pipe = Flux2KleinPipeline.from_pretrained(FLUX_MODEL, torch_dtype=torch.float16)
-    pipe.enable_model_cpu_offload(gpu_id=0)
+    safe_device = get_safe_device()
+    dtype = torch.float16 if safe_device == "cuda" else torch.float32
+    log(f"  FLUX loading on: {safe_device.upper()} | dtype: {dtype}")
+
+    pipe = Flux2KleinPipeline.from_pretrained(FLUX_MODEL, torch_dtype=dtype)
+    if safe_device == "cuda":
+        pipe.enable_model_cpu_offload(gpu_id=0)
+    else:
+        pipe = pipe.to("cpu")
     pipe.set_progress_bar_config(disable=True)
 
     generated, skipped, t0 = [], 0, time.time()
@@ -462,9 +486,12 @@ def phase2_bg_remove(generated):
 
     model  = AutoModelForImageSegmentation.from_pretrained(
         RMBG_MODEL, trust_remote_code=True, cache_dir=str(HF_CACHE))
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = get_safe_device()
     torch.set_float32_matmul_precision("high")
-    model  = model.to(device).eval().half()
+    if device == "cuda":
+        model = model.to(device).eval().half()
+    else:
+        model = model.to(device).eval()  # float32 on CPU (.half() not supported)
 
     transform = transforms.Compose([
         transforms.Resize((2048, 2048)),
@@ -474,182 +501,5 @@ def phase2_bg_remove(generated):
 
     def remove_bg(pil_img):
         ow, oh = pil_img.size
-        inp    = transform(pil_img.convert("RGB")).unsqueeze(0).to(device).half()
-        with torch.no_grad():
-            pred = model(inp)[-1].sigmoid().cpu()[0].squeeze()
-        mask = transforms.ToPILImage()(pred).resize((ow, oh), Image.LANCZOS)
-        out  = pil_img.convert("RGBA")
-        out.putalpha(mask)
-        return out
-
-    result, t0 = [], time.time()
-
-    for i, g in enumerate(generated):
-        src = Path(g["path"])
-        dst = TRANSPARENT / src.name
-        try:
-            if not dst.exists():
-                img = Image.open(str(src)).convert("RGB")
-                remove_bg(img).save(str(dst), "PNG", compress_level=0)
-            result.append({**g, "transparent_path": str(dst)})
-            if (i + 1) % 20 == 0:
-                rate = (i + 1) / max(time.time() - t0, 1)
-                log(f"  RMBG: {i+1}/{len(generated)} | {rate:.2f}/s")
-        except Exception as e:
-            log(f"  RMBG FAIL {src.name}: {e}")
-
-    log(f"\n  Unloading BiRefNet → freeing VRAM...")
-    del model, transform
-    free_gpu()
-    delete_hf_cache_for(["birefnet", "rmbg", "briaai"])
-
-    # Remove generated (no longer needed, transparent/ has final PNGs)
-    shutil.rmtree(str(GENERATED), ignore_errors=True)
-    GENERATED.mkdir()
-
-    save_ckpt("p2_transparent", result)
-    log(f"PHASE 2 DONE | Transparent: {len(result)}")
-    return result
-
-# ── Phase 3: Drive Upload + Sheets Log ────────────────────────
-def phase3_upload_and_log(images):
-    ckpt = load_ckpt("p3_uploaded")
-    if ckpt:
-        log(f"  Checkpoint: {len(ckpt)} uploaded (skip upload)")
-        return ckpt
-
-    log("=" * 56)
-    log("PHASE 3: Google Drive Upload + Sheets Log")
-    log("=" * 56)
-
-    # Get or create root folders (PNG and WebP under DRIVE_ROOT_FOLDER_ID)
-    png_root  = drive_get_or_create_folder("PNG",  DRIVE_ROOT_FOLDER_ID)
-    webp_root = drive_get_or_create_folder("WebP", DRIVE_ROOT_FOLDER_ID)
-    folders   = FolderCache(png_root, webp_root)
-
-    today   = datetime.now().strftime("%Y-%m-%d")
-    rows    = []  # For batch Sheets append
-    result  = []
-    t0      = time.time()
-
-    for i, img in enumerate(images):
-        path = Path(img["transparent_path"])
-        item = img["item"]
-        cat  = item.get("category", "general")
-
-        # Refresh token every 50 uploads
-        if i > 0 and i % 50 == 0:
-            get_token()
-
-        try:
-            png_bytes  = path.read_bytes()
-            webp_bytes, pw, ph = make_webp(path)
-
-            png_folder  = folders.get_png_folder(cat)
-            webp_folder = folders.get_webp_folder(cat)
-
-            pr = drive_upload(png_folder,  path.name,        png_bytes,  "image/png")
-            wr = drive_upload(webp_folder, path.stem + ".webp", webp_bytes, "image/webp")
-
-            drive_share(pr["id"])
-            drive_share(wr["id"])
-
-            subject = (item.get("subject_name") or
-                       cat.replace("-", " ").replace("_", " ").title())
-
-            rows.append([
-                path.name,
-                subject,
-                cat,
-                pr["id"],
-                wr["id"],
-                download_url(pr["id"]),
-                preview_url(wr["id"], 800),
-                "FALSE",
-                "ACTIVE",
-                today,
-            ])
-
-            result.append({**img, "png_file_id": pr["id"], "webp_file_id": wr["id"]})
-
-            # Batch append every 50 rows
-            if len(rows) >= 50:
-                sheets_append_batch(rows)
-                rows.clear()
-                log(f"  Uploaded+logged: {i+1}/{len(images)}")
-
-            time.sleep(0.05)
-
-        except Exception as e:
-            log(f"  Upload FAIL {path.name}: {e}")
-
-    # Append remaining rows
-    if rows:
-        sheets_append_batch(rows)
-
-    # Delete transparent images (uploaded to Drive)
-    shutil.rmtree(str(TRANSPARENT), ignore_errors=True)
-    TRANSPARENT.mkdir()
-
-    save_ckpt("p3_uploaded", result)
-    log(f"PHASE 3 DONE | Uploaded: {len(result)} in {(time.time()-t0)/60:.1f}m")
-    return result
-
-# ── Trigger Phase 2 GitHub Actions ────────────────────────────
-def trigger_phase2():
-    if not GITHUB_TOKEN_REPO1 or not GITHUB_REPO1:
-        log("  Phase 2 trigger skipped (no token/repo)")
-        return
-    r = req.post(
-        f"https://api.github.com/repos/{GITHUB_REPO1}/dispatches",
-        headers={
-            "Authorization": f"token {GITHUB_TOKEN_REPO1}",
-            "Accept": "application/vnd.github.v3+json",
-        },
-        json={"event_type": "phase1_complete"},
-        timeout=30,
-    )
-    if r.status_code == 204:
-        log("  Phase 2 triggered via repository_dispatch ✓")
-    else:
-        log(f"  Phase 2 trigger failed: {r.status_code}")
-
-# ── Main ───────────────────────────────────────────────────────
-def main():
-    log("=" * 56)
-    log("UltraPNG Phase 1 Pipeline — Start")
-    log(f"Batch: {START_INDEX} → {END_INDEX} ({END_INDEX - START_INDEX} images)")
-    log("=" * 56)
-
-    sheets_ensure_header()
-
-    # Load prompts and slice batch
-    all_prompts = load_prompts()
-    if not all_prompts:
-        log("FATAL: No prompts loaded")
-        sys.exit(1)
-
-    total = len(all_prompts)
-    start = min(START_INDEX, total)
-    end   = min(END_INDEX,   total)
-    batch = all_prompts[start:end]
-    log(f"Prompts: {total} total | This batch: {len(batch)}")
-
-    # Build skip-set from Sheets (ONE API call)
-    log("Building skip-set from Sheets...")
-    skip_set = sheets_get_all_filenames()
-    log(f"  Skip-set: {len(skip_set)} already processed")
-
-    # Run pipeline
-    generated   = phase1_generate(batch,     skip_set)
-    transparent = phase2_bg_remove(generated)
-    phase3_upload_and_log(transparent)
-
-    # Trigger Phase 2
-    trigger_phase2()
-
-    log("=" * 56)
-    log("Phase 1 COMPLETE ✓")
-    log("=" * 56)
-
-main()
+        inp = transform(pil_img.convert("RGB")).unsqueeze(0).to(device)
+        
