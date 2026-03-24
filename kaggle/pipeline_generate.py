@@ -36,23 +36,47 @@ RMBG_HF_ID = "ZhengPeng7/BiRefNet_HR"
 print("=" * 56)
 print("Installing dependencies...")
 
-# First, install PyTorch with CUDA 11.8 (supports P100 sm_60)
-torch_install = subprocess.run(
-    [sys.executable, "-m", "pip", "install", "-q",
-     "torch==2.1.2", "torchvision==0.16.2",
-     "--index-url", "https://download.pytorch.org/whl/cu118"],
-    capture_output=True, text=True
-)
-if torch_install.returncode != 0:
-    print("  WARN: PyTorch install failed, trying fallback")
-    subprocess.run(
-        [sys.executable, "-m", "pip", "install", "-q",
-         "torch==2.1.2", "torchvision==0.16.2",
-         "--index-url", "https://download.pytorch.org/whl/cu118"],
-        capture_output=True, text=True, check=False
-    )
+# Step 1: Remove any existing torch (to avoid conflicts)
+subprocess.run([sys.executable, "-m", "pip", "uninstall", "-y", "torch", "torchvision", "torchaudio"],
+               capture_output=True)
 
-# Then install the rest, but don't upgrade torch (use --upgrade-strategy only-if-needed)
+# Step 2: Install PyTorch 2.1.2 with CUDA 11.8 (supports P100 sm_60)
+def install_torch():
+    cmd = [sys.executable, "-m", "pip", "install", "--force-reinstall", "--no-cache-dir",
+           "torch==2.1.2", "torchvision==0.16.2", "torchaudio==2.1.2",
+           "--index-url", "https://download.pytorch.org/whl/cu118"]
+    return subprocess.run(cmd, capture_output=True, text=True)
+
+# Retry up to 3 times
+for attempt in range(1, 4):
+    result = install_torch()
+    if result.returncode == 0:
+        print("  PyTorch installed successfully.")
+        break
+    else:
+        print(f"  Attempt {attempt} failed: {result.stderr[:100]}")
+        if attempt == 3:
+            # Last resort: use the official PyTorch stable (but may not support sm_60)
+            print("  Trying official PyTorch stable (may not work on P100)...")
+            result = subprocess.run([sys.executable, "-m", "pip", "install", "--force-reinstall",
+                                     "torch", "torchvision", "torchaudio"],
+                                    capture_output=True, text=True)
+        time.sleep(5)
+
+# Verify installation
+try:
+    import torch
+    print(f"  PyTorch version: {torch.__version__}")
+    print(f"  CUDA available: {torch.cuda.is_available()}")
+    if torch.cuda.is_available():
+        print(f"  GPU: {torch.cuda.get_device_name(0)}")
+    else:
+        print("  WARNING: CUDA not available. GPU may not work.")
+except Exception as e:
+    print(f"  WARN: Could not verify torch: {e}")
+
+# Step 3: Install other packages, but prevent torch upgrade
+# First, install without dependencies to avoid pulling torch again
 PKGS = [
     "git+https://github.com/huggingface/diffusers.git",
     "transformers>=4.47.0", "accelerate>=0.28.0", "sentencepiece",
@@ -61,11 +85,18 @@ PKGS = [
     "bitsandbytes>=0.43.0",
     "opencv-python-headless", "piexif",
 ]
+# First pass: install with --no-deps to avoid any torch change
 r = subprocess.run(
-    [sys.executable, "-m", "pip", "install", "-q", "--no-warn-conflicts",
-     "--upgrade-strategy", "only-if-needed"] + PKGS,
+    [sys.executable, "-m", "pip", "install", "--no-deps", "--no-warn-conflicts"] + PKGS,
     capture_output=True, text=True)
-print(f"  pip: {'OK' if r.returncode == 0 else 'WARN'}")
+print(f"  pip (no-deps): {'OK' if r.returncode == 0 else 'WARN'}")
+
+# Second pass: install dependencies (except torch) using upgrade-strategy
+r2 = subprocess.run(
+    [sys.executable, "-m", "pip", "install", "--upgrade-strategy", "only-if-needed",
+     "--no-warn-conflicts"] + PKGS,
+    capture_output=True, text=True)
+print(f"  pip final: {'OK' if r2.returncode == 0 else 'WARN'}")
 print("Done!\n")
 
 import torch
