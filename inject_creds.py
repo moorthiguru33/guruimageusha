@@ -17,6 +17,11 @@ github_token_r2 = os.environ.get("GITHUB_TOKEN_REPO2_VAL", "")
 github_repo2    = os.environ.get("GITHUB_REPO2_VAL", "")
 github_token_r1 = os.environ.get("GITHUB_TOKEN_REPO1_VAL", "")
 
+# SEO run options (only used by pipeline_seo.py, harmless in pipeline_generate.py)
+seo_category    = os.environ.get("SEO_CATEGORY_FILTER", "")
+seo_limit       = os.environ.get("SEO_LIMIT", "")
+seo_force       = os.environ.get("SEO_FORCE_REPROCESS", "false")
+
 CREDS_MARKER = "# __ULTRAPNG_CREDENTIALS_CELL__"
 
 inject_code = f'''{CREDS_MARKER}
@@ -30,9 +35,13 @@ os.environ["GOOGLE_REFRESH_TOKEN"] = "{refresh_token}"
 os.environ["GITHUB_TOKEN_REPO2"]   = "{github_token_r2}"
 os.environ["GITHUB_REPO2"]         = "{github_repo2}"
 os.environ["GITHUB_TOKEN_REPO1"]   = "{github_token_r1}"
+os.environ["SEO_CATEGORY_FILTER"]  = "{seo_category}"
+os.environ["SEO_LIMIT"]            = "{seo_limit}"
+os.environ["SEO_FORCE_REPROCESS"]  = "{seo_force}"
 print("Credentials loaded. Batch: {start} -> {end}")
 print(f"  REPO2: {github_repo2 or '(not set)'}")
-print(f"  Google: {'OK' if client_id else '(not set)'}")
+print(f"  Google: {{'OK' if client_id else '(not set)'}}")
+print(f"  SEO options: category={seo_category or 'ALL'}, limit={seo_limit or 'ALL'}, force={seo_force}")
 '''
 
 with open(nb_path, "r", encoding="utf-8") as f:
@@ -47,6 +56,7 @@ cells = [c for c in nb.get("cells", []) if CREDS_MARKER not in cell_source(c)]
 
 creds_cell = {
     "cell_type": "code",
+    "id": "creds-cell-000",
     "execution_count": None,
     "metadata": {"trusted": True},
     "outputs": [],
