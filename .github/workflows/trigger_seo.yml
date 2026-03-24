@@ -1,22 +1,55 @@
-name: "Trigger 2 — SEO Content (Manual)"
+name: "Trigger 2 — SEO Content"
 
 # ─────────────────────────────────────────────────────────────
 # HOW IT WORKS:
-#   1. Run manually after Trigger 1 has uploaded images
-#   2. Reads manifest.csv from Google Drive
-#   3. Checks each PNG on Drive (skip if user deleted)
-#   4. Gemma 3 4B generates AdSense-quality SEO content
-#   5. Pushes category-wise JSON to Repo2
+#   NORMAL MODE  → Pushes to Kaggle → waits for completion
+#   INSTANT MODE → Pushes to Kaggle → immediately triggers
+#                  next run without waiting (count runs)
+#   DRY RUN      → Count pending items only, no SEO generation
 #
-# TO RUN:  Actions → "Trigger 2" → Run workflow
-# DRY RUN: Set dry_run=true to see counts without generating
+# OPTIONS:
+#   category       → Run SEO for one specific category only
+#   limit          → Max items to process in this run
+#   force_reprocess→ Re-generate SEO even for published items
+#
+# TO RUN (Normal):  Actions → "Trigger 2" → Run workflow
+# TO RUN (Instant): Set instant_trigger=true + count
+# DRY RUN:          Set dry_run=true
 # ─────────────────────────────────────────────────────────────
 
 on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "Dry run? (count only, no SEO generation)"
+        description: "Dry run? (count pending only, no generation)"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      instant_trigger:
+        description: "Instant mode? (fire next run immediately, no wait)"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      count:
+        description: "Instant mode: How many runs to fire?"
+        required: false
+        default: "1"
+      category:
+        description: "Category filter (leave blank = all pending)"
+        required: false
+        default: ""
+      limit:
+        description: "Max items to process (leave blank = all)"
+        required: false
+        default: ""
+      force_reprocess:
+        description: "Force reprocess already published items?"
         required: false
         default: "false"
         type: choice
@@ -29,6 +62,7 @@ env:
 
 permissions:
   contents: write
+  actions: write   # FIX: Required for gh workflow run (instant trigger)
 
 jobs:
   seo:
@@ -66,6 +100,8 @@ jobs:
           GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
           GITHUB_TOKEN_REPO2:   ${{ secrets.REPO_2_TOKEN }}
           GITHUB_REPO2:         ${{ secrets.REPO_2 }}
+          FILTER_CATEGORY:      ${{ github.event.inputs.category }}
+          FORCE_REPROCESS:      ${{ github.event.inputs.force_reprocess }}
         run: |
           python3 -c "
           import os, csv, io, json
@@ -93,24 +129,43 @@ jobs:
           r3  = req.get(f'https://www.googleapis.com/drive/v3/files/{fid}',
                         headers=h, params={'alt': 'media'}, timeout=60)
           rows = list(csv.DictReader(io.StringIO(r3.text)))
-          print(f'manifest.csv rows: {len(rows)}')
+          print(f'manifest.csv total rows: {len(rows)}')
 
-          # Check Repo2
-          repo2  = os.environ.get('GITHUB_REPO2','')
-          t2     = os.environ.get('GITHUB_TOKEN_REPO2','')
-          api_url = f'https://api.github.com/repos/{repo2}/contents/data'
-          r4 = req.get(api_url, headers={'Authorization': f'Bearer {t2}'}, timeout=30)
-          published = set()
-          if r4.ok:
-              for f in r4.json():
-                  if f['name'].endswith('.json') and not f['name'].startswith('_'):
-                      rc = req.get(f['download_url'], timeout=30)
-                      if rc.ok:
-                          for item in rc.json():
-                              published.add(item.get('filename',''))
-          pending = [r for r in rows if r.get('filename') not in published]
-          print(f'Already published: {len(published)}')
-          print(f'Pending SEO:       {len(pending)}')
+          # Category filter
+          cat_filter = os.environ.get('FILTER_CATEGORY', '').strip()
+          if cat_filter:
+              rows = [r for r in rows if r.get('category','').lower() == cat_filter.lower()]
+              print(f'After category filter ({cat_filter}): {len(rows)} rows')
+
+          # Check Repo2 for published
+          force = os.environ.get('FORCE_REPROCESS','false').lower() == 'true'
+          if not force:
+              repo2  = os.environ.get('GITHUB_REPO2','')
+              t2     = os.environ.get('GITHUB_TOKEN_REPO2','')
+              api_url = f'https://api.github.com/repos/{repo2}/contents/data'
+              r4 = req.get(api_url, headers={'Authorization': f'Bearer {t2}'}, timeout=30)
+              published = set()
+              if r4.ok:
+                  for f in r4.json():
+                      if f['name'].endswith('.json') and not f['name'].startswith('_'):
+                          rc = req.get(f['download_url'], timeout=30)
+                          if rc.ok:
+                              for item in rc.json():
+                                  published.add(item.get('filename',''))
+              pending = [r for r in rows if r.get('filename') not in published]
+              print(f'Already published: {len(published)}')
+              print(f'Pending SEO:       {len(pending)}')
+
+              # Category breakdown of pending
+              cats = {}
+              for r in pending:
+                  c = r.get('category','unknown')
+                  cats[c] = cats.get(c,0) + 1
+              print('--- Pending by category ---')
+              for c, n in sorted(cats.items(), key=lambda x: -x[1]):
+                  print(f'  {c}: {n}')
+          else:
+              print(f'Force reprocess ON — all {len(rows)} items will be reprocessed')
           "
           exit 0
 
@@ -137,7 +192,7 @@ jobs:
           print(f'SEO notebook built fresh: {len(code)} chars')
           "
 
-      # ── 5. Inject credentials ─────────────────────────────────
+      # ── 5. Inject credentials + options ──────────────────────
       - name: Inject credentials
         if: ${{ github.event.inputs.dry_run != 'true' }}
         env:
@@ -147,13 +202,43 @@ jobs:
           GITHUB_TOKEN_REPO2_VAL: ${{ secrets.REPO_2_TOKEN }}
           GITHUB_REPO2_VAL:       ${{ secrets.REPO_2 }}
           GITHUB_TOKEN_REPO1_VAL: ${{ secrets.REPO_1_TOKEN }}
+          SEO_CATEGORY_FILTER:    ${{ github.event.inputs.category }}
+          SEO_LIMIT:              ${{ github.event.inputs.limit }}
+          SEO_FORCE_REPROCESS:    ${{ github.event.inputs.force_reprocess }}
         run: |
           python3 inject_creds.py \
             "0" "0" \
             "${{ github.repository }}" \
             "kaggle/pipeline_seo.ipynb"
 
-      # ── 6. Sync kernel metadata ───────────────────────────────
+          # Inject SEO-specific options as extra env vars in the creds cell
+          python3 -c "
+          import json, os
+
+          nb_path = 'kaggle/pipeline_seo.ipynb'
+          with open(nb_path, 'r', encoding='utf-8') as f:
+              nb = json.load(f)
+
+          extra = '''
+          os.environ[\"SEO_CATEGORY_FILTER\"] = \"${SEO_CATEGORY_FILTER}\"
+          os.environ[\"SEO_LIMIT\"]            = \"${SEO_LIMIT}\"
+          os.environ[\"SEO_FORCE_REPROCESS\"]  = \"${SEO_FORCE_REPROCESS}\"
+          print(f\"  SEO options: category={os.environ.get('SEO_CATEGORY_FILTER') or 'ALL'}, limit={os.environ.get('SEO_LIMIT') or 'ALL'}, force={os.environ.get('SEO_FORCE_REPROCESS')}\")
+          '''
+
+          # Append to the first (creds) cell
+          src = nb['cells'][0]['source']
+          if isinstance(src, list):
+              src = ''.join(src)
+          nb['cells'][0]['source'] = src + extra
+
+          with open(nb_path, 'w', encoding='utf-8') as f:
+              json.dump(nb, f, ensure_ascii=False, indent=1)
+          print('SEO options injected OK')
+          "
+
+      # ── 6. Sync kernel metadata → kernel-metadata.json ───────
+      # FIX: Write directly to kernel-metadata.json (what kaggle CLI reads)
       - name: Sync kernel metadata
         if: ${{ github.event.inputs.dry_run != 'true' }}
         run: |
@@ -163,9 +248,11 @@ jobs:
           with open('kaggle/kernel_seo_metadata.json') as f:
               meta = json.load(f)
           meta['id'] = kid
-          with open('kaggle/kernel_seo_metadata.json', 'w') as f:
+          # Write to kernel-metadata.json — this is what 'kaggle kernels push -p .' reads
+          with open('kaggle/kernel-metadata.json', 'w') as f:
               json.dump(meta, f, indent=2)
-          print('SEO Kernel ID:', kid)
+          print('SEO Kernel ID set to:', kid)
+          print('Written to: kaggle/kernel-metadata.json')
           "
 
       # ── 7. Push to Kaggle ─────────────────────────────────────
@@ -200,9 +287,39 @@ jobs:
           echo "Waiting 90s for kernel to start..."
           sleep 90
 
-      # ── 8. Wait for SEO completion ────────────────────────────
-      - name: Wait for completion
-        if: ${{ github.event.inputs.dry_run != 'true' }}
+      # ── 8. INSTANT MODE — trigger next immediately ───────────
+      - name: "INSTANT: Trigger next run immediately"
+        if: github.event.inputs.dry_run != 'true' && github.event.inputs.instant_trigger == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REMAINING=$(( ${{ github.event.inputs.count }} - 1 ))
+
+          # Save instant run timestamp
+          echo "$(date -u '+%Y-%m-%d %H:%M:%S UTC') — Instant SEO run fired ⚡" >> progress/seo_run_log.txt
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add progress/seo_run_log.txt
+          git commit -m "Instant SEO run fired ⚡ | remaining: $REMAINING" || true
+          git push || true
+
+          if [ "$REMAINING" -gt "0" ]; then
+            echo "Firing next instant SEO run (remaining: $REMAINING)..."
+            gh workflow run trigger_seo.yml \
+              --ref "${{ github.ref_name }}" \
+              --field instant_trigger="true" \
+              --field count="$REMAINING" \
+              --field category="${{ github.event.inputs.category }}" \
+              --field limit="${{ github.event.inputs.limit }}" \
+              --field force_reprocess="${{ github.event.inputs.force_reprocess }}"
+            echo "Next instant SEO run triggered ⚡"
+          else
+            echo "All ${{ github.event.inputs.count }} instant SEO runs fired! 🎉"
+          fi
+
+      # ── 9. NORMAL MODE — wait for completion ──────────────────
+      - name: "NORMAL: Wait for SEO completion"
+        if: github.event.inputs.dry_run != 'true' && github.event.inputs.instant_trigger != 'true'
         run: |
           KERNEL="${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}"
           MAX=21600
@@ -218,14 +335,30 @@ jobs:
               running)  SEEN_RUNNING=true ;;
               queued)   echo "  Waiting for GPU..." ;;
               complete)
-                if [ "$SEEN_RUNNING" = true ] || [ $ELAPSED -ge 300 ]; then
+                # FIX: Only accept complete if we actually saw it running first
+                if [ "$SEEN_RUNNING" = true ]; then
                   echo "SEO run COMPLETE! ✅"; exit 0
+                else
+                  echo "  Stale complete status — waiting for actual run..."
                 fi ;;
               error)
-                if [ "$SEEN_RUNNING" = true ]; then echo "SEO run FAILED"; exit 1; fi ;;
+                if [ "$SEEN_RUNNING" = true ]; then echo "SEO run FAILED ❌"; exit 1; fi ;;
             esac
 
             sleep 120
             ELAPSED=$((ELAPSED + 120))
           done
           echo "TIMEOUT"; exit 1
+
+      # ── 10. NORMAL MODE — Save progress log ───────────────────
+      - name: "NORMAL: Save run log"
+        if: github.event.inputs.dry_run != 'true' && github.event.inputs.instant_trigger != 'true' && success()
+        run: |
+          echo "$(date -u '+%Y-%m-%d %H:%M:%S UTC') — SEO run complete ✅ | category: ${{ github.event.inputs.category || 'ALL' }} | limit: ${{ github.event.inputs.limit || 'ALL' }}" >> progress/seo_run_log.txt
+
+      - name: "NORMAL: Commit run log"
+        if: github.event.inputs.dry_run != 'true' && github.event.inputs.instant_trigger != 'true' && success()
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "SEO run complete ✅ | $(date -u '+%Y-%m-%d')"
+          file_pattern: "progress/seo_run_log.txt"
