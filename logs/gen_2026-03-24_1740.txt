@@ -1,0 +1,49 @@
+[17:38:24] Cloning project repo for prompts...
+[17:38:25]   Repo cloned successfully
+[17:38:25] Loading prompt splits for subject_name lookup...
+[17:38:25]   Prompt lookup: 8132 items from 23 files
+[17:38:25] Total prompts: 8132 | Batch: 12→17
+[17:38:26]   manifest.csv not found on Drive — will create fresh
+[17:38:26] Batch: 5 prompts | Skip: 0 already done
+
+[17:38:26] ========================================================
+[17:38:26] PHASE 1: FLUX.2-Klein-4B — black-forest-labs/FLUX.2-klein-4B
+[17:38:26] ========================================================
+[17:39:56]   FLUX loaded | Batch: 5 | Skip: 0
+
+[17:40:12]   FAIL img_000302.png: CUDA error: no kernel image is available for execution on the device
+Search for `cudaErrorNoKernelImageForDevice' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+[17:40:12]   FAIL img_000408.png: CUDA error: no kernel image is available for execution on the device
+Search for `cudaErrorNoKernelImageForDevice' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+[17:40:12]   FAIL img_000433.png: CUDA error: no kernel image is available for execution on the device
+Search for `cudaErrorNoKernelImageForDevice' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+[17:40:12]   FAIL img_000454.png: CUDA error: no kernel image is available for execution on the device
+Search for `cudaErrorNoKernelImageForDevice' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+[17:40:12]   FAIL img_000526.png: CUDA error: no kernel image is available for execution on the device
+Search for `cudaErrorNoKernelImageForDevice' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+[17:40:12] 
+  Deleting FLUX cache...
+[17:40:15] PHASE 1 DONE — Generated: 0 | Skipped: 0
+
+[17:40:15] No new images generated.
+[17:40:15] Saving logs to Repo1...
