@@ -412,7 +412,7 @@ def phase1_generate(batch, skip_set):
     from diffusers import Flux2KleinPipeline
 
     safe_device = get_safe_device()
-    dtype = torch.float16 if safe_device == "cuda" else torch.float32
+    dtype = torch.bfloat16 if safe_device == "cuda" else torch.float32
     log(f"  FLUX loading on: {safe_device.upper()} | dtype: {dtype}")
 
     pipe = Flux2KleinPipeline.from_pretrained(FLUX_MODEL, torch_dtype=dtype)
