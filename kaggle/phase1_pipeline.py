@@ -19,7 +19,7 @@ if _hf_token:
     os.environ["HUGGINGFACE_HUB_TOKEN"] = _hf_token
 
 # ── Model IDs ─────────────────────────────────────────────────
-FLUX_MODEL = "black-forest-labs/FLUX.2-klein-4B"
+FLUX_HF_ID = "black-forest-labs/FLUX.2-klein-4B"
 RMBG_MODEL = "ZhengPeng7/BiRefNet_HR"
 
 # ── Config (injected by inject_creds.py) ──────────────────────
@@ -390,15 +390,15 @@ def phase1_generate(batch, skip_set):
 
     log("=" * 56)
     log("PHASE 1: FLUX.2-Klein-4B — Image Generation")
-    log(f"  Loading from HuggingFace: {FLUX_MODEL}")
+    log(f"  Loading from HuggingFace: {FLUX_HF_ID}")
     log("=" * 56)
 
     from diffusers import Flux2KleinPipeline
 
-    log(f"  Loading: {FLUX_MODEL}")
+    log(f"  Loading: {FLUX_HF_ID}")
     log("  (First run: downloads ~8GB — ~5 min)")
     pipe = Flux2KleinPipeline.from_pretrained(
-        FLUX_MODEL,
+        FLUX_HF_ID,
         torch_dtype=torch.bfloat16,
     )
     pipe.enable_model_cpu_offload(gpu_id=0)
@@ -417,7 +417,9 @@ def phase1_generate(batch, skip_set):
             continue
 
         try:
-            out = GENERATED / fname
+            out_dir = GENERATED / item["category"] / item.get("subcategory", "general")
+            out_dir.mkdir(parents=True, exist_ok=True)
+            out = out_dir / fname
             if out.exists():
                 generated.append({"path": str(out), "item": item})
                 continue
@@ -453,7 +455,7 @@ def phase1_generate(batch, skip_set):
             done = len(generated)
             rate = done / (time.time() - t0)
             eta  = (len(batch) - i - 1) / rate / 60 if rate > 0 else 0
-            log(f"  [{i+1}/{len(batch)}] OK {fname} | {item.get('category', '')} | ETA {eta:.0f}min")
+            log(f"  [{i+1}/{len(batch)}] OK {fname} | {item['category']} | ETA {eta:.0f}min")
 
         except torch.cuda.OutOfMemoryError:
             torch.cuda.empty_cache()
@@ -673,6 +675,7 @@ def main():
         p = torch.cuda.get_device_properties(0)
         log(f"  GPU: {p.name} | VRAM: {p.total_memory/1e9:.0f}GB")
     log(f"  PyTorch: {torch.__version__}")
+    log(f"  FLUX  : {FLUX_HF_ID}")
     log(f"  Cache: {HF_CACHE}")
 
     sheets_ensure_header()
