@@ -47,74 +47,23 @@ REPO1_DIR   = WORK / "repo1"
 for _d in [GENERATED, TRANSPARENT, CHECKPOINT]:
     _d.mkdir(parents=True, exist_ok=True)
 
-# ══════════════════════════════════════════════════════════════
-# Step 0: Fix PyTorch for P100 (sm_60) BEFORE importing torch
-# CRITICAL: Must run before `import torch` so correct version loads
-# Uses nvidia-smi (no torch import needed) to detect GPU
-# ══════════════════════════════════════════════════════════════
-_IS_P100 = False  # Flag: True if P100 detected and cu118 torch installed
-
-def _fix_torch_for_p100():
-    """Detect GPU via nvidia-smi and install compatible torch if P100."""
-    global _IS_P100
-    try:
-        r = subprocess.run(
-            ["nvidia-smi", "--query-gpu=compute_cap", "--format=csv,noheader"],
-            capture_output=True, text=True, timeout=10)
-        if r.returncode == 0:
-            cap = r.stdout.strip().split("\n")[0].strip()
-            major = int(cap.split(".")[0])
-            if major < 7:
-                _IS_P100 = True
-                print(f"  P100/sm_{cap.replace('.', '')} detected — installing torch==2.4.0+cu118...")
-                subprocess.run([
-                    sys.executable, "-m", "pip", "install", "-q",
-                    "torch==2.4.0+cu118", "torchvision==0.19.0+cu118",
-                    "--index-url", "https://download.pytorch.org/whl/cu118",
-                    "--force-reinstall"
-                ], capture_output=True, text=True)
-                print("  torch==2.4.0+cu118 installed ✓")
-            else:
-                print(f"  GPU sm_{cap.replace('.', '')} detected — default torch OK ✓")
-    except Exception as e:
-        print(f"  GPU check skipped: {e}")
-
-_fix_torch_for_p100()
-
-# ── Install dependencies (AFTER torch fix) ────────────────────
+# ── Install dependencies (same approach as working old pipeline) ──
 print("=" * 56)
 print("Installing dependencies...")
 _PKGS = [
     "git+https://github.com/huggingface/diffusers.git",
     "transformers>=4.47.0", "accelerate>=0.28.0", "sentencepiece",
     "huggingface_hub>=0.23.0", "Pillow>=10.0", "numpy",
-    "onnxruntime-gpu",
+    "onnxruntime-gpu", "torchvision",
     "piexif", "opencv-python-headless",
 ]
-# CRITICAL: Do NOT install torchvision here if P100 — it would overwrite
-# the cu118 version we just installed and pull incompatible default torch!
-if not _IS_P100:
-    _PKGS.append("torchvision")
 for _pkg in _PKGS:
     r = subprocess.run([sys.executable, "-m", "pip", "install", "-q", _pkg],
                        capture_output=True, text=True)
     print(f"  {'OK  ' if r.returncode == 0 else 'WARN'} {_pkg}")
 
-# CRITICAL: If P100, re-install cu118 torch LAST — diffusers/transformers
-# may have overwritten it with an incompatible version during deps install
-if _IS_P100:
-    print("  Re-installing torch==2.4.0+cu118 (ensuring cu118 is final)...")
-    subprocess.run([
-        sys.executable, "-m", "pip", "install", "-q",
-        "torch==2.4.0+cu118", "torchvision==0.19.0+cu118",
-        "--index-url", "https://download.pytorch.org/whl/cu118",
-        "--force-reinstall", "--no-deps"
-    ], capture_output=True, text=True)
-    print("  torch==2.4.0+cu118 re-installed ✓")
-
 print("Done!\n")
 
-# NOW import torch — picks up the correct version (2.4.0+cu118 on P100)
 import torch
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
