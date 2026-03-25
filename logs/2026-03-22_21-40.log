@@ -1,0 +1,72 @@
+ULTRAPNG PIPELINE V6.0 — RUN REPORT
+============================================================
+Date       : 2026-03-22 21:40 IST
+Batch      : 0 -> 2
+Generated  : 2
+Deleted    : 0
+Approved   : 2
+Transparent: 0
+Uploaded   : 0
+Posts      : 0
+Duration   : 0.1h
+Status     : FAILED: You are trying to access a gated repo.
+Make sure to have access to it at https:/
+============================================================
+
+FULL LOG
+============================================================
+[21:35:31] Loading prompts...
+[21:35:31] Loaded 20035 prompts
+[21:35:31] Batch: 2 prompts
+
+[21:35:31] Building skip-set from REPO2 JSON files...
+[21:35:32]   No data dir — starting fresh
+[21:35:32] ========================================================
+[21:35:32] PHASE 1: FLUX.2-Klein-4B — Image Generation
+[21:35:32]   Loading from HuggingFace: black-forest-labs/FLUX.2-klein-4B
+[21:35:32] ========================================================
+[21:36:04]   Loading: black-forest-labs/FLUX.2-klein-4B
+[21:36:04]   (First run: downloads ~8GB — ~5 min)
+[21:36:58] FLUX.2 loaded | Batch: 2 | Skip: 0
+
+[21:38:17]   [1/2] OK img_004767.png | animals | ETA 1min
+[21:39:05]   [2/2] OK img_002865.png | animals | ETA 0min
+[21:39:05] 
+  Deleting FLUX.2 -> freeing VRAM + disk cache...
+[21:39:06]   GPU used: 0.0GB
+[21:39:07]   Deleted FLUX cache: models--black-forest-labs--FLUX.2-klein-4B
+[21:39:07]   HF cache after cleanup: 0.0GB
+[21:39:07]   Checkpoint saved: phase1_generated (2 items)
+[21:39:07] PHASE 1 DONE — Generated: 2 | Skipped: 0
+
+[21:39:07] ========================================================
+[21:39:07] PHASE 2: Qwen2.5-VL-3B — SMART FILTER + SEO
+[21:39:07]   Loading from HuggingFace: Qwen/Qwen2.5-VL-3B-Instruct
+[21:39:07] ========================================================
+[21:39:37] Qwen loaded! Processing 2 images...
+
+[21:39:54]   KEEP [1/2] animals-cow-png-hd (conf=9) | ETA 0min
+[21:40:09]   KEEP [2/2] animals-white-brown-cow-png-hd (conf=9) | ETA 0min
+[21:40:09] 
+  Deleting Qwen -> freeing VRAM + disk cache...
+[21:40:09]   GPU used: 0.0GB
+[21:40:10]   Deleted Qwen cache: models--Qwen--Qwen2.5-VL-3B-Instruct
+[21:40:10]   Deleted generated/ images (approved/ copies kept)
+[21:40:10]   HF cache after cleanup: 0.0GB
+[21:40:10]   Checkpoint saved: phase2_posts (2 items)
+[21:40:10] PHASE 2 DONE — Kept: 2 | Deleted: 0
+[21:40:10]   WrongSubject:0 WrongShape:0 LowConf:0 Deformed:0 ParseFail:0
+
+[21:40:10] ========================================================
+[21:40:10] PHASE 3: RMBG-2.0 — Background Removal (GPU)
+[21:40:10]   Loading from HuggingFace: briaai/RMBG-2.0
+[21:40:10] ========================================================
+[21:40:11] FATAL: You are trying to access a gated repo.
+Make sure to have access to it at https://huggingface.co/briaai/RMBG-2.0.
+401 Client Error. (Request ID: Root=1-69c061bb-3ac6e8972253f3f864c8df59;e634adca-80f5-447d-9668-bb0c9c9e67ad)
+
+Cannot access gated repo for url https://huggingface.co/briaai/RMBG-2.0/resolve/main/config.json.
+Access to model briaai/RMBG-2.0 is restricted. You must have access to it and be authenticated to access it. Please log in.
+[21:40:11] ========================================================
+[21:40:11] PHASE 6: Saving run logs to REPO1/logs/
+[21:40:11] ========================================================

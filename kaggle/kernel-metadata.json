@@ -1,0 +1,15 @@
+{
+  "id": "gurumoorthirajagopal/notebook8c5ae1ecf2",
+  "title": "notebook8c5ae1ecf2",
+  "code_file": "main_pipeline.py",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [
+    "gurumoorthirajagopal/my-pipeline-models"
+  ],
+  "competition_sources": [],
+  "kernel_sources": []
+}

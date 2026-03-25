@@ -1,0 +1,112 @@
+ULTRAPNG PIPELINE V6.0 — RUN REPORT
+============================================================
+Date       : 2026-03-23 07:40 IST
+Batch      : 0 -> 20
+Generated  : 16
+Deleted    : 0
+Approved   : 16
+Transparent: 16
+Uploaded   : 0
+Posts      : 0
+Duration   : 0.5h
+Status     : FAILED: Token error: {'error': 'invalid_grant', 'error_description': 'Token has been exp
+============================================================
+
+FULL LOG
+============================================================
+[07:11:20] Loading prompts...
+[07:11:22] Loaded 20035 prompts
+[07:11:22] Batch: 20 prompts
+
+[07:11:22] Building skip-set from REPO2 JSON files...
+[07:11:25]   Skip-set: 4 already-done filenames
+[07:11:25] ========================================================
+[07:11:25] PHASE 1: FLUX.2-Klein-4B — Image Generation
+[07:11:25]   Loading from HuggingFace: black-forest-labs/FLUX.2-klein-4B
+[07:11:25] ========================================================
+[07:11:54]   Loading: black-forest-labs/FLUX.2-klein-4B
+[07:11:54]   (First run: downloads ~8GB — ~5 min)
+[07:12:54] FLUX.2 loaded | Batch: 20 | Skip: 4
+
+[07:12:54]   SKIP [1/20] img_004767.png
+[07:12:54]   SKIP [2/20] img_002865.png
+[07:12:54]   SKIP [3/20] img_005019.png
+[07:14:04]   [5/20] OK img_001834.png | animals | ETA 17min
+[07:14:51]   [6/20] OK img_003341.png | animals | ETA 14min
+[07:15:37]   [7/20] OK img_001389.png | animals | ETA 12min
+[07:16:22]   [8/20] OK img_001401.png | animals | ETA 10min
+[07:17:08]   [9/20] OK img_000620.png | animals | ETA 9min
+[07:17:53]   [10/20] OK img_001064.png | animals | ETA 8min
+[07:18:38]   [11/20] OK img_003063.png | animals | ETA 7min
+[07:19:23]   [12/20] OK img_000558.png | animals | ETA 6min
+[07:20:08]   [13/20] OK img_003466.png | animals | ETA 6min
+[07:20:53]   [14/20] OK img_003465.png | animals | ETA 5min
+[07:21:37]   [15/20] OK img_001697.png | animals | ETA 4min
+[07:22:22]   [16/20] OK img_001287.png | animals | ETA 3min
+[07:23:07]   [17/20] OK img_003635.png | animals | ETA 2min
+[07:23:51]   [18/20] OK img_002006.png | animals | ETA 2min
+[07:24:36]   [19/20] OK img_004089.png | animals | ETA 1min
+[07:25:20]   [20/20] OK img_004463.png | animals | ETA 0min
+[07:25:20] 
+  Deleting FLUX.2 -> freeing VRAM + disk cache...
+[07:25:21]   GPU used: 0.0GB
+[07:25:22]   Deleted FLUX cache: models--black-forest-labs--FLUX.2-klein-4B
+[07:25:22]   HF cache after cleanup: 0.0GB
+[07:25:22]   Checkpoint saved: phase1_generated (16 items)
+[07:25:22] PHASE 1 DONE — Generated: 16 | Skipped: 4
+
+[07:25:22] ========================================================
+[07:25:22] PHASE 2: Qwen2.5-VL-3B — SMART FILTER + SEO
+[07:25:22]   Loading from HuggingFace: Qwen/Qwen2.5-VL-3B-Instruct
+[07:25:22] ========================================================
+[07:25:58] Qwen loaded! Processing 16 images...
+
+[07:28:11]   KEEP [1/16] animals-png-hd (conf=7) | ETA 33min
+[07:28:51]   KEEP [2/16] indian-desi-cow-png (conf=9) | ETA 20min
+[07:30:45]   KEEP [3/16] animals-png-hd-1 (conf=7) | ETA 21min
+[07:31:27]   KEEP [4/16] indian-desi-cow-png-1 (conf=9) | ETA 16min
+[07:31:47]   KEEP [5/16] creamy-cow-studio-lighting (conf=9) | ETA 13min
+[07:33:57]   KEEP [6/16] animals-png-hd-2 (conf=7) | ETA 13min
+[07:34:18]   KEEP [7/16] unique-realistic-bull-transparent-png (conf=9) | ETA 11min
+[07:34:37]   KEEP [8/16] animals-realistic-cow-horns-png (conf=9) | ETA 9min
+[07:35:18]   KEEP [9/16] dark-grey-buffalo-png (conf=9) | ETA 7min
+[07:35:58]   KEEP [10/16] animals-dark-grey-buffalo-side-profile (conf=9) | ETA 6min
+[07:35:58]   Checkpoint saved: phase2_posts_partial (10 items)
+[07:36:23]   KEEP [11/16] unique-dark-grey-buffalo-large-curled-horns-png (conf=9) | ETA 5min
+[07:37:00]   KEEP [12/16] dark-grey-buffalo-png-1 (conf=9) | ETA 4min
+[07:37:44]   KEEP [13/16] realistic-water-buffalo-png (conf=9) | ETA 3min
+[07:38:22]   KEEP [14/16] animals-png-hd-3 (conf=7) | ETA 2min
+[07:39:04]   KEEP [15/16] realistic-water-buffalo-png-1 (conf=9) | ETA 1min
+[07:39:49]   KEEP [16/16] realistic-water-buffalo-top-view-png (conf=9) | ETA 0min
+[07:39:49] 
+  Deleting Qwen -> freeing VRAM + disk cache...
+[07:39:50]   GPU used: 0.0GB
+[07:39:51]   Deleted Qwen cache: models--Qwen--Qwen2.5-VL-3B-Instruct
+[07:39:51]   Deleted generated/ images (approved/ copies kept)
+[07:39:51]   HF cache after cleanup: 0.0GB
+[07:39:51]   Checkpoint saved: phase2_posts (16 items)
+[07:39:51] PHASE 2 DONE — Kept: 16 | Deleted: 0
+[07:39:51]   WrongSubject:0 WrongShape:0 LowConf:0 Deformed:0 ParseFail:0
+
+[07:39:51] ========================================================
+[07:39:51] PHASE 3: BiRefNet_HR — 2048x2048 FP16 — Background Removal (GPU)
+[07:39:51]   Loading from HuggingFace: ZhengPeng7/BiRefNet_HR
+[07:39:51] ========================================================
+[07:39:59]   BiRefNet_HR loaded on CUDA | FP16 | 2048x2048
+
+[07:40:35] 
+  Deleting RMBG-2.0 → freeing VRAM + disk cache...
+[07:40:35]   GPU used: 0.0GB
+[07:40:36]   Deleted BiRefNet cache: models--ZhengPeng7--BiRefNet_HR
+[07:40:36]   Deleted approved/ images (transparent/ copies kept)
+[07:40:36]   HF cache after cleanup: 0.0GB
+[07:40:36]   Checkpoint saved: phase3_transparent (16 items)
+[07:40:36] PHASE 3 DONE — Transparent PNGs: 16
+
+[07:40:36] ========================================================
+[07:40:36] PHASE 4: Google Drive Upload + URL Capture
+[07:40:36] ========================================================
+[07:40:36] FATAL: Token error: {'error': 'invalid_grant', 'error_description': 'Token has been expired or revoked.'}
+[07:40:36] ========================================================
+[07:40:36] PHASE 6: Saving run logs to REPO1/logs/
+[07:40:36] ========================================================

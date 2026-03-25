@@ -1,996 +1,949 @@
 """
-╔══════════════════════════════════════════════════════════════╗
-║  PNG Library — Unified Prompt Engine V2.0                   ║
-║  (Merged from prompt_engine.py + generate_prompts.py)       ║
-╠══════════════════════════════════════════════════════════════╣
-║  KEY CHANGES V2.0:                                          ║
-║  • MERGED: Two engines into one unified file                ║
-║  • FLUX-STYLE: Natural sentence prompts (45-80 words)       ║
-║  • REMOVED: Redundant BASE_SUFFIX, ANGLES, LIGHTING etc.    ║
-║  • REMOVED: Old comma-keyword style (SD-style)              ║
-║  • ADDED: expand_standard/expand_hero/expand_food helpers   ║
-║  • KEPT: All category data (23 categories)                  ║
-║  • KEPT: load_all_prompts() interface (unchanged)           ║
-╠══════════════════════════════════════════════════════════════╣
-║  FLUX.2 Klein Prompt Rules:                                 ║
-║  1. Natural descriptive sentences — NOT keyword lists       ║
-║  2. Subject + visual details + angle + lighting + BG        ║
-║  3. 45-80 words — sweet spot for FLUX.2 Klein               ║
-║  4. Light grey BG emphasized (model tends to go dark)       ║
-║  5. NO negative prompts — FLUX ignores them                 ║
-║  6. NO "8k, Canon EOS, photorealistic" — FLUX knows quality ║
-╚══════════════════════════════════════════════════════════════╝
+PNG Library — Prompt Engine V5 (GURU IMAGE USHA)
+══════════════════════════════════════════════════════════
+RULE  : Simple item names only. No confusing words.
+BG    : SOLID LIGHT GREY — every single image
+STYLE : 100% Ultra Realistic Studio Photography
+══════════════════════════════════════════════════════════
+Categories:
+  1.  Poultry & Live Animals
+  2.  Fish & Seafood
+  3.  Eggs
+  4.  Flowers
+  5.  Fruits
+  6.  Vegetables
+  7.  Cool Drinks
+  8.  Indian Foods
+  9.  World Foods
+  10. Dairy Products
+  11. Dry Fruits & Nuts
+  12. Bakery & Snacks
+  13. Ayurvedic / Herbal
+  14. Indian Sweets Shop
+  15. School Stationery (20 groups)
+  16. Kitchen Vessels (30 groups)
+  17. Mobile Accessories (real brands)
+  18. Computer & Accessories (real brands)
+  19. Footwear
+  20. Indian Dress
+  21. Jewellery Models
+  22. Office Models
+  23. Vehicles
+══════════════════════════════════════════════════════════
 """
 
 import random
 import json
 from pathlib import Path
-from itertools import product as iterproduct
 
-random.seed(42)
+# ─────────────────────────────────────────────────────────────
+# BASE SUFFIXES
+# Grey background is repeated strongly so AI never generates black
+# ─────────────────────────────────────────────────────────────
 
-# ══════════════════════════════════════════════════
-# FLUX-STYLE BASE SUFFIXES (simplified, natural)
-# FLUX.2 Klein responds better to natural language
-# ══════════════════════════════════════════════════
-
-_BG = (
-    "isolated on a solid plain light grey background, "
-    "not black, not white, clean light grey studio backdrop"
+BASE_SUFFIX = (
+    "isolated on solid plain light grey background, "
+    "NOT black background, grey studio backdrop, "
+    "professional studio product photography, "
+    "Canon EOS R5 100mm macro lens, "
+    "8k ultra high definition, ultra realistic, photorealistic, "
+    "razor sharp focus, softbox studio lighting, "
+    "clean crisp edges, centered composition"
 )
 
-# General products
-BASE = (
-    f"{_BG}, soft even studio lighting, "
-    "ultra sharp commercial product photography quality"
+ANIMAL_SUFFIX = (
+    "isolated on solid plain light grey background, "
+    "NOT black background, grey studio backdrop, "
+    "professional studio animal photography, "
+    "Canon EOS R5, 8k ultra high definition, ultra realistic, photorealistic, "
+    "razor sharp focus, softbox lighting, "
+    "clean crisp edges, centered full body"
 )
 
-# Food items
-FOOD_BASE = (
-    f"{_BG}, professional studio food photography, "
-    "appetizing true-to-life color and texture, soft studio lighting"
+MODEL_SUFFIX = (
+    "isolated on solid plain light grey background, "
+    "NOT black background, grey studio backdrop, "
+    "professional studio fashion portrait photography, "
+    "Canon EOS R5 85mm portrait lens, "
+    "8k ultra high definition, ultra realistic, photorealistic, "
+    "razor sharp focus, softbox studio lighting, "
+    "clean crisp edges, centered composition"
 )
 
-# Animals
-ANIMAL_BASE = (
-    f"{_BG}, professional studio animal photography, "
-    "correct species anatomy, natural pose, soft studio lighting"
-)
+# ─────────────────────────────────────────────────────────────
+# VARIATION BANKS
+# ─────────────────────────────────────────────────────────────
 
-# Fashion models
-MODEL_BASE = (
-    f"{_BG}, professional studio fashion portrait photography, "
-    "soft flattering studio lighting, natural skin tone"
-)
-
-# Vehicles
-VEHICLE_BASE = (
-    f"{_BG}, professional automotive photography, "
-    "showroom quality, soft directional studio lighting"
-)
-
-# ══════════════════════════════════════════════════
-# VIEW POOLS — used across categories
-# ══════════════════════════════════════════════════
-VIEWS_ALL = [
-    "front view", "side profile view", "45 degree angle view",
-    "top view overhead", "low angle hero shot", "close-up macro detail view",
-]
-VIEWS_FOOD = [
-    "front view eye level", "45 degree angle view",
-    "top view overhead flat lay", "low angle hero shot",
-    "close-up macro detail view", "three-quarter angle view",
-]
-VIEWS_STD = [
-    "front view", "side profile view", "45 degree angle view",
-    "top view overhead", "close-up macro detail view",
-]
-VIEWS_3 = ["front view", "45 degree angle view", "top view overhead"]
-VIEWS_FLOWER = [
-    "front view", "45 degree angle view", "close-up macro view",
-    "top view overhead", "side profile view",
-]
-VIEWS_ANIMAL = [
-    "front view", "side profile view", "45 degree angle view",
-    "close-up portrait view", "three-quarter view",
+ANGLES = [
+    "front view",
+    "45 degree angle view",
+    "top view overhead",
+    "side profile view",
+    "3/4 angle view",
+    "close-up macro view",
+    "low angle view",
+    "eye level view",
 ]
 
-# Extended 10-view pool for auto-boost
-_VIEWS10 = [
-    "front view", "side profile view", "45 degree angle view",
-    "top view overhead", "close-up macro detail view",
-    "low angle hero shot", "three-quarter angle view",
-    "45 degree right angled view", "front close-up view", "overhead angled view",
+LIGHTING = [
+    "soft studio lighting",
+    "bright even studio lighting",
+    "high key studio lighting",
+    "professional softbox lighting",
+    "clean studio strobe lighting",
 ]
 
-_BAD_DESC_STARTS = (
-    "from side", "from above", "from the", "front view", "side view",
-    "top view", "45 degree", "close-up", "low angle", "three-quarter",
-)
+QUALITY = [
+    "ultra fine detail",
+    "sharp crisp quality",
+    "lifelike realistic",
+    "true to life detail",
+    "every detail visible",
+]
 
-# ══════════════════════════════════════════════════
-# CORE HELPERS
-# ══════════════════════════════════════════════════
+PHOTO = [
+    "commercial product photography",
+    "editorial photography",
+    "studio catalog photography",
+    "advertising photography",
+]
 
-def _item(cat, sub, prompt, subject_name=None):
-    """Create a prompt item dict."""
-    return {
-        "category":     cat,
-        "subcategory":  sub,
-        "prompt":       prompt,
-        "subject_name": subject_name or sub.replace("_", " ").title(),
-        "seed":         random.randint(10000, 999999),
-        "index":        0,
-        "filename":     "img_000000.png",
-        "status":       "pending",
-    }
-
-def dedup(items):
-    """Remove duplicate prompts."""
-    seen, out = set(), []
-    for i in items:
-        if i["prompt"] not in seen:
-            seen.add(i["prompt"])
-            out.append(i)
-    return out
-
-def _clean_descs(descriptions):
-    """Remove descriptions that are just view directions."""
-    clean = [d for d in descriptions
-             if len(d.split()) > 4
-             and not d.strip().lower().startswith(_BAD_DESC_STARTS)]
-    return clean if clean else [descriptions[0]]
-
-def expand_standard(cat, sub, descriptions, views=VIEWS_STD, suffix=BASE, subject_name=None):
-    """
-    FLUX-style expand — auto-boost to ≥10 base prompts per subcategory.
-    Prompt = "A {description}, {view}, {suffix}"
-    """
-    descs = _clean_descs(descriptions)
-    working_views = list(views)
-    extra = [v for v in _VIEWS10 if v not in working_views]
-    ei = 0
-    while len(descs) * len(working_views) < 10 and ei < len(extra):
-        working_views.append(extra[ei]); ei += 1
-    items = []
-    sname = subject_name or sub.replace("_", " ").title()
-    for desc, view in iterproduct(descs, working_views):
-        prompt = f"A {desc}, {view}, {suffix}"
-        items.append(_item(cat, sub, prompt, sname))
-    return dedup(items)
-
-def expand_food(cat, sub, descriptions, views=VIEWS_FOOD, suffix=FOOD_BASE, subject_name=None):
-    """
-    FLUX-style food expand — natural serving descriptions.
-    Prompt = "A single serving of {description}, {view}, {suffix}"
-    """
-    descs = _clean_descs(descriptions)
-    working_views = list(views)
-    extra_food = [
-        "front view eye level", "45 degree angle view", "top view overhead flat lay",
-        "low angle hero shot", "close-up macro detail view", "three-quarter angle view",
-        "side profile view", "overhead birds eye view",
-        "45 degree left angle view", "front close view",
-    ]
-    ei = 0
-    while len(descs) * len(working_views) < 10:
-        v = extra_food[ei % len(extra_food)]
-        if v not in working_views:
-            working_views.append(v)
-        ei += 1
-        if ei > 20:
-            break
-    items = []
-    sname = subject_name or sub.replace("_", " ").title()
-    for desc, view in iterproduct(descs, working_views):
-        prompt = f"A single serving of {desc}, {view}, {suffix}"
-        items.append(_item(cat, sub, prompt, sname))
-    return dedup(items)
-
-def expand_hero(cat, sub, descriptions, contexts,
-                views=VIEWS_FOOD, suffix=FOOD_BASE, subject_name=None):
-    """Hero items — more views, more contexts for popular items."""
-    items = []
-    sname = subject_name or sub.replace("_", " ").title()
-    for desc, view in iterproduct(descriptions, views):
-        items.append(_item(cat, sub, f"A single serving of {desc}, {view}, {suffix}", sname))
-    for ctx, view in iterproduct(contexts, views[:3]):
-        items.append(_item(cat, sub, f"A single {ctx}, {view}, {suffix}", sname))
-    return dedup(items)
-
-def expand_animal(cat, sub, descriptions, views=VIEWS_ANIMAL, suffix=ANIMAL_BASE, subject_name=None):
-    """Animal prompts with correct anatomy emphasis."""
-    descs = _clean_descs(descriptions)
-    working_views = list(views)
-    ei = 0
-    extra = [v for v in _VIEWS10 if v not in working_views]
-    while len(descs) * len(working_views) < 10 and ei < len(extra):
-        working_views.append(extra[ei]); ei += 1
-    items = []
-    sname = subject_name or sub.replace("_", " ").title()
-    for desc, view in iterproduct(descs, working_views):
-        prompt = f"A {desc} in a natural pose, {view}, {suffix}"
-        items.append(_item(cat, sub, prompt, sname))
-    return dedup(items)
-
-# ══════════════════════════════════════════════════
-# CATEGORY 1: POULTRY & LIVE ANIMALS
-# ══════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────
+# 1. POULTRY & LIVE ANIMALS
+# ─────────────────────────────────────────────────────────────
 
 POULTRY_ANIMALS = {
     "rooster": [
-        "proud adult rooster with vivid red comb and colorful tail feathers",
-        "rooster standing alert showing full plumage",
-        "rooster with golden feathers and bright red wattle",
-        "two roosters together showing size and plumage",
-        "rooster and hen pair standing together",
-        "rooster close-up portrait showing red comb detail",
-        "three roosters group arranged naturally",
-        "rooster crowing with beak open",
+        "single rooster standing side view",
+        "single rooster front view",
+        "single rooster crowing",
+        "single rooster close-up head portrait",
+        "single rooster full body 3/4 view",
+        "single rooster tail feathers visible",
+        "two roosters together",
+        "three roosters group",
+        "rooster and hen pair together",
     ],
     "broiler_chicken": [
-        "single white broiler chicken standing naturally",
-        "broiler chicken full body side view",
-        "two white broiler chickens together",
-        "three broiler chickens group arranged",
-        "broiler chicken close-up portrait",
-        "flock of white broiler chickens together",
-        "four broiler chickens arranged naturally",
+        "single broiler chicken standing side view",
+        "single broiler chicken front view",
+        "single broiler chicken full body",
+        "single broiler chicken close-up",
+        "two broiler chickens together",
+        "three broiler chickens group",
+        "four broiler chickens together",
+        "flock of broiler chickens",
     ],
     "goat": [
-        "single brown goat standing with horns visible",
-        "goat full body side view showing fur detail",
-        "two goats together grazing pose",
-        "young kid goat small and cute standing",
-        "mother goat with baby kid together",
-        "three goats group arranged",
-        "goat close-up portrait showing face",
+        "single goat standing side view",
+        "single goat front view",
+        "single goat full body",
+        "single goat close-up head",
+        "single young kid goat",
+        "two goats together",
+        "three goats group",
+        "mother goat with baby kid",
+    ],
+    "quail": [
+        "single quail bird standing",
+        "single quail side view",
+        "single quail front view",
+        "single quail close-up",
+        "two quail birds together",
+        "three quail birds group",
+        "five quail birds group",
     ],
     "cow": [
-        "single Indian cow with hump standing naturally",
-        "cow full body side view showing markings",
-        "two cows together arranged",
-        "cow with calf standing together",
-        "cow close-up portrait showing face",
-        "three cows group arranged",
-        "white cow standing front view",
-    ],
-    "hen": [
-        "single brown hen standing naturally",
-        "hen full body side view",
-        "two hens together arranged",
-        "hen with chicks arranged",
-        "hen close-up portrait",
-        "three hens group",
-        "black hen standing naturally",
-    ],
-    "duck": [
-        "single white duck standing naturally",
-        "duck full body side view",
-        "two ducks together arranged",
-        "duck close-up portrait",
-        "three ducks group",
-    ],
-    "rabbit": [
-        "single white rabbit sitting naturally",
-        "rabbit full body side view",
-        "two rabbits together",
-        "rabbit close-up portrait",
-        "three rabbits grouped",
+        "single Indian cow standing side view",
+        "single cow front view",
+        "single cow full body",
+        "single cow close-up head",
+        "single cow with hump visible",
+        "two cows together",
+        "cow with calf together",
+        "three cows group",
     ],
 }
 
-def gen_poultry_animals():
-    items = []
-    for sub, descs in POULTRY_ANIMALS.items():
-        items += expand_animal("poultry_animals", sub, descs,
-                               subject_name=sub.replace("_", " ").title())
-    return items
+ANIMAL_CONTEXTS = [
+    "professional studio portrait",
+    "clean full body view",
+    "natural standing pose",
+    "alert pose",
+    "calm relaxed pose",
+    "side profile full view",
+]
 
-# ══════════════════════════════════════════════════
-# CATEGORY 2: FISH & SEAFOOD
-# ══════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────
+# 2. FISH & SEAFOOD
+# ─────────────────────────────────────────────────────────────
 
 FISH_SEAFOOD = {
     "whole_fish": [
-        "single fresh Rohu fish whole with natural silver scales",
-        "single whole Pomfret fish on a clean surface",
-        "single Seer fish Vanjaram whole showing texture",
-        "single Mackerel Ayala fish whole fresh",
-        "single Tilapia fish whole with natural colors",
-        "single Salmon fish whole showing pink flesh tones",
-        "two Pomfret fish arranged side by side",
-        "three Sardines arranged together on a tray",
-        "three Mackerel fish arranged together fresh",
-        "mixed fish variety arranged together on a surface",
-        "pile of small fresh fish arranged naturally",
-        "fish arranged on a banana leaf naturally",
-        "four fish arranged in a neat row",
+        # Single
+        "single Rohu fish whole",
+        "single Catla fish whole",
+        "single Pomfret fish whole",
+        "single Seer fish Vanjaram whole",
+        "single Mackerel Ayala fish whole",
+        "single Sardine Mathi fish whole",
+        "single Tilapia fish whole",
+        "single Salmon fish whole",
+        "single Red Snapper fish whole",
+        "single Tuna fish whole",
+        "single Barramundi fish whole",
+        "single King fish whole",
+        "single Hilsa fish whole",
+        "single Catfish whole",
+        "single Sole fish whole",
+        # Group
+        "two Pomfret fish arranged together",
+        "three Sardines arranged together",
+        "three Mackerel fish arranged together",
+        "pile of small fish arranged",
+        "two Rohu fish together",
+        "fish on banana leaf arranged",
+        "fish on steel tray arranged",
+        "four small fish in a row",
+        "fish market style arrangement three fish",
+        "mixed fish variety arranged together",
     ],
     "prawns_shrimp": [
-        "single large fresh prawn whole with natural color",
-        "three fresh prawns arranged together",
-        "pile of fresh prawns on a clean surface",
-        "prawns arranged on a banana leaf",
-        "six tiger prawns arranged in a neat row",
-        "mixed prawns pile fresh and glistening",
-        "prawns in a steel bowl arranged",
-        "single king prawn whole showing details",
+        # Single
+        "single large prawn whole",
+        "single tiger prawn whole",
+        "single king prawn whole",
+        # Group
+        "three prawns arranged together",
+        "pile of fresh prawns",
+        "prawns on banana leaf",
+        "six prawns arranged in a row",
+        "prawns in bowl arranged",
+        "mixed prawns pile fresh",
+        "tiger prawns four arranged",
+        "prawns on plate arranged",
     ],
     "crab": [
-        "single whole crab with claws showing",
-        "single mud crab whole from the front",
+        "single whole crab front view",
+        "single crab side view",
+        "single mud crab whole",
         "two crabs arranged together",
-        "crab on a banana leaf",
         "three crabs group arranged",
-        "crabs pile together fresh",
+        "crab on banana leaf",
+        "crab on plate arranged",
+        "crabs pile together",
     ],
     "squid_other": [
-        "single squid whole with tentacles visible",
-        "two squid arranged together",
-        "single lobster whole with claws",
-        "mussels cluster arranged together",
-        "mixed seafood variety arranged on a plate",
-        "squid rings pile on plate",
+        "single squid whole",
+        "squid on plate arranged",
+        "two squid together",
+        "pile of squid fresh",
+        "single lobster whole",
+        "lobster on plate",
+        "single oyster shell open",
+        "mussels cluster arranged",
+        "mixed seafood arranged on plate",
+        "seafood variety platter arranged",
     ],
 }
 
 FISH_CONTEXTS = [
-    "on white surface", "on banana leaf", "on white plate",
-    "on steel tray", "top view overhead", "side view",
+    "on white surface",
+    "on banana leaf",
+    "on white plate",
+    "on steel tray",
+    "on dark slate board",
+    "top view overhead",
+    "side view",
+    "close-up detail",
 ]
 
-def gen_fish_seafood():
-    items = []
-    for sub, descs in FISH_SEAFOOD.items():
-        for desc, ctx in iterproduct(descs, FISH_CONTEXTS[:4]):
-            prompt = f"A {desc}, {ctx}, {FOOD_BASE}"
-            items.append(_item("fish_seafood", sub, prompt,
-                               sub.replace("_", " ").title()))
-    return dedup(items)
+FISH_STYLE = [
+    "fresh seafood photography",
+    "food market photography",
+    "commercial seafood photography",
+    "studio food photography",
+]
 
-# ══════════════════════════════════════════════════
-# CATEGORY 3: EGGS
-# ══════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────
+# 3. EGGS
+# ─────────────────────────────────────────────────────────────
 
 EGGS = [
-    "single fresh white egg on a clean surface",
-    "single brown egg close-up showing texture",
-    "three eggs arranged together neatly",
+    "single egg on white surface",
+    "single egg top view",
+    "single egg close-up",
+    "cracked egg with yolk",
+    "three eggs arranged together",
     "six eggs arranged in two rows",
-    "eggs in a wicker basket",
-    "cracked egg with yolk visible",
-    "four eggs on a grey surface",
-    "eggs in a small white ceramic bowl",
-    "quail eggs small cluster naturally arranged",
-    "six quail eggs with spotted shells arranged",
-    "dozen eggs in a carton open",
-    "two types of eggs arranged together",
-    "eggs on a wooden surface natural setting",
-    "pile of eggs arranged naturally",
+    "dozen eggs in carton",
+    "eggs in wicker basket",
+    "pile of eggs together",
+    "four eggs on grey surface",
+    "eggs in white bowl",
+    "quail eggs small cluster",
+    "six quail eggs arranged",
+    "two types eggs together",
+    "eggs on wooden surface natural",
 ]
 
-def gen_eggs():
-    items = []
-    for desc in EGGS:
-        for view in VIEWS_3:
-            prompt = f"A {desc}, {view}, {FOOD_BASE}"
-            items.append(_item("eggs", "eggs", prompt, "Egg"))
-    return dedup(items)
+EGG_CONTEXTS = [
+    "on white surface",
+    "on wooden surface",
+    "in basket",
+    "top view overhead",
+    "close-up detail",
+    "on grey surface",
+]
 
-# ══════════════════════════════════════════════════
-# CATEGORY 4: FLOWERS
-# ══════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────
+# 4. FLOWERS
+# ─────────────────────────────────────────────────────────────
 
 FLOWERS_SINGLE = {
     "rose": [
-        "single red rose in full bloom with visible petals",
-        "single pink rose with dew drops on petals",
-        "single white rose with soft petals",
-        "single yellow rose showing petal detail",
-        "red rose bud before opening",
-        "rose with green leaves attached",
-        "rose close-up showing petal texture",
+        "single red rose",
+        "single pink rose",
+        "single white rose",
+        "single yellow rose",
+        "single orange rose",
+        "red rose bud",
+        "rose with green leaves",
+        "rose top view",
+        "rose close-up petals",
+        "rose side view",
     ],
     "lotus": [
-        "single pink lotus flower fully open",
-        "single white lotus open with yellow center",
-        "lotus bud before opening",
-        "lotus flower with green leaf beside it",
+        "single pink lotus open",
+        "single white lotus open",
+        "lotus bud",
+        "lotus top view",
+        "lotus side view",
+        "lotus with green leaf",
     ],
     "jasmine": [
-        "fresh white jasmine flower cluster on stem",
-        "jasmine bunch with green leaves",
-        "jasmine flowers close-up detail",
-        "jasmine garland neatly arranged",
+        "jasmine flower cluster white",
+        "jasmine bunch fresh",
+        "jasmine close-up",
+        "jasmine on stem",
+        "jasmine garland",
+        "jasmine top view",
     ],
     "marigold": [
-        "single bright orange marigold in full bloom",
-        "single yellow marigold showing petals",
-        "marigold close-up showing petal layers",
-        "marigold bunch tied together",
+        "single orange marigold",
+        "single yellow marigold",
+        "marigold top view",
+        "marigold close-up",
+        "marigold bunch tied",
+        "marigold side view",
     ],
     "sunflower": [
-        "single sunflower with yellow petals and dark center",
-        "sunflower close-up showing seed center detail",
-        "sunflower with green stem and leaves",
-        "sunflower bud before opening",
+        "single sunflower front view",
+        "sunflower side view",
+        "sunflower close-up center",
+        "sunflower with stem",
+        "sunflower top view",
+        "sunflower bud",
     ],
     "hibiscus": [
-        "single red hibiscus fully open showing stamen",
-        "single pink hibiscus in full bloom",
-        "hibiscus close-up showing petal texture",
-        "hibiscus with green leaves attached",
+        "single red hibiscus open",
+        "single yellow hibiscus",
+        "single pink hibiscus",
+        "hibiscus close-up",
+        "hibiscus side view",
+        "hibiscus top view",
     ],
     "lily": [
-        "single white lily with curved petals",
-        "single pink lily in full bloom",
-        "lily close-up showing spotted petals",
-        "lily with green stem and leaves",
+        "single white lily",
+        "single pink lily",
+        "lily close-up",
+        "lily side view",
+        "lily with stem",
+        "lily top view",
     ],
     "orchid": [
-        "single purple orchid with delicate petals",
-        "single white orchid elegant bloom",
-        "orchid on stem with multiple flowers",
-        "orchid close-up showing petal detail",
+        "single purple orchid",
+        "single white orchid",
+        "single pink orchid",
+        "orchid close-up",
+        "orchid on stem",
+        "orchid side view",
     ],
 }
 
 FLOWERS_GROUP = [
-    "bunch of red roses arranged as a bouquet",
-    "mixed colorful flower bouquet arranged",
-    "five roses bouquet tied together",
-    "marigold bunch tied with string",
-    "jasmine and rose mixed bunch arranged",
-    "three sunflowers together arranged",
-    "lotus flowers two together on water",
-    "mixed Indian festival flowers arranged",
-    "wedding flower bouquet white and pink",
-    "flower basket overflowing with colorful blooms",
-    "temple flowers marigold and jasmine together",
-    "fresh flowers flat lay arrangement overhead",
-    "rose and jasmine garland arranged",
+    "bunch of red roses arranged",
+    "mixed flower bouquet colorful",
+    "three roses together",
+    "five roses bouquet",
+    "marigold bunch tied together",
+    "jasmine and rose mixed bunch",
+    "flowers in small glass vase",
+    "flower arrangement flat lay",
+    "three sunflowers together",
+    "lotus flowers two together",
+    "hibiscus flowers three arranged",
+    "lily bunch together",
+    "orchid spray on stem",
+    "mixed Indian flowers bunch",
+    "wedding flower bouquet white",
+    "festival flowers colorful bunch",
+    "flower basket overflowing",
+    "dozen roses bouquet",
+    "temple flowers marigold jasmine",
+    "fresh flowers flat lay overhead",
+    "colorful mixed flowers arranged",
+    "rose and jasmine garland",
+    "bridal flower arrangement",
+    "flowers in ceramic vase",
+    "wildflower mixed bunch natural",
 ]
 
-def gen_flowers():
-    items = []
-    for sub, descs in FLOWERS_SINGLE.items():
-        for desc, view in iterproduct(descs, VIEWS_FLOWER):
-            prompt = f"A {desc}, {view}, {BASE}"
-            items.append(_item("flowers", sub, prompt,
-                               sub.replace("_", " ").title()))
-    for desc in FLOWERS_GROUP:
-        for view in VIEWS_3:
-            prompt = f"A {desc}, {view}, {BASE}"
-            items.append(_item("flowers", "flower_groups", prompt, "Flowers"))
-    return dedup(items)
+FLOWER_CONTEXTS = [
+    "close-up",
+    "with dew drops on petals",
+    "with green leaves",
+    "in full bloom",
+    "top view",
+    "side view",
+]
 
-# ══════════════════════════════════════════════════
-# CATEGORY 5: FRUITS
-# ══════════════════════════════════════════════════
+FLOWER_PHOTO = [
+    "macro floral photography",
+    "botanical studio photography",
+    "fine art floral photography",
+    "natural light photography",
+]
+
+# ─────────────────────────────────────────────────────────────
+# 5. FRUITS
+# ─────────────────────────────────────────────────────────────
 
 FRUITS_SINGLE = {
-    "mango":        ["single ripe yellow mango whole", "mango cut in half showing orange flesh", "mango sliced showing juicy flesh", "mango with green leaf attached", "green mango whole"],
-    "banana":       ["single yellow banana", "single banana slightly peeled showing flesh", "green banana whole", "single banana close-up showing texture"],
-    "apple":        ["single red apple whole with stem", "apple cut in half showing white flesh", "single green apple whole", "apple with water droplets on skin"],
-    "watermelon":   ["whole round watermelon", "watermelon slice showing red flesh and seeds", "watermelon half showing flesh", "watermelon cubes arranged"],
-    "grapes":       ["bunch of purple grapes on vine", "bunch of green grapes", "grapes close-up showing round form"],
-    "orange":       ["single orange whole with peel texture", "orange cut in half showing segments", "orange slice round showing segments"],
-    "lemon":        ["single yellow lemon whole", "lemon cut in half showing flesh", "lemon with green leaf attached"],
-    "coconut":      ["green tender coconut whole", "coconut with straw inserted", "mature brown coconut whole", "coconut cut open showing white flesh"],
-    "papaya":       ["whole ripe papaya orange skin", "papaya cut in half showing orange flesh and seeds", "papaya slices arranged"],
-    "pomegranate":  ["whole pomegranate with crown", "pomegranate cut in half showing red seeds", "pomegranate seeds scattered"],
-    "pineapple":    ["whole pineapple with crown leaves", "pineapple slice round showing pattern"],
-    "guava":        ["single white guava whole", "guava cut in half showing pink flesh", "guava with leaf attached"],
-    "other_fruits": [
-        "single fresh strawberry with green top", "kiwi cut in half showing green flesh",
-        "dragon fruit cut in half showing white flesh", "fig cut in half showing pink interior",
-        "fresh chikoo sapodilla whole", "custard apple whole with bumpy skin",
-        "single red plum whole", "two cherries with stems together",
+    "mango":         ["single mango whole", "mango cut in half", "mango sliced", "mango top view", "mango close-up", "mango with leaf"],
+    "banana":        ["single banana", "single banana peeled", "green banana", "banana top view", "banana close-up"],
+    "apple":         ["single apple whole", "apple cut in half", "apple slice", "apple top view", "apple with stem"],
+    "watermelon":    ["whole watermelon", "watermelon slice", "watermelon half", "watermelon cubes", "watermelon top view"],
+    "grapes":        ["bunch of grapes", "grapes close-up", "green grapes bunch", "grapes top view"],
+    "orange":        ["single orange whole", "orange cut in half", "orange slice round", "orange top view", "orange close-up"],
+    "lemon":         ["single lemon whole", "lemon cut in half", "lemon slice", "lemon top view", "lemon with leaf"],
+    "coconut":       ["green tender coconut whole", "coconut with straw", "coconut cut open", "mature coconut whole", "coconut top view"],
+    "papaya":        ["whole papaya", "papaya cut in half", "papaya sliced", "papaya top view", "papaya close-up"],
+    "pomegranate":   ["whole pomegranate", "pomegranate cut in half", "pomegranate seeds", "pomegranate top view"],
+    "pineapple":     ["whole pineapple", "pineapple slice", "pineapple cut in half", "pineapple top view"],
+    "guava":         ["single guava whole", "guava cut in half", "guava slice", "guava top view", "guava close-up"],
+    "other_fruits":  [
+        "single strawberry", "kiwi cut in half", "dragon fruit cut in half",
+        "fig cut in half", "chikoo whole", "jackfruit piece",
+        "custard apple whole", "plum whole", "peach whole", "cherry pair with stem",
     ],
 }
 
 FRUITS_GROUP = [
-    "three ripe mangoes arranged together",
-    "mango pile heap naturally arranged",
-    "bunch of six bananas together",
-    "three apples arranged naturally",
-    "two oranges one sliced beside",
-    "three lemons arranged together",
-    "watermelon with a slice cut beside it",
-    "three guavas arranged together",
+    "3 mangoes arranged together",
+    "mango pile heap together",
+    "2 mangoes one cut open",
+    "single banana on surface",
+    "bunch of 6 bananas",
+    "2 bananas together",
+    "3 apples arranged",
+    "4 apples grouped",
+    "2 oranges one sliced",
+    "3 oranges arranged",
+    "3 lemons arranged",
+    "2 lemons together",
+    "watermelon with slice beside",
+    "3 guavas arranged",
     "grapes and apples together",
-    "mixed fruit basket overflowing",
-    "tropical fruits arranged collection",
-    "fruit platter with cut fruits arranged",
-    "mixed Indian fruits variety together",
-    "two pineapples arranged together",
-    "strawberries pile arranged",
+    "mixed fruit basket",
+    "all fruits flat lay collection",
+    "tropical fruits arranged",
+    "Indian fruits variety together",
+    "fruit platter cut fruits",
+    "4 pomegranates arranged",
+    "3 papayas together",
+    "3 coconuts arranged",
+    "mixed citrus fruits together",
+    "strawberries pile",
+    "kiwi and strawberry arranged",
+    "fruit market style mixed",
+    "seasonal fruits collection",
+    "two pineapples arranged",
+    "mixed berries cluster together",
 ]
 
 FRUIT_CONTEXTS = [
-    "on a clean white surface", "on a wooden surface",
-    "top view overhead flat lay", "close-up showing texture",
-    "with fresh water droplets",
+    "on white surface",
+    "on wooden surface",
+    "top view overhead",
+    "close-up",
+    "with water droplets",
+    "with leaves attached",
 ]
 
-def gen_fruits():
-    items = []
-    for sub, descs in FRUITS_SINGLE.items():
-        for desc, ctx in iterproduct(descs, FRUIT_CONTEXTS):
-            prompt = f"A {desc}, {ctx}, {FOOD_BASE}"
-            items.append(_item("fruits", sub, prompt,
-                               sub.replace("_", " ").title()))
-    for desc in FRUITS_GROUP:
-        for view in VIEWS_3:
-            prompt = f"{desc.capitalize()}, {view}, {FOOD_BASE}"
-            items.append(_item("fruits", "fruit_groups", prompt, "Fruits"))
-    return dedup(items)
-
-# ══════════════════════════════════════════════════
-# CATEGORY 6: VEGETABLES
-# ══════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────
+# 6. VEGETABLES
+# ─────────────────────────────────────────────────────────────
 
 VEGS_SINGLE = {
-    "tomato":       ["single ripe red tomato whole with stem", "tomato cut in half showing seeds", "tomato slice round", "cluster of cherry tomatoes"],
-    "potato":       ["single brown potato whole", "potato cut in half showing white flesh", "baby potatoes cluster"],
-    "sweet_potato": ["single orange sweet potato whole", "sweet potato cut in half showing orange flesh"],
-    "brinjal":      ["single purple brinjal whole", "long green brinjal whole", "brinjal cut in half showing flesh"],
-    "onion":        ["single onion whole with dry skin", "onion cut in half showing layers", "small shallots cluster", "spring onion bunch tied"],
-    "carrot":       ["single orange carrot whole with top leaves", "carrot slice rounds", "baby carrots bunch tied"],
-    "capsicum":     ["single green capsicum whole", "single red capsicum whole", "single yellow capsicum whole", "capsicum cut in half"],
-    "okra":         ["single okra pod whole", "okra bunch fresh arranged", "okra cut showing cross-section"],
-    "cucumber":     ["single green cucumber whole", "cucumber sliced in rounds", "cucumber cut in half lengthwise"],
-    "beans":        ["green beans bunch fresh tied", "beans close-up showing texture"],
+    "tomato":       ["single tomato whole", "tomato cut in half", "tomato top view", "tomato close-up", "tomato with stem", "tomato slice"],
+    "potato":       ["single potato whole", "potato cut in half", "potato top view", "potato close-up", "baby potato whole"],
+    "sweet_potato": ["single sweet potato whole", "sweet potato cut in half", "sweet potato top view", "sweet potato close-up"],
+    "brinjal":      ["single brinjal whole", "brinjal cut in half", "brinjal top view", "brinjal close-up", "long brinjal whole", "round brinjal whole"],
+    "onion":        ["single onion whole", "onion cut in half", "onion top view", "onion slice rings", "small shallots cluster", "spring onion bunch"],
+    "carrot":       ["single carrot whole", "carrot cut in half", "carrot slice rounds", "carrot top view", "baby carrots bunch"],
+    "capsicum":     ["single green capsicum", "single red capsicum", "single yellow capsicum", "capsicum cut in half", "capsicum top view"],
+    "okra":         ["single okra whole", "okra bunch fresh", "okra cut open", "okra top view", "okra flat lay"],
+    "cucumber":     ["single cucumber whole", "cucumber slice rounds", "cucumber cut in half", "cucumber top view", "cucumber close-up"],
+    "beans":        ["green beans bunch", "beans flat lay", "beans top view", "beans close-up"],
     "other_veggies": [
-        "whole cauliflower with green leaves", "broccoli head whole fresh",
-        "round cabbage whole", "bitter gourd whole with ridges",
-        "fresh ginger root showing texture", "garlic bulb whole",
-        "spinach bunch fresh", "whole pumpkin orange",
+        "cauliflower whole", "broccoli whole", "cabbage whole",
+        "bitter gourd whole", "drumstick whole", "ginger root",
+        "garlic bulb whole", "spinach bunch", "pumpkin whole",
+        "pumpkin cut in half",
     ],
 }
 
 VEGS_GROUP = [
-    "three tomatoes arranged together",
-    "tomatoes in a small ceramic bowl",
-    "three brinjals arranged together",
-    "pile of potatoes naturally arranged",
-    "three onions arranged together",
-    "three carrots arranged with tops",
-    "three cucumbers arranged together",
-    "three capsicums in mixed colors together",
-    "okra bunch arranged naturally",
-    "mixed vegetables flat lay arrangement",
-    "Indian cooking vegetables arranged together",
-    "vegetable basket overflowing fresh",
-    "garlic onion ginger together arranged",
+    "3 tomatoes arranged",
+    "4 tomatoes grouped",
+    "tomatoes in bowl",
+    "3 brinjals arranged",
+    "4 brinjals grouped",
+    "3 potatoes arranged",
+    "potatoes in jute bag",
+    "potatoes in basket",
+    "pile of potatoes",
+    "4 sweet potatoes arranged",
+    "sweet potatoes in basket",
+    "3 onions arranged",
+    "pile of onions",
+    "onions in jute bag",
+    "3 carrots arranged",
+    "carrot bunch tied",
+    "3 cucumbers arranged",
+    "3 capsicums mixed colors together",
+    "okra bunch arranged",
+    "beans pile arranged",
+    "mixed vegetables flat lay",
+    "Indian cooking vegetables arranged",
+    "vegetable basket overflowing",
+    "vegetables in jute bag",
+    "mixed vegetables market style",
+    "cauliflower and broccoli together",
+    "garlic onion ginger together",
     "mixed green vegetables bunch",
+    "vegetable platter variety",
     "all vegetables flat lay collection",
 ]
 
 VEG_CONTEXTS = [
-    "on a clean white surface", "on a wooden surface",
-    "top view overhead flat lay", "close-up showing texture",
-    "with fresh water droplets on skin",
+    "on white surface",
+    "on wooden surface",
+    "top view overhead",
+    "close-up",
+    "with water droplets",
+    "with stem attached",
 ]
 
-def gen_vegetables():
-    items = []
-    for sub, descs in VEGS_SINGLE.items():
-        for desc, ctx in iterproduct(descs, VEG_CONTEXTS):
-            prompt = f"A {desc}, {ctx}, {FOOD_BASE}"
-            items.append(_item("vegetables", sub, prompt,
-                               sub.replace("_", " ").title()))
-    for desc in VEGS_GROUP:
-        for view in VIEWS_3:
-            prompt = f"{desc.capitalize()}, {view}, {FOOD_BASE}"
-            items.append(_item("vegetables", "veg_groups", prompt, "Vegetables"))
-    return dedup(items)
-
-# ══════════════════════════════════════════════════
-# CATEGORY 7: COOL DRINKS
-# ══════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────
+# 7. COOL DRINKS
+# ─────────────────────────────────────────────────────────────
 
 COOL_DRINKS = {
-    "mojito": [
-        "mojito in a tall clear glass with fresh mint leaves and lime slice",
-        "mint mojito with crushed ice and lime wedge in glass",
-        "strawberry mojito with red color and mint garnish",
-        "mango mojito yellow drink in tall glass with straw",
-        "two mojito glasses side by side",
-        "mojito in a mason jar with mint and ice",
-    ],
-    "lemon_soda": [
-        "fresh lemon soda in a glass with ice and lemon slice",
-        "nimbu pani lime water in glass with salt rim",
-        "masala lemon soda in tall glass with spices",
-        "lemon soda with condensation on glass",
-        "two lemon soda glasses together",
-    ],
-    "lassi": [
-        "mango lassi in a tall glass with frothy top and mango slices",
-        "sweet plain lassi in a brass glass with cream on top",
-        "rose lassi pink color in a glass with rose petals",
-        "lassi in a clay kulhad traditional style",
-        "two lassi glasses side by side",
-    ],
-    "tender_coconut": [
-        "green tender coconut with straw inserted",
-        "tender coconut cut open showing white flesh and water",
-        "coconut water in a glass with coconut beside it",
-        "two tender coconuts arranged together",
-        "three green coconuts arranged",
-    ],
-    "fresh_juice": [
-        "fresh orange juice in glass with orange slice on rim",
-        "sugarcane juice in glass green color",
-        "watermelon juice red color in glass with straw",
-        "pomegranate juice deep red in glass",
-        "carrot juice orange color in glass",
-        "two fresh juice glasses side by side",
-    ],
-    "buttermilk": [
-        "buttermilk in a glass with curry leaves garnish",
-        "masala buttermilk in a brass tumbler",
-        "buttermilk in a clay pot traditional",
-        "frothy buttermilk in glass with tempering",
-        "two buttermilk glasses together",
-    ],
+    "mojito":         ["mojito in tall glass with mint and lime", "mint mojito with crushed ice", "mojito with straw and lime slice", "mojito in mason jar", "mojito top view", "two mojito glasses together", "strawberry mojito in glass", "mango mojito in glass"],
+    "lemon_soda":     ["lemon soda in glass with ice", "nimbu pani in glass", "lemon soda with lemon slice", "fresh lime soda fizzy", "masala lemon soda in glass", "lemon soda top view", "two lemon sodas together", "lemon soda in clay kulhad"],
+    "lassi":          ["mango lassi in tall glass", "plain lassi in brass glass", "sweet lassi frothy", "lassi with cream on top", "lassi in clay kulhad", "lassi top view", "two lassi glasses", "rose lassi in glass", "lassi close-up frothy"],
+    "tender_coconut": ["tender coconut with straw", "green coconut with straw", "tender coconut cut open", "tender coconut top view", "two tender coconuts together", "three coconuts arranged", "coconut water in glass with coconut beside"],
+    "fresh_juice":    ["orange juice in glass with orange slice", "sugarcane juice in glass", "watermelon juice in glass", "pomegranate juice in glass", "carrot juice in glass", "mixed fruit juice in glass", "juice glass top view", "two juice glasses together"],
+    "buttermilk":     ["buttermilk in glass", "buttermilk in brass tumbler", "buttermilk in clay pot", "buttermilk with curry leaves", "buttermilk frothy in glass", "buttermilk top view", "two buttermilk glasses", "masala buttermilk in glass"],
 }
 
-def gen_drinks():
-    items = []
-    for sub, descs in COOL_DRINKS.items():
-        for desc in descs:
-            for view in VIEWS_FOOD[:3]:
-                prompt = f"A {desc}, {view}, {FOOD_BASE}"
-                items.append(_item("cool_drinks", sub, prompt,
-                                   sub.replace("_", " ").title()))
-    return dedup(items)
+DRINK_VESSELS = [
+    "in tall clear glass",
+    "in brass tumbler",
+    "in clay kulhad",
+    "in mason jar",
+    "in ceramic glass",
+]
 
-# ══════════════════════════════════════════════════
-# CATEGORY 8: INDIAN FOODS
-# ══════════════════════════════════════════════════
+DRINK_DETAILS = [
+    "condensation on glass",
+    "with garnish on top",
+    "with straw",
+    "ice cubes visible",
+    "frothy top",
+]
+
+# ─────────────────────────────────────────────────────────────
+# 8. INDIAN FOODS
+# ─────────────────────────────────────────────────────────────
 
 INDIAN_FOODS = {
-    "biryani": [
-        "Chicken Biryani with whole chicken leg piece and long grain saffron rice in a round steel plate",
-        "Chicken Biryani with bone-in chicken and golden saffron rice garnished with fried onions in copper handi",
-        "Hyderabadi Dum Biryani with juicy chicken and aromatic rice in a wide ceramic bowl",
-        "Mutton Biryani with tender mutton pieces and fragrant basmati rice in steel bowl",
-        "Biryani steaming hot served on a banana leaf with raita beside",
-        "Biryani in open clay pot showing layers of rice and meat",
-        "Prawn Biryani with large prawns and saffron rice in wide bowl",
-        "Egg Biryani with halved boiled eggs and basmati rice on plate",
-    ],
-    "dosa": [
-        "crispy masala dosa folded in a half-moon shape with sambar and coconut chutney on plate",
-        "crispy plain dosa golden brown served on banana leaf",
-        "ghee roast dosa with shiny butter coating deep golden on plate",
-        "paper thin crispy dosa extra long on a large tray",
-        "set dosa soft fluffy stack of three on steel plate with chutneys",
-        "egg dosa with egg filling golden brown on plate",
-        "cheese dosa with melted cheese visible inside",
-    ],
-    "idly": [
-        "four soft white idly on a steel plate with sambar and coconut chutney",
-        "idly on banana leaf with sambar bowl beside",
-        "mini idly in sambar bowl floating",
-        "idly stack on plate with podi powder and ghee",
-        "idly close-up showing soft texture",
-        "idly with three chutneys arranged beside",
-    ],
-    "parotta": [
-        "layered parotta on banana leaf with salna curry",
-        "parotta on plate showing flaky layers",
-        "kothu parotta on plate shredded and spiced",
-        "parotta stack showing crispy layers",
-        "parotta with egg on plate",
-    ],
-    "curry": [
-        "chicken curry in a brown ceramic bowl with curry leaves garnish",
-        "mutton curry in a clay pot with steam rising",
-        "fish curry in a bowl with red color and curry leaves",
-        "egg curry in a bowl with boiled eggs visible",
-        "prawn curry in bowl with prawns visible",
-        "thick Chettinad curry in steel bowl",
-        "curry with rice on a banana leaf",
-    ],
-    "rice_dishes": [
-        "lemon rice on banana leaf with curry leaves and peanuts",
-        "curd rice in a bowl with cucumber and pomegranate",
-        "tomato rice on plate with fried onions",
-        "pongal in a clay bowl with ghee poured on top",
-        "sambar rice on plate",
-        "coconut rice on banana leaf",
-        "tamarind puliyodharai rice on plate",
-    ],
-    "snacks": [
-        "samosa on plate with green chutney",
-        "medu vada on plate golden brown",
-        "murukku on plate traditional crunchy",
-        "pakora golden brown in a plate",
-        "banana chips on plate crispy",
-        "masala vada on plate",
-        "snacks platter arranged with variety",
-    ],
+    "biryani":    ["biryani in bowl", "biryani on banana leaf", "biryani in clay pot", "biryani top view", "chicken biryani in bowl", "mutton biryani on plate", "biryani with raita", "biryani steam rising", "biryani close-up", "biryani on steel thali"],
+    "dosa":       ["masala dosa on plate with chutneys", "dosa on banana leaf", "crispy dosa with sambar", "dosa top view", "set dosa stack on plate", "egg dosa on plate", "dosa folded on plate", "paper dosa on plate", "dosa close-up texture"],
+    "idly":       ["idly on plate with sambar", "idly on banana leaf", "idly stack on plate", "idly top view", "mini idly on plate", "idly with coconut chutney", "four idly on steel plate", "idly with podi powder", "idly close-up texture"],
+    "parotta":    ["parotta on plate layered", "parotta on banana leaf", "parotta close-up layers", "parotta top view", "two parotta on plate", "parotta with salna", "kothu parotta on plate", "parotta stack layers visible"],
+    "curry":      ["chicken curry in bowl", "mutton curry in clay pot", "fish curry in bowl", "egg curry in bowl", "prawn curry in bowl", "crab curry on plate", "curry with rice on plate", "curry on banana leaf", "thick curry in steel bowl"],
+    "rice":       ["lemon rice on banana leaf", "curd rice in bowl", "tomato rice on plate", "plain rice with ghee", "pongal in bowl", "sambar rice on plate", "ghee rice in bowl", "coconut rice on banana leaf", "tamarind rice on plate"],
+    "snacks":     ["samosa on plate", "medu vada on plate", "murukku on plate", "pakora on plate", "bajji on plate", "banana chips on plate", "masala vada on plate", "bread pakora on plate", "snacks platter arranged"],
 }
 
-def gen_indian_food():
-    items = []
-    for sub, descs in INDIAN_FOODS.items():
-        ctx_descs = [f"{d}, {ctx}" for d, ctx in
-                     iterproduct(descs[:4], ["in a bowl", "on a plate", "on banana leaf"])]
-        items += expand_food("food_indian", sub, descs + ctx_descs,
-                             subject_name=sub.replace("_", " ").title())
-    return items
+INDIAN_VESSELS = [
+    "on banana leaf", "in steel thali", "in ceramic bowl",
+    "in clay pot", "on white plate", "in copper bowl",
+]
 
-# ══════════════════════════════════════════════════
-# CATEGORY 9: WORLD FOODS
-# ══════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────
+# 9. WORLD FOODS
+# ─────────────────────────────────────────────────────────────
 
 WORLD_FOODS = {
-    "pizza":         ["whole pizza on wooden board with melted cheese and toppings", "pizza slice showing cheese stretch", "mini pizza on plate", "pizza freshly baked with steam"],
-    "burger":        ["burger whole on plate with sesame bun and fillings", "burger cut in half showing layers of meat and vegetables", "double burger towering with toppings"],
-    "fried_chicken": ["crispy fried chicken drumstick on plate", "fried chicken pieces in a bucket", "fried chicken strips on plate", "four crispy fried chicken pieces"],
-    "french_fries":  ["french fries in a red box", "french fries in a paper cone", "crispy waffle fries on plate", "large fries with dipping sauce"],
-    "noodles":       ["ramen bowl with egg soft-boiled and bamboo shoots", "stir fried noodles in a bowl with vegetables", "noodle bowl with steam rising and chopsticks"],
-    "fried_rice":    ["fried rice in a bowl with spring onion garnish", "egg fried rice on plate with chopsticks", "vegetable fried rice in wok"],
-    "chinese":       ["spring rolls on plate with sweet chili sauce", "dim sum in bamboo basket steaming", "chicken manchurian in bowl with gravy", "chow mein noodles in bowl"],
+    "pizza":         ["whole pizza on wooden board", "pizza slice", "pizza top view", "pizza close-up cheese", "pizza side view", "two pizza slices", "mini pizza", "pizza fresh from oven"],
+    "burger":        ["burger whole on plate", "burger cut in half showing layers", "burger side view", "burger top view", "burger with fries", "double burger", "burger close-up", "two burgers arranged"],
+    "fried_chicken": ["fried chicken piece on plate", "fried chicken drumstick", "fried chicken bucket", "fried chicken strips", "fried chicken close-up crispy", "fried chicken top view", "four fried chicken pieces", "fried chicken with sauce"],
+    "french_fries":  ["french fries in box", "french fries in cone", "french fries on plate", "french fries close-up", "french fries top view", "large fries in box", "fries with sauce", "waffle fries on plate"],
+    "noodles":       ["noodles in bowl", "noodles top view", "noodles close-up", "ramen bowl with egg", "stir fried noodles in bowl", "noodles with vegetables", "noodle bowl steam rising", "noodles with chopsticks"],
+    "fried_rice":    ["fried rice in bowl", "fried rice on plate", "fried rice top view", "fried rice close-up", "fried rice in wok", "fried rice with egg", "fried rice with vegetables", "fried rice with chopsticks"],
+    "chinese":       ["spring rolls on plate", "dim sum in bamboo basket", "chicken manchurian in bowl", "gobi manchurian on plate", "wonton soup in bowl", "spring rolls close-up", "dim sum top view", "chinese food platter"],
 }
 
-def gen_world_food():
-    items = []
-    for sub, descs in WORLD_FOODS.items():
-        items += expand_food("food_world", sub, descs,
-                             subject_name=sub.replace("_", " ").title())
-    return items
+WORLD_VESSELS = [
+    "on white plate", "on wooden board", "in ceramic bowl",
+    "on slate board", "in paper box", "in bamboo basket",
+]
 
-# ══════════════════════════════════════════════════
-# CATEGORY 10: DAIRY PRODUCTS
-# ══════════════════════════════════════════════════
+FOOD_ANGLES = [
+    "overhead flat lay", "45 degree angle", "front view", "close-up macro", "side view",
+]
+
+# ─────────────────────────────────────────────────────────────
+# 10. DAIRY PRODUCTS
+# ─────────────────────────────────────────────────────────────
 
 DAIRY = {
-    "milk":         ["full glass of white milk", "milk pouring into a glass showing splash", "milk bottle sealed", "milk in a steel glass"],
-    "curd_yogurt":  ["curd in a clay pot showing white creamy texture", "yogurt in a glass jar with spoon", "curd in a white bowl with tempering on top", "two bowls of curd arranged"],
-    "butter_ghee":  ["butter block on white plate showing creamy texture", "ghee in a glass jar golden color", "ghee close-up showing golden clarity", "butter on wooden board with knife"],
-    "paneer":       ["paneer block whole on plate", "paneer cubes arranged on a plate", "paneer cut in half showing white interior", "fresh paneer on banana leaf"],
-    "cheese":       ["cheese block whole on wooden board", "cheese slices arranged on plate", "cheese cubes arranged neatly", "mozzarella cheese ball fresh"],
+    "milk": [
+        "glass of milk full",
+        "milk in glass top view",
+        "milk pouring into glass",
+        "two glasses of milk",
+        "milk bottle sealed",
+        "milk packet sealed",
+        "milk close-up in glass",
+        "milk jug full",
+        "milk in steel glass",
+    ],
+    "curd_yogurt": [
+        "curd in clay pot",
+        "curd in white bowl",
+        "curd top view in bowl",
+        "yogurt in glass jar",
+        "curd close-up texture",
+        "curd with tempering on top",
+        "curd in steel bowl",
+        "two bowls of curd",
+        "curd in ceramic bowl",
+    ],
+    "butter_ghee": [
+        "butter block on white plate",
+        "butter close-up texture",
+        "butter on wooden board",
+        "ghee in glass jar",
+        "ghee in steel container",
+        "ghee jar top view",
+        "butter and ghee together",
+        "butter slice on plate",
+        "ghee close-up golden",
+    ],
+    "paneer": [
+        "paneer block whole",
+        "paneer cubes arranged on plate",
+        "paneer cut in half",
+        "paneer close-up texture",
+        "paneer top view",
+        "paneer slice on plate",
+        "three paneer blocks arranged",
+        "paneer in bowl",
+        "fresh paneer on banana leaf",
+    ],
+    "cheese": [
+        "cheese block whole",
+        "cheese slice on plate",
+        "cheese cubes arranged",
+        "cheese close-up texture",
+        "cheese top view",
+        "two cheese blocks together",
+        "cheese on wooden board",
+        "mozzarella cheese ball",
+        "cheese spread in bowl",
+    ],
 }
 
-def gen_dairy():
-    items = []
-    for sub, descs in DAIRY.items():
-        items += expand_food("dairy_products", sub, descs,
-                             subject_name=sub.replace("_", " ").title())
-    return items
-
-# ══════════════════════════════════════════════════
-# CATEGORY 11: DRY FRUITS & NUTS
-# ══════════════════════════════════════════════════
-
-DRY_FRUITS_SINGLE = [
-    "cashew nuts on a white plate showing ivory color",
-    "whole almonds on a white plate",
-    "pistachios with shells on a plate",
-    "walnuts showing brain-like texture",
-    "dark raisins pile on plate",
-    "dates dried on a white plate",
-    "dried figs showing texture",
-    "dried apricots orange color on plate",
-    "roasted peanuts pile on plate",
-    "pine nuts small and golden on plate",
-    "hazelnuts on plate",
-    "mixed dry fruits on a wooden board",
-    "sunflower seeds on plate",
+DAIRY_CONTEXTS = [
+    "on white surface", "on wooden surface",
+    "top view", "close-up", "side view",
 ]
 
-DRY_FRUITS_GROUP = [
-    "cashews and almonds mixed on a plate",
-    "mixed dry fruits variety in a bowl",
-    "mixed nuts in a wooden bowl",
-    "dry fruits in three small bowls arranged",
-    "cashew almond pistachio together on plate",
-    "dry fruits flat lay collection on wooden board",
-    "nuts and seeds mixed in a bowl",
-    "dry fruits in a glass jar",
-    "assorted dry fruits platter arranged",
-    "all nuts variety flat lay collection",
-    "dry fruits gift box open showing variety",
+# ─────────────────────────────────────────────────────────────
+# 11. DRY FRUITS & NUTS
+# ─────────────────────────────────────────────────────────────
+
+DRY_FRUITS = {
+    "single": [
+        "cashew nuts on white plate",
+        "almonds on white plate",
+        "pistachios on white plate",
+        "walnuts on white plate",
+        "raisins on white plate",
+        "dates on white plate",
+        "figs dried on plate",
+        "apricots dried on plate",
+        "peanuts on white plate",
+        "pine nuts on white plate",
+        "hazelnuts on white plate",
+        "macadamia nuts on plate",
+        "pecan nuts on plate",
+        "brazil nuts on plate",
+        "sunflower seeds on plate",
+    ],
+    "group": [
+        "cashews pile on plate",
+        "almonds pile arranged",
+        "mixed dry fruits on plate",
+        "mixed nuts variety bowl",
+        "dry fruits in small bowls arranged",
+        "cashew almond pistachio together",
+        "dry fruits flat lay collection",
+        "nuts and seeds mixed bowl",
+        "dry fruits in glass jar",
+        "dry fruits platter arranged",
+        "three bowls nuts arranged",
+        "dry fruits gift box arranged",
+        "all nuts variety flat lay",
+        "dry fruits on wooden board",
+        "assorted dry fruits collection",
+    ],
+}
+
+DRY_FRUIT_CONTEXTS = [
+    "on white plate", "in small wooden bowl", "in glass bowl",
+    "top view overhead", "close-up", "scattered on surface",
 ]
 
-def gen_dry_fruits():
-    items = []
-    for desc in DRY_FRUITS_SINGLE:
-        for view in VIEWS_STD[:3]:
-            prompt = f"A {desc}, {view}, {FOOD_BASE}"
-            items.append(_item("dry_fruits_nuts", "dry_fruits", prompt, "Dry Fruits"))
-    for desc in DRY_FRUITS_GROUP:
-        for view in VIEWS_3:
-            prompt = f"{desc.capitalize()}, {view}, {FOOD_BASE}"
-            items.append(_item("dry_fruits_nuts", "nuts_group", prompt, "Nuts"))
-    return dedup(items)
-
-# ══════════════════════════════════════════════════
-# CATEGORY 12: BAKERY & SNACKS
-# ══════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────
+# 12. BAKERY & SNACKS
+# ─────────────────────────────────────────────────────────────
 
 BAKERY = {
-    "bread":           ["bread loaf whole showing golden crust", "bread slices arranged showing white interior", "pav bread rolls arranged", "whole grain bread loaf on wooden board"],
-    "cake":            ["whole round chocolate cake with frosting", "cake slice on plate showing layers", "birthday cake with candles lit", "three cupcakes arranged with frosting"],
-    "biscuits_cookies":["biscuits pile on a white plate", "cookies arranged on plate showing chocolate chips", "biscuits in a glass jar", "three cookies arranged on plate"],
-    "snacks":          ["potato chips in a bowl showing crispy texture", "popcorn in a bowl white and fluffy", "mixed snacks in a bowl", "nachos in bowl with sauce"],
+    "bread": [
+        "bread loaf whole",
+        "bread slices arranged",
+        "bread cut in half",
+        "bread top view",
+        "bread close-up texture",
+        "two bread slices",
+        "bread on wooden board",
+        "whole grain bread loaf",
+        "pav bread rolls arranged",
+        "bun bread single",
+    ],
+    "cake": [
+        "whole round cake with frosting",
+        "cake slice on plate",
+        "chocolate cake whole",
+        "birthday cake with candles",
+        "cake top view",
+        "two cake slices arranged",
+        "cake on wooden board",
+        "cupcake single",
+        "three cupcakes arranged",
+        "cake close-up frosting",
+    ],
+    "biscuits_cookies": [
+        "biscuits pile on plate",
+        "cookies arranged on plate",
+        "biscuits in glass jar",
+        "cookies top view",
+        "biscuits close-up texture",
+        "three cookies arranged",
+        "Parle G biscuit packet",
+        "bourbon biscuit arranged",
+        "digestive biscuits on plate",
+        "cookies on wooden board",
+    ],
+    "snacks": [
+        "potato chips in bowl",
+        "Lays chips packet",
+        "Kurkure snack packet",
+        "Haldiram snacks packet",
+        "popcorn in bowl",
+        "popcorn top view",
+        "chips pile in bowl",
+        "mixed snacks bowl",
+        "nachos in bowl",
+        "puffed rice snack bowl",
+    ],
 }
 
 BAKERY_CONTEXTS = [
-    "on a clean white surface", "on a wooden board",
-    "top view overhead", "close-up showing texture",
+    "on white surface", "on wooden board",
+    "top view", "close-up", "on plate",
 ]
 
-def gen_bakery():
-    items = []
-    for sub, descs in BAKERY.items():
-        for desc, ctx in iterproduct(descs, BAKERY_CONTEXTS):
-            prompt = f"A {desc}, {ctx}, {FOOD_BASE}"
-            items.append(_item("bakery_snacks", sub, prompt,
-                               sub.replace("_", " ").title()))
-    return dedup(items)
-
-# ══════════════════════════════════════════════════
-# CATEGORY 13: AYURVEDIC / HERBAL
-# ══════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────
+# 13. AYURVEDIC / HERBAL
+# ─────────────────────────────────────────────────────────────
 
 AYURVEDA = {
     "plants_leaves": [
-        "fresh neem leaves bunch showing green color",
-        "tulsi holy basil plant with leaves",
-        "aloe vera plant showing thick leaves",
-        "fresh curry leaves bunch on stem",
-        "fresh mint leaves bunch",
-        "moringa drumstick leaves bunch",
-        "brahmi leaves fresh showing round shape",
+        "neem leaves bunch fresh",
+        "tulsi holy basil plant",
+        "aloe vera plant whole",
+        "aloe vera leaf close-up",
+        "curry leaves bunch fresh",
+        "mint leaves fresh bunch",
+        "lemongrass stalks fresh",
+        "moringa drumstick leaves",
+        "ashwagandha root dried",
+        "brahmi leaves fresh",
     ],
     "herbs_roots": [
-        "fresh turmeric root showing yellow interior",
-        "turmeric powder in a small bowl bright yellow",
-        "fresh ginger root showing texture",
-        "cinnamon sticks bundle tied together",
-        "black pepper pile whole",
-        "green cardamom pods pile",
-        "cloves pile whole aromatic",
-        "star anise whole showing star shape",
-        "fenugreek seeds in a small bowl",
+        "turmeric root fresh",
+        "turmeric powder in bowl",
+        "ginger root fresh",
+        "dry ginger piece",
+        "cinnamon sticks bundle",
+        "black pepper whole pile",
+        "cardamom pods green pile",
+        "cloves whole pile",
+        "star anise whole",
+        "fenugreek seeds in bowl",
     ],
     "products": [
-        "ayurvedic oil bottle on white surface",
-        "herbal powder in a clay bowl",
+        "ayurvedic oil bottle",
+        "herbal powder in bowl",
+        "herbal tablets arranged",
+        "neem powder in bowl",
+        "herbal tea in glass",
+        "ayurvedic churna in bowl",
         "mortar and pestle with herbs",
-        "herbal oil in a glass bottle",
-        "ayurvedic capsules arranged on plate",
-        "natural herbal soap bar",
+        "herbal oil in glass bottle",
+        "natural soap herbal",
+        "ayurvedic capsules arranged",
     ],
     "group": [
-        "turmeric ginger neem arranged together on surface",
+        "turmeric ginger neem together",
         "ayurvedic herbs flat lay collection",
-        "herbal roots arranged naturally",
+        "herbal roots arranged on surface",
         "three ayurvedic bottles arranged",
+        "mixed herbs and spices arranged",
+        "ayurvedic ingredients flat lay",
         "herbs in small bowls arranged",
-        "five herbal ingredients arranged together",
+        "natural remedies collection",
+        "five herbal ingredients arranged",
+        "ayurvedic product set arranged",
     ],
 }
 
 AYUR_CONTEXTS = [
-    "on a white surface", "on a wooden surface",
-    "top view overhead", "close-up showing detail",
+    "on white surface", "on wooden surface",
+    "top view", "close-up", "in small bowl",
 ]
 
-def gen_ayurveda():
-    items = []
-    for sub, descs in AYURVEDA.items():
-        for desc, ctx in iterproduct(descs, AYUR_CONTEXTS):
-            prompt = f"A {desc}, {ctx}, {BASE}"
-            items.append(_item("ayurvedic_herbal", sub, prompt,
-                               sub.replace("_", " ").title()))
-    return dedup(items)
+# ─────────────────────────────────────────────────────────────
+# 14. INDIAN SWEETS SHOP
+# ─────────────────────────────────────────────────────────────
 
-# ══════════════════════════════════════════════════
-# CATEGORY 14: INDIAN SWEETS
-# ══════════════════════════════════════════════════
-
-INDIAN_SWEETS_SINGLE = [
-    "mysore pak golden square piece on plate",
-    "gulab jamun in sugar syrup in a bowl",
-    "jalebi orange spiral on a plate",
-    "carrot gajar halwa in a bowl with ghee",
-    "round ladoo on a plate",
-    "kaju katli diamond shaped pieces on plate",
-    "barfi pieces on a silver plate",
-    "rasgulla in sugar syrup in a bowl",
-    "kheer in a clay bowl with saffron",
-    "payasam in a silver bowl",
-    "rava kesari in a bowl with ghee",
-    "coconut burfi on a plate",
-    "modak on a plate",
-    "peda on a plate arranged",
-]
-
-INDIAN_SWEETS_GROUP = [
-    "four gulab jamun in bowl with syrup",
-    "jalebi pile on a plate orange and crispy",
-    "five round ladoo arranged on plate",
-    "kaju katli pieces arranged on plate",
-    "mixed Indian sweets platter arranged",
-    "Indian mithai variety on a silver plate",
-    "festival Diwali sweets collection plate",
-    "sweets on a banana leaf arranged",
-    "assorted Indian sweets in a box open",
-    "ten variety sweets flat lay collection",
-]
+INDIAN_SWEETS = {
+    "single": [
+        "mysore pak on plate",
+        "gulab jamun in bowl with syrup",
+        "jalebi on plate",
+        "halwa in bowl",
+        "gajar halwa in bowl",
+        "ladoo on plate",
+        "kaju katli on plate",
+        "barfi on plate",
+        "rasgulla in bowl",
+        "sandesh on plate",
+        "peda on plate",
+        "kheer in bowl",
+        "payasam in bowl",
+        "rava kesari in bowl",
+        "coconut burfi on plate",
+        "milk cake on plate",
+        "balushahi on plate",
+        "malpua on plate",
+        "modak on plate",
+        "puran poli on plate",
+    ],
+    "group": [
+        "three mysore pak pieces on plate",
+        "four gulab jamun in bowl",
+        "jalebi pile on plate",
+        "five ladoo arranged on plate",
+        "kaju katli pieces arranged on plate",
+        "mixed sweets platter arranged",
+        "sweet shop display variety",
+        "assorted Indian sweets on plate",
+        "sweets box open with variety",
+        "ten sweets variety flat lay",
+        "three types barfi arranged",
+        "sweets on banana leaf arranged",
+        "festival sweets collection plate",
+        "Indian mithai box open",
+        "sweets on silver plate arranged",
+        "diwali sweets variety platter",
+        "six peda arranged on plate",
+        "mixed halwa bowls three together",
+        "sweets in traditional box",
+        "grand sweets platter full variety",
+    ],
+}
 
 SWEET_CONTEXTS = [
-    "on a white plate", "on a silver plate", "on banana leaf",
-    "in a ceramic bowl", "top view overhead", "close-up detail",
+    "on white plate", "in silver plate", "on banana leaf",
+    "in ceramic bowl", "top view", "close-up",
 ]
 
-def gen_sweets():
-    items = []
-    for desc in INDIAN_SWEETS_SINGLE:
-        for ctx in SWEET_CONTEXTS[:3]:
-            prompt = f"A {desc}, {ctx}, {FOOD_BASE}"
-            items.append(_item("indian_sweets", "sweets", prompt, "Indian Sweets"))
-    for desc in INDIAN_SWEETS_GROUP:
-        for view in VIEWS_3:
-            prompt = f"{desc.capitalize()}, {view}, {FOOD_BASE}"
-            items.append(_item("indian_sweets", "sweets_group", prompt, "Indian Sweets"))
-    return dedup(items)
-
-# ══════════════════════════════════════════════════
-# CATEGORY 15: STATIONERY
-# ══════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────
+# 15. SCHOOL STATIONERY — 20 GROUP PHOTOS ONLY
+# ─────────────────────────────────────────────────────────────
 
 STATIONERY_GROUPS = [
-    "pencils eraser and sharpener arranged together",
-    "notebooks and pens arranged in a flat lay",
+    "pencils and eraser and sharpener arranged together",
+    "notebooks and pens arranged flat lay",
     "school bag with books and pencil box",
     "ruler scale compass and protractor together",
-    "color pencils set arranged in fan shape",
-    "pen pencil ruler and eraser flat lay",
-    "geometry box open with instruments showing",
-    "crayons set arranged in colorful fan",
-    "watercolor paint set with brushes arranged",
-    "marker pens set arranged by color",
-    "school books stack neatly arranged",
+    "color pencils set arranged fan shape",
+    "pen pencil ruler eraser flat lay",
+    "geometry box open with instruments",
+    "crayons set arranged colorful",
+    "watercolor paint set with brushes",
+    "marker pens set arranged colorful",
+    "school books stack arranged",
     "pencil box open with stationery inside",
     "scissors glue tape and stapler together",
-    "highlighter pens set arranged colorful",
+    "highlighter pens set arranged",
     "drawing book and sketching pencils together",
     "all stationery items flat lay collection",
-    "backpack open with stationery items",
+    "backpack school bag open with items",
     "chalk pieces and blackboard duster together",
     "clipboard with paper and pen",
     "stationery items in pencil stand arranged",
 ]
 
-def gen_stationery():
-    items = []
-    views = ["flat lay top view", "45 degree angle", "front view", "close-up detail"]
-    for desc in STATIONERY_GROUPS:
-        for view in views:
-            prompt = f"{desc.capitalize()}, {view}, {BASE}"
-            items.append(_item("stationery", "stationery_groups", prompt, "Stationery"))
-    return dedup(items)
-
-# ══════════════════════════════════════════════════
-# CATEGORY 16: KITCHEN VESSELS
-# ══════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────
+# 16. KITCHEN VESSELS — 30 GROUP COMBINATIONS ONLY
+# ─────────────────────────────────────────────────────────────
 
 KITCHEN_GROUPS = [
-    "steel kadai and spatula together on surface",
+    "steel kadai and spatula together",
     "pressure cooker and steel vessel together",
     "three steel vessels stacked together",
-    "clay pot and steel pot together arranged",
-    "steel thali and bowl set arranged",
-    "cooking pots and pans set flat lay",
+    "clay pot and steel pot together",
+    "steel thali and bowls set arranged",
+    "cooking pots and pans set arranged",
     "steel kadai tawa and ladle together",
     "three clay pots different sizes arranged",
     "kitchen vessel set flat lay collection",
@@ -1004,7 +957,7 @@ KITCHEN_GROUPS = [
     "wok pan and wooden spatula together",
     "pressure cooker set with whistle visible",
     "clay cooking pot and wooden spoon",
-    "steel cookware set flat lay",
+    "steel cookware set arranged flat lay",
     "brass vessel and copper pot together",
     "kitchen utensils full set flat lay",
     "steel vessel with lid and ladle together",
@@ -1017,177 +970,226 @@ KITCHEN_GROUPS = [
     "complete kitchen vessel set arranged",
 ]
 
-def gen_kitchen():
-    items = []
-    views = ["flat lay top view", "45 degree angle", "front view",
-             "overhead view", "close-up detail", "side view"]
-    for desc in KITCHEN_GROUPS:
-        for view in views:
-            prompt = f"{desc.capitalize()}, {view}, {BASE}"
-            items.append(_item("kitchen_vessels", "kitchen_groups", prompt, "Kitchen Vessels"))
-    return dedup(items)
-
-# ══════════════════════════════════════════════════
-# CATEGORY 17: MOBILE ACCESSORIES
-# ══════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────
+# 17. MOBILE ACCESSORIES — REAL BRANDS ONLY
+# ─────────────────────────────────────────────────────────────
 
 MOBILE_ACCESSORIES = {
     "smartphones": [
-        "iPhone 15 Pro showing front screen and camera island",
-        "Samsung Galaxy S24 Ultra front view with curved screen",
-        "OnePlus 12 front view clean design",
+        "iPhone 15 Pro front view",
+        "iPhone 15 Pro side view",
+        "iPhone 15 Pro top view",
+        "Samsung Galaxy S24 Ultra front view",
+        "Samsung Galaxy S24 Ultra side view",
+        "OnePlus 12 front view",
+        "OnePlus 12 side view",
+        "Realme 12 Pro front view",
+        "Realme 12 Pro side view",
         "Redmi Note 13 Pro front view",
+        "Redmi Note 13 Pro side view",
         "Vivo V30 Pro front view",
         "OPPO Reno 11 front view",
-        "Nothing Phone 2 with transparent back",
+        "Nothing Phone 2 front view",
+        "Nothing Phone 2 side view",
         "Google Pixel 8 front view",
-        "two smartphones side by side arranged",
-        "three smartphones arranged together",
+        "Google Pixel 8 side view",
     ],
     "earphones": [
-        "Apple AirPods Pro in charging case open",
-        "Samsung Galaxy Buds in case top view",
+        "Apple AirPods Pro in case",
+        "Apple AirPods Pro top view",
+        "Samsung Galaxy Buds in case",
+        "OnePlus Buds in case",
         "Sony WF-1000XM5 earbuds in case",
-        "Boat Airdopes earbuds in case open",
+        "Boat Airdopes earbuds in case",
+        "Noise earbuds in case",
         "JBL wireless earbuds in case",
-        "two earbuds and open case arranged together",
-        "earbuds case closed front view",
+        "Realme Buds in case",
+        "Redmi Buds in case",
+        "earbuds case open top view",
+        "two earbuds and case arranged",
     ],
     "chargers_cables": [
-        "Apple 20W USB-C charger adapter on surface",
-        "Samsung fast charger adapter front view",
-        "USB-C charging cable neatly coiled",
-        "wireless charger pad flat on surface",
-        "MagSafe charger Apple round pad",
-        "Anker charger adapter front view",
-        "charging cable flat lay arranged",
+        "Apple 20W USB-C charger adapter",
+        "Samsung 45W charger adapter",
+        "USB-C charging cable coiled",
+        "iPhone Lightning cable coiled",
+        "wireless charger pad flat",
+        "MagSafe charger Apple",
+        "Anker charger adapter",
+        "two chargers arranged together",
+        "charging cable flat lay",
+        "multi port USB hub",
     ],
     "phone_cases": [
-        "clear transparent iPhone case front view",
+        "iPhone clear case front view",
         "Samsung phone case front view",
-        "three phone cases arranged together",
-        "silicone phone case side view",
-        "leather phone case front view",
-        "phone case back view showing design",
+        "phone cover on white surface",
+        "three phone cases arranged",
+        "phone case top view",
+        "silicone phone case",
+        "leather phone case",
+        "phone case back view",
     ],
     "powerbanks": [
-        "Anker power bank front view sleek design",
-        "Mi power bank 20000mAh front view",
-        "power bank with charging cable connected",
-        "two power banks arranged together",
-        "power bank top view flat lay",
+        "Anker power bank front view",
+        "Mi power bank 20000mAh",
+        "Samsung power bank front view",
+        "power bank top view",
+        "power bank with cable connected",
+        "two power banks arranged",
+        "Boat power bank front view",
+        "power bank side view",
     ],
     "group": [
-        "iPhone with AirPods Pro together flat lay",
+        "iPhone 15 Pro with AirPods Pro together",
+        "Samsung phone with Samsung buds together",
         "smartphone charger and cable together",
-        "mobile accessories flat lay collection",
         "phone case power bank earbuds arranged",
-        "two phones side by side comparison",
+        "mobile accessories flat lay collection",
+        "three smartphones arranged together",
+        "earbuds charger and cable flat lay",
+        "phone accessories full set arranged",
+        "two phones side by side",
         "mobile setup flat lay complete",
     ],
 }
 
 MOBILE_CONTEXTS = [
-    "on a white surface", "on a grey surface",
-    "top view flat lay", "45 degree angle", "close-up detail",
+    "on white surface", "on grey surface",
+    "top view flat lay", "45 degree angle", "close-up",
 ]
 
-def gen_mobile():
-    items = []
-    for sub, descs in MOBILE_ACCESSORIES.items():
-        for desc, ctx in iterproduct(descs, MOBILE_CONTEXTS):
-            prompt = f"A {desc}, {ctx}, {BASE}"
-            items.append(_item("mobile_accessories", sub, prompt,
-                               sub.replace("_", " ").title()))
-    return dedup(items)
-
-# ══════════════════════════════════════════════════
-# CATEGORY 18: COMPUTER ACCESSORIES
-# ══════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────
+# 18. COMPUTER & ACCESSORIES — REAL BRANDS ONLY
+# ─────────────────────────────────────────────────────────────
 
 COMPUTER_ACCESSORIES = {
     "laptops": [
-        "MacBook Air M2 open showing aluminium body and screen",
-        "MacBook Pro 14 open showing notch and keyboard",
-        "Dell XPS 13 open front view thin bezel",
-        "HP Spectre x360 open elegant design",
-        "Lenovo ThinkPad open front view classic design",
-        "ASUS ZenBook open front view compact design",
-        "laptop closed showing slim profile side view",
-        "laptop top view flat lay closed",
-        "two laptops arranged together comparison",
+        "MacBook Air M2 open front view",
+        "MacBook Pro 14 open side view",
+        "MacBook Air top view flat lay",
+        "Dell XPS 13 open front view",
+        "Dell XPS 15 side view open",
+        "HP Spectre x360 open front",
+        "HP Pavilion laptop open front",
+        "Lenovo ThinkPad open front view",
+        "Lenovo IdeaPad open front view",
+        "ASUS ZenBook open front view",
+        "ASUS ROG gaming laptop open",
+        "Acer Swift laptop open front",
+        "laptop closed side profile",
+        "laptop top view flat lay",
+        "two laptops arranged together",
     ],
     "keyboards_mouse": [
-        "Apple Magic Keyboard top view white slim",
-        "Apple Magic Mouse side view white",
-        "Apple keyboard and Magic Mouse together flat lay",
-        "Logitech MX Keys keyboard top view backlit",
-        "Logitech MX Master mouse side view ergonomic",
-        "mechanical keyboard with RGB lighting top view",
+        "Apple Magic Keyboard top view",
+        "Apple Magic Mouse side view",
+        "Apple keyboard and mouse together",
+        "Logitech MX Keys keyboard",
+        "Logitech MX Master mouse",
+        "Logitech keyboard and mouse set",
+        "mechanical keyboard top view",
         "wireless keyboard top view flat lay",
-        "keyboard and mouse flat lay together",
+        "gaming keyboard RGB top view",
+        "mouse close-up top view",
+        "keyboard and mouse flat lay",
+        "three keyboards arranged",
     ],
     "monitors": [
-        "Dell monitor front view thin bezel",
-        "LG UltraWide monitor front view curved",
+        "Dell monitor front view",
+        "LG UltraWide monitor front view",
         "Samsung curved monitor front view",
         "Apple Studio Display front view",
         "monitor side profile view",
-        "gaming monitor front view with RGB",
-        "two monitors arranged together",
+        "monitor top view",
+        "two monitors arranged",
+        "gaming monitor front view",
+        "monitor close-up",
+        "monitor with stand side view",
     ],
     "headphones": [
-        "Sony WH-1000XM5 headphones front view folded",
-        "Apple AirPods Max over-ear headphones",
-        "Bose QuietComfort headphones side view",
-        "JBL over-ear headphones front view",
-        "headphones flat lay top view",
-        "headphones side profile view",
+        "Sony WH-1000XM5 headphones",
+        "Apple AirPods Max over-ear",
+        "Bose QuietComfort headphones",
+        "JBL over-ear headphones",
+        "headphones top view",
+        "headphones side view",
+        "headphones flat lay",
+        "two headphones arranged",
+        "headphones close-up detail",
         "Sennheiser headphones front view",
     ],
     "other_accessories": [
-        "USB-C hub multiport adapter on surface",
-        "Samsung T7 external SSD on surface",
-        "Western Digital external hard drive front view",
-        "Logitech C920 webcam front view",
-        "large desk mouse pad flat lay",
-        "laptop accessories flat lay collection",
+        "USB-C hub multiport adapter",
+        "external SSD Samsung T7",
+        "external hard drive Western Digital",
+        "webcam Logitech C920",
+        "mouse pad desk mat",
+        "laptop stand vertical",
+        "USB hub on desk",
+        "HDMI cable coiled",
+        "external SSD top view",
+        "laptop accessories flat lay",
     ],
     "group": [
-        "MacBook with Apple keyboard and mouse arranged flat lay",
+        "MacBook with Apple keyboard and mouse arranged",
         "laptop keyboard mouse and headphones flat lay",
-        "monitor keyboard and mouse arranged setup",
+        "computer accessories complete desk setup flat lay",
+        "monitor keyboard and mouse arranged",
+        "two laptops with accessories arranged",
         "gaming setup monitor keyboard mouse headphones",
         "laptop accessories collection flat lay",
+        "keyboard mouse and USB hub together",
+        "laptop and external SSD together",
         "full computer desk setup aerial view",
     ],
 }
 
 COMPUTER_CONTEXTS = [
-    "on a white surface", "flat lay top view",
-    "45 degree angle view", "front view", "close-up detail",
+    "on white surface", "flat lay top view",
+    "45 degree angle", "front view", "close-up detail",
 ]
 
-def gen_computer():
-    items = []
-    for sub, descs in COMPUTER_ACCESSORIES.items():
-        for desc, ctx in iterproduct(descs, COMPUTER_CONTEXTS):
-            prompt = f"A {desc}, {ctx}, {BASE}"
-            items.append(_item("computer_accessories", sub, prompt,
-                               sub.replace("_", " ").title()))
-    return dedup(items)
-
-# ══════════════════════════════════════════════════
-# CATEGORY 19: FOOTWEAR
-# ══════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────
+# 19. FOOTWEAR
+# ─────────────────────────────────────────────────────────────
 
 FOOTWEAR = {
-    "chappals":     ["single leather chappal side view", "pair of chappals front view", "rubber chappal pair top view", "traditional chappal side view", "chappal sole view showing pattern"],
-    "sandals":      ["single strappy sandal side view", "pair of sandals front view", "ladies sandal pair top view flat lay", "leather sandal close-up detail", "two sandals arranged"],
-    "shoes":        ["single formal leather shoe side view", "pair of shoes front view", "shoes side by side top view", "leather shoe close-up showing grain", "shoe sole view"],
-    "heels":        ["single stiletto heel side view", "pair of heels front view", "block heel shoe pair top view", "ladies heels arranged", "pointed heel close-up"],
-    "sports_shoes": ["single running shoe side view", "pair of sports shoes front view", "sneakers side by side top view", "sports shoe sole detail close-up", "running shoes 45 degree"],
-    "kids":         ["kids school shoes pair front view", "children sneakers front view", "baby shoes tiny pair top view", "kids sandal pair arranged"],
+    "chappals": [
+        "single chappal side view", "pair of chappals front view",
+        "chappals top view flat lay", "leather chappal close-up",
+        "rubber chappal pair", "traditional chappal side view",
+        "two chappals arranged", "chappal sole view",
+    ],
+    "sandals": [
+        "single sandal side view", "pair of sandals front view",
+        "sandals top view flat lay", "leather sandal close-up",
+        "strappy sandal pair", "sandal 45 degree angle",
+        "ladies sandal pair", "two sandals arranged",
+    ],
+    "shoes": [
+        "single shoe side view", "pair of shoes front view",
+        "shoes top view flat lay", "leather shoe close-up",
+        "formal shoes pair", "shoe sole view",
+        "shoes side by side", "shoe lace close-up",
+    ],
+    "heels": [
+        "single heel shoe side view", "pair of heels front view",
+        "heels top view flat lay", "stiletto heel close-up",
+        "block heel shoe pair", "heels sole view",
+        "ladies heels arranged", "pointed heel side view",
+    ],
+    "sports_shoes": [
+        "single sports shoe side view", "pair of sports shoes front view",
+        "sports shoes top view flat lay", "running shoes pair",
+        "sports shoe sole detail", "sneakers side by side",
+        "sports shoes 45 degree", "running shoes close-up",
+    ],
+    "kids": [
+        "kids school shoes pair", "children sneakers front view",
+        "kids sandal pair", "baby shoes tiny pair",
+        "kids shoes top view flat lay", "children shoes side view",
+    ],
 }
 
 SHOE_VIEWS = [
@@ -1195,108 +1197,97 @@ SHOE_VIEWS = [
     "45 degree angle", "sole view", "close-up detail",
 ]
 
-def gen_footwear():
-    items = []
-    for sub, descs in FOOTWEAR.items():
-        for desc, view in iterproduct(descs, SHOE_VIEWS):
-            prompt = f"A {desc}, {view}, {BASE}"
-            items.append(_item("footwear", sub, prompt,
-                               sub.replace("_", " ").title()))
-    return dedup(items)
-
-# ══════════════════════════════════════════════════
-# CATEGORY 20: INDIAN DRESS
-# ══════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────
+# 20. INDIAN DRESS
+# ─────────────────────────────────────────────────────────────
 
 INDIAN_DRESS = {
     "saree": [
-        "silk saree neatly folded showing zari border",
-        "Kanchipuram saree folded showing gold border",
-        "Banarasi saree folded showing embroidery",
-        "cotton saree folded showing print",
-        "bridal saree folded showing heavy embroidery",
-        "saree draped showing fabric texture",
-        "saree border close-up showing embroidery detail",
+        "saree neatly folded", "saree draped showing fabric",
+        "saree flat lay", "silk saree folded with border",
+        "saree embroidery close-up", "bridal saree folded",
+        "Kanchipuram saree folded", "Banarasi saree folded",
+        "cotton saree folded", "saree zari border close-up",
     ],
     "salwar_kameez": [
-        "salwar kameez set flat lay showing embroidery",
-        "anarkali suit flat lay full length",
-        "salwar kameez on hanger full view",
-        "printed salwar kameez flat lay",
-        "palazzo suit flat lay",
-        "salwar kameez embroidery close-up",
+        "salwar kameez set flat lay", "salwar suit folded",
+        "anarkali suit flat lay", "salwar kameez embroidery close-up",
+        "palazzo suit flat lay", "salwar kameez on hanger",
+        "printed salwar kameez flat lay", "salwar kameez top view",
     ],
     "lehenga": [
-        "bridal lehenga folded showing embroidery",
-        "lehenga choli set flat lay",
-        "lehenga fabric detail close-up",
-        "lehenga top view showing embroidery",
+        "lehenga skirt flat lay", "bridal lehenga folded",
+        "lehenga embroidery close-up", "lehenga choli set flat lay",
+        "lehenga fabric detail", "lehenga top view",
     ],
     "kurta": [
-        "mens kurta folded flat lay showing print",
-        "embroidered kurta flat lay",
-        "silk kurta folded",
-        "kurta pajama set arranged flat lay",
-        "sherwani flat lay showing embroidery",
+        "mens kurta folded flat lay", "kurta on hanger",
+        "embroidered kurta flat lay", "silk kurta folded",
+        "kurta pajama set arranged", "sherwani flat lay",
+        "printed kurta flat lay", "plain white kurta folded",
     ],
     "kids_dress": [
-        "kids lehenga choli flat lay",
-        "kids kurta pajama flat lay",
-        "baby girl frock flat lay",
-        "boys sherwani flat lay",
-        "children traditional festive wear flat lay",
+        "kids lehenga choli flat lay", "kids kurta pajama flat lay",
+        "baby girl frock flat lay", "boys sherwani flat lay",
+        "girls salwar kameez flat lay", "kids ethnic wear flat lay",
+        "children festive wear flat lay", "kids traditional dress",
     ],
 }
 
 DRESS_CONTEXTS = [
-    "neatly folded on a clean surface", "flat lay top view",
-    "hanging full length", "fabric embroidery detail close-up",
-    "fabric texture close-up",
+    "neatly folded on surface", "flat lay top view",
+    "hanging full length", "embroidery detail close-up",
+    "fabric texture close-up", "draped showing fabric",
 ]
 
-def gen_dress():
-    items = []
-    for sub, descs in INDIAN_DRESS.items():
-        for desc, ctx in iterproduct(descs, DRESS_CONTEXTS):
-            prompt = f"A {desc}, {ctx}, {BASE}"
-            items.append(_item("indian_dress", sub, prompt,
-                               sub.replace("_", " ").title()))
-    return dedup(items)
-
-# ══════════════════════════════════════════════════
-# CATEGORY 21: JEWELLERY MODELS
-# ══════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────
+# 21. JEWELLERY MODELS
+# ─────────────────────────────────────────────────────────────
 
 JEWELLERY_MODELS = {
     "necklace": [
-        "Indian woman wearing gold necklace",
-        "South Indian woman with temple gold necklace",
-        "woman with layered gold necklace in saree",
-        "woman gold necklace three quarter portrait",
-        "bridal gold necklace model close-up portrait",
-        "woman wearing heavy gold jewelry portrait",
+        "Indian woman wearing gold necklace portrait",
+        "South Indian woman gold necklace portrait",
+        "woman with gold necklace in saree portrait",
+        "woman wearing layered gold necklace portrait",
+        "woman gold necklace side profile portrait",
+        "woman gold temple necklace portrait",
+        "woman gold chain necklace portrait",
+        "woman gold necklace smiling portrait",
+        "woman wearing heavy gold necklace portrait",
+        "bridal gold necklace model portrait",
     ],
     "bridal": [
-        "South Indian bride with full gold jewellery portrait",
-        "Indian bride in silk saree with gold jewellery set",
-        "Tamil bride with temple jewellery portrait",
-        "bridal close-up face portrait with gold jewelry",
-        "Kerala bride with gold jewellery portrait",
-        "North Indian bride with gold jewellery portrait",
+        "South Indian bride full gold jewellery portrait",
+        "Indian bride gold bridal set portrait",
+        "Tamil bride temple jewellery portrait",
+        "bridal portrait gold maang tikka close-up",
+        "bride gold necklace earring set portrait",
+        "bride in silk saree with gold jewellery",
+        "bridal close-up face gold jewellery",
+        "North Indian bride gold jewellery portrait",
+        "Kerala bride gold jewellery portrait",
+        "full bridal portrait gold jewellery",
     ],
     "earrings": [
-        "woman wearing gold jhumka earrings portrait",
-        "woman with gold hoop earrings portrait",
-        "woman with chandelier earrings side view",
-        "Indian woman gold kammal earrings close-up",
-        "woman with long gold earrings portrait",
+        "woman gold jhumka earrings portrait",
+        "woman gold hoop earrings portrait",
+        "woman gold chandbali earrings portrait",
+        "woman chandelier earrings portrait",
+        "woman gold earrings three quarter portrait",
+        "Indian woman gold kammal portrait",
+        "woman long gold earrings portrait",
+        "woman diamond earrings portrait",
     ],
     "bangles": [
-        "woman hands with gold bangles close-up",
-        "Indian woman bridal bangles wrist close-up",
-        "woman hands with glass and gold bangles",
-        "woman gold kada bangle wrist close-up",
-        "woman multiple bangles portrait hands",
+        "woman hands with gold bangles",
+        "Indian woman gold bangles wrist close-up",
+        "woman bridal bangles hands close-up",
+        "woman gold and glass bangles hands",
+        "woman gold kada bangle close-up",
+        "woman hands with bangles close-up",
+        "woman gold bracelet wrist close-up",
+        "woman multiple bangles portrait",
     ],
 }
 
@@ -1307,222 +1298,481 @@ MODEL_LOOKS = [
 ]
 
 MODEL_SAREE_LIST = [
-    "in a silk saree", "in a bridal saree",
-    "in a South Indian saree", "in a Kanchipuram silk saree",
+    "in silk saree", "in bridal saree",
+    "in South Indian saree", "in Kanchipuram saree",
 ]
 
-def gen_jewellery_models():
-    items = []
-    for sub, descs in JEWELLERY_MODELS.items():
-        for desc in descs:
-            saree = random.choice(MODEL_SAREE_LIST)
-            for look in MODEL_LOOKS:
-                prompt = (
-                    f"A professional studio portrait of an {desc} {saree}, "
-                    f"{look}, {MODEL_BASE}"
-                )
-                items.append(_item("jewellery_models", sub, prompt, "Jewellery Model"))
-    return dedup(items)
-
-# ══════════════════════════════════════════════════
-# CATEGORY 22: OFFICE MODELS
-# ══════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────
+# 22. OFFICE MODELS
+# ─────────────────────────────────────────────────────────────
 
 OFFICE_MODELS = {
     "women": [
-        "Indian woman in formal office blazer",
-        "professional woman in formal suit confident",
-        "businesswoman in formal corporate attire",
-        "office woman in formal saree professional",
-        "woman in formal white shirt business look",
-        "Indian businesswoman confident corporate pose",
+        "Indian woman in formal office wear portrait",
+        "professional woman in blazer portrait",
+        "businesswoman in formal suit portrait",
+        "office woman in formal saree portrait",
+        "professional woman corporate attire portrait",
+        "woman in formal white shirt portrait",
+        "corporate woman smart formal portrait",
+        "office woman three quarter portrait",
+        "professional woman confident pose portrait",
+        "Indian businesswoman formal portrait",
     ],
     "men": [
-        "Indian man in formal business suit",
-        "businessman in formal shirt and trousers",
-        "professional man in blazer corporate look",
-        "corporate man in suit and tie",
-        "Indian professional man formal portrait",
-        "man in formal white shirt business portrait",
+        "Indian man in formal suit portrait",
+        "businessman formal shirt trousers portrait",
+        "professional man in blazer portrait",
+        "office man formal kurta portrait",
+        "corporate man suit and tie portrait",
+        "professional Indian man formal portrait",
+        "man formal white shirt portrait",
+        "businessman confident pose portrait",
+        "professional man three quarter portrait",
+        "Indian corporate man formal portrait",
     ],
     "casual": [
-        "Indian woman in smart casual kurta and jeans",
-        "woman in modern printed western top",
-        "young woman in smart casual office wear",
-        "Indian girl in modern casual professional look",
+        "Indian woman smart casual portrait",
+        "woman in kurta and jeans portrait",
+        "woman printed western top portrait",
+        "girl smart casual dress portrait",
+        "woman simple salwar kameez portrait",
+        "young woman smart casual portrait",
+        "woman linen shirt trousers portrait",
+        "Indian girl modern casual portrait",
     ],
 }
 
 OFFICE_POSES = [
     "full body standing portrait", "side profile portrait",
-    "three quarter portrait", "arms crossed professional pose",
-    "natural smile portrait", "headshot close-up portrait",
+    "three quarter portrait", "arms crossed professional",
+    "relaxed smile portrait", "close-up headshot portrait",
 ]
 
-def gen_office_models():
-    items = []
-    for sub, descs in OFFICE_MODELS.items():
-        for desc, pose in iterproduct(descs, OFFICE_POSES):
-            prompt = (
-                f"A studio portrait of an {desc}, {pose}, "
-                f"{MODEL_BASE}"
-            )
-            items.append(_item("office_models", sub, prompt, "Office Model"))
-    return dedup(items)
-
-# ══════════════════════════════════════════════════
-# CATEGORY 23: VEHICLES
-# ══════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────
+# 23. VEHICLES
+# ─────────────────────────────────────────────────────────────
 
 VEHICLES = {
     "hatchback": [
-        "Maruti Alto hatchback clean body",
-        "Hyundai i20 hatchback polished paint",
-        "Maruti Swift hatchback sporty design",
-        "Tata Tiago hatchback modern design",
-        "Maruti Wagon R hatchback tall body",
-        "Tata Punch hatchback SUV style",
+        "Maruti Alto front view", "Maruti Alto side profile",
+        "Hyundai i20 front view", "Hyundai i20 side profile",
+        "Maruti Swift front view", "Maruti Swift side profile",
+        "Tata Tiago front view", "Tata Tiago side profile",
+        "Maruti Wagon R front view", "Maruti Wagon R side profile",
+        "Tata Punch front view", "Tata Punch side profile",
     ],
     "sedan": [
-        "Honda City sedan sleek profile",
-        "Maruti Dzire sedan compact design",
-        "Hyundai Verna sedan elegant design",
-        "Honda Amaze sedan polished",
+        "Honda City sedan front view", "Honda City side profile",
+        "Maruti Dzire front view", "Maruti Dzire side profile",
+        "Hyundai Verna front view", "Hyundai Verna side profile",
+        "Honda Amaze front view", "Honda Amaze side profile",
     ],
     "suv": [
-        "Mahindra Scorpio SUV powerful stance",
-        "Hyundai Creta SUV modern design",
-        "Kia Seltos SUV polished paint",
-        "Tata Nexon SUV bold design",
-        "Toyota Fortuner large SUV",
-        "Mahindra Bolero rugged SUV",
+        "Mahindra Scorpio front view", "Mahindra Scorpio side profile",
+        "Hyundai Creta front view", "Hyundai Creta side profile",
+        "Kia Seltos front view", "Kia Seltos side profile",
+        "Tata Nexon front view", "Tata Nexon side profile",
+        "Mahindra Bolero front view", "Mahindra Bolero side profile",
+        "Maruti Brezza front view", "Maruti Brezza side profile",
+        "Toyota Fortuner front view", "Toyota Fortuner side profile",
+    ],
+    "mpv": [
+        "Toyota Innova front view", "Toyota Innova side profile",
+        "Mahindra Xylo front view", "Tata Ace front view",
+        "Tata Ace side profile",
     ],
     "bikes_commuter": [
-        "Hero Splendor commuter bike clean",
-        "Bajaj Pulsar 150 sporty commuter",
-        "Honda Shine commuter bike",
-        "TVS Apache 160 sporty design",
+        "Hero Splendor front view", "Hero Splendor side profile",
+        "Bajaj Pulsar 150 front view", "Bajaj Pulsar 150 side profile",
+        "Honda Shine front view", "Honda Shine side profile",
+        "TVS Apache 160 front view", "TVS Apache 160 side profile",
+        "Honda Unicorn front view", "Honda Unicorn side profile",
     ],
     "bikes_royal_enfield": [
-        "Royal Enfield Classic 350 vintage style",
-        "Royal Enfield Bullet 350 iconic silhouette",
-        "Royal Enfield Meteor 350 cruiser stance",
-        "Royal Enfield Himalayan adventure bike",
+        "Royal Enfield Classic 350 front view",
+        "Royal Enfield Classic 350 side profile",
+        "Royal Enfield Bullet 350 front view",
+        "Royal Enfield Bullet 350 side profile",
+        "Royal Enfield Meteor 350 front view",
+        "Royal Enfield Meteor 350 side profile",
+        "Royal Enfield Himalayan front view",
+        "Royal Enfield Himalayan side profile",
     ],
     "bikes_sports": [
-        "Bajaj Pulsar NS200 sporty aggressive stance",
-        "Yamaha R15 racing fairing design",
-        "KTM Duke 200 aggressive naked design",
+        "Bajaj Pulsar NS200 front view", "Bajaj Pulsar NS200 side profile",
+        "Yamaha R15 front view", "Yamaha R15 side profile",
+        "KTM Duke 200 front view", "KTM Duke 200 side profile",
+        "Bajaj Dominar 400 front view", "Bajaj Dominar 400 side profile",
     ],
     "scooter": [
-        "Honda Activa scooter classic design",
-        "TVS Jupiter scooter modern design",
-        "Yamaha Fascino scooter stylish",
+        "Honda Activa front view", "Honda Activa side profile",
+        "TVS Jupiter front view", "TVS Jupiter side profile",
+        "Suzuki Access front view", "Suzuki Access side profile",
+        "Yamaha Fascino front view", "Yamaha Fascino side profile",
     ],
     "auto_rickshaw": [
-        "Indian yellow auto rickshaw three-wheeler",
-        "electric auto rickshaw modern design",
-        "auto rickshaw front view showing windshield",
+        "Indian auto rickshaw front view",
+        "Indian auto rickshaw side profile",
+        "auto rickshaw 3/4 front view",
         "auto rickshaw rear view",
+        "yellow auto rickshaw front view",
+        "electric auto rickshaw front view",
+        "electric auto rickshaw side profile",
+        "auto rickshaw low angle view",
+        "auto rickshaw top aerial view",
+        "auto rickshaw close-up front",
     ],
 }
 
-CAR_VIEWS = [
-    "front view", "side profile view", "45 degree angle view",
-    "rear three-quarter view", "low angle hero shot",
-]
-
 CAR_DETAILS = [
-    "showroom quality clean bodywork",
-    "polished automotive photography",
+    "clean polished bodywork",
+    "professional automotive photography",
+    "showroom quality",
+    "studio car photography",
     "commercial vehicle photography",
-    "studio automotive quality",
 ]
 
-def gen_vehicles():
-    items = []
-    for sub, descs in VEHICLES.items():
-        for desc, view, detail in iterproduct(descs, CAR_VIEWS, CAR_DETAILS[:2]):
-            prompt = f"A {desc}, {view}, {detail}, {VEHICLE_BASE}"
-            items.append(_item("vehicles", sub, prompt,
-                               sub.replace("_", " ").title()))
-    return dedup(items)
-
-# ══════════════════════════════════════════════════
-# SEED VARIATION SUFFIXES
-# Adds variation to avoid duplicate outputs
-# ══════════════════════════════════════════════════
-
-_VARIATIONS = [
-    "ultra sharp fine detail",
-    "crisp clean commercial quality",
-    "true to life color accuracy",
-    "lifelike photographic detail",
-    "fine surface texture detail",
-    "studio grade photographic quality",
-]
-
-# ══════════════════════════════════════════════════
-# PROMPT ENGINE CLASS (backward compatible)
-# ══════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════
+# PROMPT ENGINE CLASS
+# ═══════════════════════════════════════════════════════════
 
 class PromptEngine:
-    """
-    Unified Prompt Engine V2.0
-    Generates FLUX-style natural language prompts for all 23 categories.
-    """
+    def make(self, subject, extra: str = "", variant: str = "base"):
+        """
+        One prompt-builder tool.
+
+        variant="base"   -> ANGLES + PHOTO + BASE_SUFFIX (default, existing behavior)
+        variant="animal" -> LIGHTING + QUALITY + ANIMAL_SUFFIX
+        variant="model"  -> LIGHTING + QUALITY + MODEL_SUFFIX
+        """
+        parts = [subject]
+        if extra:
+            parts.append(extra)
+
+        if variant == "base":
+            a = random.choice(ANGLES)
+            l = random.choice(LIGHTING)
+            q = random.choice(QUALITY)
+            s = random.choice(PHOTO)
+            parts.extend([a, l, q, s, BASE_SUFFIX])
+        elif variant == "animal":
+            l = random.choice(LIGHTING)
+            q = random.choice(QUALITY)
+            parts.extend([l, q, ANIMAL_SUFFIX])
+        elif variant == "model":
+            l = random.choice(LIGHTING)
+            q = random.choice(QUALITY)
+            parts.extend([l, q, MODEL_SUFFIX])
+        else:
+            raise ValueError(f"Unknown prompt variant: {variant}")
+
+        return ", ".join(parts)
+
+    def add(self, prompts, cat, sub, text):
+        prompts.append({
+            "category": cat, "subcategory": sub,
+            "prompt": text, "seed": random.randint(1, 999999)
+        })
+
+    # ── 1. POULTRY & ANIMALS ─────────────────────────────────
+    def gen_animals(self):
+        p = []
+        ctxs = ["professional studio", "clean full body", "natural pose",
+                "alert pose", "calm pose", "side profile"]
+        for sub, items in POULTRY_ANIMALS.items():
+            for item in items:
+                for ctx in ctxs:
+                    self.add(p, "poultry_animals", sub, self.make(item, ctx, variant="animal"))
+        return p
+
+    # ── 2. FISH & SEAFOOD ────────────────────────────────────
+    def gen_fish(self):
+        p = []
+        for sub, items in FISH_SEAFOOD.items():
+            for item in items:
+                for ctx in FISH_CONTEXTS:
+                    style = random.choice(FISH_STYLE)
+                    self.add(p, "fish_seafood", sub, self.make(item, f"{ctx}, {style}"))
+        return p
+
+    # ── 3. EGGS ──────────────────────────────────────────────
+    def gen_eggs(self):
+        p = []
+        for item in EGGS:
+            for ctx in EGG_CONTEXTS:
+                self.add(p, "eggs", "eggs", self.make(f"{item}, {ctx}"))
+        return p
+
+    # ── 4. FLOWERS ───────────────────────────────────────────
+    def gen_flowers(self):
+        p = []
+        for sub, items in FLOWERS_SINGLE.items():
+            for item in items:
+                for ctx in FLOWER_CONTEXTS:
+                    ph = random.choice(FLOWER_PHOTO)
+                    self.add(p, "flowers", f"single_{sub}",
+                             self.make(f"{item}, {ctx}", ph))
+        for item in FLOWERS_GROUP:
+            for ph in FLOWER_PHOTO:
+                self.add(p, "flowers", "group_flowers", self.make(item, ph))
+        return p
+
+    # ── 5. FRUITS ────────────────────────────────────────────
+    def gen_fruits(self):
+        p = []
+        styles = ["studio product photography", "overhead flat lay photography",
+                  "natural light photography", "editorial photography"]
+        for sub, items in FRUITS_SINGLE.items():
+            for item in items:
+                for ctx in FRUIT_CONTEXTS:
+                    self.add(p, "fruits", f"single_{sub}", self.make(f"{item}, {ctx}"))
+        for item in FRUITS_GROUP:
+            for s in styles:
+                self.add(p, "fruits", "group_fruits", self.make(item, s))
+        return p
+
+    # ── 6. VEGETABLES ────────────────────────────────────────
+    def gen_vegetables(self):
+        p = []
+        styles = ["studio product photography", "overhead flat lay photography",
+                  "natural light photography", "editorial photography"]
+        for sub, items in VEGS_SINGLE.items():
+            for item in items:
+                for ctx in VEG_CONTEXTS:
+                    self.add(p, "vegetables", f"single_{sub}", self.make(f"{item}, {ctx}"))
+        for item in VEGS_GROUP:
+            for s in styles:
+                self.add(p, "vegetables", "group_vegetables", self.make(item, s))
+        return p
+
+    # ── 7. COOL DRINKS ───────────────────────────────────────
+    def gen_drinks(self):
+        p = []
+        for sub, items in COOL_DRINKS.items():
+            for item in items:
+                for v in DRINK_VESSELS:
+                    d = random.choice(DRINK_DETAILS)
+                    self.add(p, "cool_drinks", sub, self.make(item, f"{v}, {d}"))
+        return p
+
+    # ── 8. INDIAN FOODS ──────────────────────────────────────
+    def gen_indian_food(self):
+        p = []
+        for sub, items in INDIAN_FOODS.items():
+            for item in items:
+                for v in INDIAN_VESSELS:
+                    a = random.choice(FOOD_ANGLES)
+                    self.add(p, "indian_foods", sub, self.make(item, f"{v}, {a}"))
+        return p
+
+    # ── 9. WORLD FOODS ───────────────────────────────────────
+    def gen_world_food(self):
+        p = []
+        for sub, items in WORLD_FOODS.items():
+            for item in items:
+                for v in WORLD_VESSELS:
+                    a = random.choice(FOOD_ANGLES)
+                    self.add(p, "world_foods", sub, self.make(item, f"{v}, {a}"))
+        return p
+
+    # ── 10. DAIRY ────────────────────────────────────────────
+    def gen_dairy(self):
+        p = []
+        for sub, items in DAIRY.items():
+            for item in items:
+                for ctx in DAIRY_CONTEXTS:
+                    self.add(p, "dairy_products", sub, self.make(f"{item}, {ctx}"))
+        return p
+
+    # ── 11. DRY FRUITS ───────────────────────────────────────
+    def gen_dry_fruits(self):
+        p = []
+        for sub, items in DRY_FRUITS.items():
+            for item in items:
+                for ctx in DRY_FRUIT_CONTEXTS:
+                    self.add(p, "dry_fruits_nuts", sub, self.make(f"{item}, {ctx}"))
+        return p
+
+    # ── 12. BAKERY ───────────────────────────────────────────
+    def gen_bakery(self):
+        p = []
+        for sub, items in BAKERY.items():
+            for item in items:
+                for ctx in BAKERY_CONTEXTS:
+                    self.add(p, "bakery_snacks", sub, self.make(f"{item}, {ctx}"))
+        return p
+
+    # ── 13. AYURVEDA ─────────────────────────────────────────
+    def gen_ayurveda(self):
+        p = []
+        for sub, items in AYURVEDA.items():
+            for item in items:
+                for ctx in AYUR_CONTEXTS:
+                    self.add(p, "ayurvedic_herbal", sub, self.make(f"{item}, {ctx}"))
+        return p
+
+    # ── 14. INDIAN SWEETS ────────────────────────────────────
+    def gen_sweets(self):
+        p = []
+        for sub, items in INDIAN_SWEETS.items():
+            for item in items:
+                for ctx in SWEET_CONTEXTS:
+                    self.add(p, "indian_sweets", sub, self.make(f"{item}, {ctx}"))
+        return p
+
+    # ── 15. STATIONERY GROUPS ────────────────────────────────
+    def gen_stationery(self):
+        p = []
+        styles = ["flat lay photography", "top view overhead", "45 degree angle",
+                  "studio product photography"]
+        for item in STATIONERY_GROUPS:
+            for s in styles:
+                self.add(p, "stationery", "stationery_groups", self.make(item, s))
+        return p
+
+    # ── 16. KITCHEN VESSELS ──────────────────────────────────
+    def gen_kitchen(self):
+        p = []
+        styles = ["flat lay photography", "top view overhead", "45 degree angle",
+                  "studio product photography", "overhead view",
+                  "close-up detail view"]
+        for item in KITCHEN_GROUPS:
+            for s in styles:
+                self.add(p, "kitchen_vessels", "kitchen_groups", self.make(item, s))
+        return p
+
+    # ── 17. MOBILE ACCESSORIES ───────────────────────────────
+    def gen_mobile(self):
+        p = []
+        for sub, items in MOBILE_ACCESSORIES.items():
+            for item in items:
+                for ctx in MOBILE_CONTEXTS:
+                    self.add(p, "mobile_accessories", sub, self.make(f"{item}, {ctx}"))
+        return p
+
+    # ── 18. COMPUTER & ACCESSORIES ───────────────────────────
+    def gen_computer(self):
+        p = []
+        for sub, items in COMPUTER_ACCESSORIES.items():
+            for item in items:
+                for ctx in COMPUTER_CONTEXTS:
+                    self.add(p, "computer_accessories", sub, self.make(f"{item}, {ctx}"))
+        return p
+
+    # ── 19. FOOTWEAR ─────────────────────────────────────────
+    def gen_footwear(self):
+        p = []
+        details = ["product photography", "studio shoe photography",
+                   "clean surface", "commercial photography"]
+        for sub, items in FOOTWEAR.items():
+            for item in items:
+                for v in SHOE_VIEWS:
+                    d = random.choice(details)
+                    self.add(p, "footwear", sub, self.make(f"{item}, {v}", d))
+        return p
+
+    # ── 20. INDIAN DRESS ─────────────────────────────────────
+    def gen_dress(self):
+        p = []
+        styles = ["fashion photography", "textile studio photography",
+                  "flat lay photography", "catalog photography"]
+        for sub, items in INDIAN_DRESS.items():
+            for item in items:
+                for ctx in DRESS_CONTEXTS:
+                    s = random.choice(styles)
+                    self.add(p, "indian_dress", sub, self.make(f"{item}, {ctx}", s))
+        return p
+
+    # ── 21. JEWELLERY MODELS ─────────────────────────────────
+    def gen_jewellery_models(self):
+        p = []
+        for sub, items in JEWELLERY_MODELS.items():
+            for item in items:
+                for look in MODEL_LOOKS:
+                    saree = random.choice(MODEL_SAREE_LIST)
+                    self.add(p, "jewellery_models", sub,
+                             self.make(f"{item}, {saree}, {look}", variant="model"))
+        return p
+
+    # ── 22. OFFICE MODELS ────────────────────────────────────
+    def gen_office_models(self):
+        p = []
+        for sub, items in OFFICE_MODELS.items():
+            for item in items:
+                for pose in OFFICE_POSES:
+                    self.add(p, "office_models", sub,
+                             self.make(f"{item}, {pose}", variant="model"))
+        return p
+
+    # ── 23. VEHICLES ─────────────────────────────────────────
+    def gen_vehicles(self):
+        p = []
+        for sub, items in VEHICLES.items():
+            for item in items:
+                for d in CAR_DETAILS:
+                    self.add(p, "vehicles", sub, self.make(item, d))
+        return p
+
+    # ═══════════════════════════════════════════════════════════
+    # GENERATE ALL
+    # ═══════════════════════════════════════════════════════════
 
     def generate_all_prompts(self):
-        print("🎨 Guru Image Usha — Unified Prompt Engine V2.0")
+        print("🎨 Guru Image Usha — PNG Library V5")
         print("=" * 60)
         all_p = []
 
-        generators = [
-            ("Poultry & Animals",      gen_poultry_animals),
-            ("Fish & Seafood",         gen_fish_seafood),
-            ("Eggs",                   gen_eggs),
-            ("Flowers",                gen_flowers),
-            ("Fruits",                 gen_fruits),
-            ("Vegetables",             gen_vegetables),
-            ("Cool Drinks",            gen_drinks),
-            ("Indian Foods",           gen_indian_food),
-            ("World Foods",            gen_world_food),
-            ("Dairy Products",         gen_dairy),
-            ("Dry Fruits & Nuts",      gen_dry_fruits),
-            ("Bakery & Snacks",        gen_bakery),
-            ("Ayurvedic / Herbal",     gen_ayurveda),
-            ("Indian Sweets",          gen_sweets),
-            ("Stationery Groups",      gen_stationery),
-            ("Kitchen Vessels",        gen_kitchen),
-            ("Mobile Accessories",     gen_mobile),
-            ("Computer Accessories",   gen_computer),
-            ("Footwear",               gen_footwear),
-            ("Indian Dress",           gen_dress),
-            ("Jewellery Models",       gen_jewellery_models),
-            ("Office Models",          gen_office_models),
-            ("Vehicles",               gen_vehicles),
+        gens = [
+            ("Poultry & Animals",      self.gen_animals),
+            ("Fish & Seafood",         self.gen_fish),
+            ("Eggs",                   self.gen_eggs),
+            ("Flowers",                self.gen_flowers),
+            ("Fruits",                 self.gen_fruits),
+            ("Vegetables",             self.gen_vegetables),
+            ("Cool Drinks",            self.gen_drinks),
+            ("Indian Foods",           self.gen_indian_food),
+            ("World Foods",            self.gen_world_food),
+            ("Dairy Products",         self.gen_dairy),
+            ("Dry Fruits & Nuts",      self.gen_dry_fruits),
+            ("Bakery & Snacks",        self.gen_bakery),
+            ("Ayurvedic / Herbal",     self.gen_ayurveda),
+            ("Indian Sweets",          self.gen_sweets),
+            ("Stationery Groups",      self.gen_stationery),
+            ("Kitchen Vessels",        self.gen_kitchen),
+            ("Mobile Accessories",     self.gen_mobile),
+            ("Computer & Accessories", self.gen_computer),
+            ("Footwear",               self.gen_footwear),
+            ("Indian Dress",           self.gen_dress),
+            ("Jewellery Models",       self.gen_jewellery_models),
+            ("Office Models",          self.gen_office_models),
+            ("Vehicles",               self.gen_vehicles),
         ]
 
         counts = {}
-        for name, fn in generators:
+        for name, fn in gens:
             prev = len(all_p)
             all_p.extend(fn())
             c = len(all_p) - prev
             counts[name] = c
             print(f"  ✅ {name}: {c}")
 
-        # Seed multiplier ×2 — adds variation to each prompt
+        # Seed multiplier ×2
+        variations = [
+            "ultra sharp detail", "crisp clean quality",
+            "true to life", "lifelike realistic detail",
+            "fine surface detail", "photographic quality",
+        ]
         extended = []
         for item in all_p:
             extended.append(item)
             copy = dict(item)
-            var  = random.choice(_VARIATIONS)
-            copy["prompt"] = item["prompt"].rstrip(", ") + f", {var}"
+            copy["prompt"] = item["prompt"] + f", {random.choice(variations)}"
             copy["seed"]   = random.randint(100000, 999999)
             extended.append(copy)
         all_p = extended
 
-        print(f"\n  🔁 Seed multiplier ×2: {len(all_p)} total prompts")
+        print(f"\n  🔁 Seed multiplier: {len(all_p)} total prompts")
         random.shuffle(all_p)
 
         for i, item in enumerate(all_p):
@@ -1553,11 +1803,8 @@ class PromptEngine:
             kb = fpath.stat().st_size / 1024
             print(f"  💾 {cat}.json → {len(items)} prompts ({kb:.0f} KB)")
 
-        idx = {
-            "total":      len(prompts),
-            "categories": list(by_cat.keys()),
-            "files":      [f"{c}.json" for c in by_cat],
-        }
+        idx = {"total": len(prompts), "categories": list(by_cat.keys()),
+               "files": [f"{c}.json" for c in by_cat]}
         with open(out / "index.json", "w", encoding="utf-8") as f:
             json.dump(idx, f, indent=2, ensure_ascii=False)
 
@@ -1565,41 +1812,22 @@ class PromptEngine:
         return output_dir
 
 
-# ══════════════════════════════════════════════════
-# load_all_prompts — UNCHANGED INTERFACE
-# Called by main_pipeline.py to load split JSONs
-# ══════════════════════════════════════════════════
-
 def load_all_prompts(splits_dir="prompts/splits"):
-    """
-    Load all prompt JSONs from the splits directory.
-    Interface unchanged — main_pipeline.py imports this.
-    """
     splits     = Path(splits_dir)
     index_file = splits / "index.json"
-
     if index_file.exists():
         idx   = json.loads(index_file.read_text())
         files = [splits / f for f in idx["files"]]
     else:
         files = [f for f in sorted(splits.glob("*.json"))
                  if f.name != "index.json"]
-
     all_p = []
     for fpath in files:
-        try:
-            with open(fpath, encoding="utf-8") as f:
-                all_p.extend(json.load(f))
-        except Exception as e:
-            print(f"  Warning: Could not load {fpath.name}: {e}")
-
+        with open(fpath, encoding="utf-8") as f:
+            all_p.extend(json.load(f))
     print(f"📦 Loaded {len(all_p)} prompts from {len(files)} files.")
     return all_p
 
-
-# ══════════════════════════════════════════════════
-# MAIN — run to regenerate split JSONs
-# ══════════════════════════════════════════════════
 
 if __name__ == "__main__":
     PromptEngine().save_prompts("prompts/splits")
