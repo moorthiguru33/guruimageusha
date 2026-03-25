@@ -1,17 +1,3 @@
-# <<<CREDS_START>>>
-import os
-os.environ["GOOGLE_CLIENT_ID"] = "308212866102-sd27dv5pjsr2bff3fioj4frr0ul58a1h.apps.googleusercontent.com"
-os.environ["GOOGLE_CLIENT_SECRET"] = "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"
-os.environ["GOOGLE_REFRESH_TOKEN"] = "1//0gK-Pq9Wd5D1OCgYIARAAGBASNwF-L9IriEGWY1hzEOsDtGLe5jwqrtN9J8CkpeFFMo605QtjdnphjbNotyA69oixHjt66gIiOtE"
-os.environ["GITHUB_TOKEN_REPO2"] = "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"
-os.environ["GITHUB_REPO2"] = "moorthiguru33/ultrapng"
-os.environ["GITHUB_REPO1"] = "moorthiguru33/guruimageusha"
-os.environ["GITHUB_TOKEN_REPO1"] = "ghs_0amMvpBd7RzONYg5ktB9ir9q7Wpc7f3EuwEv"
-os.environ["GOOGLE_SHEETS_ID"] = "1Qtl-_X4-GsSnEZ_Vd-d8oeZDZZmEer0hF-Q2UA2xmd4"
-os.environ["DRIVE_ROOT_FOLDER_ID"] = "1zvBogYwh_73BMTkEmLCf_rOjKCYmjHX4"
-os.environ["START_INDEX"] = "5"
-os.environ["END_INDEX"] = "10"
-# <<<CREDS_END>>>
 """
 UltraPNG — Phase 1 Kaggle Pipeline
 FLUX.2-Klein-4B → BiRefNet_HR BG Remove → PNG + WebP → Google Drive → Google Sheets → Trigger Phase 2
@@ -57,26 +43,6 @@ REPO1_DIR   = WORK / "repo1"
 
 for _d in [GENERATED, TRANSPARENT, CHECKPOINT]:
     _d.mkdir(parents=True, exist_ok=True)
-
-# ── Step 0: Fix PyTorch for P100 (sm_60) if needed ────────────
-def _check_and_fix_torch():
-    try:
-        import torch as _t
-        if _t.cuda.is_available():
-            major, _ = _t.cuda.get_device_capability(0)
-            if major < 7:
-                print(f"  P100/sm_60 detected — reinstalling torch==2.1.2 (sm_60 compatible)...")
-                subprocess.run([
-                    sys.executable, "-m", "pip", "install", "-q",
-                    "torch==2.1.2+cu118", "torchvision==0.16.2+cu118",
-                    "--index-url", "https://download.pytorch.org/whl/cu118",
-                    "--force-reinstall"
-                ], capture_output=True, text=True)
-                print("  torch==2.1.2 installed ✓ — continuing...")
-    except Exception as e:
-        print(f"  torch check skipped: {e}")
-
-_check_and_fix_torch()
 
 # ── Install dependencies ───────────────────────────────────────
 print("Installing dependencies...")
@@ -420,7 +386,8 @@ def phase1_generate(batch, skip_set):
         return ckpt
 
     log("=" * 56)
-    log(f"PHASE 1: FLUX.2-Klein-4B | Batch {len(batch)} | Skip {len(skip_set)}")
+    log("PHASE 1: FLUX.2-Klein-4B — Image Generation")
+    log(f"  Loading from HuggingFace: {FLUX_MODEL}")
     log("=" * 56)
 
     from diffusers import Flux2KleinPipeline
@@ -433,14 +400,19 @@ def phase1_generate(batch, skip_set):
     )
     pipe.enable_model_cpu_offload(gpu_id=0)
     pipe.set_progress_bar_config(disable=True)
+    log(f"FLUX.2 loaded | Batch: {len(batch)} | Skip: {len(skip_set)}\n")
 
     generated, skipped, t0 = [], 0, time.time()
 
     for i, item in enumerate(batch):
         fname = item["filename"]
+
         if fname in skip_set:
             skipped += 1
+            if skipped <= 3 or skipped % 50 == 0:
+                log(f"  SKIP [{i+1}/{len(batch)}] {fname}")
             continue
+
         try:
             out = GENERATED / fname
             if out.exists():
@@ -449,23 +421,36 @@ def phase1_generate(batch, skip_set):
 
             gen    = torch.Generator("cpu").manual_seed(item["seed"])
             prompt = enhance_prompt(item["prompt"], item.get("category", ""))
-            img    = pipe(prompt=prompt, num_inference_steps=4, guidance_scale=1.0,
-                          height=1024, width=1024, generator=gen).images[0]
+            img = pipe(
+                prompt=prompt,
+                num_inference_steps=4,
+                guidance_scale=1.0,
+                height=1024, width=1024,
+                generator=gen,
+            ).images[0]
 
-            # Blank image retry
-            arr = np.array(img)
-            if arr.std() < 5 or (arr < 250).sum() < arr.shape[0] * arr.shape[1] * 0.003:
+            # Blank image check
+            arr    = np.array(img)
+            n_px   = arr.shape[0] * arr.shape[1]
+            thresh = int(n_px * 0.003)
+            if arr.std() < 5 or (arr < 250).sum() < thresh:
+                log(f"  Retry (blank): {fname}")
                 gen2 = torch.Generator("cpu").manual_seed(item["seed"] + 99)
-                img  = pipe(prompt=prompt, num_inference_steps=4, guidance_scale=1.0,
-                             height=1024, width=1024, generator=gen2).images[0]
+                img  = pipe(
+                    prompt=prompt,
+                    num_inference_steps=4,
+                    guidance_scale=1.0,
+                    height=1024, width=1024,
+                    generator=gen2,
+                ).images[0]
 
             img.save(str(out), "PNG", compress_level=0)
             generated.append({"path": str(out), "item": item})
 
             done = len(generated)
-            rate = done / max(time.time() - t0, 1)
+            rate = done / (time.time() - t0)
             eta  = (len(batch) - i - 1) / rate / 60 if rate > 0 else 0
-            log(f"  [{i+1}/{len(batch)}] {fname} | ETA {eta:.0f}m")
+            log(f"  [{i+1}/{len(batch)}] OK {fname} | {item.get('category', '')} | ETA {eta:.0f}min")
 
         except torch.cuda.OutOfMemoryError:
             torch.cuda.empty_cache()
@@ -473,13 +458,22 @@ def phase1_generate(batch, skip_set):
         except Exception as e:
             log(f"  FAIL {fname}: {e}")
 
-    log(f"\n  Unloading FLUX → freeing VRAM...")
+    log("\n  Deleting FLUX.2 -> freeing VRAM + disk cache...")
     del pipe
     free_gpu()
-    delete_hf_cache_for(["flux", "black-forest"])
+
+    # Delete FLUX HF cache to free disk
+    for _cache_sub in HF_CACHE.iterdir():
+        if _cache_sub.is_dir():
+            _name = _cache_sub.name.lower()
+            if "flux" in _name or "black-forest" in _name:
+                shutil.rmtree(str(_cache_sub), ignore_errors=True)
+                log(f"  Deleted FLUX cache: {_cache_sub.name}")
+    _used = sum(f.stat().st_size for f in HF_CACHE.rglob("*") if f.is_file()) / 1e9
+    log(f"  HF cache after cleanup: {_used:.1f}GB")
 
     save_ckpt("p1_generated", generated)
-    log(f"PHASE 1 DONE | Generated: {len(generated)} | Skipped: {skipped}")
+    log(f"PHASE 1 DONE — Generated: {len(generated)} | Skipped: {skipped}\n")
     return generated
 
 # ── Phase 2: Background Removal ────────────────────────────────
