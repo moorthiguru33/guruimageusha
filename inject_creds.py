@@ -1,8 +1,8 @@
 """
 inject_creds.py
-Prepends environment credentials into kaggle/phase1_pipeline.py.
+Prepends environment credentials into the target pipeline .py file.
 Called by GitHub Actions before pushing to Kaggle.
-Usage: python inject_creds.py <start_index> <end_index> <repo1_name>
+Usage: python inject_creds.py <start_index> <end_index> <repo1_name> [target_py_path]
 """
 import sys, os
 
@@ -14,6 +14,7 @@ def inject():
     start = sys.argv[1] if len(sys.argv) > 1 else "0"
     end   = sys.argv[2] if len(sys.argv) > 2 else "200"
     repo1 = sys.argv[3] if len(sys.argv) > 3 else ""
+    path  = sys.argv[4] if len(sys.argv) > 4 else "kaggle/phase1_pipeline.py"
 
     pairs = [
         ("GOOGLE_CLIENT_ID",     os.environ.get("GOOGLE_CLIENT_ID", "")),
@@ -29,6 +30,12 @@ def inject():
         ("END_INDEX",            end),
     ]
 
+    # SEO-specific env vars (only added if present)
+    for key in ["GROQ_API_KEY", "SEO_CATEGORY_FILTER", "SEO_LIMIT", "SEO_FORCE_REPROCESS"]:
+        val = os.environ.get(key, "")
+        if val:
+            pairs.append((key, val))
+
     lines = [_START, "import os\n"]
     for k, v in pairs:
         safe = str(v).replace("\\", "\\\\").replace('"', '\\"')
@@ -36,7 +43,6 @@ def inject():
     lines.append(_END)
     block = "".join(lines)
 
-    path = "kaggle/phase1_pipeline.py"
     with open(path, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -48,7 +54,7 @@ def inject():
     with open(path, "w", encoding="utf-8") as f:
         f.write(block + content)
 
-    print(f"Credentials injected | batch {start} → {end}")
+    print(f"Credentials injected into {path} | batch {start} → {end}")
 
 
 inject()
