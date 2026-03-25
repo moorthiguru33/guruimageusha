@@ -1,17 +1,3 @@
-# <<<CREDS_START>>>
-import os
-os.environ["GOOGLE_CLIENT_ID"] = "308212866102-sd27dv5pjsr2bff3fioj4frr0ul58a1h.apps.googleusercontent.com"
-os.environ["GOOGLE_CLIENT_SECRET"] = "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"
-os.environ["GOOGLE_REFRESH_TOKEN"] = "1//0gK-Pq9Wd5D1OCgYIARAAGBASNwF-L9IriEGWY1hzEOsDtGLe5jwqrtN9J8CkpeFFMo605QtjdnphjbNotyA69oixHjt66gIiOtE"
-os.environ["GITHUB_TOKEN_REPO2"] = "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"
-os.environ["GITHUB_REPO2"] = "moorthiguru33/ultrapng"
-os.environ["GITHUB_REPO1"] = "moorthiguru33/guruimageusha"
-os.environ["GITHUB_TOKEN_REPO1"] = "ghs_H6ZIu1dTEP7RwmkoSNkGbn2ZV8yfGB4dH5FM"
-os.environ["GOOGLE_SHEETS_ID"] = "1Qtl-_X4-GsSnEZ_Vd-d8oeZDZZmEer0hF-Q2UA2xmd4"
-os.environ["DRIVE_ROOT_FOLDER_ID"] = "1zvBogYwh_73BMTkEmLCf_rOjKCYmjHX4"
-os.environ["START_INDEX"] = "10"
-os.environ["END_INDEX"] = "15"
-# <<<CREDS_END>>>
 """
 UltraPNG — Phase 1 Kaggle Pipeline
 FLUX.2-Klein-4B → BiRefNet_HR BG Remove → PNG + WebP → Google Drive → Google Sheets → Trigger Phase 2
@@ -19,7 +5,6 @@ FLUX.2-Klein-4B → BiRefNet_HR BG Remove → PNG + WebP → Google Drive → Go
 import os, sys, json, time, gc, re, io, shutil, subprocess
 from pathlib import Path
 from datetime import datetime
-import requests as req
 
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 
@@ -28,6 +13,10 @@ HF_CACHE.mkdir(parents=True, exist_ok=True)
 os.environ["HF_HOME"]               = str(HF_CACHE)
 os.environ["HUGGINGFACE_HUB_CACHE"] = str(HF_CACHE)
 os.environ["TRANSFORMERS_CACHE"]    = str(HF_CACHE)
+# Set HF token if available (faster downloads, no rate limits)
+_hf_token = os.environ.get("HF_TOKEN", "")
+if _hf_token:
+    os.environ["HUGGINGFACE_HUB_TOKEN"] = _hf_token
 
 # ── Model IDs ─────────────────────────────────────────────────
 FLUX_MODEL = "black-forest-labs/FLUX.2-klein-4B"
@@ -58,22 +47,57 @@ REPO1_DIR   = WORK / "repo1"
 for _d in [GENERATED, TRANSPARENT, CHECKPOINT]:
     _d.mkdir(parents=True, exist_ok=True)
 
-# ── Install dependencies ───────────────────────────────────────
+# ══════════════════════════════════════════════════════════════
+# Step 0: Fix PyTorch for P100 (sm_60) BEFORE importing torch
+# CRITICAL: Must run before `import torch` so correct version loads
+# Uses nvidia-smi (no torch import needed) to detect GPU
+# ══════════════════════════════════════════════════════════════
+def _fix_torch_for_p100():
+    """Detect GPU via nvidia-smi and install compatible torch if P100."""
+    try:
+        r = subprocess.run(
+            ["nvidia-smi", "--query-gpu=compute_cap", "--format=csv,noheader"],
+            capture_output=True, text=True, timeout=10)
+        if r.returncode == 0:
+            cap = r.stdout.strip().split("\n")[0].strip()
+            major = int(cap.split(".")[0])
+            if major < 7:
+                print(f"  P100/sm_{cap.replace('.', '')} detected — installing torch==2.1.2+cu118...")
+                subprocess.run([
+                    sys.executable, "-m", "pip", "install", "-q",
+                    "torch==2.1.2+cu118", "torchvision==0.16.2+cu118",
+                    "--index-url", "https://download.pytorch.org/whl/cu118",
+                    "--force-reinstall"
+                ], capture_output=True, text=True)
+                print("  torch==2.1.2+cu118 installed ✓")
+            else:
+                print(f"  GPU sm_{cap.replace('.', '')} detected — default torch OK ✓")
+    except Exception as e:
+        print(f"  GPU check skipped: {e}")
+
+_fix_torch_for_p100()
+
+# ── Install dependencies (AFTER torch fix) ────────────────────
+print("=" * 56)
 print("Installing dependencies...")
 _PKGS = [
     "git+https://github.com/huggingface/diffusers.git",
     "transformers>=4.47.0", "accelerate>=0.28.0", "sentencepiece",
     "huggingface_hub>=0.23.0", "Pillow>=10.0", "numpy",
-    "onnxruntime-gpu", "torchvision", "piexif", "opencv-python-headless",
+    "onnxruntime-gpu", "torchvision",
+    "piexif", "opencv-python-headless",
 ]
 for _pkg in _PKGS:
     r = subprocess.run([sys.executable, "-m", "pip", "install", "-q", _pkg],
                        capture_output=True, text=True)
-    print(f"  {'OK' if r.returncode == 0 else 'WARN'} {_pkg}")
+    print(f"  {'OK  ' if r.returncode == 0 else 'WARN'} {_pkg}")
+print("Done!\n")
 
+# NOW import torch — picks up the correct version (2.1.2+cu118 on P100)
 import torch
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
+import requests as req
 
 # ── Logging ───────────────────────────────────────────────────
 _LOG = []
@@ -89,17 +113,8 @@ def free_gpu():
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
         torch.cuda.synchronize()
-
-def get_safe_device():
-    """Returns 'cuda' only if GPU CUDA capability >= 7.0, else 'cpu'."""
-    if not torch.cuda.is_available():
-        return "cpu"
-    major, minor = torch.cuda.get_device_capability(0)
-    if major < 7:
-        log(f"  WARNING: GPU sm_{major}{minor} not supported by PyTorch (need sm_70+). Using CPU.")
-        return "cpu"
-    log(f"  GPU sm_{major}{minor} detected — using CUDA ✓")
-    return "cuda"
+    used = torch.cuda.memory_allocated(0) / 1e9 if torch.cuda.is_available() else 0
+    log(f"  GPU used: {used:.1f}GB")
 
 def slugify(s, max_len=60):
     s = re.sub(r"[^a-z0-9]+", "-", str(s).lower()).strip("-")
@@ -108,12 +123,6 @@ def slugify(s, max_len=60):
         idx = cut.rfind("-")
         s = cut[:idx] if idx > max_len // 2 else cut
     return s or "untitled"
-
-def delete_hf_cache_for(keywords):
-    for sub in HF_CACHE.iterdir():
-        if sub.is_dir() and any(k in sub.name.lower() for k in keywords):
-            shutil.rmtree(str(sub), ignore_errors=True)
-            log(f"  Deleted HF cache: {sub.name}")
 
 # ── Google OAuth ──────────────────────────────────────────────
 _token_cache = {"value": None, "expires": 0}
@@ -298,30 +307,38 @@ def load_ckpt(name):
             return json.load(f)
     return None
 
-# ── Category Prompt Enhancers ──────────────────────────────────
+# ── Category Prompt Enhancers (from old pipeline) ─────────────
 _ENHANCERS = {
-    "indian_foods":    ", appetizing food styling, steam visible, glistening surface",
-    "world_foods":     ", appetizing food styling, steam visible, glistening sauce",
-    "fruits":          ", natural skin texture, juice droplets",
-    "vegetables":      ", natural surface texture, fresh harvest quality",
-    "flowers":         ", petal vein detail, natural color saturation",
-    "jewellery":       ", gem facet reflections, gold metal mirror finish",
-    "vehicles":        ", automotive paint reflection, chrome detail",
-    "animals":         ", fur and feather strand detail, catchlight in eyes",
-    "poultry_animals": ", fur and feather strand detail, catchlight in eyes",
-    "raw_meat":        ", fresh meat texture, glistening moist surface",
-    "beverages":       ", condensation droplets, liquid transparency",
-    "footwear":        ", leather grain, stitching detail",
-    "clothing":        ", fabric weave, embroidery thread detail",
-    "indian_dress":    ", fabric weave, embroidery thread detail",
+    "indian_foods":     ", appetizing food styling, steam visible, glistening surface",
+    "food_indian":      ", appetizing food styling, steam visible, glistening surface",
+    "world_foods":      ", appetizing food styling, steam visible, glistening sauce",
+    "food_world":       ", appetizing food styling, steam visible, glistening sauce",
+    "fruits":           ", natural skin texture, juice droplets",
+    "vegetables":       ", natural surface texture, fresh harvest quality",
+    "flowers":          ", petal vein detail, natural color saturation",
+    "jewellery_models": ", gem facet reflections, gold metal mirror finish",
+    "jewellery":        ", gem facet reflections, gold metal mirror finish",
+    "vehicles":         ", automotive paint reflection, chrome detail",
+    "vehicles_cars":    ", automotive paint reflection, chrome detail",
+    "vehicles_bikes":   ", automotive paint reflection, chrome detail",
+    "poultry_animals":  ", fur and feather strand detail, catchlight in eyes",
+    "animals":          ", fur and feather strand detail, catchlight in eyes",
+    "raw_meat":         ", fresh meat texture, glistening moist surface",
+    "cool_drinks":      ", condensation droplets, liquid transparency",
+    "beverages":        ", condensation droplets, liquid transparency",
+    "footwear":         ", leather grain, stitching detail",
+    "shoes":            ", leather grain, stitching detail",
+    "indian_dress":     ", fabric weave, embroidery thread detail",
+    "clothing":         ", fabric weave, embroidery thread detail",
+    "office_models":    ", professional portrait, sharp clothing detail",
 }
 
-def enhance_prompt(prompt, category):
+def enhance_prompt(raw_prompt, category):
     cat = (category or "").lower()
     for key, extra in _ENHANCERS.items():
-        if key in cat:
-            return prompt + extra
-    return prompt
+        if cat.startswith(key) or key in cat:
+            return raw_prompt + extra
+    return raw_prompt
 
 # ── WebP Preview Builder ───────────────────────────────────────
 def make_webp(png_path):
@@ -392,7 +409,9 @@ def load_prompts():
         log(f"  Prompt load failed: {e}")
         return []
 
-# ── Phase 1: FLUX Image Generation ────────────────────────────
+# ══════════════════════════════════════════════════════════════
+# PHASE 1 — FLUX.2-Klein-4B  (100% from old pipeline)
+# ══════════════════════════════════════════════════════════════
 def phase1_generate(batch, skip_set):
     ckpt = load_ckpt("p1_generated")
     if ckpt:
@@ -490,7 +509,9 @@ def phase1_generate(batch, skip_set):
     log(f"PHASE 1 DONE — Generated: {len(generated)} | Skipped: {skipped}\n")
     return generated
 
-# ── Phase 2: Background Removal ────────────────────────────────
+# ══════════════════════════════════════════════════════════════
+# PHASE 2 — BiRefNet_HR Background Removal (100% from old pipeline)
+# ══════════════════════════════════════════════════════════════
 def phase2_bg_remove(generated):
     ckpt = load_ckpt("p2_transparent")
     if ckpt:
@@ -498,20 +519,19 @@ def phase2_bg_remove(generated):
         return ckpt
 
     log("=" * 56)
-    log("PHASE 2: BiRefNet_HR — Background Removal (FP16 GPU)")
+    log("PHASE 2: BiRefNet_HR — 2048x2048 FP16 — Background Removal (GPU)")
+    log(f"  Loading from HuggingFace: {RMBG_MODEL}")
     log("=" * 56)
 
     from torchvision import transforms
     from transformers import AutoModelForImageSegmentation
 
-    model  = AutoModelForImageSegmentation.from_pretrained(
+    model = AutoModelForImageSegmentation.from_pretrained(
         RMBG_MODEL, trust_remote_code=True, cache_dir=str(HF_CACHE))
-    device = get_safe_device()
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     torch.set_float32_matmul_precision("high")
-    if device == "cuda":
-        model = model.to(device).eval().half()
-    else:
-        model = model.to(device).eval()  # float32 on CPU (.half() not supported)
+    model = model.to(device).eval().half()  # FP16 official recommendation
+    log(f"  BiRefNet_HR loaded on {device.upper()} | FP16 | 2048x2048\n")
 
     transform = transforms.Compose([
         transforms.Resize((2048, 2048)),
@@ -521,11 +541,10 @@ def phase2_bg_remove(generated):
 
     def remove_bg(pil_img):
         ow, oh = pil_img.size
-        inp = transform(pil_img.convert("RGB")).unsqueeze(0).to(device)
-        if device == "cuda":
-            inp = inp.half()
+        inp = transform(pil_img.convert("RGB")).unsqueeze(0).to(device).half()
         with torch.no_grad():
-            pred = model(inp)[-1].sigmoid().cpu()[0].squeeze()
+            preds = model(inp)[-1].sigmoid().cpu()
+        pred = preds[0].squeeze()
         mask = transforms.ToPILImage()(pred).resize((ow, oh), Image.LANCZOS)
         out  = pil_img.convert("RGBA")
         out.putalpha(mask)
@@ -547,14 +566,24 @@ def phase2_bg_remove(generated):
         except Exception as e:
             log(f"  RMBG FAIL {src.name}: {e}")
 
-    log(f"\n  Unloading BiRefNet → freeing VRAM...")
+    log("\n  Deleting BiRefNet_HR → freeing VRAM + disk cache...")
     del model, transform
     free_gpu()
-    delete_hf_cache_for(["birefnet", "rmbg", "briaai"])
+
+    # Delete BiRefNet HF cache
+    for _cache_sub in HF_CACHE.iterdir():
+        if _cache_sub.is_dir():
+            _name = _cache_sub.name.lower()
+            if "rmbg" in _name or "briaai" in _name or "birefnet" in _name:
+                shutil.rmtree(str(_cache_sub), ignore_errors=True)
+                log(f"  Deleted BiRefNet cache: {_cache_sub.name}")
 
     # Remove generated (no longer needed, transparent/ has final PNGs)
     shutil.rmtree(str(GENERATED), ignore_errors=True)
     GENERATED.mkdir()
+
+    _used = sum(f.stat().st_size for f in HF_CACHE.rglob("*") if f.is_file()) / 1e9
+    log(f"  HF cache after cleanup: {_used:.1f}GB")
 
     save_ckpt("p2_transparent", result)
     log(f"PHASE 2 DONE | Transparent: {len(result)}")
@@ -669,6 +698,12 @@ def main():
     log("UltraPNG Phase 1 Pipeline — Start")
     log(f"Batch: {START_INDEX} → {END_INDEX} ({END_INDEX - START_INDEX} images)")
     log("=" * 56)
+
+    if torch.cuda.is_available():
+        p = torch.cuda.get_device_properties(0)
+        log(f"  GPU: {p.name} | VRAM: {p.total_memory/1e9:.0f}GB")
+    log(f"  PyTorch: {torch.__version__}")
+    log(f"  Cache: {HF_CACHE}")
 
     sheets_ensure_header()
 
