@@ -454,8 +454,76 @@ def load_skip_set_from_json():
                     skip_set.add(fn)
         except Exception:
             pass
-    log(f"  Skip-set: {len(skip_set)} already-done filenames")
+    log(f"  Skip-set (REPO2): {len(skip_set)} already-done filenames")
     return skip_set
+
+
+def load_skip_set_from_ultradata() -> set:
+    """
+    Read ultradata.xlsx from REPO1 and return all filenames already generated.
+    This catches images generated+uploaded but not yet SEO-processed in REPO2.
+    Without this, Section 1 would re-generate those images on the next daily run.
+    """
+    skip_set = set()
+    token = GITHUB_TOKEN_REPO1 or ""
+    repo  = (GITHUB_REPO1 or "").strip()
+    if not token or not repo:
+        log("  Skip-set (ultradata): GITHUB_TOKEN_REPO1 not set — skipping")
+        return skip_set
+
+    repo_url  = f"https://x-access-token:{token}@github.com/{repo}.git"
+    xrepo_dir = WORKING_DIR / "repo1_skipcheck"
+
+    try:
+        if xrepo_dir.exists() and (xrepo_dir / ".git").exists():
+            subprocess.run(["git", "remote", "set-url", "origin", repo_url],
+                           cwd=str(xrepo_dir), capture_output=True)
+            subprocess.run(["git", "pull", "--rebase", "--autostash"],
+                           cwd=str(xrepo_dir), capture_output=True)
+        else:
+            shutil.rmtree(str(xrepo_dir), ignore_errors=True)
+            subprocess.run(["git", "clone", "--depth", "1", repo_url, str(xrepo_dir)],
+                           capture_output=True, check=True)
+    except Exception as e:
+        log(f"  Skip-set (ultradata): clone failed ({e}) — skipping")
+        return skip_set
+
+    xlsx_path = xrepo_dir / ULTRADATA_XLSX_NAME
+    if not xlsx_path.exists():
+        log("  Skip-set (ultradata): ultradata.xlsx not found — starting fresh")
+        return skip_set
+
+    try:
+        import openpyxl
+    except Exception:
+        subprocess.run([sys.executable, "-m", "pip", "install", "-q", "openpyxl>=3.1.2"],
+                       capture_output=True, check=True)
+        import openpyxl
+
+    try:
+        wb = openpyxl.load_workbook(str(xlsx_path), read_only=True)
+        ws = wb.active
+        if ws.max_row < 2:
+            log("  Skip-set (ultradata): sheet empty")
+            return skip_set
+        headers = [str(c.value or "").strip().lower()
+                   for c in next(ws.iter_rows(min_row=1, max_row=1))]
+        if "filename" not in headers:
+            log("  Skip-set (ultradata): no filename column")
+            return skip_set
+        col_idx = headers.index("filename")
+        for row in ws.iter_rows(min_row=2, values_only=True):
+            fn = row[col_idx] if col_idx < len(row) else None
+            if fn:
+                skip_set.add(str(fn).strip())
+        wb.close()
+    except Exception as e:
+        log(f"  Skip-set (ultradata): read failed ({e})")
+        return skip_set
+
+    log(f"  Skip-set (ultradata): {len(skip_set)} already-generated filenames")
+    return skip_set
+
 
 def load_prompts():
     log("Loading prompts...")
@@ -1435,6 +1503,9 @@ def main():
         log(f"Batch: {len(batch)} prompts\n")
 
         skip_set = load_skip_set_from_json()
+        # Also skip images already in ultradata.xlsx (generated but SEO not yet done)
+        skip_set |= load_skip_set_from_ultradata()
+        log(f"  Combined skip-set: {len(skip_set)} filenames total\n")
 
         # PHASE 1
         generated = phase1_generate(batch, skip_set)
@@ -1549,9 +1620,10 @@ def _append_ultradata_and_push(items):
     xrepo_dir = WORKING_DIR / "repo1_xlsx"
 
     if xrepo_dir.exists() and (xrepo_dir / ".git").exists():
-        subprocess.run(["git", "pull", "--rebase", "--autostash"],
-                       cwd=str(xrepo_dir), capture_output=True)
+        # BUG FIX: set-url FIRST so pull uses the authenticated token URL
         subprocess.run(["git", "remote", "set-url", "origin", repo_url],
+                       cwd=str(xrepo_dir), capture_output=True)
+        subprocess.run(["git", "pull", "--rebase", "--autostash"],
                        cwd=str(xrepo_dir), capture_output=True)
     else:
         shutil.rmtree(str(xrepo_dir), ignore_errors=True)
@@ -1626,7 +1698,10 @@ def _append_ultradata_and_push(items):
         if diff.returncode != 0:
             msg = f"ultradata: append {appended} rows [{datetime.now().strftime('%Y-%m-%d')}]"
             subprocess.run(["git", "commit", "-m", msg], check=True, capture_output=True)
-            subprocess.run(["git", "push"], check=True, capture_output=True)
+            result = subprocess.run(["git", "push"], capture_output=True, text=True)
+            if result.returncode != 0:
+                # BUG FIX: show actual push error in Kaggle log (was hidden by capture_output)
+                raise Exception(f"git push failed (exit {result.returncode}):\n{result.stderr.strip()}")
             log(f"ultradata.xlsx pushed: +{appended} rows")
         else:
             log("ultradata.xlsx: no staged changes")
