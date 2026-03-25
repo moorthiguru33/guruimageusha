@@ -70,7 +70,7 @@ _PKGS = [
     "git+https://github.com/huggingface/diffusers.git",
     "transformers>=4.47.0", "accelerate>=0.28.0", "sentencepiece",
     "huggingface_hub>=0.23.0", "Pillow>=10.0", "numpy",
-    "onnxruntime-gpu", "torchvision==0.16.2", "piexif", "opencv-python-headless",
+    "onnxruntime-gpu", "torchvision", "piexif", "opencv-python-headless",
 ]
 for _pkg in _PKGS:
     r = subprocess.run([sys.executable, "-m", "pip", "install", "-q", _pkg],
@@ -411,15 +411,13 @@ def phase1_generate(batch, skip_set):
 
     from diffusers import Flux2KleinPipeline
 
-    safe_device = get_safe_device()
-    dtype = torch.bfloat16 if safe_device == "cuda" else torch.float32
-    log(f"  FLUX loading on: {safe_device.upper()} | dtype: {dtype}")
-
-    pipe = Flux2KleinPipeline.from_pretrained(FLUX_MODEL, torch_dtype=dtype)
-    if safe_device == "cuda":
-        pipe.enable_model_cpu_offload(gpu_id=0)
-    else:
-        pipe = pipe.to("cpu")
+    log(f"  Loading: {FLUX_MODEL}")
+    log("  (First run: downloads ~8GB — ~5 min)")
+    pipe = Flux2KleinPipeline.from_pretrained(
+        FLUX_MODEL,
+        torch_dtype=torch.bfloat16,
+    )
+    pipe.enable_model_cpu_offload(gpu_id=0)
     pipe.set_progress_bar_config(disable=True)
 
     generated, skipped, t0 = [], 0, time.time()
