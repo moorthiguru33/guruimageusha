@@ -2,18 +2,41 @@ name: Section 2 - SEO JSON Builder
 
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: "Run mode — scheduled (batch per day) or instant (process all pending now)"
+        required: false
+        default: "scheduled"
+        type: choice
+        options:
+          - scheduled
+          - instant
+      batch_size:
+        description: "Items per run in scheduled mode (default 220 to match Section 1 daily output)"
+        required: false
+        default: "220"
+      scheduled_days:
+        description: "Total days plan — used only for display/logging (e.g. 200)"
+        required: false
+        default: "200"
   schedule:
-    - cron: "10 2 * * *"
+    - cron: "10 2 * * *"   # 02:10 UTC daily — runs after Section 1 finishes
 
+# ── BUG FIX: was 'read' — needs 'write' to commit ultradata.xlsx ──
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-seo:
     runs-on: ubuntu-latest
+
     steps:
+      # ── BUG FIX: persist-credentials must be true (default) for git push to work ──
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -23,21 +46,49 @@ jobs:
       - name: Install deps
         run: pip install openpyxl requests pillow
 
+      - name: Resolve batch size
+        id: cfg
+        run: |
+          MODE="${{ github.event.inputs.mode }}"
+          BSIZE="${{ github.event.inputs.batch_size }}"
+          DAYS="${{ github.event.inputs.scheduled_days }}"
+
+          # scheduled trigger has no inputs — use defaults
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            MODE="scheduled"
+            BSIZE="220"
+            DAYS="200"
+          fi
+
+          # fallback defaults for manual dispatch with empty fields
+          [ -z "$MODE" ]  && MODE="scheduled"
+          [ -z "$BSIZE" ] && BSIZE="220"
+          [ -z "$DAYS" ]  && DAYS="200"
+
+          echo "mode=$MODE"     >> $GITHUB_OUTPUT
+          echo "batch_size=$BSIZE" >> $GITHUB_OUTPUT
+          echo "scheduled_days=$DAYS" >> $GITHUB_OUTPUT
+          echo "▶ Mode=$MODE  BatchSize=$BSIZE  PlannedDays=$DAYS"
+
       - name: Run Section 2
         env:
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          GROQ_MODEL: ${{ secrets.GROQ_MODEL }}
-          REPO2_TOKEN: ${{ secrets.REPO_2_TOKEN }}
-          REPO2_SLUG:  ${{ secrets.REPO_2 }}
-          REPO2_MAX_PER_JSON: "200"
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GROQ_API_KEY:         ${{ secrets.GROQ_API_KEY }}
+          GROQ_MODEL:           ${{ secrets.GROQ_MODEL }}
+          REPO2_TOKEN:          ${{ secrets.REPO_2_TOKEN }}
+          REPO2_SLUG:           ${{ secrets.REPO_2 }}
+          REPO2_MAX_PER_JSON:   "200"
+          GOOGLE_CLIENT_ID:     ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          # ── new env vars passed to runner ──
+          S2_RUN_MODE:          ${{ steps.cfg.outputs.mode }}
+          S2_BATCH_SIZE:        ${{ steps.cfg.outputs.batch_size }}
+          S2_SCHEDULED_DAYS:    ${{ steps.cfg.outputs.scheduled_days }}
         run: python section2_runner.py
 
-      - name: Commit ultradata.xlsx updates
+      # ── BUG FIX: commit ultradata.xlsx AND progress tracker together ──
+      - name: Commit ultradata.xlsx + progress tracker
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "ultradata: update from section2/manual-drop"
-          file_pattern: ultradata.xlsx
-
+          commit_message: "ultradata: section2 update [mode=${{ steps.cfg.outputs.mode }}]"
+          file_pattern: "ultradata.xlsx progress/s2_batch_tracker.txt"
