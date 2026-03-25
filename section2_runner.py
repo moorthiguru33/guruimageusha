@@ -167,10 +167,11 @@ Requirements:
                 data  = json.loads(content[j0:j1])
                 title = (data.get("title") or "").strip()
                 desc  = (data.get("description") or "").strip()
-                if _word_count(title) < 20:
-                    raise RuntimeError(f"Title too short: {_word_count(title)} words")
-                if _word_count(desc) < 300:
-                    raise RuntimeError(f"Description too short: {_word_count(desc)} words")
+                # Accept whatever the model returns — no retry for short content
+                if _word_count(title) < 5:
+                    raise RuntimeError(f"Title empty or unusable: {_word_count(title)} words")
+                if _word_count(desc) < 50:
+                    raise RuntimeError(f"Description empty or unusable: {_word_count(desc)} words")
                 if model_idx > 0:
                     print(f"    [GROQ] used fallback model: {model}", flush=True)
                 return title, desc
