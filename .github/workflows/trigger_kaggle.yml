@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       instant_count:
-        description: Instant run items (3-10). Leave empty for scheduled batching.
+        description: "Instant run: number of items to process now. Leave empty for scheduled batching."
         required: false
         default: ""
       start_index:
@@ -45,6 +45,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true   # BUG FIX: required for git-auto-commit to push
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -279,7 +280,7 @@ jobs:
             DONE=$(cat progress/batch_tracker.txt)
             echo "Done: $DONE / 43082 ($((DONE * 100 / 43082))%)"
             echo "Remaining: $((43082 - DONE))"
-            echo "Est. days: ~$(((43082 - DONE) / 800))"
+            echo "Est. days: ~$(((43082 - DONE) / 220))  (at 220 images/day)"
           else
             echo "Not started yet!"
           fi
