@@ -21,7 +21,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install deps
-        run: pip install openpyxl requests
+        run: pip install openpyxl requests pillow
 
       - name: Run Section 2
         env:
@@ -30,5 +30,14 @@ jobs:
           REPO2_TOKEN: ${{ secrets.REPO_2_TOKEN }}
           REPO2_SLUG:  ${{ secrets.REPO_2 }}
           REPO2_MAX_PER_JSON: "200"
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
         run: python section2_runner.py
+
+      - name: Commit ultradata.xlsx updates
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "ultradata: update from section2/manual-drop"
+          file_pattern: ultradata.xlsx
 
