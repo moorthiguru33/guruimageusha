@@ -18,10 +18,8 @@ github_token_r1 = os.environ.get("GITHUB_TOKEN_REPO1_VAL", "")
 telegram_token  = os.environ.get("TELEGRAM_BOT_TOKEN_VAL", "")
 telegram_chat   = os.environ.get("TELEGRAM_CHAT_ID_VAL", "")
 
-# Unique markers so we can identify THIS creds cell exactly
+# Unique marker so we can identify THIS creds cell exactly
 CREDS_MARKER = "# __ULTRAPNG_CREDENTIALS_CELL__"
-CREDS_PY_MARKER = "# __ULTRAPNG_PY_CREDENTIALS_CELL__"
-CREDS_PY_END_MARKER = "# __ULTRAPNG_PY_CREDENTIALS_END__"
 
 inject_code = f'''{CREDS_MARKER}
 import os
@@ -70,45 +68,3 @@ with open(nb_path, "w", encoding="utf-8") as f:
 print(f"Injected credentials into {nb_path}")
 print(f"Total cells: {len(cells)}")
 print(f"Batch: {start} -> {end}")
-
-# Also inject into main_pipeline.py (if Kaggle kernel runs python file)
-py_path = "kaggle/main_pipeline.py"
-try:
-    with open(py_path, "r", encoding="utf-8") as f:
-        py_src = f.read()
-except Exception:
-    py_src = ""
-
-py_inject_code = f'''{CREDS_PY_MARKER}
-import os
-os.environ["START_INDEX"]          = "{start}"
-os.environ["END_INDEX"]            = "{end}"
-os.environ["GITHUB_REPO"]          = "{repo1}"
-os.environ["GOOGLE_CLIENT_ID"]     = "{client_id}"
-os.environ["GOOGLE_CLIENT_SECRET"] = "{client_secret}"
-os.environ["GOOGLE_REFRESH_TOKEN"] = "{refresh_token}"
-os.environ["GITHUB_TOKEN_REPO2"]   = "{github_token_r2}"
-os.environ["GITHUB_REPO2"]         = "{github_repo2}"
-os.environ["GITHUB_TOKEN_REPO1"]   = "{github_token_r1}"
-print("PY credentials loaded. Batch: {start} -> {end}")
-print(f"  REPO2: {github_repo2 or '(not set)'}")
-print(f"  Google: {'OK' if client_id else '(not set)'}")
-{CREDS_PY_END_MARKER}
-'''
-
-if CREDS_PY_MARKER in py_src:
-    before = py_src.split(CREDS_PY_MARKER, 1)[0]
-    tail = py_src.split(CREDS_PY_MARKER, 1)[1]
-    if CREDS_PY_END_MARKER in tail:
-        after = tail.split(CREDS_PY_END_MARKER, 1)[1]
-        new_src = before + "\n" + py_inject_code + "\n" + after.lstrip("\n")
-    else:
-        # Fallback: if end marker missing, don't risk deleting code
-        new_src = py_inject_code + "\n" + py_src
-else:
-    new_src = py_inject_code + "\n" + py_src
-
-if new_src.strip():
-    with open(py_path, "w", encoding="utf-8") as f:
-        f.write(new_src)
-    print(f"Injected credentials into {py_path}")

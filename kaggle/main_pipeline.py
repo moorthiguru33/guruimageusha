@@ -3,14 +3,10 @@
 ║   UltraPNG.com — PNG Library Pipeline V7.0                  ║
 ╠══════════════════════════════════════════════════════════════╣
 ║  PHASE 1 → FLUX.2-Klein-4B   Generate 1024x1024 images     ║
-║  PHASE 2 → NO QWEN (NO SEO)                              ║
 ║  PHASE 3 → RMBG-2.0 ONNX    Background removal (GPU)       ║
-║  PHASE 4 → Google Drive      Upload PNG + WebP             ║
-║  PHASE 5 → Update ultradata.xlsx (NO JSON push)           ║
+║  PHASE 4 → Google Drive      Upload PNG + WebP              ║
+║  PHASE 5 → ultradata.xlsx     Append rows in REPO1          ║
 ║  PHASE 6 → Save Run Logs → REPO1 (visible on GitHub!)      ║
-╠══════════════════════════════════════════════════════════════╣
-║  V7.0 CHANGES:                                              ║
-║  • No Qwen / No SEO in Kaggle Section 1                     ║
 ╚══════════════════════════════════════════════════════════════╝
 
 inject_creds.py prepends os.environ[] lines before this file.
@@ -21,6 +17,7 @@ from pathlib import Path
 from datetime import datetime
 
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+ULTRADATA_XLSX_NAME = "ultradata.xlsx"
 
 # ── HuggingFace cache dir (writable in Kaggle) ────────────────
 HF_CACHE = Path("/kaggle/working/hf_cache")
@@ -60,7 +57,6 @@ PKGS = [
     "Pillow>=10.0", "numpy", "requests",
     "onnxruntime-gpu", "torchvision",
     "opencv-python-headless", "piexif",
-    "openpyxl",
 ]
 for pkg in PKGS:
     r = subprocess.run(
@@ -266,6 +262,113 @@ def drive_share(token, fid):
     except Exception:
         pass
 
+def drive_list_pngs(token, folder_id, page_size=1000):
+    h = {"Authorization": f"Bearer {token}"}
+    q = (
+        f"'{folder_id}' in parents and trashed=false and "
+        "(mimeType='image/png' or name contains '.png')"
+    )
+    r = req.get(
+        "https://www.googleapis.com/drive/v3/files",
+        headers=h,
+        params={"q": q, "pageSize": page_size, "fields": "files(id,name,parents,mimeType)"},
+        timeout=30,
+    )
+    r.raise_for_status()
+    return r.json().get("files", [])
+
+def drive_download_bytes(token, fid):
+    h = {"Authorization": f"Bearer {token}"}
+    r = req.get(
+        f"https://www.googleapis.com/drive/v3/files/{fid}",
+        headers=h,
+        params={"alt": "media"},
+        timeout=120,
+    )
+    r.raise_for_status()
+    return r.content
+
+def drive_move(token, fid, add_parent_id, remove_parent_id):
+    h = {"Authorization": f"Bearer {token}"}
+    r = req.patch(
+        f"https://www.googleapis.com/drive/v3/files/{fid}",
+        headers=h,
+        params={"addParents": add_parent_id, "removeParents": remove_parent_id, "fields": "id,parents"},
+        timeout=30,
+    )
+    r.raise_for_status()
+    return r.json()
+
+def process_manual_drop():
+    """
+    Poll a Google Drive folder named 'manual drop' for PNG uploads.
+    - Move PNG into png_library_images/manual_drop/
+    - Generate WEBP preview with watermark/footer and upload into png_library_previews/manual_drop/
+    - Append ultradata.xlsx (GitHub repo1)
+    """
+    token = get_drive_token()
+    manual_root = drive_folder(token, "manual drop")
+    files = drive_list_pngs(token, manual_root)
+    if not files:
+        log("Manual drop: no PNG files found")
+        return
+
+    png_root  = drive_folder(token, "png_library_images")
+    prev_root = drive_folder(token, "png_library_previews")
+    dest_png_folder  = drive_folder(token, "manual_drop", png_root)
+    dest_prev_folder = drive_folder(token, "manual_drop", prev_root)
+
+    temp_dir = WORKING_DIR / "manual_drop_tmp"
+    temp_dir.mkdir(parents=True, exist_ok=True)
+
+    uploaded = []
+    for f in files:
+        try:
+            fid = f["id"]
+            name = f.get("name", "untitled.png")
+            parents = (f.get("parents") or [])
+            old_parent = parents[0] if parents else manual_root
+
+            # Download bytes for preview creation
+            png_bytes = drive_download_bytes(token, fid)
+            local_png = temp_dir / name
+            local_png.write_bytes(png_bytes)
+
+            # Create WEBP preview (watermark+footer) from local PNG
+            _jpg_bytes, webp_bytes, pw, ph = make_previews(local_png)
+            wr = drive_upload(token, dest_prev_folder, Path(name).stem + ".webp", webp_bytes, "image/webp")
+            drive_share(token, wr["id"])
+
+            # Move original PNG inside Drive (no re-upload)
+            drive_move(token, fid, dest_png_folder, old_parent)
+            drive_share(token, fid)
+
+            subject = Path(name).stem.replace("_", " ").replace("-", " ").title()
+            uploaded.append({
+                "category": "manual_drop",
+                "subcategory": "manual_drop",
+                "subject_name": subject,
+                "filename": name,
+                "png_file_id": fid,
+                "jpg_file_id": "",
+                "webp_file_id": wr["id"],
+                "download_url": download_url(fid),
+                "preview_url": preview_url(wr["id"], 800),
+                "preview_url_small": preview_url(wr["id"], 400),
+                "webp_preview_url": preview_url(wr["id"], 800),
+                "preview_w": pw,
+                "preview_h": ph,
+                "date_added": datetime.now().strftime("%Y-%m-%d"),
+            })
+
+            log(f"Manual drop OK: {name}")
+        except Exception as e:
+            log(f"Manual drop FAIL: {f.get('name','?')}: {e}")
+
+    if uploaded:
+        _append_ultradata_and_push(uploaded)
+        log(f"Manual drop appended: {len(uploaded)}")
+
 def make_previews(png_path):
     """Diagonal watermarked JPG + WebP previews with EXIF copyright."""
     import piexif
@@ -459,7 +562,7 @@ def phase1_generate(batch, skip_set):
     del pipe
     free_memory()
 
-    # Delete FLUX HF cache to free ~8GB disk for Qwen download
+    # Delete FLUX HF cache to free disk
     import shutil as _shutil
     for _cache_sub in HF_CACHE.iterdir():
         if _cache_sub.is_dir():
@@ -473,822 +576,6 @@ def phase1_generate(batch, skip_set):
     save_checkpoint("phase1_generated", generated)
     log(f"PHASE 1 DONE — Generated: {len(generated)} | Skipped: {skipped}\n")
     return generated
-
-# ══════════════════════════════════════════════════════════════
-# SECTION 1 — No-Qwen Preparation (subject + approved copies)
-# ══════════════════════════════════════════════════════════════
-def _title_case_words(s):
-    s = re.sub(r"\s+", " ", str(s or "").strip())
-    if not s:
-        return ""
-    return " ".join(w[:1].upper() + w[1:].lower() if w else "" for w in s.split(" "))
-
-def extract_subject_name_from_prompt(prompt, category):
-    """
-    Heuristic to convert the generated prompt into a human-readable subject name.
-    Example: "chicken biryani in bowl, on white plate, front view, ..." →
-             "Chicken Biryani With White Plate"
-    """
-    prompt = str(prompt or "")
-    parts = [p.strip() for p in prompt.split(",") if p.strip()]
-    first = parts[0] if parts else ""
-
-    # Remove leading count words (if any)
-    first = re.sub(r"^(single|two|three|four|five|pair|group of|a|an|the)\s+", "", first, flags=re.I).strip()
-
-    # For food-like prompts, the first chunk often ends with "in bowl"/"on plate" etc.
-    core = re.split(r"\s+(in|on)\s+", first, maxsplit=1, flags=re.I)[0].strip() if first else ""
-
-    # Extract vessel from next chunk: typically "on white plate" / "in steel thali" / etc.
-    vessel = ""
-    for p in parts[1:3]:
-        m = re.match(r"^(on|in)\s+(.+)$", p, flags=re.I)
-        if m:
-            vessel = m.group(2).strip()
-            break
-
-    # Strip common view tokens from core for non-food categories.
-    core = re.sub(
-        r"(front view|side view|side profile|top view|overhead|close-?up|macro|full body|eye level|3/4|three quarter|45 degree.*)$",
-        "",
-        core,
-        flags=re.I,
-    ).strip()
-    core = re.sub(r"\bwhole\b$", "", core, flags=re.I).strip()
-
-    if core:
-        core_tc = _title_case_words(core)
-    else:
-        core_tc = _title_case_words(category.replace("-", " ").replace("_", " "))
-
-    if vessel:
-        # Remove view tokens from vessel chunk too (just in case).
-        vessel = re.sub(
-            r"(front view|side view|side profile|top view|overhead|close-?up|macro|full body|eye level|3/4|three quarter|45 degree.*)$",
-            "",
-            vessel,
-            flags=re.I,
-        ).strip()
-        vessel_tc = _title_case_words(vessel)
-        if vessel_tc:
-            return f"{core_tc} With {vessel_tc}"
-    return core_tc
-
-def phase2_prepare_posts_no_model(generated):
-    """
-    Convert Phase 1 outputs into Phase 3/4 inputs without model filtering/SEO.
-    This keeps Flux + RMBG code untouched.
-    """
-    posts = []
-    for item_data in generated:
-        item = item_data["item"]
-        category = item["category"]
-        subcategory = item.get("subcategory", "general")
-        prompt = item.get("prompt", "")
-        subject_name = extract_subject_name_from_prompt(prompt, category)
-        slug = slugify(subject_name)
-
-        src_path = Path(item_data["path"])
-        rel = src_path.relative_to(GENERATED_DIR)
-        approved_path = APPROVED_DIR / rel
-        approved_path.parent.mkdir(parents=True, exist_ok=True)
-        if not approved_path.exists():
-            shutil.copy2(str(src_path), str(approved_path))
-
-        posts.append({
-            "category": category,
-            "subcategory": subcategory,
-            "subject_name": subject_name,
-            "filename": item["filename"],
-            "original_prompt": prompt,
-            "slug": slug,
-            "approved_path": str(approved_path),
-
-            # Placeholders filled by later phases
-            "png_file_id": "",
-            "jpg_file_id": "",
-            "webp_file_id": "",
-            "download_url": "",
-            "webp_download_url": "",
-            "preview_url": "",
-            "preview_url_small": "",
-            "webp_preview_url": "",
-            "preview_w": 800,
-            "preview_h": 800,
-            "date_added": datetime.now().strftime("%Y-%m-%d"),
-        })
-    return posts
-
-def update_ultradata_xlsx_from_uploaded(uploaded_posts):
-    """
-    Append each run into ultradata.xlsx (sheet name: `ultradata`) in repo root.
-    Uses low API calls by doing a single XLSX commit at the end.
-    """
-    if not uploaded_posts:
-        return
-
-    token = GITHUB_TOKEN_REPO1 or GITHUB_TOKEN
-    if not token or not GITHUB_REPO1:
-        log("  WARNING: GITHUB_REPO1 / GITHUB_TOKEN_REPO1 not set — skipping ultradata.xlsx update")
-        return
-
-    try:
-        import openpyxl
-    except Exception as e:
-        log(f"  WARNING: openpyxl missing ({e}) — skipping ultradata.xlsx update")
-        return
-
-    # Ensure we have a writable clone of the repo root
-    repo_url = f"https://x-access-token:{token}@github.com/{GITHUB_REPO1}.git"
-    PROJECT_DIR.mkdir(parents=True, exist_ok=True)
-
-    if not (PROJECT_DIR / ".git").exists():
-        subprocess.run(["git", "clone", "--depth", "1", repo_url, str(PROJECT_DIR)],
-                       check=True, capture_output=True)
-    else:
-        subprocess.run(["git", "remote", "set-url", "origin", repo_url],
-                       cwd=str(PROJECT_DIR), check=True, capture_output=True)
-
-    subprocess.run(["git", "config", "user.name", "github-actions[bot]"],
-                   cwd=str(PROJECT_DIR), check=True, capture_output=True)
-    subprocess.run(["git", "config", "user.email",
-                    "github-actions[bot]@users.noreply.github.com"],
-                   cwd=str(PROJECT_DIR), check=True, capture_output=True)
-
-    xlsx_path = PROJECT_DIR / "ultradata.xlsx"
-
-    headers = [
-        "subject_name",
-        "category",
-        "subcategory",
-        "filename",
-        "slug",
-        "download_url",
-        "webp_download_url",
-        "preview_url",
-        "preview_url_small",
-        "webp_preview_url",
-        "png_file_id",
-        "webp_file_id",
-        "date_added",
-    ]
-
-    if xlsx_path.exists():
-        wb = openpyxl.load_workbook(str(xlsx_path))
-        if "ultradata" in wb.sheetnames:
-            ws = wb["ultradata"]
-        else:
-            ws = wb.active
-            ws.title = "ultradata"
-    else:
-        wb = openpyxl.Workbook()
-        ws = wb.active
-        ws.title = "ultradata"
-        ws.append(headers)
-
-    # Map header → column index (1-based)
-    existing_header = [c.value for c in ws[1][:len(headers)]]
-    if not existing_header or any(h not in existing_header for h in headers):
-        ws.delete_rows(1, ws.max_row)
-        ws.append(headers)
-
-    col_idx = {h: i + 1 for i, h in enumerate(headers)}
-    filename_col = col_idx["filename"]
-
-    existing_filenames = set()
-    for row in ws.iter_rows(min_row=2, values_only=True):
-        fn = row[filename_col - 1] if row and len(row) >= filename_col else ""
-        if fn:
-            existing_filenames.add(str(fn))
-
-    added = 0
-    for p in uploaded_posts:
-        fn = p.get("filename", "")
-        if not fn or str(fn) in existing_filenames:
-            continue
-        ws.append([
-            p.get("subject_name", ""),
-            p.get("category", ""),
-            p.get("subcategory", ""),
-            p.get("filename", ""),
-            p.get("slug", ""),
-            p.get("download_url", ""),
-            p.get("webp_download_url", ""),
-            p.get("preview_url", ""),
-            p.get("preview_url_small", ""),
-            p.get("webp_preview_url", ""),
-            p.get("png_file_id", ""),
-            p.get("webp_file_id", ""),
-            p.get("date_added", datetime.now().strftime("%Y-%m-%d")),
-        ])
-        existing_filenames.add(str(fn))
-        added += 1
-
-    if added == 0:
-        log("  ultradata.xlsx: no new rows to add")
-        return
-
-    tmp_path = str(xlsx_path) + ".tmp"
-    wb.save(tmp_path)
-    os.replace(tmp_path, str(xlsx_path))
-
-    diff_check = subprocess.run(["git", "diff", "--quiet", "--", "ultradata.xlsx"],
-                                 cwd=str(PROJECT_DIR), capture_output=True)
-    if diff_check.returncode == 0:
-        log("  ultradata.xlsx unchanged after diff check — skipping commit")
-        return
-
-    subprocess.run(["git", "add", "ultradata.xlsx"], cwd=str(PROJECT_DIR), check=True, capture_output=True)
-    msg = f"Update ultradata: +{added} entries ({datetime.now().strftime('%Y-%m-%d')})"
-    subprocess.run(["git", "commit", "-m", msg], cwd=str(PROJECT_DIR), check=True, capture_output=True)
-    push = subprocess.run(["git", "push"], cwd=str(PROJECT_DIR), capture_output=True, text=True)
-    if push.returncode == 0:
-        log(f"  ultradata.xlsx pushed! +{added} entries")
-    else:
-        log(f"  ultradata.xlsx push failed: {push.stderr[:300]}")
-
-# ══════════════════════════════════════════════════════════════
-# PHASE 2 — Qwen2.5-VL-3B SINGLE PASS: Filter + SEO
-# ══════════════════════════════════════════════════════════════
-CATEGORY_GROUP_MAP = [
-    (["animal","bird","insect","fish","seafood","poultry","reptile",
-      "butterfly","eagle","parrot","chicken","hen","cock",
-      "goat","cow","buffalo","dog","cat","elephant","tiger","lion",
-      "deer","rabbit","horse","camel","bear","monkey","snake",
-      "crab","prawn","shrimp","lobster","squid","octopus",
-      "tilapia","salmon","tuna","rohu","catla"], "animals"),
-    (["food","dish","recipe","meal","curry","rice","biryani","pulao",
-      "chicken_65","butter_chicken","paneer","dosa","idli","vada",
-      "sambar","rasam","roti","chapati","paratha","naan","puri",
-      "pizza","burger","sandwich","pasta","noodle","soup","stew",
-      "fry","roast","grill","kebab","tikka","korma","masala",
-      "indian_food","world_food","food_indian","food_world",
-      "bakery","snack","cake","bread","cookie","biscuit",
-      "sweet","halwa","ladoo","barfi","kheer","payasam",
-      "indian_sweet","dairy","egg","poultry_chicken","raw_meat",
-      "bakery_snacks","cool_drink","beverage"], "food"),
-    (["fruit","vegetable","herb","spice","nut","dry_fruit",
-      "ayurvedic","herbal"], "produce"),
-    (["flower","plant","tree","leaf","nature","botanical",
-      "garden","forest","sky","celestial","nature_tree",
-      "sky_celestial"], "nature"),
-    (["tool","hardware","equipment","machine","instrument",
-      "kitchen","vessel","pot","pan","utensil","kitchen_vessel",
-      "pots_vessel"], "tools"),
-    (["jewel","jewelry","jewellery","necklace","ring","bangle",
-      "earring","bracelet","watch","bag","purse","handbag",
-      "shoe","footwear","sandal","slipper","boot","heel",
-      "cloth","dress","saree","lehenga","kurta","shirt",
-      "indian_dress","clothing"], "fashion"),
-    (["electronic","mobile","phone","laptop","computer","tablet",
-      "accessory","cable","charger","earphone","speaker",
-      "computer_accessory","mobile_accessory"], "electronics"),
-    (["clipart","icon","logo","badge","frame","border","pattern",
-      "texture","offer","effect","festival","pooja","background",
-      "abstract","text_effect","music","stationery","office",
-      "sport","vehicle","car","bike","medical","furniture",
-      "frames_border","offer_logo"], "design"),
-]
-
-def _get_category_group(category):
-    cat = category.lower()
-    for keywords, group in CATEGORY_GROUP_MAP:
-        if any(kw in cat for kw in keywords):
-            return group
-    return "general"
-
-GROUP_CHECK_RULES = {
-    "animals": """STRICT ANIMAL QUALITY INSPECTION — DELETE if ANY of these are true:
-
-BODY & SHAPE DEFECTS (check every part carefully):
-✗ Extra or missing legs (e.g. dog with 3 legs or 6 legs)
-✗ Extra or missing heads (two heads fused together or half-head)
-✗ Fused body parts — legs merged into a blob, wings fused to body
-✗ Distorted or melted body shape — body looks like a bag or blob
-✗ Extra limbs growing from wrong locations (leg from back, arm from neck)
-✗ Floating disconnected body parts visible
-✗ Tail growing from wrong position or multiple tails
-✗ Incorrect number of eyes, ears, or horns for the species
-✗ Face melted or unrecognizable — eyes/nose/mouth merged or missing
-
-FACE QUALITY:
-✗ Face is a blob — no clear eyes, nose, mouth visible
-✗ Eyes are asymmetric blobs or both eyes on same side
-✗ Mouth wide open in unnatural way showing wrong teeth/tongue structure
-✗ Skull shape is wrong for the species
-
-SPECIES MISMATCH:
-✗ Completely different animal than expected (cat when dog expected)
-✗ Cooked/dead version when live animal expected
-✗ Cartoon/human hybrid that lost animal identity
-
-KEEP even if:
-✓ Cartoon or illustrated style (if body shape is correct)
-✓ Group of same species animals
-✓ Different pose, angle, or color variety
-✓ Baby or young version of expected animal
-
-Add these to your evaluation: "shape_match", "face_match", "limb_count_ok"
-Set shape_match=false if body is blob/deformed. Set face_match=false if face is unrecognizable.""",
-
-    "food": """STRICT FOOD QUALITY INSPECTION — DELETE if ANY of these are true:
-
-FOOD APPEARANCE DEFECTS:
-✗ Food looks rotten, moldy, or decomposed
-✗ Food is completely unrecognizable as any dish
-✗ Wrong food type — pizza shown when biryani expected
-✗ Raw ingredients shown when cooked dish expected (or vice versa)
-✗ Food has unnatural colors (blue meat, green bread unless intentional)
-✗ Dish shape is a blob — no visible food structure or texture
-✗ Multiple unrelated foods merged into one blob
-✗ Plate/bowl has impossible shape or is melted
-
-QUALITY DEFECTS:
-✗ Food texture looks plastic, rubber, or artificial
-✗ Extreme pixelation making food unrecognizable
-✗ Food floating in mid-air with no plate/surface context
-
-KEEP even if:
-✓ Different plating style for the same dish
-✓ Artistic or illustrated style food
-✓ Viewed from unusual angle if still recognizable
-✓ Different sauce color or spice level""",
-
-    "produce": """STRICT PRODUCE QUALITY INSPECTION — DELETE if ANY of these are true:
-
-FRUIT/VEGETABLE DEFECTS:
-✗ Severely rotten or decomposed fruit/vegetable
-✗ Fruit has impossible shape — melted, blobby, or fused mass
-✗ Wrong produce entirely (apple when mango expected)
-✗ Fruit and vegetable merged into unrecognizable hybrid
-✗ Skin/texture is smooth blob with no natural surface detail
-✗ Multiple different fruits fused together into one object
-✗ Completely flat 2D looking with no volume
-
-KEEP even if:
-✓ Different color variety of same fruit (green apple instead of red)
-✓ Cut or sliced version of expected fruit
-✓ Multiple pieces of same fruit
-✓ Slightly bruised but still recognizable
-✓ Illustrated or cartoon style""",
-
-    "nature": """STRICT NATURE QUALITY INSPECTION — DELETE if ANY of these are true:
-
-FLOWER/PLANT DEFECTS:
-✗ Flower petals are blobs with no petal structure
-✗ Completely wrong plant — tree shown when flower expected
-✗ Petals fused into a single melted mass
-✗ Stem is absent when it should be present
-✗ Multiple plant species fused into one unnatural hybrid
-✗ Completely unrecognizable as any plant
-
-KEEP even if:
-✓ Different color of same flower
-✓ Different stage of bloom (bud vs open flower)
-✓ Artistic or illustrated style
-✓ Multiple flowers of same species""",
-
-    "tools": """STRICT TOOLS/KITCHEN QUALITY INSPECTION — DELETE if ANY of these are true:
-
-TOOL DEFECTS:
-✗ Tool shape is a blob — no functional parts visible
-✗ Handle and head merged into unrecognizable mass
-✗ Wrong tool entirely (knife when spoon expected)
-✗ Tool has impossible geometry — melted or twisted beyond recognition
-✗ Kitchen vessel has no opening or impossible shape
-✗ Multiple different tools fused together
-
-KEEP even if:
-✓ Different design or material of same tool
-✓ Viewed from unusual angle if still recognizable
-✓ Illustrated or stylized version""",
-
-    "fashion": """STRICT FASHION QUALITY INSPECTION — DELETE if ANY of these are true:
-
-FASHION ITEM DEFECTS:
-✗ Garment is a shapeless blob with no recognizable structure
-✗ Wrong item entirely (saree when shirt expected)
-✗ Shoes/bags fused into unrecognizable mass
-✗ Jewelry has no visible gems, links, or structure
-✗ Garment has impossible shape — sleeves from wrong places
-✗ Fabric texture looks like rubber or plastic blob
-
-KEEP even if:
-✓ Different color or style of same garment type
-✓ On a model vs standalone
-✓ Different embroidery pattern or material""",
-
-    "electronics": """STRICT ELECTRONICS QUALITY INSPECTION — DELETE if ANY of these are true:
-
-ELECTRONICS DEFECTS:
-✗ Device is a blob — no screen, buttons, or ports visible
-✗ Wrong device entirely (phone when laptop expected)
-✗ Screen and body melted into one mass
-✗ Device has impossible shape — completely deformed
-✗ Multiple different devices fused together
-
-KEEP even if:
-✓ Different brand or model of same device type
-✓ Illustrated or cartoon version
-✓ Viewed from different angle""",
-
-    "design": """STRICT DESIGN/LOGO/CLIPART QUALITY INSPECTION — DELETE if ANY of these are true:
-
-DESIGN DEFECTS:
-✗ Completely blank or pure white/black image with no content
-✗ Pure noise with no recognizable graphic element
-✗ Wrong category entirely — photo when logo expected
-✗ Text is completely unreadable blob
-✗ Graphic elements are all merged into one mud-colored blob
-✗ Frame/border has no clear edge structure
-
-KEEP even if:
-✓ Simple or minimal design
-✓ Different color scheme
-✓ Slightly abstract if category is "effects" or "abstract" """,
-
-    "general": """STRICT GENERAL QUALITY INSPECTION — DELETE if ANY of these are true:
-
-✗ Completely blank or empty image
-✗ Image is pure noise or random pixels with no subject
-✗ Expected subject is completely absent from image
-✗ Subject is an unrecognizable blob — no defining features
-✗ Wildly different object than expected (no resemblance)
-
-KEEP even if:
-✓ Artistic or illustrated style
-✓ Different pose or angle
-✓ Background elements present""",
-}
-
-def _build_disabled_prompt(item, subject, category, slug_base):
-    raise RuntimeError("Model filter is fully disabled. This helper must not be called.")
-    return f"""You are an ULTRA-STRICT quality inspector AND SEO writer for UltraPNG.com — a free transparent PNG library.
-
-IMAGE PROMPT USED: "{item.get('prompt', '')}"
-EXPECTED SUBJECT: {subject}
-CATEGORY: {category} | GROUP: {group}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-STEP 1 — SUBJECT MATCH (Most Important)
-Check: does the image show "{subject}"?
-- Completely different subject → subject_match: false → DELETE immediately
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-STEP 2 — DETAILED QUALITY CHECK
-{check_rule}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-STEP 3 — CONFIDENCE SCORE (0-10)
-9-10: Perfect — all body parts correct, clear subject, professional quality
-7-8: Good — minor imperfections, subject clearly recognizable
-5-6: Borderline/Poor — noticeable defects (MUST DELETE)
-0-4: Wrong/Deformed — major defects (MUST DELETE)
-RULE: confidence < 7 → verdict = DELETE (STRICT — borderline = DELETE)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-STEP 4 — VERDICT
-DELETE if: subject_match=false OR any quality defect found OR confidence < 7
-KEEP only if: subject correct AND no body/shape defects AND confidence >= 7
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-STEP 5 — SEO (only if KEEP; if DELETE return empty strings for all SEO fields)
-
-Return ONLY valid JSON, no markdown, no extra keys:
-{{
-  "subject_match": true or false,
-  "shape_match": true or false,
-  "confidence": 0-10,
-  "verdict": "KEEP" or "DELETE",
-  "reason": "specific defect found if DELETE (e.g. extra leg on right side, face is blob, wrong species), else empty string",
-  "title": "UNIQUE 20+ words — {subject} + 2-3 specific visual details (color/style/angle/texture) seen in THIS image + Transparent PNG HD Free Download | UltraPNG",
-  "slug": "SLUG RULES: max 55 chars, lowercase hyphens only. MUST include 2-3 visual detail words seen in THIS image. NEVER use filename. NEVER use only subject name alone. Format: {slug_base}-[color-or-style]-[visual-detail]-png-hd. Examples: golden-ripe-mango-closeup-png-hd, red-crab-side-view-claws-png-hd, white-jasmine-bouquet-fresh-png-hd",
-  "meta_desc": "max 155 chars — describe THIS specific image uniquely with color, style, use case. For free download at UltraPNG.",
-  "h1": "UNIQUE — color + style + subject + context visible in image. Example: Fresh Red Crab Side View Transparent PNG HD",
-  "tags": "18 comma-separated tags — subject name, specific color, style, material, 3 use cases, PNG free, transparent PNG, canva, flex banner, social media, ultrapng, HD, free download, background removed",
-  "description": "Write 300-400 UNIQUE words about THIS specific image only. Structure exactly:\n\n## About This {subject} PNG Image\n80-100 words: describe exactly what you SEE — color, style, angle, texture, mood. Start with the most striking visual detail. NEVER start with This high-quality.\n\n## Best Uses for This Image\n60-80 words: specific creative uses for THIS image — flex banner, Canva, social media, invitation cards, packaging.\n\n## Technical Quality\n50-60 words: transparent background, RMBG-2.0 processing, HD resolution, clean alpha channel, print-ready.\n\n## Design Ideas\n- [specific use case 1, 10-12 words]\n- [specific use case 2, 10-12 words]\n- [specific use case 3, 10-12 words]\n- [specific use case 4, 10-12 words]\n- [specific use case 5, 10-12 words]\n\n## FAQ\n**Is this {subject} PNG free?** Yes — 100% free, no signup, no watermark on download.\n**Can I use this in Canva?** Yes. Upload via My Files in Canva and drag to canvas."
-}}
-
-ABSOLUTE RULES:
-- Return ONLY the JSON object — no text before or after
-- No duplicate keys in JSON
-- DELETE scores 0-6 — ONLY keep 7, 8, 9, 10
-- Reason MUST name the specific defect (e.g. "3 legs instead of 4", "face is unrecognizable blob", "extra head on back")
-- Slug MUST contain visual detail words from THIS image, not just the subject name
-- Description MUST be 300-400 words unique to THIS image"""
-
-def phase2_disabled_filter_seo(generated):
-    raise RuntimeError("Model filter is fully disabled. This phase must not be called.")
-
-    log("=" * 56)
-    log("PHASE 2: Qwen2.5-VL-3B — SMART FILTER + SEO")
-    log(f"  Loading from HuggingFace: {QWEN_HF_ID}")
-    log("=" * 56)
-
-    if not generated:
-        return []
-
-    from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
-    from disabled_vl_utils import process_vision_info
-
-    processor = AutoProcessor.from_pretrained(
-        QWEN_HF_ID, use_fast=True, cache_dir=str(HF_CACHE))
-    model     = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-        QWEN_HF_ID,
-        torch_dtype=torch.float16,
-        device_map="auto",
-        cache_dir=str(HF_CACHE),
-    )
-    model.eval()
-    log(f"Qwen loaded! Processing {len(generated)} images...\n")
-
-    posts, deleted, used_slugs = [], 0, set()
-    t0 = time.time()
-
-    partial     = load_checkpoint("phase2_posts_partial")
-    resume_from = 0
-    if partial:
-        posts       = partial
-        used_slugs  = set(f"{p['category']}/{p['slug']}" for p in posts)
-        resume_from = len(posts)
-        log(f"  Partial checkpoint: resuming from {resume_from}")
-
-    stats = {"wrong_subject": 0, "wrong_shape": 0,
-             "low_confidence": 0, "deformed": 0, "parse_fail": 0}
-
-    for i, item_data in enumerate(generated):
-        if i < resume_from:
-            continue
-
-        item      = item_data["item"]
-        category  = item["category"]
-        subject   = (item.get("subject_name") or
-                     category.replace("-", " ").replace("_", " ").title())
-        prompt    = item.get("prompt", f"a {subject}")
-        slug_base = slugify(subject)
-        path      = Path(item_data["path"])
-        group     = _get_category_group(category)
-
-        approved_path = APPROVED_DIR / path.relative_to(GENERATED_DIR)
-        approved_path.parent.mkdir(parents=True, exist_ok=True)
-
-        try:
-            with Image.open(path).convert("RGB") as img_orig:
-                iw, ih = img_orig.size
-                # 512px — optimal balance of quality and Qwen inference speed
-                if max(iw, ih) > 512:
-                    r       = 512 / max(iw, ih)
-                    img_pil = img_orig.resize((int(iw * r), int(ih * r)), Image.LANCZOS).copy()
-                else:
-                    img_pil = img_orig.copy()
-
-            messages = [{"role": "user", "content": [
-                {"type": "image", "image": img_pil},
-                {"type": "text",  "text":  _build_disabled_prompt(item, subject, category, slug_base)},
-            ]}]
-
-            text = processor.apply_chat_template(
-                messages, tokenize=False, add_generation_prompt=True)
-            img_inputs, vid_inputs = process_vision_info(messages)
-            inputs = processor(
-                text=[text], images=img_inputs, videos=vid_inputs,
-                padding=True, return_tensors="pt",
-            ).to(model.device)
-
-            with torch.no_grad():
-                out_ids = model.generate(
-                    **inputs,
-                    max_new_tokens=1200,   # 300-400 word desc fits in 1200 tokens — 2x faster
-                    temperature=0.1,       # Near-deterministic → fewer JSON parse errors
-                    top_p=0.9,
-                    do_sample=False,       # Greedy decode → consistent JSON structure
-                    pad_token_id=processor.tokenizer.eos_token_id,
-                )
-
-            trimmed = [out_ids[k][len(inputs.input_ids[k]):]
-                       for k in range(len(out_ids))]
-            raw = processor.batch_decode(
-                trimmed, skip_special_tokens=True,
-                clean_up_tokenization_spaces=True)[0].strip()
-
-            ai = {}
-            parse_ok = False
-
-            # Pass 1: direct JSON extract
-            try:
-                j0, j1 = raw.find("{"), raw.rfind("}") + 1
-                if j0 >= 0 and j1 > j0:
-                    ai = json.loads(raw[j0:j1])
-                    parse_ok = True
-            except Exception:
-                pass
-
-            # Pass 2: strip control chars then parse
-            if not parse_ok:
-                try:
-                    chunk = raw[raw.find("{"):raw.rfind("}") + 1]
-                    clean = re.sub(r'[\x00-\x1f\x7f]', ' ', chunk)
-                    ai = json.loads(clean)
-                    parse_ok = True
-                except Exception:
-                    pass
-
-            # Pass 3: aggressive clean — fix unescaped newlines inside strings
-            if not parse_ok:
-                try:
-                    chunk = raw[raw.find("{"):raw.rfind("}") + 1]
-                    clean = re.sub(r'[\x00-\x08\x0b-\x1f\x7f]', ' ', chunk)
-                    # Fix unescaped newlines inside JSON strings
-                    clean = re.sub(r'(?<!\\)\n', '\\n', clean)
-                    ai = json.loads(clean)
-                    parse_ok = True
-                except Exception:
-                    pass
-
-            # All passes failed → raise so outer except → DELETE
-            if not parse_ok:
-                raise ValueError(f"JSON parse failed after 3 passes. Raw[:200]: {raw[:200]}")
-
-            subject_match = ai.get("subject_match", True)
-            if isinstance(subject_match, str):
-                subject_match = subject_match.lower() not in ("false", "no", "0")
-            confidence = int(ai.get("confidence", 7))
-            verdict    = ai.get("verdict", "KEEP").strip().upper()
-            reason     = ai.get("reason", "")
-            shape_match = ai.get("shape_match", True)
-            if isinstance(shape_match, str):
-                shape_match = shape_match.lower() not in ("false", "no", "0")
-
-            delete_reason = None
-            if not subject_match:
-                delete_reason = f"Wrong subject (expected={subject})"
-                stats["wrong_subject"] += 1
-            elif group == "animals" and not shape_match:
-                delete_reason = f"Wrong body shape for {subject}"
-                stats["wrong_shape"] += 1
-            elif confidence < 7:
-                delete_reason = f"Low confidence={confidence}"
-                stats["low_confidence"] += 1
-            elif verdict == "DELETE":
-                delete_reason = reason or "Quality failed"
-                stats["deformed"] += 1
-
-            if delete_reason:
-                log(f"  DELETE [{i+1}/{len(generated)}] {path.name} | {delete_reason}")
-                path.unlink(missing_ok=True)
-                deleted += 1
-                continue
-
-            shutil.copy2(str(path), str(approved_path))
-
-            raw_slug = ai.get("slug") or f"{slug_base}-png-hd"
-            slug     = slugify(raw_slug)
-            base, sfx = slug, 1
-            while f"{category}/{slug}" in used_slugs:
-                slug = f"{base}-{sfx}"; sfx += 1
-            used_slugs.add(f"{category}/{slug}")
-
-            desc = ai.get("description", "")
-            if not desc or len(desc.split()) < 100:
-                desc = _fallback_desc(subject, category, prompt)
-
-            post = {
-                "category":        category,
-                "subcategory":     item.get("subcategory", "general"),
-                "subject_name":    subject,
-                "filename":        item["filename"],
-                "original_prompt": prompt,
-                "slug":            slug,
-                "title":           ai.get("title") or f"{subject} Transparent PNG HD Free Download | UltraPNG",
-                "h1":              ai.get("h1")    or f"{subject} PNG HD Image",
-                "meta_desc":       (ai.get("meta_desc") or
-                                    f"Download {subject} PNG transparent background free HD. UltraPNG.com")[:155],
-                "alt_text":        (ai.get("h1") or f"{subject} PNG") +
-                                   " Transparent Background Free Download UltraPNG",
-                "tags":            ai.get("tags") or
-                                   f"{subject},png,transparent,free download,hd,{subject} PNG free,ultrapng",
-                "description":     desc,
-                "word_count":      len(desc.split()),
-                "ai_generated":    bool(ai),
-                "model_confidence": confidence,
-                "model_group":      group,
-                "approved_path":   str(approved_path),
-                "png_file_id": "", "jpg_file_id": "", "webp_file_id": "",
-                "download_url": "", "preview_url": "", "preview_url_small": "",
-                "webp_preview_url": "", "preview_w": 800, "preview_h": 800,
-                "date_added": datetime.now().strftime("%Y-%m-%d"),
-            }
-            posts.append(post)
-
-            rate = max((i + 1 - resume_from), 1) / (time.time() - t0)
-            eta  = (len(generated) - i - 1) / rate / 60
-            log(f"  KEEP [{i+1}/{len(generated)}] {slug} (conf={confidence}) | ETA {eta:.0f}min")
-
-        except Exception as e:
-            # V7.0: parse fail = DELETE — do NOT keep bad images via fallback
-            log(f"  Qwen FAIL→DELETE [{i+1}] {item.get('filename','?')}: {e}")
-            stats["parse_fail"] += 1
-            path.unlink(missing_ok=True)   # delete the generated image
-            deleted += 1
-            continue
-
-        if (i + 1) % 10 == 0:
-            gc.collect(); torch.cuda.empty_cache()
-            save_checkpoint("phase2_posts_partial", posts)
-
-    log("\n  Deleting Qwen -> freeing VRAM + disk cache...")
-    del model, processor
-    free_memory()
-
-    # Delete Qwen HF cache to free ~6GB disk for RMBG download
-    import shutil as _shutil
-    for _cache_sub in HF_CACHE.iterdir():
-        if _cache_sub.is_dir():
-            _name = _cache_sub.name.lower()
-            if "disabled" in _name:
-                _shutil.rmtree(str(_cache_sub), ignore_errors=True)
-                log(f"  Deleted Qwen cache: {_cache_sub.name}")
-
-    # Delete GENERATED_DIR images — approved/ has the copies already
-    if GENERATED_DIR.exists():
-        _shutil.rmtree(str(GENERATED_DIR), ignore_errors=True)
-        GENERATED_DIR.mkdir(parents=True, exist_ok=True)
-        log("  Deleted generated/ images (approved/ copies kept)")
-
-    _used = sum(f.stat().st_size for f in HF_CACHE.rglob("*") if f.is_file()) / 1e9
-    log(f"  HF cache after cleanup: {_used:.1f}GB")
-
-    save_checkpoint("phase2_posts", posts)
-    log(f"PHASE 2 DONE — Kept: {len(posts)} | Deleted: {deleted}")
-    log(f"  WrongSubject:{stats['wrong_subject']} WrongShape:{stats['wrong_shape']} "
-        f"LowConf:{stats['low_confidence']} Deformed:{stats['deformed']} "
-        f"ParseFail:{stats['parse_fail']}\n")
-    return posts
-
-
-def _fallback_desc(subject, category, prompt=""):
-    ph = f' (prompt: "{prompt[:80]}")' if prompt else ""
-    return f"""## About This {subject} PNG Image
-
-A {subject} PNG image{ph} — free for download at UltraPNG.com with a fully transparent background. Whether you're designing flex banners, social media graphics, YouTube thumbnails, or Canva projects, this image integrates seamlessly into any layout. Background removal is done using RMBG-2.0 AI for clean, precise edges around every detail.
-
-## Best Uses for This Image
-
-Perfect for graphic designers, marketers, and content creators. Use this {subject} PNG in flex banner printing, invitation card designs, Instagram posts, WhatsApp status graphics, e-commerce product listings, and digital advertising. The transparent background works in Photoshop, Canva, CorelDRAW, and Figma without any extra editing.
-
-## Technical Quality
-
-Processed with RMBG-2.0 ONNX for pixel-perfect transparent edges. HD resolution stays sharp from small social media icons to large 4096px flex banner prints. Clean alpha channel with anti-aliased edges blends naturally on any color background.
-
-## Design Ideas
-
-- Flex banner and hoarding designs for shops and events
-- Social media posts, Instagram stories, and WhatsApp status
-- YouTube thumbnail and channel banner compositions
-- Wedding invitation and event poster designs
-- Restaurant menu cards and food delivery app graphics
-- Birthday and celebration banners
-- E-commerce product catalog listings
-- PowerPoint and Canva presentation slides
-
-## FAQ
-
-**Is this {subject} PNG completely free?**
-Yes — 100% free for personal and commercial use. No account, no signup, no watermark on downloaded file.
-
-**Can I use this in Canva?**
-Yes. Go to Canva → Uploads → upload this PNG → drag to your canvas. Transparent background works perfectly.
-
-**Does the downloaded PNG have a watermark?**
-No. The preview image shows a watermark for protection, but the downloaded file is completely clean.
-
-**Can I print this on flex banners?**
-Yes. The HD resolution is print-ready for large-format flex, vinyl, and hoarding printing.
-
-## Why UltraPNG
-
-UltraPNG.com is a free transparent PNG library updated daily with quality-verified AI-generated images. Every PNG features pixel-perfect RMBG-2.0 transparency. Completely free — no fees, no signup. Trusted by designers and marketers."""
-
-
-def _fallback_post(item_data, subject, category, prompt, used_slugs, approved_path=""):
-    item      = item_data["item"]
-    slug      = slugify(f"{subject}-png-hd")
-    base, sfx = slug, 1
-    while f"{category}/{slug}" in used_slugs:
-        slug = f"{base}-{sfx}"; sfx += 1
-    used_slugs.add(f"{category}/{slug}")
-    return {
-        "category": category, "subcategory": item.get("subcategory", "general"),
-        "subject_name": subject, "filename": item.get("filename", ""),
-        "original_prompt": prompt, "slug": slug,
-        "title": f"{subject} Transparent PNG HD Free Download | UltraPNG",
-        "h1": f"{subject} PNG HD Image",
-        "meta_desc": f"Download {subject} PNG transparent background free HD. UltraPNG.com.",
-        "alt_text": f"{subject} PNG Transparent Background Free Download UltraPNG",
-        "tags": f"{subject},png,transparent,free download,hd,{subject} PNG free,ultrapng",
-        "description": _fallback_desc(subject, category, prompt),
-        "word_count": 0, "ai_generated": False, "approved_path": approved_path,
-        "png_file_id": "", "jpg_file_id": "", "webp_file_id": "",
-        "download_url": "", "preview_url": "", "preview_url_small": "",
-        "webp_preview_url": "", "preview_w": 800, "preview_h": 800,
-        "date_added": datetime.now().strftime("%Y-%m-%d"),
-    }
 
 # ══════════════════════════════════════════════════════════════
 # PHASE 3 — RMBG-2.0 ONNX  (downloads from HuggingFace)
@@ -1399,7 +686,7 @@ def phase4_upload(posts):
         return ckpt
 
     log("=" * 56)
-    log("PHASE 4: Google Drive Upload + URL Capture")
+    log("PHASE 4: Google Drive Upload + URL Capture (PNG + WEBP only)")
     log("=" * 56)
 
     if not posts:
@@ -1436,9 +723,8 @@ def phase4_upload(posts):
             pr = drive_upload(token, fcache[f"p_{key}"], path.name, png_bytes)
             drive_share(token, pr["id"])
 
-            # WebP preview with diagonal watermark + bottom footer bar.
-            # JPG is intentionally skipped (lower cost + lower Drive API calls).
-            _, webp_bytes, pw, ph = make_previews(path)
+            # Reuse existing preview generator, but only upload WEBP (no JPG)
+            _jpg_bytes, webp_bytes, pw, ph = make_previews(path)
             wr = drive_upload(token, fcache[f"r_{key}"],
                               path.stem + ".webp", webp_bytes, "image/webp")
             drive_share(token, wr["id"])
@@ -1446,11 +732,8 @@ def phase4_upload(posts):
             uploaded.append({
                 **post,
                 "png_file_id":       pr["id"],
-                "jpg_file_id":       "",
                 "webp_file_id":      wr["id"],
                 "download_url":      download_url(pr["id"]),
-                "webp_download_url": download_url(wr["id"]),
-                # Website uses `preview_url` for the preview image.
                 "preview_url":       preview_url(wr["id"], 800),
                 "preview_url_small": preview_url(wr["id"], 400),
                 "webp_preview_url":  preview_url(wr["id"], 800),
@@ -2124,8 +1407,8 @@ def main():
              "approved": 0, "transparent": 0, "uploaded": 0, "posts": 0, "duration": "?"}
 
     print("╔══════════════════════════════════════════════════════╗")
-    print("║  UltraPNG V7.0 — HuggingFace Direct Pipeline       ║")
-    print("║  FLUX -> RMBG -> Drive -> ultradata.xlsx -> Git  ║")
+    print("║  UltraPNG — HuggingFace Direct Pipeline           ║")
+    print("║  FLUX -> RMBG -> Drive(PNG+WEBP) -> ultradata.xlsx ║")
     print("╚══════════════════════════════════════════════════════╝")
     print(f"  Batch : {START_INDEX} -> {END_INDEX} ({END_INDEX-START_INDEX} prompts)")
     print(f"  REPO2 : {GITHUB_REPO2}")
@@ -2138,6 +1421,12 @@ def main():
     print()
 
     try:
+        # Manual drop processing (independent of Flux generation)
+        try:
+            process_manual_drop()
+        except Exception as e:
+            log(f"Manual drop error (non-fatal): {e}")
+
         prompts = load_prompts()
         if not prompts:
             raise Exception("No prompts loaded!")
@@ -2153,12 +1442,53 @@ def main():
         if not generated:
             log("No new images generated."); return
 
-        # PHASE 2 (NO QWEN): prepare approved copies + subject names
-        posts = phase2_prepare_posts_no_model(generated)
+        # PHASE 2 (REMOVED FROM WORKFLOW):
+        # Filter + SEO must not run in Section 1.
+        # We only convert generated items into minimal "posts" needed for RMBG + upload.
+        log("=" * 56)
+        log("PHASE 2: (SKIPPED) Filter + SEO removed from Section 1 workflow")
+        log("=" * 56)
+        posts = []
+        for gd in generated:
+            item = gd["item"]
+            src  = Path(gd["path"])
+            rel  = src.relative_to(GENERATED_DIR)
+            dst  = APPROVED_DIR / rel
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            if not dst.exists():
+                shutil.copy2(str(src), str(dst))
+            subject = (item.get("subject_name") or item.get("subject") or
+                       item.get("name") or item.get("title") or
+                       item.get("subcategory") or item.get("category") or "Untitled")
+            subject = str(subject).replace("_", " ").replace("-", " ").title()
+            posts.append({
+                "category": item.get("category", "general"),
+                "subcategory": item.get("subcategory", "general"),
+                "subject_name": subject,
+                "filename": item.get("filename", src.name),
+                "original_prompt": item.get("prompt", ""),
+                "approved_path": str(dst),
+                # Keep downstream schema compatibility
+                "slug": slugify(subject),
+                "title": "",
+                "h1": "",
+                "meta_desc": "",
+                "alt_text": "",
+                "tags": "",
+                "description": "",
+                "word_count": 0,
+                "ai_generated": False,
+                "qwen_confidence": 0,
+                "qwen_group": "",
+                "png_file_id": "", "jpg_file_id": "", "webp_file_id": "",
+                "download_url": "", "preview_url": "", "preview_url_small": "",
+                "webp_preview_url": "", "preview_w": 800, "preview_h": 800,
+                "date_added": datetime.now().strftime("%Y-%m-%d"),
+            })
         stats["approved"] = len(posts)
         stats["deleted"]  = 0
         if not posts:
-            log("No posts prepared."); return
+            log("No items to process after Phase 1."); return
 
         # PHASE 3
         transparent = phase3_bg_remove(posts)
@@ -2172,9 +1502,15 @@ def main():
         if not uploaded:
             log("Drive upload failed."); return
 
-        # PHASE 5: append into ultradata.xlsx (no REPO2 JSON push in Section 1)
-        update_ultradata_xlsx_from_uploaded(uploaded)
+        # PHASE 5 (REMOVED FROM WORKFLOW):
+        # Section 1 must NOT push SEO/JSON into Repo 2 anymore.
         stats["posts"] = len(uploaded)
+
+        # Save ultradata.xlsx into this GitHub repository (append-only).
+        try:
+            _append_ultradata_and_push(uploaded)
+        except Exception as e:
+            log(f"ultradata.xlsx update failed (non-fatal): {e}")
 
         # Clear checkpoints on success
         for ck in CHECKPOINT_DIR.glob("*.json"):
@@ -2198,6 +1534,105 @@ def main():
         raise
     finally:
         phase6_save_logs(stats)
+
+def _append_ultradata_and_push(items):
+    """
+    Append-only writer for ultradata.xlsx stored in REPO1 (this GitHub repo).
+    This runs inside Kaggle; it clones/pulls REPO1 using GITHUB_TOKEN_REPO1.
+    """
+    token = GITHUB_TOKEN_REPO1 or ""
+    repo  = (GITHUB_REPO1 or "").strip()
+    if not token or not repo:
+        raise Exception("Missing GITHUB_TOKEN_REPO1 or GITHUB_REPO (repo1)")
+
+    repo_url = f"https://x-access-token:{token}@github.com/{repo}.git"
+    xrepo_dir = WORKING_DIR / "repo1_xlsx"
+
+    if xrepo_dir.exists() and (xrepo_dir / ".git").exists():
+        subprocess.run(["git", "pull", "--rebase", "--autostash"],
+                       cwd=str(xrepo_dir), capture_output=True)
+        subprocess.run(["git", "remote", "set-url", "origin", repo_url],
+                       cwd=str(xrepo_dir), capture_output=True)
+    else:
+        shutil.rmtree(str(xrepo_dir), ignore_errors=True)
+        subprocess.run(["git", "clone", "--depth", "1", repo_url, str(xrepo_dir)],
+                       capture_output=True, check=True)
+
+    try:
+        import openpyxl
+        from openpyxl import Workbook
+    except Exception:
+        subprocess.run([sys.executable, "-m", "pip", "install", "-q", "openpyxl>=3.1.2"],
+                       capture_output=True, check=True)
+        import openpyxl
+        from openpyxl import Workbook
+
+    xlsx_path = xrepo_dir / ULTRADATA_XLSX_NAME
+    headers = [
+        "date_added", "subject_name", "category", "subcategory", "filename",
+        "png_file_id", "webp_file_id", "download_url", "preview_url"
+    ]
+
+    if xlsx_path.exists():
+        wb = openpyxl.load_workbook(str(xlsx_path))
+        ws = wb.active
+        existing_header = [c.value for c in ws[1]] if ws.max_row >= 1 else []
+        if existing_header != headers:
+            # If header differs, keep existing sheet and append missing columns at end.
+            # We do NOT overwrite old data.
+            for h in headers[len(existing_header):]:
+                ws.cell(row=1, column=len(existing_header) + 1, value=h)
+    else:
+        wb = Workbook()
+        ws = wb.active
+        ws.append(headers)
+
+    def _row(it):
+        return [
+            it.get("date_added", ""),
+            it.get("subject_name", ""),
+            it.get("category", ""),
+            it.get("subcategory", ""),
+            it.get("filename", ""),
+            it.get("png_file_id", ""),
+            it.get("webp_file_id", ""),
+            it.get("download_url", ""),
+            it.get("preview_url", ""),
+        ]
+
+    appended = 0
+    for it in items:
+        if not it.get("subject_name") or not it.get("download_url") or not it.get("preview_url"):
+            continue
+        ws.append(_row(it))
+        appended += 1
+
+    wb.save(str(xlsx_path))
+
+    if appended == 0:
+        log("ultradata.xlsx: nothing new to append")
+        return
+
+    orig_dir = os.getcwd()
+    try:
+        os.chdir(str(xrepo_dir))
+        subprocess.run(["git", "config", "user.name", "github-actions[bot]"],
+                       check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.email",
+                        "github-actions[bot]@users.noreply.github.com"],
+                       check=True, capture_output=True)
+        subprocess.run(["git", "add", ULTRADATA_XLSX_NAME], check=True, capture_output=True)
+        diff = subprocess.run(["git", "diff", "--staged", "--quiet"], capture_output=True)
+        if diff.returncode != 0:
+            msg = f"ultradata: append {appended} rows [{datetime.now().strftime('%Y-%m-%d')}]"
+            subprocess.run(["git", "commit", "-m", msg], check=True, capture_output=True)
+            subprocess.run(["git", "push"], check=True, capture_output=True)
+            log(f"ultradata.xlsx pushed: +{appended} rows")
+        else:
+            log("ultradata.xlsx: no staged changes")
+    finally:
+        os.chdir(orig_dir)
+
 
 if __name__ == "__main__":
     main()

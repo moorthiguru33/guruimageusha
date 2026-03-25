@@ -1,0 +1,279 @@
+import json
+import os
+import re
+import subprocess
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Tuple
+
+
+ULTRADATA_XLSX = "ultradata.xlsx"
+
+
+def _word_count(s: str) -> int:
+    return len([w for w in re.split(r"\s+", (s or "").strip()) if w])
+
+
+def _ddg_snippets(query: str, limit: int = 6) -> List[str]:
+    """
+    Free web search (no key): DuckDuckGo HTML endpoint parsing.
+    Best-effort; returns short snippets for grounding/uniqueness.
+    """
+    import requests
+
+    q = (query or "").strip()
+    if not q:
+        return []
+    url = "https://duckduckgo.com/html/"
+    r = requests.post(url, data={"q": q}, timeout=30, headers={"User-Agent": "Mozilla/5.0"})
+    if not r.ok:
+        return []
+    html = r.text
+    # crude snippet extraction; avoids external parsers
+    snippets = re.findall(r'class="result__snippet".*?>(.*?)</a>', html, flags=re.S | re.I)
+    cleaned = []
+    for s in snippets:
+        s = re.sub(r"<.*?>", " ", s)
+        s = re.sub(r"\s+", " ", s).strip()
+        if s and s not in cleaned:
+            cleaned.append(s)
+        if len(cleaned) >= limit:
+            break
+    return cleaned
+
+
+def _groq_generate(subject_name: str, web_snippets: List[str]) -> Tuple[str, str]:
+    """
+    Generates SEO title (20+ words) + description (300+ words) using Groq Chat Completions.
+    Env: GROQ_API_KEY
+    """
+    import requests
+
+    key = os.environ.get("GROQ_API_KEY", "").strip()
+    if not key:
+        raise RuntimeError("Missing GROQ_API_KEY")
+
+    subject = (subject_name or "").strip()
+    if not subject:
+        raise RuntimeError("Missing subject_name")
+
+    context = "\n".join(f"- {s}" for s in (web_snippets or [])[:8])
+    sys_prompt = (
+        "You are an expert SEO content writer optimized for Google AdSense compliance. "
+        "Write unique, helpful, non-spammy content. Avoid keyword stuffing. "
+        "No prohibited claims, no adult content, no medical claims unless clearly general. "
+        "Output strictly JSON with keys: title, description."
+    )
+    user_prompt = f"""
+Subject name: {subject}
+
+Optional web context snippets (use only for general grounding; do NOT copy verbatim):
+{context or "- (none)"}
+
+Requirements:
+- title: minimum 20 words, natural English, includes the subject name once.
+- description: minimum 300 words, high quality, unique, helpful, AdSense-safe.
+- Must be about a transparent PNG image and its best uses (design, printing, Canva, etc.).
+- Do not mention AI, Groq, or web search.
+- Return ONLY valid JSON. No markdown.
+""".strip()
+
+    # Using Groq OpenAI-compatible endpoint
+    r = requests.post(
+        "https://api.groq.com/openai/v1/chat/completions",
+        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+        json={
+            "model": os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile"),
+            "temperature": 0.6,
+            "messages": [
+                {"role": "system", "content": sys_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+        },
+        timeout=90,
+    )
+    r.raise_for_status()
+    content = r.json()["choices"][0]["message"]["content"].strip()
+    j0, j1 = content.find("{"), content.rfind("}") + 1
+    data = json.loads(content[j0:j1])
+    title = (data.get("title") or "").strip()
+    desc = (data.get("description") or "").strip()
+
+    if _word_count(title) < 20:
+        raise RuntimeError(f"Title too short: {_word_count(title)} words")
+    if _word_count(desc) < 300:
+        raise RuntimeError(f"Description too short: {_word_count(desc)} words")
+    return title, desc
+
+
+def _read_ultradata_rows(xlsx_path: Path) -> List[Dict[str, str]]:
+    import openpyxl
+
+    wb = openpyxl.load_workbook(str(xlsx_path))
+    ws = wb.active
+    if ws.max_row < 2:
+        return []
+
+    headers = [str(c.value or "").strip() for c in ws[1]]
+    idx = {h: i for i, h in enumerate(headers)}
+    needed = ["subject_name", "filename", "download_url", "preview_url"]
+    for h in needed:
+        if h not in idx:
+            raise RuntimeError(f"ultradata.xlsx missing column: {h}")
+
+    out = []
+    for r in ws.iter_rows(min_row=2, values_only=True):
+        row = {h: ("" if r[idx[h]] is None else str(r[idx[h]]).strip()) for h in needed}
+        if row["filename"] and row["subject_name"]:
+            out.append(row)
+    return out
+
+
+@dataclass
+class Repo2Config:
+    token: str
+    slug: str
+    data_dir: str = "data"
+
+
+def _clone_repo2(cfg: Repo2Config, workdir: Path) -> Path:
+    repo_url = f"https://x-access-token:{cfg.token}@github.com/{cfg.slug}.git"
+    if workdir.exists():
+        subprocess.run(["git", "pull", "--rebase", "--autostash"], cwd=str(workdir), check=False)
+        subprocess.run(["git", "remote", "set-url", "origin", repo_url], cwd=str(workdir), check=False)
+        return workdir
+    subprocess.run(["git", "clone", "--depth", "1", repo_url, str(workdir)], check=True)
+    return workdir
+
+
+def _load_repo2_entries(repo2_dir: Path, data_dir: str) -> Tuple[Dict[str, Any], List[Path]]:
+    d = repo2_dir / data_dir
+    d.mkdir(parents=True, exist_ok=True)
+    files = sorted([p for p in d.glob("json*.json") if p.is_file()])
+    if not files:
+        f1 = d / "json1.json"
+        f1.write_text("[]", encoding="utf-8")
+        files = [f1]
+
+    all_entries: Dict[str, Any] = {}
+    for f in files:
+        try:
+            arr = json.loads(f.read_text(encoding="utf-8"))
+            if isinstance(arr, list):
+                for e in arr:
+                    fn = (e or {}).get("filename")
+                    if fn and fn not in all_entries:
+                        all_entries[fn] = e
+        except Exception:
+            continue
+    return all_entries, files
+
+
+def _save_repo2_files(repo2_dir: Path, data_dir: str, file_entries: Dict[Path, List[Dict[str, Any]]]) -> None:
+    for f, arr in file_entries.items():
+        tmp = f.with_suffix(f.suffix + ".tmp")
+        tmp.write_text(json.dumps(arr, ensure_ascii=False, indent=2), encoding="utf-8")
+        tmp.replace(f)
+
+
+def _ensure_capacity(files: List[Path], repo2_dir: Path, data_dir: str, max_entries: int) -> Path:
+    last = files[-1]
+    try:
+        arr = json.loads(last.read_text(encoding="utf-8"))
+        n = len(arr) if isinstance(arr, list) else 0
+    except Exception:
+        n = 0
+    if n < max_entries:
+        return last
+
+    m = re.match(r"json(\d+)\.json$", last.name)
+    nxt = (int(m.group(1)) + 1) if m else (len(files) + 1)
+    newf = (repo2_dir / data_dir / f"json{nxt}.json")
+    newf.write_text("[]", encoding="utf-8")
+    files.append(newf)
+    return newf
+
+
+def main() -> None:
+    root = Path(__file__).resolve().parent
+    xlsx = root / ULTRADATA_XLSX
+    if not xlsx.exists():
+        raise SystemExit(f"Missing {ULTRADATA_XLSX} in repo root")
+
+    repo2_token = os.environ.get("REPO2_TOKEN", "").strip()
+    repo2_slug = os.environ.get("REPO2_SLUG", "").strip()
+    if not repo2_token or not repo2_slug:
+        raise SystemExit("Missing REPO2_TOKEN or REPO2_SLUG")
+
+    max_per_file = int(os.environ.get("REPO2_MAX_PER_JSON", "200"))
+
+    rows = _read_ultradata_rows(xlsx)
+    if not rows:
+        print("ultradata.xlsx: no rows")
+        return
+
+    cfg = Repo2Config(token=repo2_token, slug=repo2_slug)
+    repo2_dir = _clone_repo2(cfg, root / "_repo2_work")
+
+    existing, files = _load_repo2_entries(repo2_dir, cfg.data_dir)
+    missing = [r for r in rows if r["filename"] not in existing]
+
+    print(f"Repo2 existing: {len(existing)}")
+    print(f"Ultradata rows: {len(rows)}")
+    print(f"Missing SEO entries: {len(missing)}")
+
+    if not missing:
+        return
+
+    # Load file contents into memory for write-back
+    file_entries: Dict[Path, List[Dict[str, Any]]] = {}
+    for f in files:
+        try:
+            arr = json.loads(f.read_text(encoding="utf-8"))
+            file_entries[f] = arr if isinstance(arr, list) else []
+        except Exception:
+            file_entries[f] = []
+
+    added = 0
+    for r in missing:
+        subject = r["subject_name"]
+        snippets = _ddg_snippets(subject + " PNG")
+        title, desc = _groq_generate(subject, snippets)
+
+        target = _ensure_capacity(files, repo2_dir, cfg.data_dir, max_per_file)
+        if target not in file_entries:
+            file_entries[target] = []
+        file_entries[target].append(
+            {
+                "subject_name": subject,
+                "filename": r["filename"],
+                "download_url": r["download_url"],
+                "preview_url": r["preview_url"],
+                "title": title,
+                "description": desc,
+            }
+        )
+        added += 1
+
+    _save_repo2_files(repo2_dir, cfg.data_dir, file_entries)
+
+    # Commit + push
+    subprocess.run(["git", "status", "--porcelain"], cwd=str(repo2_dir), check=False)
+    subprocess.run(["git", "add", cfg.data_dir], cwd=str(repo2_dir), check=True)
+    diff = subprocess.run(["git", "diff", "--staged", "--quiet"], cwd=str(repo2_dir))
+    if diff.returncode != 0:
+        subprocess.run(["git", "config", "user.name", "github-actions[bot]"], cwd=str(repo2_dir), check=True)
+        subprocess.run(
+            ["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"],
+            cwd=str(repo2_dir),
+            check=True,
+        )
+        subprocess.run(["git", "commit", "-m", f"seo: add {added} entries from ultradata"], cwd=str(repo2_dir), check=True)
+        subprocess.run(["git", "push"], cwd=str(repo2_dir), check=True)
+
+    print(f"Added SEO entries: {added}")
+
+
+if __name__ == "__main__":
+    main()
+

@@ -1438,35 +1438,34 @@ CAR_DETAILS = [
 # ═══════════════════════════════════════════════════════════
 
 class PromptEngine:
-    def make(self, subject, extra: str = "", variant: str = "base"):
-        """
-        One prompt-builder tool.
 
-        variant="base"   -> ANGLES + PHOTO + BASE_SUFFIX (default, existing behavior)
-        variant="animal" -> LIGHTING + QUALITY + ANIMAL_SUFFIX
-        variant="model"  -> LIGHTING + QUALITY + MODEL_SUFFIX
-        """
+    def make(self, subject, extra=""):
+        a = random.choice(ANGLES)
+        l = random.choice(LIGHTING)
+        q = random.choice(QUALITY)
+        s = random.choice(PHOTO)
         parts = [subject]
         if extra:
             parts.append(extra)
+        parts.extend([a, l, q, s, BASE_SUFFIX])
+        return ", ".join(parts)
 
-        if variant == "base":
-            a = random.choice(ANGLES)
-            l = random.choice(LIGHTING)
-            q = random.choice(QUALITY)
-            s = random.choice(PHOTO)
-            parts.extend([a, l, q, s, BASE_SUFFIX])
-        elif variant == "animal":
-            l = random.choice(LIGHTING)
-            q = random.choice(QUALITY)
-            parts.extend([l, q, ANIMAL_SUFFIX])
-        elif variant == "model":
-            l = random.choice(LIGHTING)
-            q = random.choice(QUALITY)
-            parts.extend([l, q, MODEL_SUFFIX])
-        else:
-            raise ValueError(f"Unknown prompt variant: {variant}")
+    def make_animal(self, subject, extra=""):
+        l = random.choice(LIGHTING)
+        q = random.choice(QUALITY)
+        parts = [subject]
+        if extra:
+            parts.append(extra)
+        parts.extend([l, q, ANIMAL_SUFFIX])
+        return ", ".join(parts)
 
+    def make_model(self, subject, extra=""):
+        l = random.choice(LIGHTING)
+        q = random.choice(QUALITY)
+        parts = [subject]
+        if extra:
+            parts.append(extra)
+        parts.extend([l, q, MODEL_SUFFIX])
         return ", ".join(parts)
 
     def add(self, prompts, cat, sub, text):
@@ -1483,7 +1482,7 @@ class PromptEngine:
         for sub, items in POULTRY_ANIMALS.items():
             for item in items:
                 for ctx in ctxs:
-                    self.add(p, "poultry_animals", sub, self.make(item, ctx, variant="animal"))
+                    self.add(p, "poultry_animals", sub, self.make_animal(item, ctx))
         return p
 
     # ── 2. FISH & SEAFOOD ────────────────────────────────────
@@ -1692,7 +1691,7 @@ class PromptEngine:
                 for look in MODEL_LOOKS:
                     saree = random.choice(MODEL_SAREE_LIST)
                     self.add(p, "jewellery_models", sub,
-                             self.make(f"{item}, {saree}, {look}", variant="model"))
+                             self.make_model(f"{item}, {saree}, {look}"))
         return p
 
     # ── 22. OFFICE MODELS ────────────────────────────────────
@@ -1702,7 +1701,7 @@ class PromptEngine:
             for item in items:
                 for pose in OFFICE_POSES:
                     self.add(p, "office_models", sub,
-                             self.make(f"{item}, {pose}", variant="model"))
+                             self.make_model(f"{item}, {pose}"))
         return p
 
     # ── 23. VEHICLES ─────────────────────────────────────────
