@@ -1,17 +1,3 @@
-# <<<CREDS_START>>>
-import os
-os.environ["GOOGLE_CLIENT_ID"] = "308212866102-sd27dv5pjsr2bff3fioj4frr0ul58a1h.apps.googleusercontent.com"
-os.environ["GOOGLE_CLIENT_SECRET"] = "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"
-os.environ["GOOGLE_REFRESH_TOKEN"] = "1//0gK-Pq9Wd5D1OCgYIARAAGBASNwF-L9IriEGWY1hzEOsDtGLe5jwqrtN9J8CkpeFFMo605QtjdnphjbNotyA69oixHjt66gIiOtE"
-os.environ["GITHUB_TOKEN_REPO2"] = "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"
-os.environ["GITHUB_REPO2"] = "moorthiguru33/ultrapng"
-os.environ["GITHUB_REPO1"] = "moorthiguru33/guruimageusha"
-os.environ["GITHUB_TOKEN_REPO1"] = "ghs_eYcRDFSF6fZqsMgm518PK1DF6AqpiJ03pu2r"
-os.environ["GOOGLE_SHEETS_ID"] = "1Qtl-_X4-GsSnEZ_Vd-d8oeZDZZmEer0hF-Q2UA2xmd4"
-os.environ["DRIVE_ROOT_FOLDER_ID"] = "1zvBogYwh_73BMTkEmLCf_rOjKCYmjHX4"
-os.environ["START_INDEX"] = "15"
-os.environ["END_INDEX"] = "20"
-# <<<CREDS_END>>>
 """
 UltraPNG — Phase 1 Kaggle Pipeline
 FLUX.2-Klein-4B → BiRefNet_HR BG Remove → PNG + WebP → Google Drive → Google Sheets → Trigger Phase 2
@@ -80,14 +66,14 @@ def _fix_torch_for_p100():
             major = int(cap.split(".")[0])
             if major < 7:
                 _IS_P100 = True
-                print(f"  P100/sm_{cap.replace('.', '')} detected — installing torch==2.1.2+cu118...")
+                print(f"  P100/sm_{cap.replace('.', '')} detected — installing torch==2.4.0+cu118...")
                 subprocess.run([
                     sys.executable, "-m", "pip", "install", "-q",
-                    "torch==2.1.2+cu118", "torchvision==0.16.2+cu118",
+                    "torch==2.4.0+cu118", "torchvision==0.19.0+cu118",
                     "--index-url", "https://download.pytorch.org/whl/cu118",
                     "--force-reinstall"
                 ], capture_output=True, text=True)
-                print("  torch==2.1.2+cu118 installed ✓")
+                print("  torch==2.4.0+cu118 installed ✓")
             else:
                 print(f"  GPU sm_{cap.replace('.', '')} detected — default torch OK ✓")
     except Exception as e:
@@ -117,18 +103,18 @@ for _pkg in _PKGS:
 # CRITICAL: If P100, re-install cu118 torch LAST — diffusers/transformers
 # may have overwritten it with an incompatible version during deps install
 if _IS_P100:
-    print("  Re-installing torch==2.1.2+cu118 (ensuring cu118 is final)...")
+    print("  Re-installing torch==2.4.0+cu118 (ensuring cu118 is final)...")
     subprocess.run([
         sys.executable, "-m", "pip", "install", "-q",
-        "torch==2.1.2+cu118", "torchvision==0.16.2+cu118",
+        "torch==2.4.0+cu118", "torchvision==0.19.0+cu118",
         "--index-url", "https://download.pytorch.org/whl/cu118",
         "--force-reinstall", "--no-deps"
     ], capture_output=True, text=True)
-    print("  torch==2.1.2+cu118 re-installed ✓")
+    print("  torch==2.4.0+cu118 re-installed ✓")
 
 print("Done!\n")
 
-# NOW import torch — picks up the correct version (2.1.2+cu118 on P100)
+# NOW import torch — picks up the correct version (2.4.0+cu118 on P100)
 import torch
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
