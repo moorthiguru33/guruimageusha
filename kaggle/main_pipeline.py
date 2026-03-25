@@ -16,9 +16,12 @@ import os, sys, json, time, gc, re, io, shutil, base64, subprocess, math
 from pathlib import Path
 from datetime import datetime
 
-# ── Force real-time log output in Kaggle (no buffering delay) ──
-sys.stdout.reconfigure(line_buffering=True)
-sys.stderr.reconfigure(line_buffering=True)
+# ── Force real-time log output in Kaggle (safe — works in Jupyter & script) ──
+try:
+    sys.stdout.reconfigure(line_buffering=True)
+    sys.stderr.reconfigure(line_buffering=True)
+except AttributeError:
+    pass  # Kaggle Jupyter IPython stream — reconfigure() not supported
 
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 ULTRADATA_XLSX_NAME = "ultradata.xlsx"
