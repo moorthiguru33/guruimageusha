@@ -115,43 +115,96 @@ def _groq_vision_seo(subject_name: str, image_url: str,
     if not subject:
         raise RuntimeError("Missing subject_name")
 
-    seo_prompt = f"""You are a professional SEO content writer for UltraPNG.com — a free transparent PNG image library.
-Look carefully at the PNG image provided. Use what you actually see (colors, texture, angle, details, style) to write unique SEO content.
+    seo_prompt = f"""You are a passionate graphic design expert and nature writer.
+You genuinely love helping designers, students, teachers, and small business owners find beautiful images.
+You are writing an informative, helpful resource page — NOT a download page, NOT an ad page.
 
-Subject name: {subject}
+Look carefully at the image. Write as if you discovered this beautiful {subject} image and want to share everything useful about it.
 
-Write a JSON object with these exact keys:
+Subject: {subject}
 
-title:
-  - Minimum 20 words. Natural human-written sentence (not robotic).
-  - Include subject name + one strong search keyword phrase.
-  - Vary the wording — do NOT use a fixed template every time.
+STRICT RULES — violation causes rejection:
+- NEVER write "download" more than twice in the entire description
+- NEVER use "click here", "visit our site", "check out", "get it now", "grab it"
+- NEVER say "The image provided", "This image shows", "UltraPNG.com showcases"
+- NEVER mention AI, Groq, machine learning, robots, or automated tools
+- NEVER sound like an advertisement — write like an expert sharing knowledge
+- NEVER use bullet points or numbered lists
+- NEVER repeat sentence structures across paragraphs
+- Write like a real human expert who genuinely cares about design quality
 
-h1:
-  - 8–14 words. Clean punchy heading. Include subject name.
+OUTPUT: One valid JSON object with exactly these keys:
 
-meta_desc:
-  - Under 155 characters. One natural sentence.
-  - Include subject name + "free download" or "transparent PNG".
+"title":
+  MINIMUM 20 WORDS — count every single word before submitting.
+  Write a natural, informative title a real human expert would write.
+  Focus on: what makes THIS specific image special + who will find it useful.
+  Vary structure completely — no two titles should follow the same pattern.
+  EXAMPLE (count=24 words): "Striking Deep-Red Crab with Glistening Shell Texture on Clear Background — Ideal for Marine Biology Projects, Seafood Menus, and Coastal Design Themes"
 
-alt_text:
-  - One descriptive sentence based on what you actually see in the image.
-  - Format: "[color/style] {subject} PNG image with transparent background, [one visual detail]"
+"h1":
+  8–14 words. Describe what makes this specific {subject} image stand out.
+  Focus on a visual quality + use case. Never generic.
 
-tags:
-  - 6–10 comma-separated keywords. Short and long-tail mix.
+"meta_desc":
+  Under 155 characters. Written to make someone curious, not to sell.
+  Describe what's special about this image + one compelling reason to use it.
 
-description:
-  - Minimum 350 words. Written like a helpful blog post.
-  - Paragraph 1: Describe what you actually see in this specific image (color, texture, angle, quality).
-  - Paragraph 2: Best use cases — Canva, Photoshop, school projects, menus, social media, etc.
-  - Paragraph 3: Why transparent PNG is better than JPEG for design work.
-  - Paragraph 4: How to download and use this free image from UltraPNG.
-  - Paragraph 5: Who benefits — designers, students, bloggers, small businesses.
-  - Natural keywords only. Prose paragraphs — no bullet points or lists.
-  - DO NOT mention AI, Groq, or image analysis tools.
+"alt_text":
+  Precise visual description for screen readers and image search.
+  Include: dominant color, subject, count (if multiple), angle, one distinctive detail.
+  Format: "[color] {subject} [detail] on transparent background"
 
-Return ONLY valid JSON. No markdown fences. No preamble."""
+"tags":
+  8–10 keywords. Mix of: subject-specific, color-specific, use-case, profession-specific.
+  Examples: "{subject} transparent png", "seafood illustration", "marine life graphic",
+  "restaurant menu artwork", "{subject} clipart hd", "food photography png"
+  NO generic tags like "free image", "png download", "design resources" alone.
+
+"description":
+  MINIMUM 450 WORDS — count as you write. Five paragraphs. Pure prose, no lists.
+
+  Paragraph 1 — ABOUT THIS IMAGE (minimum 110 words):
+    Write as a passionate photographer or naturalist describing what they see.
+    Start with the most striking visual detail — color, texture, composition.
+    NEVER start with "The", "This", or the subject name directly.
+    Start with a descriptive phrase: "Glistening under studio light...", "A rich amber tone...", "Caught at the perfect angle..."
+    Describe: exact colors, surface texture, lighting quality, composition angle,
+    number of subjects, any unique visual characteristics.
+    End by explaining what makes this particular image special for creative work.
+
+  Paragraph 2 — CREATIVE APPLICATIONS (minimum 110 words):
+    Connect the SPECIFIC visual details from paragraph 1 to real use cases.
+    Write like a design teacher explaining possibilities to a student.
+    Example: "The warm amber shell tones make this {subject} a natural fit for autumn-themed restaurant menus..."
+    Cover at least 4 different contexts: education, food industry, social media, print design.
+    Explain WHY the visual properties suit each use — not just that they "can be used".
+    Mention specific tools: Canva, Photoshop, Illustrator, Google Slides, PowerPoint.
+
+  Paragraph 3 — WORKING WITH TRANSPARENT PNG (minimum 90 words):
+    Write as a design tutor explaining transparent PNG to someone new to design.
+    Find a fresh angle — explain it through a real scenario or comparison.
+    Cover: no background removal needed, layers cleanly over any color,
+    no jagged white edges like JPEG, maintains quality at any size,
+    compatible with all major design software.
+    Make this feel like genuine helpful advice, not technical documentation.
+
+  Paragraph 4 — PRACTICAL TIPS (minimum 80 words):
+    Share 2–3 genuinely useful tips for working with this specific image.
+    Examples: suggested background colors that complement this {subject}'s colors,
+    good font pairings for menu or poster use, ideal sizing for social media formats,
+    how to add a drop shadow in Canva for depth.
+    Write from experience — as if you have personally used this image in projects.
+
+  Paragraph 5 — WHO WILL LOVE THIS (minimum 80 words):
+    Paint a picture of specific real people who would benefit.
+    Connect their work to THIS image's specific visual qualities.
+    Examples: "A marine biology teacher preparing a lesson on crustaceans...",
+    "A seafood restaurant owner designing a summer specials menu..."
+    Be specific, warm, and encouraging — like a friend recommending something great.
+    Do NOT end with a call-to-action or promotional sentence.
+
+Return ONLY the JSON object. No markdown fences. No extra text."""
 
     def _make_messages(use_image: bool) -> list:
         if use_image and image_url:
@@ -164,32 +217,53 @@ Return ONLY valid JSON. No markdown fences. No preamble."""
             }]
         return [{"role": "user", "content": seo_prompt}]
 
+    # Banned phrases — AdSense flags these as ad-page / AI / low-value signals
+    _BANNED = [
+        "the image provided", "the png image provided",
+        "as an ai", "i can see", "i can observe", "upon examining",
+        "click here", "visit our site", "check out", "grab it",
+        "get it now", "don't miss", "act now", "limited time",
+        "showcases a", "this image shows", "the image shows",
+        "in conclusion", "in summary", "to summarize",
+    ]
+
     def _parse_seo(content: str) -> Dict[str, str]:
         j0, j1 = content.find("{"), content.rfind("}") + 1
         if j0 == -1 or j1 == 0:
             raise ValueError("No JSON in response")
-        raw = content[j0:j1]
-        # strict=False: allows raw control characters (newlines etc.)
-        # that vision models sometimes embed inside string values
-        data      = json.loads(raw, strict=False)
+        raw  = content[j0:j1]
+        data = json.loads(raw, strict=False)
+
         title     = (data.get("title")       or "").strip()
         desc      = (data.get("description") or "").strip()
         h1        = (data.get("h1")          or title).strip()
         meta_desc = (data.get("meta_desc")   or "").strip()
         alt_text  = (data.get("alt_text")    or title).strip()
         tags      = (data.get("tags")        or "").strip()
-        if _word_count(title) < 5:
-            raise RuntimeError(f"Title too short: {_word_count(title)} words")
-        if _word_count(desc) < 50:
-            raise RuntimeError(f"Description too short: {_word_count(desc)} words")
+
+        # ── Strict quality gates ────────────────────────────
+        title_wc = _word_count(title)
+        desc_wc  = _word_count(desc)
+        if title_wc < 20:
+            raise RuntimeError(f"Title too short: {title_wc} words (need 20+) → '{title[:60]}'")
+        if desc_wc < 400:
+            raise RuntimeError(f"Description too short: {desc_wc} words (need 400+)")
+        if len(meta_desc) > 155:
+            meta_desc = meta_desc[:152] + "..."
+        # ── Banned phrase check ─────────────────────────────
+        desc_lower = desc.lower()
+        for phrase in _BANNED:
+            if phrase in desc_lower:
+                raise RuntimeError(f"Banned phrase detected: '{phrase}' — regenerating")
         return {
             "title":       title,
             "h1":          h1,
-            "meta_desc":   meta_desc[:155] if meta_desc else "",
+            "meta_desc":   meta_desc,
             "alt_text":    alt_text,
             "tags":        tags,
             "description": desc,
         }
+
 
     # ── Attempt 1: Vision model (sees the actual image) ─────
     if image_url:
@@ -201,12 +275,13 @@ Return ONLY valid JSON. No markdown fences. No preamble."""
                     headers={"Authorization": f"Bearer {key}",
                              "Content-Type": "application/json"},
                     json={
-                        "model":       GROQ_VISION_MODEL,
-                        "temperature": 0.4,
-                        "max_tokens":  2048,
-                        "messages":    _make_messages(use_image=True),
+                        "model":           GROQ_VISION_MODEL,
+                        "temperature":     0.5,
+                        "max_tokens":      3000,
+                        "response_format": {"type": "json_object"},
+                        "messages":        _make_messages(use_image=True),
                     },
-                    timeout=90,
+                    timeout=120,
                 )
                 if r.status_code == 429:
                     retry_after = float(r.headers.get("retry-after", "60"))
@@ -238,12 +313,13 @@ Return ONLY valid JSON. No markdown fences. No preamble."""
                     headers={"Authorization": f"Bearer {key}",
                              "Content-Type": "application/json"},
                     json={
-                        "model":       model,
-                        "temperature": 0.4,
-                        "max_tokens":  2048,
-                        "messages":    _make_messages(use_image=False),
+                        "model":           model,
+                        "temperature":     0.5,
+                        "max_tokens":      3000,
+                        "response_format": {"type": "json_object"},
+                        "messages":        _make_messages(use_image=False),
                     },
-                    timeout=90,
+                    timeout=120,
                 )
                 if r.status_code == 429:
                     retry_after = float(r.headers.get("retry-after", "60"))
@@ -823,17 +899,22 @@ def main() -> None:
                 "subject_name": subject,
                 "filename":     r["filename"],
                 "slug":         slug,
-                "download_url": r["download_url"],
-                "preview_url":  preview_url,
-                "title":        seo["title"],
-                "h1":           seo["h1"],
-                "meta_desc":    seo["meta_desc"],
-                "alt_text":     seo["alt_text"],
-                "tags":         seo["tags"],
-                "description":  seo["description"],
+                "download_url":    r["download_url"],
+                "preview_url":     preview_url,
+                "webp_preview_url": r.get("webp_preview_url", preview_url),
+                "title":           seo["title"],
+                "h1":              seo["h1"],
+                "meta_desc":       seo["meta_desc"],
+                "alt_text":        seo["alt_text"],
+                "tags":            seo["tags"],
+                "description":     seo["description"],
+                "word_count":      _word_count(seo["description"]),
+                "date_added":      r.get("date_added", _today()),
             })
             added += 1
-            print("✓")
+            wc = _word_count(seo["description"])
+            tw = _word_count(seo["title"])
+            print(f"✓  title={tw}w  desc={wc}w")
         except Exception as e:
             print(f"✗ SKIP ({e})")
 
