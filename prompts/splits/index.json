@@ -1,5 +1,5 @@
 {
-  "total": 8056,
+  "total": 7972,
   "categories": [
     "animals",
     "ayurvedic_herbal",
@@ -8,7 +8,6 @@
     "cool_drinks",
     "dairy_products",
     "dry_fruits_nuts",
-    "eggs",
     "flowers",
     "food_indian",
     "food_world",
@@ -33,7 +32,6 @@
     "cool_drinks.json",
     "dairy_products.json",
     "dry_fruits_nuts.json",
-    "eggs.json",
     "flowers.json",
     "food_indian.json",
     "food_world.json",
