@@ -92,7 +92,7 @@ def _ddg_snippets(query: str, limit: int = 6) -> List[str]:
 # ══════════════════════════════════════════════════════════════
 
 def _groq_generate(subject_name: str, web_snippets: List[str],
-                   retries: int = 3) -> Tuple[str, str]:
+                   retries: int = 3) -> Dict[str, str]:
     """
     Generate SEO title (20+ words) + description (300+ words).
 
@@ -113,24 +113,52 @@ def _groq_generate(subject_name: str, web_snippets: List[str],
 
     context = "\n".join(f"- {s}" for s in (web_snippets or [])[:8])
     sys_prompt = (
-        "You are an expert SEO content writer optimized for Google AdSense compliance. "
-        "Write unique, helpful, non-spammy content. Avoid keyword stuffing. "
-        "No prohibited claims, no adult content, no medical claims unless clearly general. "
-        "Output strictly JSON with keys: title, description."
+        "You are a professional SEO content writer for a free transparent PNG image library. "
+        "Your writing sounds like a real human — conversational, informative, and genuinely helpful. "
+        "Never sound robotic or use keyword stuffing. Follow all Google AdSense content policies. "
+        "No prohibited content, no misleading claims, no adult content. "
+        "Output ONLY a strict JSON object with keys: title, h1, meta_desc, alt_text, tags, description."
     )
-    user_prompt = f"""
-Subject name: {subject}
+    user_prompt = f"""Subject name: {subject}
 
-Optional web context snippets (use only for general grounding; do NOT copy verbatim):
+Optional web context (use only for grounding — do NOT copy verbatim):
 {context or "- (none)"}
 
-Requirements:
-- title: minimum 20 words, natural English, includes the subject name once.
-- description: minimum 300 words, high quality, unique, helpful, AdSense-safe.
-- Must be about a transparent PNG image and its best uses (design, printing, Canva, etc.).
-- Do not mention AI, Groq, or web search.
-- Return ONLY valid JSON. No markdown.
-""".strip()
+JSON field requirements:
+
+title:
+  - Minimum 20 words. Sounds like a real human wrote it (not a robot).
+  - Must include subject name naturally. Include ONE strong search keyword phrase.
+  - Example pattern: "Free [Subject] PNG Image with Transparent Background – Download HD Quality for Canva, Photoshop & More"
+
+h1:
+  - 8–14 words. Clean, punchy heading for the page. Include subject name.
+  - Example: "[Subject] PNG Transparent Background – Free HD Download"
+
+meta_desc:
+  - EXACTLY under 155 characters. One clear sentence.
+  - Naturally includes subject name + "free download" or "transparent PNG".
+  - Must make a human want to click it in Google search results.
+
+alt_text:
+  - One descriptive sentence for screen readers & image SEO.
+  - Format: "High-resolution [subject] PNG image with transparent background, isolated on white"
+
+tags:
+  - 6–10 comma-separated keywords. Mix of short and long-tail. 
+  - Include: "[subject] PNG", "[subject] transparent", "free PNG download", "[subject] clipart", etc.
+
+description:
+  - Minimum 350 words. Written like a helpful blog post, NOT a product listing.
+  - Paragraph 1: What this image is and why it looks great (texture, color, detail).
+  - Paragraph 2: Best use cases — Canva, Photoshop, school projects, banners, menus, social media, etc.
+  - Paragraph 3: Why transparent PNG is better than JPEG for design work.
+  - Paragraph 4: How to download and use this free image from UltraPNG.
+  - Paragraph 5: Who benefits — designers, students, bloggers, businesses.
+  - Use natural keywords: "free PNG", "transparent background", "high resolution", "HD quality".
+  - DO NOT mention AI, Groq, or web search. DO NOT use lists/bullets — prose only.
+
+Return ONLY valid JSON. No markdown fences. No preamble.""".strip()
 
     for model_idx, model in enumerate(GROQ_MODELS):
         last_err = None
@@ -142,7 +170,7 @@ Requirements:
                              "Content-Type": "application/json"},
                     json={
                         "model": model,
-                        "temperature": 0.6,
+                        "temperature": 0.4,
                         "messages": [
                             {"role": "system", "content": sys_prompt},
                             {"role": "user",   "content": user_prompt},
@@ -165,16 +193,27 @@ Requirements:
                 if j0 == -1 or j1 == 0:
                     raise ValueError("No JSON in response")
                 data  = json.loads(content[j0:j1])
-                title = (data.get("title") or "").strip()
-                desc  = (data.get("description") or "").strip()
-                # Accept whatever the model returns — no retry for short content
+                title    = (data.get("title") or "").strip()
+                desc     = (data.get("description") or "").strip()
+                h1       = (data.get("h1") or title).strip()
+                meta_desc= (data.get("meta_desc") or "").strip()
+                alt_text = (data.get("alt_text") or title).strip()
+                tags     = (data.get("tags") or "").strip()
+                # Validate minimum quality
                 if _word_count(title) < 5:
                     raise RuntimeError(f"Title empty or unusable: {_word_count(title)} words")
                 if _word_count(desc) < 50:
                     raise RuntimeError(f"Description empty or unusable: {_word_count(desc)} words")
                 if model_idx > 0:
                     print(f"    [GROQ] used fallback model: {model}", flush=True)
-                return title, desc
+                return {
+                    "title":     title,
+                    "h1":        h1,
+                    "meta_desc": meta_desc[:155] if meta_desc else "",
+                    "alt_text":  alt_text,
+                    "tags":      tags,
+                    "description": desc,
+                }
 
             except Exception as e:
                 last_err = e
@@ -206,9 +245,13 @@ def _read_ultradata_rows(xlsx_path: Path) -> List[Dict[str, str]]:
     for h in needed:
         if h not in idx:
             raise RuntimeError(f"ultradata.xlsx missing column: {h}")
+    # Optional columns — graceful fallback if not present
+    optional = ["category", "subcategory"]
     out = []
     for r in ws.iter_rows(min_row=2, values_only=True):
         row = {h: ("" if r[idx[h]] is None else str(r[idx[h]]).strip()) for h in needed}
+        for h in optional:
+            row[h] = ("" if h not in idx or r[idx[h]] is None else str(r[idx[h]]).strip())
         if row["filename"] and row["subject_name"]:
             out.append(row)
     return out
@@ -700,18 +743,24 @@ def main() -> None:
         subject = r["subject_name"]
         print(f"  [{i}/{len(missing)}] {subject} ...", end=" ", flush=True)
         try:
-            snippets    = _ddg_snippets(subject + " PNG")
-            title, desc = _groq_generate(subject, snippets)
-            target      = _ensure_capacity(files, repo2_dir, cfg.data_dir, max_per_file)
+            snippets = _ddg_snippets(subject + " PNG transparent free download")
+            seo      = _groq_generate(subject, snippets)
+            target   = _ensure_capacity(files, repo2_dir, cfg.data_dir, max_per_file)
             if target not in file_entries:
                 file_entries[target] = []
             file_entries[target].append({
+                "category":     r.get("category", ""),
+                "subcategory":  r.get("subcategory", ""),
                 "subject_name": subject,
                 "filename":     r["filename"],
                 "download_url": r["download_url"],
                 "preview_url":  r["preview_url"],
-                "title":        title,
-                "description":  desc,
+                "title":        seo["title"],
+                "h1":           seo["h1"],
+                "meta_desc":    seo["meta_desc"],
+                "alt_text":     seo["alt_text"],
+                "tags":         seo["tags"],
+                "description":  seo["description"],
             })
             added += 1
             print("✓")
