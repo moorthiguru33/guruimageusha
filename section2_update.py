@@ -493,12 +493,17 @@ def main():
         log("ultradata.xlsx has no rows.")
         return
 
-    # Build ultradata index by filename
+    # Build ultradata index by png_file_id (NOT filename) so duplicate-named
+    # images in manual drop are all processed — only true same-file duplicates skip.
+    uda_by_file_id = {}
     uda_by_filename = {}
     for r in ultradata_rows:
         fn = str(r.get("filename", "") or "").strip()
+        fid = str(r.get("png_file_id", "") or "").strip()
         if fn:
             uda_by_filename[fn] = r
+        if fid:
+            uda_by_file_id[fid] = r
 
     # --- Clone REPO2 data/ only (best-effort) ---
     repo2_slug = get_env("GITHUB_REPO2") or get_env("REPO_2")
@@ -593,7 +598,10 @@ def main():
         file_id = f.get("id", "")
         if not name or not file_id:
             continue
-        if name in uda_by_filename:
+        # Skip only if this exact Drive file_id was already processed (true duplicate).
+        # Same filename with different file_id = different image → always process.
+        if file_id in uda_by_file_id:
+            log(f"  Skip (already processed file_id): {name}")
             continue
 
         # Move to png library manual folder (so they can be deleted without breaking)
@@ -615,7 +623,10 @@ def main():
         subject = parse_subject_from_filename(name)
         category = manual_category
         subcategory = manual_subcategory
-        slug = slugify(subject)
+        # Unique slug: if same filename already used, append short file_id suffix
+        base_slug = slugify(subject)
+        slug = base_slug if base_slug not in {r.get("slug","") for r in uda_by_filename.values()} \
+               else f"{base_slug}-{file_id[:6]}"
 
         png_dl = download_url(file_id)
         webp_dl = download_url(webp_id)
@@ -733,4 +744,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
