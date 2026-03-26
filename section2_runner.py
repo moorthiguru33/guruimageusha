@@ -168,7 +168,10 @@ Return ONLY valid JSON. No markdown fences. No preamble."""
         j0, j1 = content.find("{"), content.rfind("}") + 1
         if j0 == -1 or j1 == 0:
             raise ValueError("No JSON in response")
-        data      = json.loads(content[j0:j1])
+        raw = content[j0:j1]
+        # strict=False: allows raw control characters (newlines etc.)
+        # that vision models sometimes embed inside string values
+        data      = json.loads(raw, strict=False)
         title     = (data.get("title")       or "").strip()
         desc      = (data.get("description") or "").strip()
         h1        = (data.get("h1")          or title).strip()
@@ -200,7 +203,7 @@ Return ONLY valid JSON. No markdown fences. No preamble."""
                     json={
                         "model":       GROQ_VISION_MODEL,
                         "temperature": 0.4,
-                        "max_tokens":  1500,
+                        "max_tokens":  2048,
                         "messages":    _make_messages(use_image=True),
                     },
                     timeout=90,
@@ -237,7 +240,7 @@ Return ONLY valid JSON. No markdown fences. No preamble."""
                     json={
                         "model":       model,
                         "temperature": 0.4,
-                        "max_tokens":  1500,
+                        "max_tokens":  2048,
                         "messages":    _make_messages(use_image=False),
                     },
                     timeout=90,
@@ -381,28 +384,48 @@ def _drive_folder(token: str, name: str, parent: str = "") -> str:
 
 def _drive_list_png(token: str, folder_id: str) -> List[Dict[str, str]]:
     import requests
-    h = {"Authorization": f"Bearer {token}"}
-    q = (f"'{folder_id}' in parents and trashed=false and "
-         f"(mimeType='image/png' or name contains '.png')")
-    r = requests.get("https://www.googleapis.com/drive/v3/files",
-                     headers=h,
-                     params={"q": q, "fields": "files(id,name,parents,mimeType)"},
-                     timeout=30)
-    r.raise_for_status()
-    return r.json().get("files", [])
+    h       = {"Authorization": f"Bearer {token}"}
+    q       = (f"'{folder_id}' in parents and trashed=false and "
+               f"(mimeType='image/png' or name contains '.png')")
+    results = []
+    page_token = None
+    while True:
+        params = {"q": q, "fields": "nextPageToken,files(id,name,parents,mimeType)",
+                  "pageSize": 1000}
+        if page_token:
+            params["pageToken"] = page_token
+        r = requests.get("https://www.googleapis.com/drive/v3/files",
+                         headers=h, params=params, timeout=30)
+        r.raise_for_status()
+        data = r.json()
+        results.extend(data.get("files", []))
+        page_token = data.get("nextPageToken")
+        if not page_token:
+            break
+    return results
 
 
 def _drive_list_folders(token: str, folder_id: str) -> List[Dict[str, str]]:
     import requests
-    h = {"Authorization": f"Bearer {token}"}
-    q = (f"'{folder_id}' in parents and trashed=false and "
-         f"mimeType='application/vnd.google-apps.folder'")
-    r = requests.get("https://www.googleapis.com/drive/v3/files",
-                     headers=h,
-                     params={"q": q, "fields": "files(id,name)"},
-                     timeout=30)
-    r.raise_for_status()
-    return r.json().get("files", [])
+    h       = {"Authorization": f"Bearer {token}"}
+    q       = (f"'{folder_id}' in parents and trashed=false and "
+               f"mimeType='application/vnd.google-apps.folder'")
+    results = []
+    page_token = None
+    while True:
+        params = {"q": q, "fields": "nextPageToken,files(id,name)",
+                  "pageSize": 1000}
+        if page_token:
+            params["pageToken"] = page_token
+        r = requests.get("https://www.googleapis.com/drive/v3/files",
+                         headers=h, params=params, timeout=30)
+        r.raise_for_status()
+        data = r.json()
+        results.extend(data.get("files", []))
+        page_token = data.get("nextPageToken")
+        if not page_token:
+            break
+    return results
 
 
 def _drive_download(token: str, file_id: str) -> bytes:
