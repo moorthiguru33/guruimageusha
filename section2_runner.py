@@ -234,12 +234,21 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
         raw  = content[j0:j1]
         data = json.loads(raw, strict=False)
 
-        title     = (data.get("title")       or "").strip()
-        desc      = (data.get("description") or "").strip()
-        h1        = (data.get("h1")          or title).strip()
-        meta_desc = (data.get("meta_desc")   or "").strip()
-        alt_text  = (data.get("alt_text")    or title).strip()
-        tags      = (data.get("tags")        or "").strip()
+        def _str(val, fallback="") -> str:
+            """Safely coerce LLM output to string — handles list, None, int, etc."""
+            if val is None:
+                return fallback
+            if isinstance(val, list):
+                # tags / paragraphs returned as array -> join to comma-separated string
+                return ", ".join(str(v).strip() for v in val if v)
+            return str(val).strip()
+
+        title     = _str(data.get("title"))
+        desc      = _str(data.get("description"))
+        h1        = _str(data.get("h1")) or title
+        meta_desc = _str(data.get("meta_desc"))
+        alt_text  = _str(data.get("alt_text")) or title
+        tags      = _str(data.get("tags"))  # LLMs often return list — handled above
 
         # ── Strict quality gates ────────────────────────────
         title_wc = _word_count(title)
@@ -275,11 +284,11 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
                     headers={"Authorization": f"Bearer {key}",
                              "Content-Type": "application/json"},
                     json={
-                        "model":           GROQ_VISION_MODEL,
-                        "temperature":     0.5,
-                        "max_tokens":      3000,
-                        "response_format": {"type": "json_object"},
-                        "messages":        _make_messages(use_image=True),
+                        "model":       GROQ_VISION_MODEL,
+                        "temperature": 0.5,
+                        "max_tokens":  3000,
+                        # NOTE: response_format NOT supported by vision model — omitted intentionally
+                        "messages":    _make_messages(use_image=True),
                     },
                     timeout=120,
                 )
@@ -289,7 +298,16 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
                     time.sleep(retry_after + 2)
                     continue
                 r.raise_for_status()
-                result = _parse_seo(r.json()["choices"][0]["message"]["content"].strip())
+                raw_content = r.json()["choices"][0]["message"]["content"]
+                # Vision model returns content as a list of blocks; text models return a string
+                if isinstance(raw_content, list):
+                    content_str = " ".join(
+                        block.get("text", "") for block in raw_content
+                        if isinstance(block, dict) and block.get("type") == "text"
+                    ).strip()
+                else:
+                    content_str = (raw_content or "").strip()
+                result = _parse_seo(content_str)
                 return result
 
             except Exception as e:
