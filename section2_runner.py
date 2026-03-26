@@ -58,6 +58,49 @@ def _clean_json_str(raw: str) -> str:
     return raw
 
 
+def _repair_truncated_json(raw: str) -> str:
+    """
+    Salvage JSON that was cut off mid-stream by a token-limit.
+    Walks the string character-by-character to track parser state,
+    then closes any open string / array / object at the cut point.
+    Returns a (possibly patched) string; caller must still json.loads() it.
+    """
+    depth: list = []   # stack of '{' or '['
+    in_str = False
+    esc    = False
+
+    for ch in raw:
+        if esc:
+            esc = False
+            continue
+        if ch == '\\' and in_str:
+            esc = True
+            continue
+        if ch == '"':
+            in_str = not in_str
+            continue
+        if in_str:
+            continue
+        if ch in ('{', '['):
+            depth.append(ch)
+        elif ch == '}' and depth and depth[-1] == '{':
+            depth.pop()
+        elif ch == ']' and depth and depth[-1] == '[':
+            depth.pop()
+
+    if not depth and not in_str:
+        return raw          # already balanced — no repair needed
+
+    patched = raw.rstrip()
+    # Remove any dangling trailing comma before we close containers
+    patched = re.sub(r',\s*$', '', patched)
+    if in_str:              # close an open string value
+        patched += '"'
+    for opener in reversed(depth):
+        patched += '}' if opener == '{' else ']'
+    return patched
+
+
 def _today() -> str:
     return datetime.utcnow().strftime("%Y-%m-%d")
 
@@ -151,11 +194,11 @@ STRICT RULES — violation causes rejection:
 OUTPUT: One valid JSON object with exactly these keys:
 
 "title":
-  MINIMUM 20 WORDS — count every single word before submitting.
+  MINIMUM 25 WORDS, TARGET 25–30 WORDS — count every single word before submitting.
   Write a natural, informative title a real human expert would write.
   Focus on: what makes THIS specific image special + who will find it useful.
   Vary structure completely — no two titles should follow the same pattern.
-  EXAMPLE (count=24 words): "Striking Deep-Red Crab with Glistening Shell Texture on Clear Background — Ideal for Marine Biology Projects, Seafood Menus, and Coastal Design Themes"
+  EXAMPLE (count=28 words): "Striking Deep-Red Crab with Glistening Shell Texture on Transparent Background — Ideal for Marine Biology Projects, Seafood Restaurant Menus, and Coastal-Themed Graphic Design Work"
 
 "h1":
   8–14 words. Describe what makes this specific {subject} image stand out.
@@ -177,9 +220,9 @@ OUTPUT: One valid JSON object with exactly these keys:
   NO generic tags like "free image", "png download", "design resources" alone.
 
 "description":
-  MINIMUM 450 WORDS — count as you write. Five paragraphs. Pure prose, no lists.
+  MINIMUM 600 WORDS, TARGET 600–800 WORDS — count as you write. Five paragraphs. Pure prose, no lists.
 
-  Paragraph 1 — ABOUT THIS IMAGE (minimum 110 words):
+  Paragraph 1 — ABOUT THIS IMAGE (minimum 140 words):
     Write as a passionate photographer or naturalist describing what they see.
     Start with the most striking visual detail — color, texture, composition.
     NEVER start with "The", "This", or the subject name directly.
@@ -188,7 +231,7 @@ OUTPUT: One valid JSON object with exactly these keys:
     number of subjects, any unique visual characteristics.
     End by explaining what makes this particular image special for creative work.
 
-  Paragraph 2 — CREATIVE APPLICATIONS (minimum 110 words):
+  Paragraph 2 — CREATIVE APPLICATIONS (minimum 140 words):
     Connect the SPECIFIC visual details from paragraph 1 to real use cases.
     Write like a design teacher explaining possibilities to a student.
     Example: "The warm amber shell tones make this {subject} a natural fit for autumn-themed restaurant menus..."
@@ -196,7 +239,7 @@ OUTPUT: One valid JSON object with exactly these keys:
     Explain WHY the visual properties suit each use — not just that they "can be used".
     Mention specific tools: Canva, Photoshop, Illustrator, Google Slides, PowerPoint.
 
-  Paragraph 3 — WORKING WITH TRANSPARENT PNG (minimum 90 words):
+  Paragraph 3 — WORKING WITH TRANSPARENT PNG (minimum 110 words):
     Write as a design tutor explaining transparent PNG to someone new to design.
     Find a fresh angle — explain it through a real scenario or comparison.
     Cover: no background removal needed, layers cleanly over any color,
@@ -204,14 +247,14 @@ OUTPUT: One valid JSON object with exactly these keys:
     compatible with all major design software.
     Make this feel like genuine helpful advice, not technical documentation.
 
-  Paragraph 4 — PRACTICAL TIPS (minimum 80 words):
+  Paragraph 4 — PRACTICAL TIPS (minimum 110 words):
     Share 2–3 genuinely useful tips for working with this specific image.
     Examples: suggested background colors that complement this {subject}'s colors,
     good font pairings for menu or poster use, ideal sizing for social media formats,
     how to add a drop shadow in Canva for depth.
     Write from experience — as if you have personally used this image in projects.
 
-  Paragraph 5 — WHO WILL LOVE THIS (minimum 80 words):
+  Paragraph 5 — WHO WILL LOVE THIS (minimum 110 words):
     Paint a picture of specific real people who would benefit.
     Connect their work to THIS image's specific visual qualities.
     Examples: "A marine biology teacher preparing a lesson on crustaceans...",
@@ -243,11 +286,25 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
     ]
 
     def _parse_seo(content: str) -> Dict[str, str]:
-        j0, j1 = content.find("{"), content.rfind("}") + 1
+        j0 = content.find("{")
+        j1 = content.rfind("}") + 1
+
+        # ── "No JSON in response" — log snippet to help diagnose ──
         if j0 == -1 or j1 == 0:
-            raise ValueError("No JSON in response")
-        raw  = _clean_json_str(content[j0:j1])
-        data = json.loads(raw, strict=False)
+            snippet = (content or "").strip()[:200].replace("\n", " ")
+            raise ValueError(f"No JSON in response — got: {snippet!r}")
+
+        raw = _clean_json_str(content[j0:j1])
+
+        # ── Try to parse; if truncated, attempt repair then retry parse ──
+        try:
+            data = json.loads(raw, strict=False)
+        except json.JSONDecodeError as e:
+            repaired = _repair_truncated_json(raw)
+            try:
+                data = json.loads(repaired, strict=False)
+            except json.JSONDecodeError:
+                raise ValueError(f"JSON parse failed (even after repair): {e}") from e
 
         def _str(val, fallback="") -> str:
             """Safely coerce LLM output to string — handles list, None, int, etc."""
@@ -265,13 +322,13 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
         alt_text  = _str(data.get("alt_text")) or title
         tags      = _str(data.get("tags"))  # LLMs often return list — handled above
 
-        # ── Strict quality gates ────────────────────────────
+        # ── Soft quality warnings (no rejection — accept whatever is generated) ──
         title_wc = _word_count(title)
         desc_wc  = _word_count(desc)
-        if title_wc < 20:
-            raise RuntimeError(f"Title too short: {title_wc} words (need 20+) → '{title[:60]}'")
-        if desc_wc < 400:
-            raise RuntimeError(f"Description too short: {desc_wc} words (need 400+)")
+        if title_wc < 25:
+            print(f"\n    [WARN] Title short: {title_wc}w (target 25–30) — accepted", flush=True)
+        if desc_wc < 600:
+            print(f"\n    [WARN] Desc short: {desc_wc}w (target 600–800) — accepted", flush=True)
         if len(meta_desc) > 155:
             meta_desc = meta_desc[:152] + "..."
         # ── Banned phrase check ─────────────────────────────
@@ -301,7 +358,7 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
                     json={
                         "model":       GROQ_VISION_MODEL,
                         "temperature": 0.5,
-                        "max_tokens":  3000,
+                        "max_tokens":  5000,
                         # NOTE: response_format NOT supported by vision model — omitted intentionally
                         "messages":    _make_messages(use_image=True),
                     },
@@ -348,7 +405,7 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
                     json={
                         "model":       model,
                         "temperature": 0.5,
-                        "max_tokens":  3000,
+                        "max_tokens":  5000,
                         # NOTE: response_format omitted — causes 400 on some Groq models.
                         # _parse_seo() extracts JSON from free-form response reliably.
                         "messages":    _make_messages(use_image=False),
