@@ -30,6 +30,10 @@ GROQ_MODELS = [
     "llama-3.1-8b-instant",      # Fallback: higher rate limit
 ]
 
+# ── GROQ VISION MODEL (single-shot: see image + write SEO) ────
+# llama-4-scout-17b-16e-instruct → Active ✅ Vision capable, Free
+GROQ_VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
+
 
 # ══════════════════════════════════════════════════════════════
 # UTILITIES
@@ -88,17 +92,17 @@ def _ddg_snippets(query: str, limit: int = 6) -> List[str]:
 
 
 # ══════════════════════════════════════════════════════════════
-# GROQ SEO GENERATOR  (model fallback + retry-after support)
+# GROQ VISION + SEO  (single-shot: image → all SEO fields)
 # ══════════════════════════════════════════════════════════════
 
-def _groq_generate(subject_name: str, web_snippets: List[str],
-                   retries: int = 3) -> Dict[str, str]:
+def _groq_vision_seo(subject_name: str, image_url: str,
+                     retries: int = 3) -> Dict[str, str]:
     """
-    Generate SEO title (20+ words) + description (300+ words).
+    Single API call: Groq Vision model sees the actual PNG image
+    and writes all SEO fields in one shot.
 
-    Model priority:
-      1. llama-3.3-70b-versatile  — best quality (primary)
-      2. llama-3.1-8b-instant     — fallback if primary hits 429
+    Model: llama-4-scout-17b-16e-instruct (vision capable, free tier)
+    Fallback: llama-3.3-70b-versatile / llama-3.1-8b-instant (text-only)
 
     Respects Groq 429 retry-after header automatically.
     """
@@ -111,55 +115,117 @@ def _groq_generate(subject_name: str, web_snippets: List[str],
     if not subject:
         raise RuntimeError("Missing subject_name")
 
-    context = "\n".join(f"- {s}" for s in (web_snippets or [])[:8])
-    sys_prompt = (
-        "You are a professional SEO content writer for a free transparent PNG image library. "
-        "Your writing sounds like a real human — conversational, informative, and genuinely helpful. "
-        "Never sound robotic or use keyword stuffing. Follow all Google AdSense content policies. "
-        "No prohibited content, no misleading claims, no adult content. "
-        "Output ONLY a strict JSON object with keys: title, h1, meta_desc, alt_text, tags, description."
-    )
-    user_prompt = f"""Subject name: {subject}
+    seo_prompt = f"""You are a professional SEO content writer for UltraPNG.com — a free transparent PNG image library.
+Look carefully at the PNG image provided. Use what you actually see (colors, texture, angle, details, style) to write unique SEO content.
 
-Optional web context (use only for grounding — do NOT copy verbatim):
-{context or "- (none)"}
+Subject name: {subject}
 
-JSON field requirements:
+Write a JSON object with these exact keys:
 
 title:
-  - Minimum 20 words. Sounds like a real human wrote it (not a robot).
-  - Must include subject name naturally. Include ONE strong search keyword phrase.
-  - Example pattern: "Free [Subject] PNG Image with Transparent Background – Download HD Quality for Canva, Photoshop & More"
+  - Minimum 20 words. Natural human-written sentence (not robotic).
+  - Include subject name + one strong search keyword phrase.
+  - Vary the wording — do NOT use a fixed template every time.
 
 h1:
-  - 8–14 words. Clean, punchy heading for the page. Include subject name.
-  - Example: "[Subject] PNG Transparent Background – Free HD Download"
+  - 8–14 words. Clean punchy heading. Include subject name.
 
 meta_desc:
-  - EXACTLY under 155 characters. One clear sentence.
-  - Naturally includes subject name + "free download" or "transparent PNG".
-  - Must make a human want to click it in Google search results.
+  - Under 155 characters. One natural sentence.
+  - Include subject name + "free download" or "transparent PNG".
 
 alt_text:
-  - One descriptive sentence for screen readers & image SEO.
-  - Format: "High-resolution [subject] PNG image with transparent background, isolated on white"
+  - One descriptive sentence based on what you actually see in the image.
+  - Format: "[color/style] {subject} PNG image with transparent background, [one visual detail]"
 
 tags:
-  - 6–10 comma-separated keywords. Mix of short and long-tail. 
-  - Include: "[subject] PNG", "[subject] transparent", "free PNG download", "[subject] clipart", etc.
+  - 6–10 comma-separated keywords. Short and long-tail mix.
 
 description:
-  - Minimum 350 words. Written like a helpful blog post, NOT a product listing.
-  - Paragraph 1: What this image is and why it looks great (texture, color, detail).
-  - Paragraph 2: Best use cases — Canva, Photoshop, school projects, banners, menus, social media, etc.
+  - Minimum 350 words. Written like a helpful blog post.
+  - Paragraph 1: Describe what you actually see in this specific image (color, texture, angle, quality).
+  - Paragraph 2: Best use cases — Canva, Photoshop, school projects, menus, social media, etc.
   - Paragraph 3: Why transparent PNG is better than JPEG for design work.
   - Paragraph 4: How to download and use this free image from UltraPNG.
-  - Paragraph 5: Who benefits — designers, students, bloggers, businesses.
-  - Use natural keywords: "free PNG", "transparent background", "high resolution", "HD quality".
-  - DO NOT mention AI, Groq, or web search. DO NOT use lists/bullets — prose only.
+  - Paragraph 5: Who benefits — designers, students, bloggers, small businesses.
+  - Natural keywords only. Prose paragraphs — no bullet points or lists.
+  - DO NOT mention AI, Groq, or image analysis tools.
 
-Return ONLY valid JSON. No markdown fences. No preamble.""".strip()
+Return ONLY valid JSON. No markdown fences. No preamble."""
 
+    def _make_messages(use_image: bool) -> list:
+        if use_image and image_url:
+            return [{
+                "role": "user",
+                "content": [
+                    {"type": "image_url", "image_url": {"url": image_url}},
+                    {"type": "text",      "text": seo_prompt},
+                ],
+            }]
+        return [{"role": "user", "content": seo_prompt}]
+
+    def _parse_seo(content: str) -> Dict[str, str]:
+        j0, j1 = content.find("{"), content.rfind("}") + 1
+        if j0 == -1 or j1 == 0:
+            raise ValueError("No JSON in response")
+        data      = json.loads(content[j0:j1])
+        title     = (data.get("title")       or "").strip()
+        desc      = (data.get("description") or "").strip()
+        h1        = (data.get("h1")          or title).strip()
+        meta_desc = (data.get("meta_desc")   or "").strip()
+        alt_text  = (data.get("alt_text")    or title).strip()
+        tags      = (data.get("tags")        or "").strip()
+        if _word_count(title) < 5:
+            raise RuntimeError(f"Title too short: {_word_count(title)} words")
+        if _word_count(desc) < 50:
+            raise RuntimeError(f"Description too short: {_word_count(desc)} words")
+        return {
+            "title":       title,
+            "h1":          h1,
+            "meta_desc":   meta_desc[:155] if meta_desc else "",
+            "alt_text":    alt_text,
+            "tags":        tags,
+            "description": desc,
+        }
+
+    # ── Attempt 1: Vision model (sees the actual image) ─────
+    if image_url:
+        last_err = None
+        for attempt in range(1, retries + 1):
+            try:
+                r = requests.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers={"Authorization": f"Bearer {key}",
+                             "Content-Type": "application/json"},
+                    json={
+                        "model":       GROQ_VISION_MODEL,
+                        "temperature": 0.4,
+                        "max_tokens":  1500,
+                        "messages":    _make_messages(use_image=True),
+                    },
+                    timeout=90,
+                )
+                if r.status_code == 429:
+                    retry_after = float(r.headers.get("retry-after", "60"))
+                    print(f"\n    [GROQ-V] 429 — waiting {retry_after:.0f}s ...", flush=True)
+                    time.sleep(retry_after + 2)
+                    continue
+                r.raise_for_status()
+                result = _parse_seo(r.json()["choices"][0]["message"]["content"].strip())
+                return result
+
+            except Exception as e:
+                last_err = e
+                if attempt < retries:
+                    wait = GROQ_SLEEP_SEC * attempt
+                    print(f"\n    [GROQ-V] attempt {attempt}/{retries} failed: {e}"
+                          f" — retry in {wait:.0f}s", flush=True)
+                    time.sleep(wait)
+
+        print(f"\n    [GROQ-V] Vision failed ({last_err}) — falling back to text-only ...",
+              flush=True)
+
+    # ── Fallback: text-only models (no image) ───────────────
     for model_idx, model in enumerate(GROQ_MODELS):
         last_err = None
         for attempt in range(1, retries + 1):
@@ -169,64 +235,39 @@ Return ONLY valid JSON. No markdown fences. No preamble.""".strip()
                     headers={"Authorization": f"Bearer {key}",
                              "Content-Type": "application/json"},
                     json={
-                        "model": model,
+                        "model":       model,
                         "temperature": 0.4,
-                        "messages": [
-                            {"role": "system", "content": sys_prompt},
-                            {"role": "user",   "content": user_prompt},
-                        ],
+                        "max_tokens":  1500,
+                        "messages":    _make_messages(use_image=False),
                     },
                     timeout=90,
                 )
-
-                # ── Respect retry-after on 429 ──────────────
                 if r.status_code == 429:
                     retry_after = float(r.headers.get("retry-after", "60"))
-                    print(f"\n    [GROQ] 429 on {model} — waiting {retry_after:.0f}s ...",
+                    print(f"\n    [GROQ-T] 429 on {model} — waiting {retry_after:.0f}s ...",
                           flush=True)
                     time.sleep(retry_after + 2)
                     continue
-
                 r.raise_for_status()
-                content = r.json()["choices"][0]["message"]["content"].strip()
-                j0, j1  = content.find("{"), content.rfind("}") + 1
-                if j0 == -1 or j1 == 0:
-                    raise ValueError("No JSON in response")
-                data  = json.loads(content[j0:j1])
-                title    = (data.get("title") or "").strip()
-                desc     = (data.get("description") or "").strip()
-                h1       = (data.get("h1") or title).strip()
-                meta_desc= (data.get("meta_desc") or "").strip()
-                alt_text = (data.get("alt_text") or title).strip()
-                tags     = (data.get("tags") or "").strip()
-                # Validate minimum quality
-                if _word_count(title) < 5:
-                    raise RuntimeError(f"Title empty or unusable: {_word_count(title)} words")
-                if _word_count(desc) < 50:
-                    raise RuntimeError(f"Description empty or unusable: {_word_count(desc)} words")
+                result = _parse_seo(r.json()["choices"][0]["message"]["content"].strip())
                 if model_idx > 0:
-                    print(f"    [GROQ] used fallback model: {model}", flush=True)
-                return {
-                    "title":     title,
-                    "h1":        h1,
-                    "meta_desc": meta_desc[:155] if meta_desc else "",
-                    "alt_text":  alt_text,
-                    "tags":      tags,
-                    "description": desc,
-                }
+                    print(f"    [GROQ-T] used fallback model: {model}", flush=True)
+                return result
 
             except Exception as e:
                 last_err = e
                 if attempt < retries:
                     wait = GROQ_SLEEP_SEC * attempt * 2
-                    print(f"\n    [GROQ] attempt {attempt}/{retries} on {model} failed: {e}"
+                    print(f"\n    [GROQ-T] attempt {attempt}/{retries} on {model} failed: {e}"
                           f" — retry in {wait:.0f}s", flush=True)
                     time.sleep(wait)
 
-        print(f"\n    [GROQ] {model} exhausted after {retries} attempts: {last_err}",
+        print(f"\n    [GROQ-T] {model} exhausted after {retries} attempts: {last_err}",
               flush=True)
 
-    raise RuntimeError(f"All GROQ models failed. Last: {last_err}")
+    raise RuntimeError(f"All Groq models failed. Last: {last_err}")
+
+
 
 
 # ══════════════════════════════════════════════════════════════
@@ -740,21 +781,27 @@ def main() -> None:
 
     added = 0
     for i, r in enumerate(missing, 1):
-        subject = r["subject_name"]
+        subject     = r["subject_name"]
+        preview_url = r.get("preview_url", "")
         print(f"  [{i}/{len(missing)}] {subject} ...", end=" ", flush=True)
         try:
-            snippets = _ddg_snippets(subject + " PNG transparent free download")
-            seo      = _groq_generate(subject, snippets)
-            target   = _ensure_capacity(files, repo2_dir, cfg.data_dir, max_per_file)
+            seo    = _groq_vision_seo(subject, preview_url)
+            target = _ensure_capacity(files, repo2_dir, cfg.data_dir, max_per_file)
             if target not in file_entries:
                 file_entries[target] = []
+            # slug: unique per filename (subject-slug + short filename suffix)
+            base_slug = re.sub(r"[^a-z0-9]+", "-",
+                               subject.lower()).strip("-") or "untitled"
+            fn_id     = re.sub(r"[^0-9]", "", r["filename"])[-4:] or "0"
+            slug      = f"{base_slug}-{fn_id}"
             file_entries[target].append({
                 "category":     r.get("category", ""),
                 "subcategory":  r.get("subcategory", ""),
                 "subject_name": subject,
                 "filename":     r["filename"],
+                "slug":         slug,
                 "download_url": r["download_url"],
-                "preview_url":  r["preview_url"],
+                "preview_url":  preview_url,
                 "title":        seo["title"],
                 "h1":           seo["h1"],
                 "meta_desc":    seo["meta_desc"],
