@@ -43,6 +43,21 @@ def _word_count(s: str) -> int:
     return len([w for w in re.split(r"\s+", (s or "").strip()) if w])
 
 
+def _clean_json_str(raw: str) -> str:
+    """
+    Best-effort cleanup of LLM-returned JSON before parsing.
+    Handles: trailing commas, stray control characters, markdown fences.
+    """
+    # Strip markdown fences if present
+    raw = re.sub(r"^```(?:json)?\s*", "", raw.strip(), flags=re.I)
+    raw = re.sub(r"\s*```$", "", raw.strip())
+    # Remove ASCII control characters (except tab/newline/CR)
+    raw = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", raw)
+    # Fix trailing commas before } or ] — common LLM mistake
+    raw = re.sub(r",\s*([}\]])", r"\1", raw)
+    return raw
+
+
 def _today() -> str:
     return datetime.utcnow().strftime("%Y-%m-%d")
 
@@ -231,7 +246,7 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
         j0, j1 = content.find("{"), content.rfind("}") + 1
         if j0 == -1 or j1 == 0:
             raise ValueError("No JSON in response")
-        raw  = content[j0:j1]
+        raw  = _clean_json_str(content[j0:j1])
         data = json.loads(raw, strict=False)
 
         def _str(val, fallback="") -> str:
@@ -331,14 +346,22 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
                     headers={"Authorization": f"Bearer {key}",
                              "Content-Type": "application/json"},
                     json={
-                        "model":           model,
-                        "temperature":     0.5,
-                        "max_tokens":      3000,
-                        "response_format": {"type": "json_object"},
-                        "messages":        _make_messages(use_image=False),
+                        "model":       model,
+                        "temperature": 0.5,
+                        "max_tokens":  3000,
+                        # NOTE: response_format omitted — causes 400 on some Groq models.
+                        # _parse_seo() extracts JSON from free-form response reliably.
+                        "messages":    _make_messages(use_image=False),
                     },
                     timeout=120,
                 )
+                if r.status_code == 400:
+                    # Log the actual Groq error body for easier debugging
+                    try:
+                        err_body = r.json()
+                    except Exception:
+                        err_body = r.text[:300]
+                    raise RuntimeError(f"400 Bad Request: {err_body}")
                 if r.status_code == 429:
                     retry_after = float(r.headers.get("retry-after", "60"))
                     print(f"\n    [GROQ-T] 429 on {model} — waiting {retry_after:.0f}s ...",
@@ -354,7 +377,7 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
             except Exception as e:
                 last_err = e
                 if attempt < retries:
-                    wait = GROQ_SLEEP_SEC * attempt * 2
+                    wait = GROQ_SLEEP_SEC * attempt
                     print(f"\n    [GROQ-T] attempt {attempt}/{retries} on {model} failed: {e}"
                           f" — retry in {wait:.0f}s", flush=True)
                     time.sleep(wait)
@@ -747,13 +770,18 @@ def _save_repo2_files(repo2_dir: Path, data_dir: str,
 
 
 def _ensure_capacity(files: List[Path], repo2_dir: Path,
-                     data_dir: str, max_entries: int) -> Path:
+                     data_dir: str, max_entries: int,
+                     file_entries: Dict[Path, List[Dict[str, Any]]] = None) -> Path:
     last = files[-1]
-    try:
-        arr = json.loads(last.read_text(encoding="utf-8"))
-        n   = len(arr) if isinstance(arr, list) else 0
-    except Exception:
-        n = 0
+    # Prefer in-memory count (accurate during a live run) over disk read
+    if file_entries is not None and last in file_entries:
+        n = len(file_entries[last])
+    else:
+        try:
+            arr = json.loads(last.read_text(encoding="utf-8"))
+            n   = len(arr) if isinstance(arr, list) else 0
+        except Exception:
+            n = 0
     if n < max_entries:
         return last
     m   = re.match(r"json(\d+)\.json$", last.name)
@@ -761,6 +789,8 @@ def _ensure_capacity(files: List[Path], repo2_dir: Path,
     newf = repo2_dir / data_dir / f"json{nxt}.json"
     newf.write_text("[]", encoding="utf-8")
     files.append(newf)
+    if file_entries is not None:
+        file_entries[newf] = []
     return newf
 
 
@@ -903,7 +933,8 @@ def main() -> None:
         print(f"  [{i}/{len(missing)}] {subject} ...", end=" ", flush=True)
         try:
             seo    = _groq_vision_seo(subject, preview_url)
-            target = _ensure_capacity(files, repo2_dir, cfg.data_dir, max_per_file)
+            target = _ensure_capacity(files, repo2_dir, cfg.data_dir, max_per_file,
+                                      file_entries)
             if target not in file_entries:
                 file_entries[target] = []
             # slug: unique per filename (subject-slug + short filename suffix)
