@@ -619,7 +619,7 @@ def phase1_generate(batch, skip_set):
                     generator=gen2,
                 ).images[0]
 
-            img.save(str(out), "PNG", compress_level=0)
+            img.save(str(out), "PNG", compress_level=9)
             generated.append({"path": str(out), "item": item})
 
             done = len(generated)
@@ -715,7 +715,7 @@ def phase3_bg_remove(posts):
 
             img    = Image.open(str(path)).convert("RGB")
             result = remove_bg(img)
-            result.save(str(out), "PNG", compress_level=0)
+            result.save(str(out), "PNG", compress_level=9)
             result_posts.append({**post, "transparent_path": str(out)})
 
             if (i + 1) % 20 == 0:
