@@ -248,6 +248,7 @@ jobs:
               "kernel_sources": []
           }
 
+          # Must be named kernel-metadata.json — kaggle CLI ignores other names
           with open("kaggle/logo_lora_kernel_metadata.json", "w") as f:
               json.dump(meta, f, indent=2)
 
@@ -255,11 +256,19 @@ jobs:
           print(json.dumps(meta, indent=2))
           PYEOF
 
+      # Kaggle CLI requires the metadata file to be named kernel-metadata.json
+      # We keep a separate copy for the LoRA kernel and swap it in at push time
+
+
+          PYEOF
+
       # ── Safety check before push ──────────────────────────────────────────
       - name: Verify Before Push
         run: |
-          echo "=== logo_lora_kernel_metadata.json ==="
-          cat kaggle/logo_lora_kernel_metadata.json
+          # Rename to kernel-metadata.json — kaggle CLI only reads this exact name
+          cp kaggle/logo_lora_kernel_metadata.json kaggle/kernel-metadata.json
+          echo "=== kaggle/kernel-metadata.json (LoRA kernel) ==="
+          cat kaggle/kernel-metadata.json
           echo ""
           python3 -c "
           import json
@@ -281,33 +290,37 @@ jobs:
           KERNEL="${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}"
           echo "Pushing kernel: $KERNEL"
 
-          # Cancel if still running from a previous trigger
+          # Check if kernel already exists — gracefully skip 403/404 (first push creates it)
+          KERNEL_EXISTS=false
           for i in 1 2 3 4 5; do
             STATUS=$(kaggle kernels status "$KERNEL" 2>&1 || true)
             echo "[$i] $STATUS"
-            if echo "$STATUS" | grep -qiE 'running|queued'; then
+            if echo "$STATUS" | grep -qiE '403|404|not found|does not exist'; then
+              echo "Kernel not found yet — will be created on first push"
+              break
+            elif echo "$STATUS" | grep -qiE 'running|queued'; then
+              KERNEL_EXISTS=true
               echo "Kernel busy — cancelling..."
               kaggle kernels cancel "$KERNEL" 2>/dev/null || true
               sleep 30
             else
+              KERNEL_EXISTS=true
               break
             fi
           done
 
-          # Push with retry + backoff
+          # Push — kernel-metadata.json must be in the push directory (kaggle CLI default)
+          # logo_lora_pipeline.ipynb + kernel-metadata.json are both in kaggle/
           cd kaggle
           MAX_RETRIES=3
           ATTEMPT=0
           DELAY=30
 
-          # Push from the kaggle/ directory, pointing at logo_lora_kernel_metadata.json
           while [ $ATTEMPT -lt $MAX_RETRIES ]; do
             ATTEMPT=$((ATTEMPT + 1))
             echo "Push attempt $ATTEMPT/$MAX_RETRIES..."
 
-            OUTPUT=$(kaggle kernels push \
-              --path . \
-              --metadata-path logo_lora_kernel_metadata.json 2>&1)
+            OUTPUT=$(kaggle kernels push -p . 2>&1)
             EXIT_CODE=$?
             echo "Output: $OUTPUT"
 
