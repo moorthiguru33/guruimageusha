@@ -1,6 +1,12 @@
 name: Section 1 - Kaggle Image + Drive + ultradata.xlsx
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "kaggle/**"
+      - "prompts/**"
+      - "inject_creds.py"
   workflow_dispatch:
     inputs:
       instant_count:
@@ -23,6 +29,7 @@ on:
         options:
           - generate
           - status_check
+          - cancel_schedule
   schedule:
     - cron: "30 20 * * *"
 
@@ -31,13 +38,36 @@ env:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
+
+  # ── NEW: Cancel any queued/in-progress scheduled runs ─────────────────────
+  cancel-schedule:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'cancel_schedule'
+    steps:
+      - name: Cancel queued & in-progress scheduled runs
+        run: |
+          echo "Looking for queued/in-progress runs to cancel..."
+          for STATUS in queued in_progress; do
+            gh run list \
+              --workflow=trigger_kaggle.yml \
+              --status=$STATUS \
+              --json databaseId,event \
+              --jq '.[] | select(.event == "schedule") | .databaseId' \
+            | xargs -r -I{} sh -c 'echo "Cancelling run {}..." && gh run cancel {}'
+          done
+          echo "Done. All matching scheduled runs cancelled."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
 
   trigger-kaggle:
     runs-on: ubuntu-latest
     if: >
       github.event_name == 'schedule' ||
+      github.event_name == 'push' ||
       github.event.inputs.action == 'generate'
 
     steps:
@@ -72,8 +102,7 @@ jobs:
           COUNT="${{ github.event.inputs.instant_count }}"
 
           # ── STEP 1: Resolve START ──────────────────────────────
-          # If start_index not given (or scheduled run), always read batch_tracker
-          if [ -z "$START" ] || [ "${{ github.event_name }}" = "schedule" ]; then
+          if [ -z "$START" ] || [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event_name }}" = "push" ]; then
             if [ -f "progress/batch_tracker.txt" ]; then
               START=$(cat progress/batch_tracker.txt)
               echo "Resuming from batch_tracker: $START"
@@ -84,11 +113,10 @@ jobs:
           fi
 
           # ── STEP 2: Resolve END ────────────────────────────────
-          # instant_count always wins over end_index
           if [ -n "$COUNT" ] && [ "$COUNT" -gt "0" ]; then
             END=$((START + COUNT))
             echo "instant_count=$COUNT → END=$END"
-          elif [ -z "$END" ] || [ "${{ github.event_name }}" = "schedule" ]; then
+          elif [ -z "$END" ] || [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event_name }}" = "push" ]; then
             END=$((START + 300))
             echo "Default batch 300 → END=$END"
           fi
@@ -146,8 +174,6 @@ jobs:
           import json
           with open('kernel-metadata.json', 'r') as f:
               meta = json.load(f)
-          # Only update kernel ID — DO NOT touch dataset_sources
-          # dataset_sources = gurumoorthirajagopal/my-pipeline-models (correct in file)
           meta['id'] = '${KERNEL_ID}'
           with open('kernel-metadata.json', 'w') as f:
               json.dump(meta, f, indent=2)
@@ -179,7 +205,6 @@ jobs:
           KERNEL="${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}"
           echo "Pushing kernel: $KERNEL"
 
-          # Wait if kernel is active
           for i in 1 2 3 4 5; do
             STATUS=$(kaggle kernels status "$KERNEL" 2>&1 || true)
             echo "[$i] $STATUS"
@@ -192,7 +217,6 @@ jobs:
             fi
           done
 
-          # Push with retry
           cd kaggle
           MAX_RETRIES=3
           ATTEMPT=0
@@ -201,11 +225,9 @@ jobs:
           while [ $ATTEMPT -lt $MAX_RETRIES ]; do
             ATTEMPT=$((ATTEMPT + 1))
             echo "Push attempt $ATTEMPT/$MAX_RETRIES..."
-
             OUTPUT=$(kaggle kernels push -p . 2>&1)
             EXIT_CODE=$?
             echo "Output: $OUTPUT"
-
             if [ $EXIT_CODE -eq 0 ] && ! echo "$OUTPUT" | grep -qiE 'conflict|cannot change'; then
               echo "PUSH SUCCESSFUL!"
               break
@@ -243,28 +265,22 @@ jobs:
             echo "[${MINS}m] Status: ${S:-unknown}"
 
             case "$S" in
-              running)
-                SEEN_RUNNING=true
-                ;;
-              queued)
-                echo "  Waiting for GPU..."
-                ;;
+              running) SEEN_RUNNING=true ;;
+              queued)  echo "  Waiting for GPU..." ;;
               complete)
                 if [ "$SEEN_RUNNING" = true ] || [ $ELAPSED -ge 300 ]; then
                   echo "KERNEL COMPLETED!"
                   exit 0
                 else
                   echo "  Stale status — waiting for new run..."
-                fi
-                ;;
+                fi ;;
               error)
                 if [ "$SEEN_RUNNING" = true ]; then
                   echo "KERNEL FAILED"
                   exit 1
                 else
                   echo "  Stale error — waiting for new run..."
-                fi
-                ;;
+                fi ;;
             esac
 
             sleep $POLL
@@ -281,7 +297,6 @@ jobs:
           echo "Downloading Kaggle output..."
           mkdir -p /tmp/kaggle_out
           kaggle kernels output "$KERNEL" -p /tmp/kaggle_out 2>/dev/null || true
-          # Check if pipeline wrote effective_end.txt
           if [ -f "/tmp/kaggle_out/effective_end.txt" ]; then
             EFF=$(cat /tmp/kaggle_out/effective_end.txt | tr -d '[:space:]')
             echo "Effective end from pipeline: $EFF"
@@ -300,7 +315,6 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add progress/batch_tracker.txt
 
-          # Only commit if there are staged changes
           if git diff --staged --quiet; then
             echo "batch_tracker.txt unchanged — nothing to commit"
             exit 0
@@ -308,7 +322,6 @@ jobs:
 
           git commit -m "Batch ${{ steps.batch.outputs.start_index }}-${{ steps.batch.outputs.end_index }} done"
 
-          # Push with rebase-retry (handles concurrent push conflicts)
           PUSHED=false
           for ATTEMPT in 1 2 3 4; do
             echo "Push attempt $ATTEMPT/4..."

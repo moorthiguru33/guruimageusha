@@ -1,6 +1,12 @@
 name: Logo LoRA - Kaggle FLUX.1-dev Pipeline
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "kaggle/logo_lora_pipeline.py"
+      - "inject_lora_creds.py"
+      - "build_lora_notebook.py"
   workflow_dispatch:
     inputs:
       instant_count:
@@ -37,6 +43,7 @@ on:
         options:
           - generate
           - status_check
+          - cancel_schedule
   schedule:
     - cron: "0 22 * * *"
 
@@ -45,13 +52,36 @@ env:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
+
+  # ── NEW: Cancel any queued/in-progress scheduled runs ─────────────────────
+  cancel-schedule:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'cancel_schedule'
+    steps:
+      - name: Cancel queued & in-progress scheduled runs
+        run: |
+          echo "Looking for queued/in-progress runs to cancel..."
+          for STATUS in queued in_progress; do
+            gh run list \
+              --workflow=trigger_logo_lora.yml \
+              --status=$STATUS \
+              --json databaseId,event \
+              --jq '.[] | select(.event == "schedule") | .databaseId' \
+            | xargs -r -I{} sh -c 'echo "Cancelling run {}..." && gh run cancel {}'
+          done
+          echo "Done. All matching scheduled runs cancelled."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
 
   trigger-logo-lora:
     runs-on: ubuntu-latest
     if: >
       github.event_name == 'schedule' ||
+      github.event_name == 'push' ||
       github.event.inputs.action == 'generate'
 
     steps:
@@ -84,7 +114,7 @@ jobs:
           END="${{ github.event.inputs.end_index }}"
           COUNT="${{ github.event.inputs.instant_count }}"
 
-          if [ -z "$START" ] || [ "${{ github.event_name }}" = "schedule" ]; then
+          if [ -z "$START" ] || [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event_name }}" = "push" ]; then
             if [ -f "progress/lora_batch_tracker.txt" ]; then
               START=$(cat progress/lora_batch_tracker.txt)
               echo "Resuming from lora_batch_tracker: $START"
@@ -96,7 +126,7 @@ jobs:
 
           if [ -n "$COUNT" ] && [ "$COUNT" -gt "0" ]; then
             END=$((START + COUNT))
-          elif [ -z "$END" ] || [ "${{ github.event_name }}" = "schedule" ]; then
+          elif [ -z "$END" ] || [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event_name }}" = "push" ]; then
             END=$((START + 200))
           fi
 
