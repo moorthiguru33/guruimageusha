@@ -424,7 +424,7 @@ def make_previews(png_path):
         jpg_buf = io.BytesIO()
         bg.save(jpg_buf, "JPEG", quality=85, optimize=True, exif=exif_bytes)
         webp_buf = io.BytesIO()
-        bg.save(webp_buf, "WEBP", quality=82, method=4)
+        bg.save(webp_buf, "WEBP", quality=82, method=6)
     return jpg_buf.getvalue(), webp_buf.getvalue(), w, h
 
 # ══════════════════════════════════════════════════════════════
@@ -717,7 +717,7 @@ def phase3_bg_remove(posts):
 
             img    = Image.open(str(path)).convert("RGB")
             result = remove_bg(img)
-            result.save(str(out), "PNG", compress_level=0)
+            result.save(str(out), "PNG", compress_level=9)
             result_posts.append({**post, "transparent_path": str(out)})
 
             if (i + 1) % 20 == 0:
