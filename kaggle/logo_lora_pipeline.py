@@ -1,9 +1,8 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║   UltraPNG.com — Logo LoRA Pipeline V1.1                    ║
+║   UltraPNG.com — Logo LoRA Pipeline V1.0                    ║
 ╠══════════════════════════════════════════════════════════════╣
 ║  PHASE 1B → FLUX.1-dev + Logo LoRA   1024x1024 logos       ║
-║  GPU AUTO-DETECT: NF4 quant on T4/P100 | fp16 on A100      ║
 ║  PHASE 3  → RMBG-2.0 ONNX           Background removal     ║
 ║  PHASE 4  → Google Drive             Upload PNG + WebP      ║
 ║  PHASE 5  → ultradata.xlsx           Append rows in REPO1   ║
@@ -112,7 +111,6 @@ PKGS = [
     "transformers>=4.47.0",
     "accelerate>=0.28.0", "sentencepiece",
     "huggingface_hub>=0.23.0",
-    "bitsandbytes>=0.43.0",          # ← NF4 quantization for T4/P100
     "Pillow>=10.0", "numpy", "requests",
     "onnxruntime-gpu", "torchvision",
     "opencv-python-headless", "piexif",
@@ -459,48 +457,67 @@ def phase1b_generate_logo(batch, skip_set):
     log("=" * 56)
 
     from diffusers import FluxPipeline
-    from transformers import BitsAndBytesConfig
 
-    # ── Detect GPU VRAM and pick loading strategy ──────────────
-    vram_gb = torch.cuda.get_device_properties(0).total_memory / 1e9 if torch.cuda.is_available() else 0
-    gpu_name = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU"
+    # ── Detect GPU capability ──────────────────────────────────
+    vram_gb   = torch.cuda.get_device_properties(0).total_memory / 1e9 if torch.cuda.is_available() else 0
+    gpu_name  = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU"
+    cuda_cap  = torch.cuda.get_device_capability(0) if torch.cuda.is_available() else (0, 0)
+    cuda_major = cuda_cap[0]
+
     log(f"  GPU       : {gpu_name}")
     log(f"  VRAM      : {vram_gb:.1f} GB")
+    log(f"  CUDA cap  : sm_{cuda_major}{cuda_cap[1]}")
 
-    # T4 = 15GB, P100 = 16GB — both need quantization for FLUX.1-dev
-    # A100 = 40GB+ — can run full fp16 safely
-    USE_NF4 = vram_gb < 32.0
+    # bitsandbytes NF4 requires CUDA sm_70+ (Volta and above)
+    # P100 = sm_60 → NF4 will crash → use float16 + cpu_offload instead
+    # T4   = sm_75 → NF4 works
+    # A100 = sm_80 → full fp16, no offload needed
 
-    log(f"  Strategy  : {'NF4 4-bit quantization (VRAM < 32GB)' if USE_NF4 else 'Full fp16 (VRAM >= 32GB)'}")
-    log(f"  Loading FLUX.1-dev (first run: ~25GB download)...")
-
-    if USE_NF4:
-        # ── NF4 Quantized load (~10GB VRAM) ───────────────────
-        # Works on T4 (15GB) and P100 (16GB)
-        nf4_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=torch.bfloat16,
-        )
-        pipe = FluxPipeline.from_pretrained(
-            FLUX_DEV_HF_ID,
-            quantization_config=nf4_config,
-            torch_dtype=torch.bfloat16,
-            device_map="auto",
-        )
-    else:
-        # ── Full fp16 load (A100 / H100) ──────────────────────
+    if cuda_major >= 8:
+        # A100 / H100 — full fp16, fits in VRAM
+        log(f"  Strategy  : Full fp16 (A100/H100, no offload needed)")
         pipe = FluxPipeline.from_pretrained(
             FLUX_DEV_HF_ID,
             torch_dtype=torch.float16,
         )
         pipe.to("cuda")
+        use_cpu_offload = False
+
+    elif cuda_major >= 7:
+        # T4 (sm_75) — NF4 quantization via PipelineQuantizationConfig
+        log(f"  Strategy  : NF4 4-bit quantization (T4, sm_75+)")
+        from diffusers import PipelineQuantizationConfig
+        quant_config = PipelineQuantizationConfig(
+            quant_backend="bitsandbytes",
+            quant_kwargs={
+                "load_in_4bit": True,
+                "bnb_4bit_quant_type": "nf4",
+                "bnb_4bit_compute_dtype": torch.bfloat16,
+            },
+            modules_to_quantize=["transformer"],
+        )
+        pipe = FluxPipeline.from_pretrained(
+            FLUX_DEV_HF_ID,
+            quantization_config=quant_config,
+            torch_dtype=torch.bfloat16,
+            device_map="auto",
+        )
+        use_cpu_offload = False
+
+    else:
+        # P100 (sm_60) and older — float16 + sequential CPU offload
+        # bitsandbytes requires sm_70+, so we skip quantization entirely
+        log(f"  Strategy  : float16 + sequential CPU offload (P100/sm_60)")
+        pipe = FluxPipeline.from_pretrained(
+            FLUX_DEV_HF_ID,
+            torch_dtype=torch.float16,
+        )
+        use_cpu_offload = True
 
     log(f"  Loading Logo LoRA weights...")
     pipe.load_lora_weights(LOGO_LORA_HF_ID)
 
-    # Sequential CPU offload only needed when NOT using device_map="auto"
-    if not USE_NF4:
+    if use_cpu_offload:
         pipe.enable_sequential_cpu_offload()
     pipe.set_progress_bar_config(disable=True)
     log(f"  Ready! Batch: {len(batch)} | Skip: {len(skip_set)}\n")
