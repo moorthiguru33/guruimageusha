@@ -16,9 +16,13 @@ S2_TRACKER_FILE   = "progress/s2_batch_tracker.txt"
 INSTANT_CAP       = 1000    # GitHub Actions 6-hr safety cap for instant mode
 
 # ── GROQ RATE LIMIT SAFE SETTINGS ─────────────────────────────
-# LLaMA 3.3 70B free tier = 6,000 TPM. Each call ~900 tokens.
-# Safe = 4 calls/min → 15 sec sleep between calls.
-GROQ_SLEEP_SEC    = 15.0
+# 429 retry-after is already handled INSIDE _groq_vision_seo().
+# Base sleep = 2s between calls. If 429 hits, function waits
+# automatically and _groq_dynamic_sleep increases for next calls.
+GROQ_SLEEP_SEC    = 5.0      # base sleep between calls
+GROQ_RETRY_WAIT   = 15.0     # retry wait multiplier for API errors
+BANNED_RETRY_SEC  = 30.0     # short wait for banned phrase retry (was ~225s total!)
+_groq_dynamic_sleep = 5.0    # auto-adjusted: increases on 429, decreases on success
 
 # ── ACTIVE GROQ MODELS ONLY (verified March 2026) ─────────────
 # mixtral-8x7b-32768  → DEPRECATED March 2025   ❌
@@ -33,6 +37,11 @@ GROQ_MODELS = [
 # ── GROQ VISION MODEL (single-shot: see image + write SEO) ────
 # llama-4-scout-17b-16e-instruct → Active ✅ Vision capable, Free
 GROQ_VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
+
+
+class BannedPhraseError(Exception):
+    """Raised when LLM output contains AdSense-banned phrases. Short retry only."""
+    pass
 
 
 # ══════════════════════════════════════════════════════════════
@@ -165,6 +174,7 @@ def _groq_vision_seo(subject_name: str, image_url: str,
     Respects Groq 429 retry-after header automatically.
     """
     import requests
+    global _groq_dynamic_sleep
 
     key = os.environ.get("GROQ_API_KEY", "").strip()
     if not key:
@@ -335,7 +345,7 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
         desc_lower = desc.lower()
         for phrase in _BANNED:
             if phrase in desc_lower:
-                raise RuntimeError(f"Banned phrase detected: '{phrase}' — regenerating")
+                raise BannedPhraseError(f"Banned phrase: '{phrase}' — retrying in {BANNED_RETRY_SEC:.0f}s")
         return {
             "title":       title,
             "h1":          h1,
@@ -366,6 +376,7 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
                 )
                 if r.status_code == 429:
                     retry_after = float(r.headers.get("retry-after", "60"))
+                    _groq_dynamic_sleep = min(retry_after, 30)  # auto-adjust next calls
                     print(f"\n    [GROQ-V] 429 — waiting {retry_after:.0f}s ...", flush=True)
                     time.sleep(retry_after + 2)
                     continue
@@ -382,10 +393,15 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
                 result = _parse_seo(content_str)
                 return result
 
+            except BannedPhraseError as e:
+                last_err = e
+                if attempt < retries:
+                    print(f"\n    [GROQ-V] {e} ", flush=True)
+                    time.sleep(BANNED_RETRY_SEC)
             except Exception as e:
                 last_err = e
                 if attempt < retries:
-                    wait = GROQ_SLEEP_SEC * attempt
+                    wait = GROQ_RETRY_WAIT * attempt
                     print(f"\n    [GROQ-V] attempt {attempt}/{retries} failed: {e}"
                           f" — retry in {wait:.0f}s", flush=True)
                     time.sleep(wait)
@@ -421,6 +437,7 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
                     raise RuntimeError(f"400 Bad Request: {err_body}")
                 if r.status_code == 429:
                     retry_after = float(r.headers.get("retry-after", "60"))
+                    _groq_dynamic_sleep = min(retry_after, 30)  # auto-adjust next calls
                     print(f"\n    [GROQ-T] 429 on {model} — waiting {retry_after:.0f}s ...",
                           flush=True)
                     time.sleep(retry_after + 2)
@@ -431,10 +448,15 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
                     print(f"    [GROQ-T] used fallback model: {model}", flush=True)
                 return result
 
+            except BannedPhraseError as e:
+                last_err = e
+                if attempt < retries:
+                    print(f"\n    [GROQ-T] {e} ", flush=True)
+                    time.sleep(BANNED_RETRY_SEC)
             except Exception as e:
                 last_err = e
                 if attempt < retries:
-                    wait = GROQ_SLEEP_SEC * attempt
+                    wait = GROQ_RETRY_WAIT * attempt
                     print(f"\n    [GROQ-T] attempt {attempt}/{retries} on {model} failed: {e}"
                           f" — retry in {wait:.0f}s", flush=True)
                     time.sleep(wait)
@@ -974,7 +996,7 @@ def main() -> None:
     # ── STEP 6: Generate SEO ─────────────────────────────────
     est_min = len(missing) * GROQ_SLEEP_SEC / 60
     print(f"\n[Step 6] Generating SEO for {len(missing)} item(s) ...")
-    print(f"         Estimated time: ~{est_min:.1f} minutes\n")
+    print(f"         Estimated time: ~{est_min:.1f} minutes (dynamic — may be faster)\n")
 
     file_entries: Dict[Path, List[Dict[str, Any]]] = {}
     for f in files:
@@ -1025,9 +1047,13 @@ def main() -> None:
         except Exception as e:
             print(f"✗ SKIP ({e})")
 
-        # Safe 15s sleep between calls — ~4 calls/min within 6,000 TPM free limit
+        # Dynamic sleep: starts at 2s, auto-increases on 429, decreases on success
         if i < len(missing):
-            time.sleep(GROQ_SLEEP_SEC)
+            global _groq_dynamic_sleep
+            time.sleep(_groq_dynamic_sleep)
+            # Gradually decrease back to base after successful calls
+            if _groq_dynamic_sleep > GROQ_SLEEP_SEC:
+                _groq_dynamic_sleep = max(GROQ_SLEEP_SEC, _groq_dynamic_sleep * 0.8)
 
     # ── STEP 7: Save & push repo2 ───────────────────────────
     print(f"\n[Step 7] Saving & pushing {added} entries to Repo2 ...")
