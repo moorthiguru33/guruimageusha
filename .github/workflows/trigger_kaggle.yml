@@ -70,24 +70,41 @@ jobs:
           START="${{ github.event.inputs.start_index }}"
           END="${{ github.event.inputs.end_index }}"
           COUNT="${{ github.event.inputs.instant_count }}"
-          if [ -n "$COUNT" ]; then
-            END=$((START + COUNT))
-          fi
+
+          # ── STEP 1: Resolve START ──────────────────────────────
+          # If start_index not given (or scheduled run), always read batch_tracker
           if [ -z "$START" ] || [ "${{ github.event_name }}" = "schedule" ]; then
             if [ -f "progress/batch_tracker.txt" ]; then
-              LAST=$(cat progress/batch_tracker.txt)
-              START=$LAST
-              END=$((LAST + 300))
+              START=$(cat progress/batch_tracker.txt)
+              echo "Resuming from batch_tracker: $START"
             else
               START=0
-              END=300
+              echo "No tracker found — starting from 0"
             fi
           fi
+
+          # ── STEP 2: Resolve END ────────────────────────────────
+          # instant_count always wins over end_index
+          if [ -n "$COUNT" ] && [ "$COUNT" -gt "0" ]; then
+            END=$((START + COUNT))
+            echo "instant_count=$COUNT → END=$END"
+          elif [ -z "$END" ] || [ "${{ github.event_name }}" = "schedule" ]; then
+            END=$((START + 300))
+            echo "Default batch 300 → END=$END"
+          fi
+
+          # ── STEP 3: Safety clamp ──────────────────────────────
           if [ "$END" -gt "43082" ]; then END=43082; fi
-          if [ "$START" -ge "43082" ]; then echo "All done!"; exit 0; fi
+          if [ "$START" -ge "43082" ]; then
+            echo "✅ All 43082 items done!"
+            exit 0
+          fi
+
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "  Batch: $START → $END  ($(( END - START )) items)"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "start_index=$START" >> $GITHUB_OUTPUT
           echo "end_index=$END" >> $GITHUB_OUTPUT
-          echo "Batch: $START → $END"
 
       - name: Clean Notebook Outputs (remove old data)
         run: |
