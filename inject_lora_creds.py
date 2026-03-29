@@ -16,6 +16,7 @@ refresh_token   = os.environ.get("GOOGLE_REFRESH_TOKEN", "")
 github_token_r2 = os.environ.get("GITHUB_TOKEN_REPO2_VAL", "")
 github_repo2    = os.environ.get("GITHUB_REPO2_VAL", "")
 github_token_r1 = os.environ.get("GITHUB_TOKEN_REPO1_VAL", "")
+hf_token        = os.environ.get("HF_TOKEN_VAL", "")
 
 # Unique marker to identify this creds cell
 CREDS_MARKER = "# __ULTRAPNG_LORA_CREDENTIALS_CELL__"
@@ -32,10 +33,11 @@ os.environ["GITHUB_TOKEN_REPO2"]   = "{github_token_r2}"
 os.environ["GITHUB_REPO2"]         = "{github_repo2}"
 os.environ["GITHUB_TOKEN_REPO1"]   = "{github_token_r1}"
 os.environ["LOGO_LORA_CATEGORY"]   = "{category}"
+os.environ["HF_TOKEN"]             = "{hf_token}"
 print("Logo LoRA credentials loaded. Batch: {start} -> {end}")
 print(f"  Category : {category or 'ALL'}")
 print(f"  REPO2    : {github_repo2 or '(not set)'}")
-print(f"  Google   : {'OK' if client_id else '(not set)'}")
+print(f"  HF Token : {'OK' if hf_token else '(NOT SET — FLUX.1-dev will fail!)'}")
 '''
 
 nb_path = "kaggle/logo_lora_pipeline.ipynb"
