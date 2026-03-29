@@ -678,7 +678,8 @@ def _make_webp_preview(png_bytes: bytes) -> bytes:
                     drw.rectangle([x, y, x + 20, y + 20], fill=(232, 232, 232))
         bg.paste(img_rgba.convert("RGB"), mask=img_rgba.split()[3])
         try:
-            fnt = ImageFont.truetype("arial.ttf", 13)
+            fnt = ImageFont.truetype(
+                "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 13)
         except Exception:
             fnt = ImageFont.load_default()
         wm_layer = Image.new("RGBA", (w, h), (0, 0, 0, 0))
@@ -972,7 +973,7 @@ def main() -> None:
 
     # ── STEP 6: Generate SEO ─────────────────────────────────
     est_min = len(missing) * GROQ_SLEEP_SEC / 60
-    print(f"\n[Step 5] Generating SEO for {len(missing)} item(s) ...")
+    print(f"\n[Step 6] Generating SEO for {len(missing)} item(s) ...")
     print(f"         Estimated time: ~{est_min:.1f} minutes\n")
 
     file_entries: Dict[Path, List[Dict[str, Any]]] = {}
@@ -1029,7 +1030,7 @@ def main() -> None:
             time.sleep(GROQ_SLEEP_SEC)
 
     # ── STEP 7: Save & push repo2 ───────────────────────────
-    print(f"\n[Step 6] Saving & pushing {added} entries to Repo2 ...")
+    print(f"\n[Step 7] Saving & pushing {added} entries to Repo2 ...")
     _save_repo2_files(repo2_dir, cfg.data_dir, file_entries)
     if added > 0:
         _commit_push_repo2(repo2_dir, cfg, added)
