@@ -418,7 +418,7 @@ def make_previews(png_path):
             "0th": {
                 piexif.ImageIFD.Copyright: WATERMARK_TEXT.encode(),
                 piexif.ImageIFD.Artist:    SITE_NAME.encode(),
-                piexif.ImageIFD.Software:  b"UltraPNG Pipeline V6.0",
+                piexif.ImageIFD.Software:  b"UltraPNG Pipeline V7.0",
             }
         })
         jpg_buf = io.BytesIO()
@@ -535,8 +535,10 @@ def load_skip_set_from_ultradata() -> set:
 def load_prompts():
     log("Loading prompts...")
     if GITHUB_REPO1 and not PROJECT_DIR.exists():
-        os.system(
-            f"git clone --depth 1 https://github.com/{GITHUB_REPO1} {PROJECT_DIR} 2>/dev/null")
+        subprocess.run(
+            ["git", "clone", "--depth", "1",
+             f"https://github.com/{GITHUB_REPO1}", str(PROJECT_DIR)],
+            capture_output=True)
     if PROJECT_DIR.exists():
         sys.path.insert(0, str(PROJECT_DIR))
         try:
@@ -1294,10 +1296,11 @@ def phase5_build_push(new_posts):
     if REPO2_DIR.exists() and (REPO2_DIR / ".git").exists():
         log("REPO2 exists — pulling data/ only...")
         try:
-            subprocess.run(["git", "pull", "--rebase", "--autostash"],
-                           cwd=str(REPO2_DIR), capture_output=True, check=True)
+            # BUG FIX: set-url FIRST so pull uses the authenticated token URL
             subprocess.run(["git", "remote", "set-url", "origin", repo_url],
                            cwd=str(REPO2_DIR), capture_output=True)
+            subprocess.run(["git", "pull", "--rebase", "--autostash"],
+                           cwd=str(REPO2_DIR), capture_output=True, check=True)
         except Exception as e:
             log(f"  Pull failed ({e}) — re-cloning sparse...")
             shutil.rmtree(str(REPO2_DIR), ignore_errors=True)
@@ -1402,9 +1405,10 @@ def phase6_save_logs(stats: dict):
             subprocess.run(["git", "clone", "--depth", "1", repo_url, str(REPO1_DIR)],
                            capture_output=True, check=True)
         else:
-            subprocess.run(["git", "pull", "--rebase", "--autostash"],
-                           cwd=str(REPO1_DIR), capture_output=True)
+            # BUG FIX: set-url FIRST so pull uses the authenticated token URL
             subprocess.run(["git", "remote", "set-url", "origin", repo_url],
+                           cwd=str(REPO1_DIR), capture_output=True)
+            subprocess.run(["git", "pull", "--rebase", "--autostash"],
                            cwd=str(REPO1_DIR), capture_output=True)
 
         logs_dir = REPO1_DIR / "logs"
@@ -1413,7 +1417,7 @@ def phase6_save_logs(stats: dict):
         log_file = logs_dir / f"{now}.log"
 
         summary = (
-            f"ULTRAPNG PIPELINE V6.0 — RUN REPORT\n"
+            f"ULTRAPNG PIPELINE V7.0 — RUN REPORT\n"
             f"{'='*60}\n"
             f"Date       : {datetime.now().strftime('%Y-%m-%d %H:%M IST')}\n"
             f"Batch      : {START_INDEX} -> {END_INDEX}\n"
