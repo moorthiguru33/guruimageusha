@@ -86,6 +86,11 @@ jobs:
           S2_SCHEDULED_DAYS:    ${{ steps.cfg.outputs.scheduled_days }}
         run: python section2_runner.py
 
+      - name: Pull latest before commit
+        run: |
+          git fetch origin main
+          git rebase origin/main || git merge origin/main --no-edit
+
       # ── BUG FIX: commit ultradata.xlsx AND progress tracker together ──
       - name: Commit ultradata.xlsx + progress tracker
         uses: stefanzweifel/git-auto-commit-action@v5

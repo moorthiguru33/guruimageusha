@@ -261,6 +261,12 @@ jobs:
         if: success()
         run: echo "${{ steps.batch.outputs.end_index }}" > progress/batch_tracker.txt
 
+      - name: Pull latest before commit
+        if: success()
+        run: |
+          git fetch origin main
+          git rebase origin/main || git merge origin/main --no-edit
+
       - name: Commit Progress
         if: success()
         uses: stefanzweifel/git-auto-commit-action@v5
