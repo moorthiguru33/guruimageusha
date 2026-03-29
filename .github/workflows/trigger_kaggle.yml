@@ -274,10 +274,27 @@ jobs:
           echo "TIMEOUT"
           exit 1
 
+      - name: Download Kaggle Output (get effective end index)
+        if: success()
+        run: |
+          KERNEL="${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}"
+          echo "Downloading Kaggle output..."
+          mkdir -p /tmp/kaggle_out
+          kaggle kernels output "$KERNEL" -p /tmp/kaggle_out 2>/dev/null || true
+          # Check if pipeline wrote effective_end.txt
+          if [ -f "/tmp/kaggle_out/effective_end.txt" ]; then
+            EFF=$(cat /tmp/kaggle_out/effective_end.txt | tr -d '[:space:]')
+            echo "Effective end from pipeline: $EFF"
+            echo "EFFECTIVE_END=$EFF" >> $GITHUB_ENV
+          else
+            echo "EFFECTIVE_END=${{ steps.batch.outputs.end_index }}" >> $GITHUB_ENV
+          fi
+
       - name: Save & Push Progress
         if: success()
         run: |
-          echo "${{ steps.batch.outputs.end_index }}" > progress/batch_tracker.txt
+          echo "$EFFECTIVE_END" > progress/batch_tracker.txt
+          echo "Saving batch_tracker.txt = $EFFECTIVE_END"
 
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
