@@ -1,0 +1,36 @@
+========================================================
+LOGO LoRA PIPELINE — RUN SUMMARY
+  Date      : 2026-03-29 19:52
+  Status    : FAILED: `quantization_config` must be an instance of `PipelineQuantizationConfig`.
+  Duration  : ?
+  Generated : 0
+  Transparent: 0
+  Uploaded  : 0
+  Trigger   : wablogo, logo, 
+  Model     : black-forest-labs/FLUX.1-dev
+  LoRA      : Shakker-Labs/FLUX.1-dev-LoRA-Logo-Design
+========================================================
+
+[19:51:34] Loading logo prompts...
+[19:51:34]   Total prompts: 6840 | Logo filtered: 1900
+[19:51:34] Building skip-set from REPO2 JSON files...
+[19:51:36]   Skip-set (REPO2): 10 already-done filenames
+[19:51:38]   Skip-set (ultradata): 802 already-generated filenames
+[19:51:38]   Combined skip-set: 802 filenames
+
+[19:51:38]   AUTO-ADVANCE: 0 → 10
+[19:51:38] Batch: 10 → 15 | 5 fresh
+
+[19:51:38] ========================================================
+[19:51:38] PHASE 1B: FLUX.1-dev + Logo LoRA — Logo Generation
+[19:51:38]   Base model : black-forest-labs/FLUX.1-dev
+[19:51:38]   LoRA       : Shakker-Labs/FLUX.1-dev-LoRA-Logo-Design
+[19:51:38]   Trigger    : 'wablogo, logo, '
+[19:51:38]   Steps      : 24
+[19:51:38]   Guidance   : 3.5
+[19:51:38] ========================================================
+[19:52:18]   GPU       : Tesla P100-PCIE-16GB
+[19:52:18]   VRAM      : 17.1 GB
+[19:52:18]   Strategy  : NF4 4-bit quantization (VRAM < 32GB)
+[19:52:18]   Loading FLUX.1-dev (first run: ~25GB download)...
+[19:52:18] FATAL: `quantization_config` must be an instance of `PipelineQuantizationConfig`.
