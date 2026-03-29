@@ -1565,13 +1565,44 @@ def main():
         if not prompts:
             raise Exception("No prompts loaded!")
 
-        batch = prompts[START_INDEX:END_INDEX]
-        log(f"Batch: {len(batch)} prompts\n")
-
         skip_set = load_skip_set_from_json()
         # Also skip images already in ultradata.xlsx (generated but SEO not yet done)
         skip_set |= load_skip_set_from_ultradata()
         log(f"  Combined skip-set: {len(skip_set)} filenames total\n")
+
+        # ── AUTO-ADVANCE: if batch is fully skipped, scan forward to find real work ──
+        BATCH_SIZE   = END_INDEX - START_INDEX
+        real_start   = START_INDEX
+        real_end     = END_INDEX
+        MAX_SCAN     = min(len(prompts), START_INDEX + max(BATCH_SIZE * 50, 5000))
+
+        scan_start = START_INDEX
+        while scan_start < MAX_SCAN:
+            window = prompts[scan_start:scan_start + BATCH_SIZE]
+            fresh  = [p for p in window if p["filename"] not in skip_set]
+            if fresh:
+                if scan_start != START_INDEX:
+                    log(f"  AUTO-ADVANCE: {START_INDEX} → {scan_start} "
+                        f"(skipped {scan_start - START_INDEX} already-done items)")
+                real_start = scan_start
+                real_end   = scan_start + BATCH_SIZE
+                break
+            log(f"  All skipped in {scan_start}→{scan_start+BATCH_SIZE}, scanning ahead...")
+            scan_start += BATCH_SIZE
+        else:
+            log("  All remaining prompts already done — nothing to generate.")
+            return
+
+        batch = prompts[real_start:real_end]
+        log(f"Batch: {real_start} → {real_end} ({len(batch)} prompts, "
+            f"{len([p for p in batch if p['filename'] not in skip_set])} fresh)\n")
+
+        # ── Update START/END so batch_tracker.txt saves the correct position ──
+        import builtins as _bt
+        _bt.__dict__["_EFFECTIVE_START"] = real_start
+        _bt.__dict__["_EFFECTIVE_END"]   = real_end
+        os.environ["START_INDEX"] = str(real_start)
+        os.environ["END_INDEX"]   = str(real_end)
 
         # PHASE 1
         generated = phase1_generate(batch, skip_set)
@@ -1650,6 +1681,12 @@ def main():
         # Clear checkpoints only AFTER xlsx is safely pushed
         for ck in CHECKPOINT_DIR.glob("*.json"):
             ck.unlink()
+
+        # ── Write effective_end.txt so GitHub Actions saves the correct batch position ──
+        eff_end = int(os.environ.get("END_INDEX", str(END_INDEX)))
+        eff_end_path = Path("/kaggle/working/effective_end.txt")
+        eff_end_path.write_text(str(eff_end))
+        log(f"  effective_end.txt written: {eff_end} (batch_tracker will be set to this)")
 
         hrs = (time.time() - t0) / 3600
         stats["duration"] = f"{hrs:.1f}h"
