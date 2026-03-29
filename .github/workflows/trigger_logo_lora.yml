@@ -115,6 +115,7 @@ jobs:
           GITHUB_TOKEN_REPO2_VAL: ${{ secrets.REPO_2_TOKEN }}
           GITHUB_REPO2_VAL:       ${{ secrets.REPO_2 }}
           GITHUB_TOKEN_REPO1_VAL: ${{ secrets.REPO_1_TOKEN }}
+          HF_TOKEN_VAL:           ${{ secrets.HF_TOKEN }}
         run: |
           python3 inject_lora_creds.py \
             "${{ steps.batch.outputs.start_index }}" \
