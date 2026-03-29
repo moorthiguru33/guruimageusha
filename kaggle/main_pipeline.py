@@ -757,6 +757,28 @@ def phase3_bg_remove(posts):
 # ══════════════════════════════════════════════════════════════
 # PHASE 4 — Google Drive Upload
 # ══════════════════════════════════════════════════════════════
+def _drive_list_folder_names(token, folder_id):
+    """Return dict {filename: file_id} for ALL files in a Drive folder (handles pagination)."""
+    h = {"Authorization": f"Bearer {token}"}
+    q = f"'{folder_id}' in parents and trashed=false"
+    result = {}
+    page_token = None
+    while True:
+        params = {"q": q, "pageSize": 1000,
+                  "fields": "nextPageToken,files(id,name)",
+                  "pageToken": page_token} if page_token else                  {"q": q, "pageSize": 1000, "fields": "nextPageToken,files(id,name)"}
+        r = req.get("https://www.googleapis.com/drive/v3/files",
+                    headers=h, params=params, timeout=30)
+        r.raise_for_status()
+        data = r.json()
+        for f in data.get("files", []):
+            result[f["name"]] = f["id"]
+        page_token = data.get("nextPageToken")
+        if not page_token:
+            break
+    return result
+
+
 def phase4_upload(posts):
     ckpt = load_checkpoint("phase4_uploaded")
     if ckpt:
@@ -770,12 +792,13 @@ def phase4_upload(posts):
         return []
 
     token     = get_drive_token()
-    fcache    = {}
+    fcache    = {}          # folder IDs
+    dcache    = {}          # existing filenames per folder_id  {folder_id: {name: fid}}
     png_root  = drive_folder(token, "png_library_images")
     prev_root = drive_folder(token, "png_library_previews")
     log(f"Drive ready. Uploading {len(posts)} images...\n")
 
-    uploaded, t0 = [], time.time()
+    uploaded, skipped_drive, t0 = [], 0, time.time()
 
     for i, post in enumerate(posts):
         path = Path(post["transparent_path"])
@@ -795,16 +818,48 @@ def phase4_upload(posts):
                 sr = drive_folder(token, sub, cr)
                 fcache[f"p_{key}"] = sp
                 fcache[f"r_{key}"] = sr
+                # ── Pre-load existing filenames for dedup ──
+                dcache[f"p_{key}"] = _drive_list_folder_names(token, sp)
+                dcache[f"r_{key}"] = _drive_list_folder_names(token, sr)
+                log(f"  Drive folder '{key}': {len(dcache[f'p_{key}'])} existing PNGs")
 
+            png_folder_id  = fcache[f"p_{key}"]
+            webp_folder_id = fcache[f"r_{key}"]
+            existing_png   = dcache[f"p_{key}"]
+            existing_webp  = dcache[f"r_{key}"]
+
+            webp_name = path.stem + ".webp"
+
+            # ── DRIVE-SIDE DEDUP ─────────────────────────────────────────
+            if path.name in existing_png and webp_name in existing_webp:
+                png_fid  = existing_png[path.name]
+                webp_fid = existing_webp[webp_name]
+                _jpg_bytes, webp_bytes, pw, ph = make_previews(path)
+                skipped_drive += 1
+                log(f"  DRIVE-SKIP [{i+1}] {path.name} (already exists)")
+                uploaded.append({
+                    **post,
+                    "png_file_id":       png_fid,
+                    "webp_file_id":      webp_fid,
+                    "download_url":      download_url(png_fid),
+                    "preview_url":       preview_url(webp_fid, 800),
+                    "preview_url_small": preview_url(webp_fid, 400),
+                    "webp_preview_url":  preview_url(webp_fid, 800),
+                    "preview_w": pw, "preview_h": ph,
+                    "date_added": datetime.now().strftime("%Y-%m-%d"),
+                })
+                continue
+
+            # ── Fresh upload ─────────────────────────────────────────────
             png_bytes = path.read_bytes()
-            pr = drive_upload(token, fcache[f"p_{key}"], path.name, png_bytes)
+            pr = drive_upload(token, png_folder_id, path.name, png_bytes)
             drive_share(token, pr["id"])
+            existing_png[path.name] = pr["id"]   # update local cache
 
-            # Reuse existing preview generator, but only upload WEBP (no JPG)
             _jpg_bytes, webp_bytes, pw, ph = make_previews(path)
-            wr = drive_upload(token, fcache[f"r_{key}"],
-                              path.stem + ".webp", webp_bytes, "image/webp")
+            wr = drive_upload(token, webp_folder_id, webp_name, webp_bytes, "image/webp")
             drive_share(token, wr["id"])
+            existing_webp[webp_name] = wr["id"]  # update local cache
 
             uploaded.append({
                 **post,
@@ -819,14 +874,14 @@ def phase4_upload(posts):
             })
 
             if (i + 1) % 10 == 0:
-                log(f"  Uploaded: {i+1}/{len(posts)} | {(i+1)/(time.time()-t0):.2f}/s")
+                log(f"  Uploaded: {i+1}/{len(posts)} | skip={skipped_drive} | {(i+1)/(time.time()-t0):.2f}/s")
             time.sleep(0.05)
 
         except Exception as e:
             log(f"  Upload FAIL {path.name}: {e}")
 
     save_checkpoint("phase4_uploaded", uploaded)
-    log(f"PHASE 4 DONE — Uploaded: {len(uploaded)} in {(time.time()-t0)/60:.0f}min")
+    log(f"PHASE 4 DONE — Uploaded: {len(uploaded)} | Drive-skipped: {skipped_drive} | {(time.time()-t0)/60:.0f}min")
 
     # Delete transparent/ images — all uploaded to Drive already
     import shutil as _shutil
@@ -1588,13 +1643,11 @@ def main():
         # Section 1 must NOT push SEO/JSON into Repo 2 anymore.
         stats["posts"] = len(uploaded)
 
-        # Save ultradata.xlsx into this GitHub repository (append-only).
-        try:
-            _append_ultradata_and_push(uploaded)
-        except Exception as e:
-            log(f"ultradata.xlsx update failed (non-fatal): {e}")
+        # ultradata.xlsx — MUST succeed. If push fails, job fails → batch_tracker
+        # does NOT advance → no Drive duplicates on next run.
+        _append_ultradata_and_push(uploaded)
 
-        # Clear checkpoints on success
+        # Clear checkpoints only AFTER xlsx is safely pushed
         for ck in CHECKPOINT_DIR.glob("*.json"):
             ck.unlink()
 
@@ -1709,10 +1762,25 @@ def _append_ultradata_and_push(items):
         if diff.returncode != 0:
             msg = f"ultradata: append {appended} rows [{datetime.now().strftime('%Y-%m-%d')}]"
             subprocess.run(["git", "commit", "-m", msg], check=True, capture_output=True)
-            result = subprocess.run(["git", "push"], capture_output=True, text=True)
-            if result.returncode != 0:
-                # BUG FIX: show actual push error in Kaggle log (was hidden by capture_output)
-                raise Exception(f"git push failed (exit {result.returncode}):\n{result.stderr.strip()}")
+
+            # ── Push with rebase-retry (handles concurrent push conflicts) ──
+            pushed = False
+            for push_attempt in range(1, 5):
+                result = subprocess.run(["git", "push"], capture_output=True, text=True)
+                if result.returncode == 0:
+                    pushed = True
+                    break
+                log(f"  Push attempt {push_attempt}/4 failed — pulling rebase...")
+                subprocess.run(
+                    ["git", "pull", "--rebase", "--autostash"],
+                    capture_output=True, cwd=str(xrepo_dir)
+                )
+                time.sleep(5 * push_attempt)
+
+            if not pushed:
+                raise Exception(
+                    f"git push failed after 4 attempts:\n{result.stderr.strip()}"
+                )
             log(f"ultradata.xlsx pushed: +{appended} rows")
         else:
             log("ultradata.xlsx: no staged changes")
