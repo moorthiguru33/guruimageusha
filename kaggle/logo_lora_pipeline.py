@@ -43,6 +43,11 @@ os.environ["TRANSFORMERS_CACHE"]    = str(HF_CACHE)
 _hf_token = os.environ.get("HF_TOKEN", "")
 if _hf_token:
     os.environ["HUGGINGFACE_HUB_TOKEN"] = _hf_token
+    from huggingface_hub import login as _hf_login
+    _hf_login(token=_hf_token, add_to_git_credential=False)
+    print(f"  HuggingFace login OK (token: {_hf_token[:8]}...)")
+else:
+    print("  WARNING: HF_TOKEN not set — FLUX.1-dev download will fail (gated model)!")
 
 # ══════════════════════════════════════════════════════════════
 # LOGO LoRA MODEL CONFIG
