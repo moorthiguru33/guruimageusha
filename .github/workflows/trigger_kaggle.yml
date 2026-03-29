@@ -274,22 +274,42 @@ jobs:
           echo "TIMEOUT"
           exit 1
 
-      - name: Save Progress
-        if: success()
-        run: echo "${{ steps.batch.outputs.end_index }}" > progress/batch_tracker.txt
-
-      - name: Pull latest before commit
+      - name: Save & Push Progress
         if: success()
         run: |
-          git fetch origin main
-          git rebase origin/main || git merge origin/main --no-edit
+          echo "${{ steps.batch.outputs.end_index }}" > progress/batch_tracker.txt
 
-      - name: Commit Progress
-        if: success()
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "Batch ${{ steps.batch.outputs.start_index }}-${{ steps.batch.outputs.end_index }} done"
-          file_pattern: progress/batch_tracker.txt
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add progress/batch_tracker.txt
+
+          # Only commit if there are staged changes
+          if git diff --staged --quiet; then
+            echo "batch_tracker.txt unchanged — nothing to commit"
+            exit 0
+          fi
+
+          git commit -m "Batch ${{ steps.batch.outputs.start_index }}-${{ steps.batch.outputs.end_index }} done"
+
+          # Push with rebase-retry (handles concurrent push conflicts)
+          PUSHED=false
+          for ATTEMPT in 1 2 3 4; do
+            echo "Push attempt $ATTEMPT/4..."
+            if git push; then
+              PUSHED=true
+              echo "✅ batch_tracker.txt pushed (attempt $ATTEMPT)"
+              break
+            fi
+            echo "  Push failed — pulling rebase and retrying..."
+            git fetch origin main
+            git rebase origin/main --autostash || git merge origin/main --no-edit
+            sleep $((ATTEMPT * 5))
+          done
+
+          if [ "$PUSHED" = false ]; then
+            echo "❌ CRITICAL: batch_tracker.txt push failed after 4 attempts!"
+            exit 1
+          fi
 
   status-check:
     runs-on: ubuntu-latest
