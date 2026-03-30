@@ -35,8 +35,7 @@ on:
         description: "Daily trigger time in UTC (HH:MM). Example: 02:10"
         required: false
         default: "02:10"
-  schedule:
-    - cron: "* * * * *"
+  # schedule removed — manual only (workflow_dispatch)
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
