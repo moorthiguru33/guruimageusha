@@ -82,6 +82,8 @@ print(f"  [cache] Using HF_CACHE = {HF_CACHE}")
 os.environ["HF_HOME"]               = str(HF_CACHE)
 os.environ["HUGGINGFACE_HUB_CACHE"] = str(HF_CACHE)
 os.environ["TRANSFORMERS_CACHE"]    = str(HF_CACHE)
+os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "1"   # [FIX TIMEOUT] Rust downloader — no ReadTimeout on 19GB model
+os.environ["HF_HUB_DOWNLOAD_TIMEOUT"]    = "600"  # 10 min safety net for slow links
 _hf_token = os.environ.get("HF_TOKEN", "")
 if _hf_token:
     os.environ["HUGGINGFACE_HUB_TOKEN"] = _hf_token
@@ -194,6 +196,7 @@ PKGS = [
     "transformers>=4.47.0",
     "accelerate>=0.28.0", "sentencepiece",
     "huggingface_hub>=0.23.0",
+    "hf-transfer",          # [FIX TIMEOUT] Rust-based downloader — no ReadTimeout on large models
     "Pillow>=10.0", "numpy", "requests",
     "onnxruntime-gpu", "torchvision",
     "opencv-python-headless", "piexif",
@@ -574,46 +577,88 @@ def phase1b_generate_logo(batch, skip_set):
     #
     # A100/H100 (40-80GB): no offload needed
 
+    # ── GPU strategy: dtype + offload decision ─────────────────
+    # Z-Image-Turbo: Transformer ~12GB + Text encoder ~7GB = ~19GB
+    # enable_model_cpu_offload() keeps peak VRAM at ~12GB on 16GB cards.
+    # A100/H100 (≥40GB): no offload needed.
     if cuda_major >= 8:
-        # A100 / H100 — 40GB+ VRAM, bfloat16, no offload
         log("  Strategy   : bfloat16, no CPU offload (A100/H100 ≥40GB)")
         dtype = torch.bfloat16
-        pipe = ZImagePipeline.from_pretrained(
-            ZIMAGE_HF_ID,
-            torch_dtype=dtype,
-            low_cpu_mem_usage=False,
-        )
-        pipe.to("cuda")
         use_cpu_offload = False
-
     elif cuda_major >= 7:
-        # T4 (sm_75) — 16GB VRAM, bfloat16 supported
-        # [FIX 2] Must use enable_model_cpu_offload() — 19GB total > 16GB VRAM
         log("  Strategy   : bfloat16 + enable_model_cpu_offload (T4 sm_75, 16GB)")
         log("  NOTE: text encoder (~7GB) offloads to CPU after encoding")
         log("        transformer (~12GB) stays on GPU → peak VRAM ~12GB ✓")
         dtype = torch.bfloat16
-        pipe = ZImagePipeline.from_pretrained(
-            ZIMAGE_HF_ID,
-            torch_dtype=dtype,
-            low_cpu_mem_usage=False,
-        )
         use_cpu_offload = True
-
     else:
-        # P100 (sm_60) — 16GB VRAM, NO bfloat16, NO NF4
-        # [FIX] float16 + enable_model_cpu_offload() — same 19GB>16GB problem
         log("  Strategy   : float16 + enable_model_cpu_offload (P100 sm_60, 16GB)")
         log("  NOTE: P100 does not support bfloat16 → using float16")
         log("        text encoder (~7GB) offloads to CPU after encoding")
         log("        transformer (~12GB) on GPU → peak VRAM ~12GB ✓")
         dtype = torch.float16
-        pipe = ZImagePipeline.from_pretrained(
-            ZIMAGE_HF_ID,
-            torch_dtype=dtype,
-            low_cpu_mem_usage=False,
-        )
         use_cpu_offload = True
+
+    # ── [FIX TIMEOUT] Robust model download with retry ─────────
+    # Root cause of ReadTimeout: default HF timeout is ~10s — too short
+    # for a 19GB model. hf-transfer (installed above) eliminates this by
+    # using a Rust-based multi-part downloader.  This retry loop is a
+    # belt-and-suspenders fallback in case hf-transfer is unavailable.
+    from huggingface_hub import snapshot_download
+    _max_retries = 3
+    _model_cache = None
+    for _attempt in range(1, _max_retries + 1):
+        try:
+            # First try: use cache if already downloaded (fast path)
+            _model_cache = snapshot_download(
+                ZIMAGE_HF_ID,
+                cache_dir=str(HF_CACHE),
+                local_files_only=(_attempt == 1),  # attempt 1 = cache-only
+                ignore_patterns=["*.msgpack", "*.h5", "flax_model*"],
+            )
+            log(f"  Model cache hit ✓  ({_model_cache})")
+            break
+        except Exception as _e:
+            if _attempt == 1 and "local_files_only" in str(_e).lower():
+                # Not cached yet — fall through to network download
+                pass
+            elif _attempt < _max_retries:
+                _wait = 10 * _attempt
+                log(f"  Download attempt {_attempt} failed: {_e} — retrying in {_wait}s...")
+                time.sleep(_wait)
+            else:
+                log(f"  Download attempt {_attempt} failed: {_e}")
+
+        if _attempt > 1 or _model_cache is None:
+            try:
+                log(f"  Downloading {ZIMAGE_HF_ID} (attempt {_attempt})...")
+                _model_cache = snapshot_download(
+                    ZIMAGE_HF_ID,
+                    cache_dir=str(HF_CACHE),
+                    local_files_only=False,
+                    ignore_patterns=["*.msgpack", "*.h5", "flax_model*"],
+                )
+                log(f"  Download complete ✓")
+                break
+            except Exception as _e2:
+                if _attempt < _max_retries:
+                    _wait = 15 * _attempt
+                    log(f"  Attempt {_attempt} failed: {_e2} — retry in {_wait}s...")
+                    time.sleep(_wait)
+                else:
+                    raise RuntimeError(
+                        f"Failed to download {ZIMAGE_HF_ID} after {_max_retries} attempts. "
+                        f"Last error: {_e2}"
+                    ) from _e2
+
+    # ── Load pipeline from local cache (no network call) ───────
+    pipe = ZImagePipeline.from_pretrained(
+        _model_cache,          # local path — guaranteed no timeout
+        torch_dtype=dtype,
+        local_files_only=True,
+    )
+    if cuda_major >= 8 and not use_cpu_offload:
+        pipe.to("cuda")
 
     # Apply CPU offload BEFORE set_progress_bar_config
     # [FIX 6] Order matters: offload must be set before any pipe call
