@@ -36,7 +36,7 @@ on:
         required: false
         default: "02:10"
   schedule:
-    - cron: "* * * * *"   # every minute; heavy work runs only when scheduler config says so
+    - cron: "* * * * *"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Ensure jq available (scheduler gate)
+      - name: Ensure jq available
         run: |
           set -euo pipefail
           if ! command -v jq >/dev/null 2>&1; then
@@ -78,7 +78,6 @@ jobs:
 
           echo "Now(UTC): $NOW_HM  Today: $TODAY  Event: $EVENT"
 
-          # defaults
           SHOULD_RUN="false"
           RUN_MODE="scheduled"
           RUN_BATCH_SIZE="220"
@@ -94,24 +93,16 @@ jobs:
             INSTANT_COUNT="${{ github.event.inputs.instant_count }}"
             SCHED_ACTION="${{ github.event.inputs.scheduler_action }}"
 
-            [ -z "$IN_MODE" ]  && IN_MODE="scheduled"
-            [ -z "$IN_BATCH" ] && IN_BATCH="220"
-            [ -z "$IN_DAYS" ]  && IN_DAYS="10"
-            [ -z "$IN_TIME" ]  && IN_TIME="02:10"
-            [ -z "$INSTANT_COUNT" ] && INSTANT_COUNT=""
-            [ -z "$SCHED_ACTION" ] && SCHED_ACTION="start"
+            [ -z "$IN_MODE" ]         && IN_MODE="scheduled"
+            [ -z "$IN_BATCH" ]        && IN_BATCH="220"
+            [ -z "$IN_DAYS" ]         && IN_DAYS="10"
+            [ -z "$IN_TIME" ]         && IN_TIME="02:10"
+            [ -z "$INSTANT_COUNT" ]   && INSTANT_COUNT=""
+            [ -z "$SCHED_ACTION" ]    && SCHED_ACTION="start"
 
             if [ "$SCHED_ACTION" = "stop" ]; then
-              # BUG FIX: heredoc content must NOT be indented — leading spaces break jq parse
-              cat > "$CONFIG_PATH" <<EOF
-{
-  "enabled": false,
-  "daily_time_utc": "$IN_TIME",
-  "remaining_days": 0,
-  "daily_batch_size": $IN_BATCH,
-  "last_run_date": ""
-}
-EOF
+              printf '{\n  "enabled": false,\n  "daily_time_utc": "%s",\n  "remaining_days": 0,\n  "daily_batch_size": %s,\n  "last_run_date": ""\n}\n' \
+                "$IN_TIME" "$IN_BATCH" > "$CONFIG_PATH"
               SHOULD_RUN="false"
               RUN_MODE="scheduled"
               RUN_BATCH_SIZE="$IN_BATCH"
@@ -127,31 +118,20 @@ EOF
                 RUN_INSTANT_COUNT="$INSTANT_COUNT"
                 CONFIG_WRITTEN="false"
               else
-                # BUG FIX: heredoc content must NOT be indented — leading spaces break jq parse
-                cat > "$CONFIG_PATH" <<EOF
-{
-  "enabled": true,
-  "daily_time_utc": "$IN_TIME",
-  "remaining_days": $IN_DAYS,
-  "daily_batch_size": $IN_BATCH,
-  "last_run_date": ""
-}
-EOF
-
+                printf '{\n  "enabled": true,\n  "daily_time_utc": "%s",\n  "remaining_days": %s,\n  "daily_batch_size": %s,\n  "last_run_date": ""\n}\n' \
+                  "$IN_TIME" "$IN_DAYS" "$IN_BATCH" > "$CONFIG_PATH"
                 RUN_MODE="scheduled"
                 RUN_BATCH_SIZE="$IN_BATCH"
                 RUN_SCHEDULED_DAYS="$IN_DAYS"
                 RUN_INSTANT_COUNT=""
                 CONFIG_WRITTEN="true"
-
-                # BUG FIX: workflow_dispatch scheduled-start always runs immediately on first trigger.
-                # User மanually trigger செய்தால் உடனே ஒரு batch run ஆகும் — time match தேவையில்லை.
+                # FIX: manual trigger always runs immediately — no time-match needed
                 SHOULD_RUN="true"
               fi
             fi
 
           else
-            # schedule tick
+            # cron tick
             if [ ! -f "$CONFIG_PATH" ]; then
               SHOULD_RUN="false"
             else
@@ -171,16 +151,15 @@ EOF
             fi
           fi
 
-          echo "should_run=$SHOULD_RUN" >> $GITHUB_OUTPUT
-          echo "run_mode=$RUN_MODE" >> $GITHUB_OUTPUT
-          echo "run_batch_size=$RUN_BATCH_SIZE" >> $GITHUB_OUTPUT
+          echo "should_run=$SHOULD_RUN"           >> $GITHUB_OUTPUT
+          echo "run_mode=$RUN_MODE"               >> $GITHUB_OUTPUT
+          echo "run_batch_size=$RUN_BATCH_SIZE"   >> $GITHUB_OUTPUT
           echo "run_scheduled_days=$RUN_SCHEDULED_DAYS" >> $GITHUB_OUTPUT
-          echo "run_instant_count=$RUN_INSTANT_COUNT" >> $GITHUB_OUTPUT
-          echo "config_written=$CONFIG_WRITTEN" >> $GITHUB_OUTPUT
+          echo "run_instant_count=$RUN_INSTANT_COUNT"   >> $GITHUB_OUTPUT
+          echo "config_written=$CONFIG_WRITTEN"   >> $GITHUB_OUTPUT
 
-          echo "Gate result: should_run=$SHOULD_RUN  run_mode=$RUN_MODE  instant_count=$RUN_INSTANT_COUNT  batch=$RUN_BATCH_SIZE  days=$RUN_SCHEDULED_DAYS  config_written=$CONFIG_WRITTEN"
+          echo "Gate: should_run=$SHOULD_RUN  mode=$RUN_MODE  batch=$RUN_BATCH_SIZE  days=$RUN_SCHEDULED_DAYS  config_written=$CONFIG_WRITTEN"
 
-      # When user sets schedule manually, commit scheduler config even if we don't run right now.
       - name: Commit scheduler config (set)
         if: steps.gate.outputs.config_written == 'true'
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -242,7 +221,6 @@ EOF
           NEW_REM=$((REM - 1))
           if [ "$NEW_REM" -lt 0 ]; then NEW_REM=0; fi
 
-          # enabled=true only if days remain
           jq ".remaining_days=$NEW_REM | .last_run_date=\"$TODAY\" | .enabled=($NEW_REM>0)" \
             "$CONFIG_PATH" > "${CONFIG_PATH}.tmp"
           mv "${CONFIG_PATH}.tmp" "$CONFIG_PATH"
