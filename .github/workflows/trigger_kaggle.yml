@@ -44,8 +44,7 @@ on:
           - generate
           - status_check
           - cancel_schedule
-  schedule:
-    - cron: "* * * * *" # minute tick; heavy work only runs when scheduler config says so
+  # schedule removed — manual only (workflow_dispatch)
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -84,8 +83,8 @@ jobs:
   trigger-kaggle:
     runs-on: ubuntu-latest
     if: >
-      github.event_name == 'schedule' ||
-      github.event.inputs.action == 'generate'
+      github.event.inputs.action == 'generate' ||
+      github.event.inputs.action == ''
 
     steps:
       - name: Checkout
@@ -119,7 +118,7 @@ jobs:
           COUNT="${{ github.event.inputs.instant_count }}"
 
           # ── STEP 1: Resolve START ──────────────────────────────
-          if [ -z "$START" ] || [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event_name }}" = "push" ]; then
+          if [ -z "$START" ]; then
             if [ -f "progress/batch_tracker.txt" ]; then
               START=$(cat progress/batch_tracker.txt)
               echo "Resuming from batch_tracker: $START"
@@ -133,7 +132,7 @@ jobs:
           if [ -n "$COUNT" ] && [ "$COUNT" -gt "0" ]; then
             END=$((START + COUNT))
             echo "instant_count=$COUNT → END=$END"
-          elif [ -z "$END" ] || [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event_name }}" = "push" ]; then
+          elif [ -z "$END" ]; then
             END=$((START + 300))
             echo "Default batch 300 → END=$END"
           fi
