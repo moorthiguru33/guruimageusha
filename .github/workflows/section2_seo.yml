@@ -42,7 +42,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
-# ── BUG FIX: was 'read' — needs 'write' to commit ultradata.xlsx ──
 permissions:
   contents: write
 
@@ -59,7 +58,6 @@ jobs:
             sudo apt-get install -y jq
           fi
 
-      # ── BUG FIX: persist-credentials must be true (default) for git push to work ──
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -104,15 +102,15 @@ jobs:
             [ -z "$SCHED_ACTION" ] && SCHED_ACTION="start"
 
             if [ "$SCHED_ACTION" = "stop" ]; then
-              # Disable scheduler for future runs.
+              # BUG FIX: heredoc content must NOT be indented — leading spaces break jq parse
               cat > "$CONFIG_PATH" <<EOF
-              {
-                "enabled": false,
-                "daily_time_utc": "$IN_TIME",
-                "remaining_days": 0,
-                "daily_batch_size": $IN_BATCH,
-                "last_run_date": ""
-              }
+{
+  "enabled": false,
+  "daily_time_utc": "$IN_TIME",
+  "remaining_days": 0,
+  "daily_batch_size": $IN_BATCH,
+  "last_run_date": ""
+}
 EOF
               SHOULD_RUN="false"
               RUN_MODE="scheduled"
@@ -129,27 +127,26 @@ EOF
                 RUN_INSTANT_COUNT="$INSTANT_COUNT"
                 CONFIG_WRITTEN="false"
               else
-                # set/overwrite scheduler config
+                # BUG FIX: heredoc content must NOT be indented — leading spaces break jq parse
                 cat > "$CONFIG_PATH" <<EOF
-                {
-                  "enabled": true,
-                  "daily_time_utc": "$IN_TIME",
-                  "remaining_days": $IN_DAYS,
-                  "daily_batch_size": $IN_BATCH,
-                  "last_run_date": ""
-                }
+{
+  "enabled": true,
+  "daily_time_utc": "$IN_TIME",
+  "remaining_days": $IN_DAYS,
+  "daily_batch_size": $IN_BATCH,
+  "last_run_date": ""
+}
 EOF
 
-                # If you set time to current minute, run immediately; otherwise wait for next tick.
                 RUN_MODE="scheduled"
                 RUN_BATCH_SIZE="$IN_BATCH"
                 RUN_SCHEDULED_DAYS="$IN_DAYS"
                 RUN_INSTANT_COUNT=""
                 CONFIG_WRITTEN="true"
 
-                if [ "$NOW_HM" = "$IN_TIME" ]; then
-                  SHOULD_RUN="true"
-                fi
+                # BUG FIX: workflow_dispatch scheduled-start always runs immediately on first trigger.
+                # User மanually trigger செய்தால் உடனே ஒரு batch run ஆகும் — time match தேவையில்லை.
+                SHOULD_RUN="true"
               fi
             fi
 
@@ -212,7 +209,6 @@ EOF
           GOOGLE_CLIENT_ID:     ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
-          # ── env vars passed to runner ──
           S2_RUN_MODE:          ${{ steps.gate.outputs.run_mode }}
           S2_BATCH_SIZE:        ${{ steps.gate.outputs.run_batch_size }}
           S2_SCHEDULED_DAYS:    ${{ steps.gate.outputs.run_scheduled_days }}
@@ -251,7 +247,6 @@ EOF
             "$CONFIG_PATH" > "${CONFIG_PATH}.tmp"
           mv "${CONFIG_PATH}.tmp" "$CONFIG_PATH"
 
-      # ── BUG FIX: commit ultradata.xlsx AND progress tracker together ──
       - name: Commit ultradata.xlsx + progress tracker
         if: steps.gate.outputs.should_run == 'true'
         uses: stefanzweifel/git-auto-commit-action@v5
