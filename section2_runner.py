@@ -16,22 +16,28 @@ S2_TRACKER_FILE   = "progress/s2_batch_tracker.txt"
 INSTANT_CAP       = 1000    # GitHub Actions 6-hr safety cap for instant mode
 
 # ── GROQ RATE LIMIT SAFE SETTINGS ─────────────────────────────
-# 429 retry-after is already handled INSIDE _groq_vision_seo().
-# Base sleep = 2s between calls. If 429 hits, function waits
-# automatically and _groq_dynamic_sleep increases for next calls.
-GROQ_SLEEP_SEC    = 5.0      # base sleep between calls
-GROQ_RETRY_WAIT   = 15.0     # retry wait multiplier for API errors
-BANNED_RETRY_SEC  = 30.0     # short wait for banned phrase retry (was ~225s total!)
-_groq_dynamic_sleep = 5.0    # auto-adjusted: increases on 429, decreases on success
+# Free tier TPM limits (March 2026):
+#   llama-4-scout-17b    → 30,000 TPM  (best!)
+#   llama-3.3-70b        → 12,000 TPM  (very tight for SEO)
+#   llama-3.1-8b         →  6,000 TPM  (too low)
+# Each SEO call ≈ 2000 input + 1500 output = ~3500 tokens
+# With 30,000 TPM (scout): ~8 calls/min → 8s sleep is safe
+# With 12,000 TPM (70b):   ~3 calls/min → 20s sleep needed
+GROQ_SLEEP_SEC    = 8.0      # base sleep between calls (tuned for scout's 30k TPM)
+GROQ_RETRY_WAIT   = 10.0     # retry wait multiplier for API errors
+BANNED_RETRY_SEC  = 15.0     # short wait for banned phrase retry
+_groq_dynamic_sleep = 8.0    # auto-adjusted: increases on 429, decreases on success
 
 # ── ACTIVE GROQ MODELS ONLY (verified March 2026) ─────────────
 # mixtral-8x7b-32768  → DEPRECATED March 2025   ❌
 # gemma2-9b-it        → DEPRECATED August 2025  ❌
-# llama-3.3-70b-versatile → Active ✅ (primary — best quality)
-# llama-3.1-8b-instant    → Active ✅ (fallback — higher TPM)
+# llama-4-scout-17b   → Active ✅ (primary — 30k TPM, fastest throughput)
+# llama-3.3-70b-versatile → Active ✅ (fallback — best quality but only 12k TPM)
+# llama-3.1-8b-instant    → Active ✅ (last resort — 6k TPM)
 GROQ_MODELS = [
-    "llama-3.3-70b-versatile",   # Primary: best SEO quality
-    "llama-3.1-8b-instant",      # Fallback: higher rate limit
+    "meta-llama/llama-4-scout-17b-16e-instruct",  # Primary: 30k TPM — best throughput
+    "llama-3.3-70b-versatile",                      # Fallback: 12k TPM — best quality
+    "llama-3.1-8b-instant",                         # Last resort: 6k TPM
 ]
 
 # ── GROQ VISION MODEL (single-shot: see image + write SEO) ────
@@ -368,17 +374,17 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
                     json={
                         "model":       GROQ_VISION_MODEL,
                         "temperature": 0.5,
-                        "max_tokens":  5000,
+                        "max_tokens":  3000,
                         # NOTE: response_format NOT supported by vision model — omitted intentionally
                         "messages":    _make_messages(use_image=True),
                     },
                     timeout=120,
                 )
                 if r.status_code == 429:
-                    retry_after = float(r.headers.get("retry-after", "60"))
-                    _groq_dynamic_sleep = min(retry_after, 30)  # auto-adjust next calls
+                    retry_after = float(r.headers.get("retry-after", "30"))
+                    _groq_dynamic_sleep = min(max(retry_after, 10), 60)
                     print(f"\n    [GROQ-V] 429 — waiting {retry_after:.0f}s ...", flush=True)
-                    time.sleep(retry_after + 2)
+                    time.sleep(retry_after + 1)
                     continue
                 r.raise_for_status()
                 raw_content = r.json()["choices"][0]["message"]["content"]
@@ -421,7 +427,7 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
                     json={
                         "model":       model,
                         "temperature": 0.5,
-                        "max_tokens":  5000,
+                        "max_tokens":  3000,
                         # NOTE: response_format omitted — causes 400 on some Groq models.
                         # _parse_seo() extracts JSON from free-form response reliably.
                         "messages":    _make_messages(use_image=False),
@@ -436,11 +442,11 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
                         err_body = r.text[:300]
                     raise RuntimeError(f"400 Bad Request: {err_body}")
                 if r.status_code == 429:
-                    retry_after = float(r.headers.get("retry-after", "60"))
-                    _groq_dynamic_sleep = min(retry_after, 30)  # auto-adjust next calls
+                    retry_after = float(r.headers.get("retry-after", "30"))
+                    _groq_dynamic_sleep = min(max(retry_after, 10), 60)
                     print(f"\n    [GROQ-T] 429 on {model} — waiting {retry_after:.0f}s ...",
                           flush=True)
-                    time.sleep(retry_after + 2)
+                    time.sleep(retry_after + 1)
                     continue
                 r.raise_for_status()
                 result = _parse_seo(r.json()["choices"][0]["message"]["content"].strip())
@@ -1086,13 +1092,15 @@ def main() -> None:
         except Exception as e:
             print(f"✗ SKIP ({e})")
 
-        # Dynamic sleep: starts at 2s, auto-increases on 429, decreases on success
+        # Dynamic sleep: tuned for Groq free tier TPM limits
+        # Scout (30k TPM): ~8 calls/min safe → 8s base sleep
+        # On 429: auto-increases; on success: gradually recovers
         if added < desired_added and i < len(missing):
             global _groq_dynamic_sleep
             time.sleep(_groq_dynamic_sleep)
-            # Gradually decrease back to base after successful calls
+            # Gradually decrease back to base after successful calls (slower recovery)
             if _groq_dynamic_sleep > GROQ_SLEEP_SEC:
-                _groq_dynamic_sleep = max(GROQ_SLEEP_SEC, _groq_dynamic_sleep * 0.8)
+                _groq_dynamic_sleep = max(GROQ_SLEEP_SEC, _groq_dynamic_sleep * 0.85)
 
     # ── STEP 7: Save & push remaining ───────────────────────
     if pending_since_last_push > 0:
