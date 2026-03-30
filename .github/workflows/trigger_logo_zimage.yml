@@ -1,0 +1,327 @@
+name: Logo Z-Image - Kaggle Z-Image-Turbo Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      instant_count:
+        description: "Instant run: number of items to process now. Leave empty for scheduled batching."
+        required: false
+        default: ""
+      start_index:
+        description: "Start index (leave empty to resume from lora_batch_tracker.txt)"
+        required: false
+        default: ""
+      end_index:
+        description: "End index (leave empty for scheduled batch)"
+        required: false
+        default: ""
+      category:
+        description: "Logo category (leave empty = ALL)"
+        required: false
+        default: ""
+        type: choice
+        options:
+          - ""
+          - admissions_enrollment
+          - openings_launches
+          - events
+          - education
+          - announcements
+          - business_promotions
+          - calls_to_action
+      action:
+        description: "What to do"
+        required: false
+        default: generate
+        type: choice
+        options:
+          - generate
+          - status_check
+          - cancel_schedule
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NOTEBOOK_SLUG: logo-zimage-pipeline
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+
+  # ── Cancel any queued/in-progress scheduled runs ──────────────────────────
+  cancel-schedule:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'cancel_schedule'
+    steps:
+      - name: Cancel queued & in-progress scheduled runs
+        run: |
+          echo "Looking for queued/in-progress runs to cancel..."
+          for STATUS in queued in_progress; do
+            gh run list \
+              --workflow=trigger_logo_zimage.yml \
+              --status=$STATUS \
+              --json databaseId,event \
+              --jq '.[] | select(.event == "schedule") | .databaseId' \
+            | xargs -r -I{} sh -c 'echo "Cancelling run {}..." && gh run cancel {}'
+          done
+          echo "Done. All matching scheduled runs cancelled."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+
+  trigger-logo-zimage:
+    runs-on: ubuntu-latest
+    if: >
+      github.event.inputs.action == 'generate' ||
+      github.event.inputs.action == ''
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Kaggle CLI
+        run: pip install kaggle nbformat
+
+      - name: Setup Kaggle Credentials
+        run: |
+          mkdir -p ~/.kaggle
+          echo '{"username":"${{ secrets.KAGGLE_USERNAME }}","key":"${{ secrets.KAGGLE_KEY }}"}' > ~/.kaggle/kaggle.json
+          chmod 600 ~/.kaggle/kaggle.json
+          kaggle --version
+          kaggle kernels list --mine --page-size 1 || { echo "ERROR: Kaggle credentials invalid!"; exit 1; }
+
+      - name: Calculate Batch
+        id: batch
+        run: |
+          START="${{ github.event.inputs.start_index }}"
+          END="${{ github.event.inputs.end_index }}"
+          COUNT="${{ github.event.inputs.instant_count }}"
+
+          if [ -z "$START" ]; then
+            if [ -f "progress/lora_batch_tracker.txt" ]; then
+              START=$(cat progress/lora_batch_tracker.txt)
+              echo "Resuming from lora_batch_tracker: $START"
+            else
+              START=0
+              echo "No tracker found - starting from 0"
+            fi
+          fi
+
+          if [ -n "$COUNT" ] && [ "$COUNT" -gt "0" ]; then
+            END=$((START + COUNT))
+          elif [ -z "$END" ]; then
+            END=$((START + 200))
+          fi
+
+          echo "Batch: $START to $END  ($(( END - START )) items)"
+          echo "start_index=$START" >> $GITHUB_OUTPUT
+          echo "end_index=$END"     >> $GITHUB_OUTPUT
+
+      - name: Build logo_zimage_pipeline.ipynb
+        run: |
+          python3 -c "
+          import json, pathlib, sys
+
+          py_path = pathlib.Path('kaggle/logo_zimage_pipeline.py')
+          nb_path = pathlib.Path('kaggle/logo_zimage_pipeline.ipynb')
+
+          if not py_path.exists():
+              print(f'ERROR: {py_path} not found!')
+              sys.exit(1)
+
+          py_src = py_path.read_text(encoding='utf-8')
+
+          nb = {
+              'nbformat': 4,
+              'nbformat_minor': 5,
+              'metadata': {
+                  'kernelspec': {
+                      'display_name': 'Python 3',
+                      'language': 'python',
+                      'name': 'python3'
+                  },
+                  'language_info': {
+                      'name': 'python',
+                      'version': '3.10.0'
+                  }
+              },
+              'cells': [
+                  {
+                      'cell_type': 'code',
+                      'execution_count': None,
+                      'metadata': {'trusted': True},
+                      'outputs': [],
+                      'source': py_src
+                  }
+              ]
+          }
+
+          nb_path.write_text(json.dumps(nb, ensure_ascii=False, indent=1), encoding='utf-8')
+          print(f'Built {nb_path}  ({nb_path.stat().st_size:,} bytes, 1 code cell)')
+          "
+
+      - name: Inject Credentials
+        env:
+          GOOGLE_CLIENT_ID:       ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET:   ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN:   ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          GITHUB_TOKEN_REPO2_VAL: ${{ secrets.REPO_2_TOKEN }}
+          GITHUB_REPO2_VAL:       ${{ secrets.REPO_2 }}
+          GITHUB_TOKEN_REPO1_VAL: ${{ secrets.REPO_1_TOKEN }}
+          HF_TOKEN_VAL:           ${{ secrets.HF_TOKEN }}
+        run: |
+          python3 inject_zimage_creds.py \
+            "${{ steps.batch.outputs.start_index }}" \
+            "${{ steps.batch.outputs.end_index }}" \
+            "${{ github.repository }}" \
+            "${{ github.event.inputs.category }}"
+
+      - name: Write kernel-metadata.json
+        run: |
+          python3 -c "
+          import json
+          meta = {
+            'id': '${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}',
+            'title': '${{ env.NOTEBOOK_SLUG }}',
+            'code_file': 'logo_zimage_pipeline.ipynb',
+            'language': 'python',
+            'kernel_type': 'notebook',
+            'is_private': True,
+            'enable_gpu': True,
+            'enable_internet': True,
+            'dataset_sources': ['gurumoorthirajagopal/my-pipeline-models'],
+            'competition_sources': [],
+            'kernel_sources': []
+          }
+          with open('kaggle/kernel-metadata.json', 'w') as f:
+            json.dump(meta, f, indent=2)
+          print('kernel-metadata.json written')
+          print(json.dumps(meta, indent=2))
+          "
+
+      - name: Push to Kaggle
+        run: |
+          KERNEL="${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}"
+          echo "Pushing kernel: $KERNEL"
+
+          STATUS=$(kaggle kernels status "$KERNEL" 2>&1 || true)
+          echo "Pre-push status: $STATUS"
+          if echo "$STATUS" | grep -qiE 'running|queued'; then
+            echo "Kernel busy - cancelling..."
+            kaggle kernels cancel "$KERNEL" 2>/dev/null || true
+            sleep 30
+          fi
+
+          cd kaggle
+          EXIT_CODE=1
+          for ATTEMPT in 1 2 3; do
+            echo "Push attempt $ATTEMPT/3..."
+            OUTPUT=$(kaggle kernels push -p . 2>&1)
+            EXIT_CODE=$?
+            echo "$OUTPUT"
+            if [ $EXIT_CODE -eq 0 ] && ! echo "$OUTPUT" | grep -qiE 'conflict|cannot change'; then
+              echo "PUSH SUCCESSFUL!"
+              break
+            fi
+            if [ $ATTEMPT -lt 3 ]; then sleep $((ATTEMPT * 30)); fi
+          done
+
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "ALL PUSH ATTEMPTS FAILED"
+            exit 1
+          fi
+
+          echo "Waiting 90s for kernel to start..."
+          sleep 90
+
+      - name: Wait for Kaggle Completion
+        run: |
+          KERNEL="${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}"
+          MAX=14400
+          ELAPSED=0
+          POLL=120
+          SEEN_RUNNING=false
+          echo "Monitoring: $KERNEL (timeout 4h)"
+          while [ $ELAPSED -lt $MAX ]; do
+            FULL=$(kaggle kernels status "$KERNEL" 2>&1 || true)
+            S=$(echo "$FULL" | grep -oiE 'complete|running|error|queued' | head -1 | tr '[:upper:]' '[:lower:]')
+            echo "[$(( ELAPSED / 60 ))m] $S"
+            case "$S" in
+              running) SEEN_RUNNING=true ;;
+              queued)  echo "  Waiting for GPU..." ;;
+              complete)
+                if [ "$SEEN_RUNNING" = true ] || [ $ELAPSED -ge 300 ]; then
+                  echo "KERNEL COMPLETED!"; exit 0
+                fi ;;
+              error)
+                if [ "$SEEN_RUNNING" = true ]; then
+                  echo "KERNEL FAILED"; exit 1
+                fi ;;
+            esac
+            sleep $POLL
+            ELAPSED=$((ELAPSED + POLL))
+          done
+          echo "TIMEOUT"; exit 1
+
+      - name: Download Output
+        if: success()
+        run: |
+          KERNEL="${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}"
+          mkdir -p /tmp/zimage_out
+          kaggle kernels output "$KERNEL" -p /tmp/zimage_out 2>/dev/null || true
+          if [ -f "/tmp/zimage_out/effective_end.txt" ]; then
+            EFF=$(cat /tmp/zimage_out/effective_end.txt | tr -d '[:space:]')
+            echo "EFFECTIVE_END=$EFF" >> $GITHUB_ENV
+          else
+            echo "EFFECTIVE_END=${{ steps.batch.outputs.end_index }}" >> $GITHUB_ENV
+          fi
+
+      - name: Save Progress
+        if: success()
+        run: |
+          echo "$EFFECTIVE_END" > progress/lora_batch_tracker.txt
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add progress/lora_batch_tracker.txt
+          if git diff --staged --quiet; then
+            echo "Nothing to commit"; exit 0
+          fi
+          git commit -m "Z-Image logo batch ${{ steps.batch.outputs.start_index }}-${{ steps.batch.outputs.end_index }} done"
+          for ATTEMPT in 1 2 3 4; do
+            if git push; then echo "Pushed!"; break; fi
+            git fetch origin main
+            git rebase origin/main --autostash || git merge origin/main --no-edit
+            sleep $((ATTEMPT * 5))
+          done
+
+  status-check:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'status_check'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Progress Report
+        run: |
+          echo "=== Z-Image Logo Progress ==="
+          if [ -f "progress/lora_batch_tracker.txt" ]; then
+            echo "Done: $(cat progress/lora_batch_tracker.txt) items"
+          else
+            echo "Not started yet"
+          fi
+          echo "=== Main Pipeline Progress ==="
+          if [ -f "progress/batch_tracker.txt" ]; then
+            DONE=$(cat progress/batch_tracker.txt)
+            echo "Done: $DONE / 43082 ($((DONE * 100 / 43082))%)"
+          fi
