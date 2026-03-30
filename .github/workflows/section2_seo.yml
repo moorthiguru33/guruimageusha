@@ -38,6 +38,10 @@ on:
   schedule:
     - cron: "* * * * *"   # every minute; heavy work runs only when scheduler config says so
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 # ── BUG FIX: was 'read' — needs 'write' to commit ultradata.xlsx ──
 permissions:
   contents: write
@@ -47,6 +51,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Ensure jq available (scheduler gate)
+        run: |
+          set -euo pipefail
+          if ! command -v jq >/dev/null 2>&1; then
+            sudo apt-get update -y
+            sudo apt-get install -y jq
+          fi
+
       # ── BUG FIX: persist-credentials must be true (default) for git push to work ──
       - name: Checkout
         uses: actions/checkout@v4
@@ -245,11 +257,4 @@ EOF
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "ultradata: section2 update [mode=${{ steps.gate.outputs.run_mode }}]"
-          file_pattern: "ultradata.xlsx progress/s2_batch_tracker.txt"
-
-      - name: Commit scheduler config (decrement)
-        if: steps.gate.outputs.should_run == 'true' && steps.gate.outputs.run_mode == 'scheduled'
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "scheduler: decrement Section 2 SEO remaining_days"
-          file_pattern: "progress/s2_scheduler.json"
+          file_pattern: "ultradata.xlsx progress/s2_batch_tracker.txt progress/s2_scheduler.json"
