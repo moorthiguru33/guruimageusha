@@ -914,12 +914,27 @@ def main() -> None:
     run_mode       = os.environ.get("S2_RUN_MODE",        "scheduled").strip().lower()
     batch_size     = int(os.environ.get("S2_BATCH_SIZE",     "220").strip())
     scheduled_days = int(os.environ.get("S2_SCHEDULED_DAYS", "200").strip())
+    checkpoint_every = int(os.environ.get("S2_CHECKPOINT_EVERY", "50").strip() or "50")
+    if checkpoint_every <= 0:
+        checkpoint_every = 50
+
+    instant_count_env = (os.environ.get("S2_INSTANT_COUNT", "") or "").strip()
+    instant_count_req: int | None = None
+    if instant_count_env:
+        try:
+            v = int(instant_count_env)
+            if v > 0:
+                instant_count_req = v
+        except Exception:
+            instant_count_req = None
 
     print("=" * 62)
     print("  Section 2 — SEO JSON Builder")
     print(f"  Mode           : {run_mode}")
     print(f"  Batch size     : {batch_size}  |  Instant cap: {INSTANT_CAP}")
     print(f"  Scheduled days : {scheduled_days}")
+    if run_mode == "instant" and instant_count_req:
+        print(f"  Instant count  : {instant_count_req}")
     print(f"  GROQ sleep     : {GROQ_SLEEP_SEC}s  (~{60/GROQ_SLEEP_SEC:.1f} calls/min — safe)")
     print(f"  GROQ models    : {' → '.join(GROQ_MODELS)}")
     print("=" * 62)
@@ -968,6 +983,16 @@ def main() -> None:
 
     existing, files = _load_repo2_entries(repo2_dir, cfg.data_dir)
     missing = [r for r in rows_with_png if r["filename"] not in existing]
+    # Dedupe by filename to avoid accidental duplicates from ultradata.xlsx.
+    seen_missing_filenames: set[str] = set()
+    deduped_missing = []
+    for r in missing:
+        fn = str((r or {}).get("filename", "") or "").strip()
+        if not fn or fn in seen_missing_filenames:
+            continue
+        seen_missing_filenames.add(fn)
+        deduped_missing.append(r)
+    missing = deduped_missing
 
     print(f"  Repo2 existing SEO : {len(existing)}")
     print(f"  Rows with PNG      : {len(rows_with_png)}")
@@ -977,25 +1002,28 @@ def main() -> None:
         print("\n  All entries have SEO — nothing to add.")
         return
 
-    # ── STEP 5: Apply batch / instant limit ─────────────────
+    # ── STEP 5: Decide how many successful generations to run ─────────────
     total_pending = len(missing)
     if run_mode == "instant":
-        if len(missing) > INSTANT_CAP:
-            print(f"\n⚠  Instant mode: capping at {INSTANT_CAP} of {len(missing)} pending.")
-            print(f"   Re-run to continue. (GitHub Actions 6-hr limit)")
-            missing = missing[:INSTANT_CAP]
+        if instant_count_req is not None:
+            desired_added = min(instant_count_req, INSTANT_CAP)
+            if instant_count_req > INSTANT_CAP:
+                print(f"\n⚠  Instant mode: requested {instant_count_req} but cap is {INSTANT_CAP}. Will run {desired_added} successful items.")
+            else:
+                print(f"\n▶  Instant mode: target {desired_added} successful SEO generations.")
         else:
-            print(f"\n▶  Instant mode: processing all {len(missing)} pending entries.")
+            desired_added = min(len(missing), INSTANT_CAP)
+            print(f"\n▶  Instant mode: target {desired_added} successful SEO generations (cap/default).")
     else:
-        if len(missing) > batch_size:
-            print(f"\n▶  Scheduled mode: {batch_size} of {len(missing)} pending.")
-            missing = missing[:batch_size]
+        desired_added = min(batch_size, len(missing))
+        if desired_added < len(missing):
+            print(f"\n▶  Scheduled mode: target {desired_added} successful SEO generations out of {len(missing)} pending.")
         else:
-            print(f"\n▶  Scheduled mode: all remaining {len(missing)} entries.")
+            print(f"\n▶  Scheduled mode: target {desired_added} successful SEO generations (all remaining).")
 
     # ── STEP 6: Generate SEO ─────────────────────────────────
-    est_min = len(missing) * GROQ_SLEEP_SEC / 60
-    print(f"\n[Step 6] Generating SEO for {len(missing)} item(s) ...")
+    est_min = max(1, desired_added) * GROQ_SLEEP_SEC / 60
+    print(f"\n[Step 6] Generating SEO until target reached: {desired_added} successful item(s) ...")
     print(f"         Estimated time: ~{est_min:.1f} minutes (dynamic — may be faster)\n")
 
     file_entries: Dict[Path, List[Dict[str, Any]]] = {}
@@ -1007,7 +1035,10 @@ def main() -> None:
             file_entries[f] = []
 
     added = 0
+    pending_since_last_push = 0
     for i, r in enumerate(missing, 1):
+        if added >= desired_added:
+            break
         subject     = r["subject_name"]
         preview_url = r.get("preview_url", "")
         print(f"  [{i}/{len(missing)}] {subject} ...", end=" ", flush=True)
@@ -1041,27 +1072,35 @@ def main() -> None:
                 "date_added":      r.get("date_added", _today()),
             })
             added += 1
+            pending_since_last_push += 1
             wc = _word_count(seo["description"])
             tw = _word_count(seo["title"])
             print(f"✓  title={tw}w  desc={wc}w")
+
+            # Checkpoint: push/save every N successful generations.
+            if pending_since_last_push >= checkpoint_every:
+                print(f"\n  [Checkpoint] Saving & pushing last {pending_since_last_push} entries to Repo2 ...")
+                _save_repo2_files(repo2_dir, cfg.data_dir, file_entries)
+                _commit_push_repo2(repo2_dir, cfg, pending_since_last_push)
+                pending_since_last_push = 0
         except Exception as e:
             print(f"✗ SKIP ({e})")
 
         # Dynamic sleep: starts at 2s, auto-increases on 429, decreases on success
-        if i < len(missing):
+        if added < desired_added and i < len(missing):
             global _groq_dynamic_sleep
             time.sleep(_groq_dynamic_sleep)
             # Gradually decrease back to base after successful calls
             if _groq_dynamic_sleep > GROQ_SLEEP_SEC:
                 _groq_dynamic_sleep = max(GROQ_SLEEP_SEC, _groq_dynamic_sleep * 0.8)
 
-    # ── STEP 7: Save & push repo2 ───────────────────────────
-    print(f"\n[Step 7] Saving & pushing {added} entries to Repo2 ...")
-    _save_repo2_files(repo2_dir, cfg.data_dir, file_entries)
-    if added > 0:
-        _commit_push_repo2(repo2_dir, cfg, added)
+    # ── STEP 7: Save & push remaining ───────────────────────
+    if pending_since_last_push > 0:
+        print(f"\n[Step 7] Saving & pushing remaining {pending_since_last_push} entries to Repo2 ...")
+        _save_repo2_files(repo2_dir, cfg.data_dir, file_entries)
+        _commit_push_repo2(repo2_dir, cfg, pending_since_last_push)
     else:
-        print("  Nothing added — skipping push.")
+        print("  Repo2: no remaining entries to push.")
 
     # ── STEP 8: Update progress tracker ─────────────────────
     prev_total = _read_s2_tracker(root)
@@ -1074,7 +1113,7 @@ def main() -> None:
     if rows_missing_png:
         print(f"  ⚠  PNG-missing rows skipped : {len(rows_missing_png)}"
               f"  (auto-retried next run once PNG arrives in Drive)")
-    if run_mode == "scheduled" and total_pending > len(missing):
+    if run_mode == "scheduled":
         remaining = total_pending - added
         if remaining > 0:
             days_left = (remaining + batch_size - 1) // batch_size
