@@ -76,9 +76,8 @@ jobs:
   trigger-logo-lora:
     runs-on: ubuntu-latest
     if: >
-      github.event_name == 'schedule' ||
-      github.event_name == 'push' ||
-      github.event.inputs.action == 'generate'
+      github.event.inputs.action == 'generate' ||
+      github.event.inputs.action == ''
 
     steps:
       - name: Checkout
@@ -110,7 +109,7 @@ jobs:
           END="${{ github.event.inputs.end_index }}"
           COUNT="${{ github.event.inputs.instant_count }}"
 
-          if [ -z "$START" ] || [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event_name }}" = "push" ]; then
+          if [ -z "$START" ]; then
             if [ -f "progress/lora_batch_tracker.txt" ]; then
               START=$(cat progress/lora_batch_tracker.txt)
               echo "Resuming from lora_batch_tracker: $START"
@@ -122,7 +121,7 @@ jobs:
 
           if [ -n "$COUNT" ] && [ "$COUNT" -gt "0" ]; then
             END=$((START + COUNT))
-          elif [ -z "$END" ] || [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event_name }}" = "push" ]; then
+          elif [ -z "$END" ]; then
             END=$((START + 200))
           fi
 
