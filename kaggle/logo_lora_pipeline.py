@@ -141,19 +141,31 @@ print("Installing Logo LoRA Pipeline dependencies...")
 # Kaggle's default PyTorch is now incompatible with P100 → Kernel dies.
 # Fix: reinstall PyTorch with CUDA 12.6 build which still supports sm_60.
 import subprocess as _sp, sys as _sys
-_torch_check = _sp.run([_sys.executable, "-c",
-    "import torch; cap=torch.cuda.get_device_capability(0) if torch.cuda.is_available() else (0,0); "
-    "import torch; ok = torch.zeros(1).cuda() is not None; print('OK')"],
+# CORRECT CHECK: GPU capability, NOT tensor creation.
+# torch.zeros(1).cuda() passes even with incompatible PyTorch because
+# CUDA memory allocation works — but actual CUDA kernels (FLUX inference)
+# crash at runtime. Must check sm version directly.
+_cap_check = _sp.run(
+    [_sys.executable, "-c",
+     "import torch; m=torch.cuda.get_device_capability(0)[0] "
+     "if torch.cuda.is_available() else 99; print(m)"],
     capture_output=True, text=True)
-if "OK" not in _torch_check.stdout:
-    print("  [FIX] P100/sm_60 PyTorch incompatibility detected — reinstalling with cu126...")
-    _sp.run([_sys.executable, "-m", "pip", "install", "-q",
+_cuda_major = int(_cap_check.stdout.strip()) if _cap_check.stdout.strip().isdigit() else 99
+
+if _cuda_major < 7:
+    # P100=sm_60 → PyTorch 2.7+ (CUDA 12.8 build) dropped sm_60 support
+    # torch==2.6.0+cu126 still supports sm_60 fully
+    print(f"  [FIX] sm_{_cuda_major}0 GPU (P100) — PyTorch 2.7+ dropped sm_60 support!")
+    print("  [FIX] Reinstalling PyTorch cu126 (last build supporting sm_60)...")
+    _r = _sp.run([_sys.executable, "-m", "pip", "install", "-q",
         "torch==2.6.0", "torchvision==0.21.0",
-        "--index-url", "https://download.pytorch.org/whl/cu126"],
-        check=True)
-    print("  [FIX] PyTorch cu126 installed — P100/sm_60 now supported ✓")
+        "--index-url", "https://download.pytorch.org/whl/cu126"])
+    if _r.returncode == 0:
+        print("  [FIX] PyTorch cu126 installed ✓ — P100/sm_60 CUDA kernels now work")
+    else:
+        print("  [WARN] PyTorch reinstall failed — kernel may crash during inference!")
 else:
-    print("  [OK] PyTorch CUDA check passed — no reinstall needed")
+    print(f"  [OK] sm_{_cuda_major}0 GPU — current PyTorch compatible, no reinstall needed")
 
 PKGS = [
     "git+https://github.com/huggingface/diffusers.git",
