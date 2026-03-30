@@ -35,8 +35,28 @@ os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 ULTRADATA_XLSX_NAME = "ultradata.xlsx"
 
 # ── HuggingFace cache dir ──────────────────────────────────────
-HF_CACHE = Path("/kaggle/working/hf_cache")
-HF_CACHE.mkdir(parents=True, exist_ok=True)
+# FIX: /kaggle/working has only ~20GB — FLUX.1-dev alone is ~24GB → No space!
+# /kaggle/tmp has ~57GB free space — safe for large model downloads.
+import shutil as _shutil_space
+def _pick_hf_cache():
+    for candidate in ["/kaggle/tmp/hf_cache", "/kaggle/working/hf_cache"]:
+        p = Path(candidate)
+        try:
+            p.mkdir(parents=True, exist_ok=True)
+            stat = _shutil_space.disk_usage(str(p))
+            free_gb = stat.free / 1e9
+            print(f"  [cache] {p}  free={free_gb:.1f}GB")
+            if free_gb >= 25:   # FLUX.1-dev needs ~24GB
+                return p
+        except Exception as e:
+            print(f"  [cache] {p} unavailable: {e}")
+    # fallback
+    p = Path("/kaggle/tmp/hf_cache")
+    p.mkdir(parents=True, exist_ok=True)
+    return p
+
+HF_CACHE = _pick_hf_cache()
+print(f"  [cache] Using HF_CACHE = {HF_CACHE}")
 os.environ["HF_HOME"]               = str(HF_CACHE)
 os.environ["HUGGINGFACE_HUB_CACHE"] = str(HF_CACHE)
 os.environ["TRANSFORMERS_CACHE"]    = str(HF_CACHE)
@@ -55,8 +75,9 @@ else:
 FLUX_DEV_HF_ID    = "black-forest-labs/FLUX.1-dev"
 LOGO_LORA_HF_ID   = "Shakker-Labs/FLUX.1-dev-LoRA-Logo-Design"
 LOGO_LORA_TRIGGER = "wablogo, logo, "   # ← Must prefix every prompt!
-LOGO_LORA_STEPS   = 24                  # More steps = better text accuracy
-LOGO_LORA_GUIDANCE = 3.5
+LOGO_LORA_STEPS   = 15                  # 15 steps = 85%+ quality, faster on P100 CPU-offload
+                                        # Below 12 = quality drops noticeably for Logo LoRA
+LOGO_LORA_GUIDANCE = 3.5                # 3.5 is optimal for Logo LoRA — do not reduce
 
 RMBG_HF_ID = "ZhengPeng7/BiRefNet_HR"
 
