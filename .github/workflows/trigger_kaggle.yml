@@ -1,26 +1,40 @@
 name: Section 1 - Kaggle Image + Drive + ultradata.xlsx
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "kaggle/**"
-      - "prompts/**"
-      - "inject_creds.py"
   workflow_dispatch:
     inputs:
       instant_count:
         description: "Instant run: number of items to process now. Leave empty for scheduled batching."
         required: false
         default: ""
+      scheduled_days:
+        description: "Scheduled days count (each day generates batch_size items)"
+        required: false
+        default: "10"
+      batch_size:
+        description: "Items per scheduled run (default 220)"
+        required: false
+        default: "220"
+      daily_time_utc:
+        description: "Daily trigger time in UTC (HH:MM). Example: 02:10"
+        required: false
+        default: "02:10"
+      scheduler_action:
+        description: "Start/Stop scheduled runs"
+        required: false
+        default: "start"
+        type: choice
+        options:
+          - start
+          - stop
       start_index:
-        description: Start index
+        description: "Start index (leave empty to resume from batch_tracker.txt)"
         required: false
-        default: "0"
+        default: ""
       end_index:
-        description: End index (ignored if instant_count provided)
+        description: "End index (leave empty for scheduled batch)"
         required: false
-        default: "300"
+        default: ""
       action:
         description: What to do
         required: false
@@ -31,7 +45,11 @@ on:
           - status_check
           - cancel_schedule
   schedule:
-    - cron: "30 20 * * *"
+    - cron: "* * * * *" # minute tick; heavy work only runs when scheduler config says so
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   NOTEBOOK_SLUG: notebook8c5ae1ecf2
@@ -67,7 +85,6 @@ jobs:
     runs-on: ubuntu-latest
     if: >
       github.event_name == 'schedule' ||
-      github.event_name == 'push' ||
       github.event.inputs.action == 'generate'
 
     steps:

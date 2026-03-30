@@ -1,12 +1,6 @@
 name: Logo LoRA - Kaggle FLUX.1-dev Pipeline
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "kaggle/logo_lora_pipeline.py"
-      - "inject_lora_creds.py"
-      - "build_lora_notebook.py"
   workflow_dispatch:
     inputs:
       instant_count:
@@ -18,9 +12,9 @@ on:
         required: false
         default: ""
       end_index:
-        description: "End index (ignored if instant_count provided)"
+        description: "End index (leave empty for scheduled batch)"
         required: false
-        default: "200"
+        default: ""
       category:
         description: "Logo category (leave empty = ALL)"
         required: false
@@ -44,8 +38,10 @@ on:
           - generate
           - status_check
           - cancel_schedule
-  schedule:
-    - cron: "0 22 * * *"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   NOTEBOOK_SLUG: logo-lora-pipeline
