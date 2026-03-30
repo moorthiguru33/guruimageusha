@@ -130,8 +130,31 @@ for d in [GENERATED_DIR, APPROVED_DIR, TRANSPARENT_DIR, CHECKPOINT_DIR]:
 # ══════════════════════════════════════════════════════════════
 # INSTALL DEPS
 # ══════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════
+# INSTALL DEPS
+# ══════════════════════════════════════════════════════════════
 print("=" * 56)
 print("Installing Logo LoRA Pipeline dependencies...")
+
+# ── PyTorch P100 (sm_60) FIX ──────────────────────────────────
+# PyTorch 2.7+ (CUDA 12.8 builds) dropped Pascal/sm_60 support.
+# Kaggle's default PyTorch is now incompatible with P100 → Kernel dies.
+# Fix: reinstall PyTorch with CUDA 12.6 build which still supports sm_60.
+import subprocess as _sp, sys as _sys
+_torch_check = _sp.run([_sys.executable, "-c",
+    "import torch; cap=torch.cuda.get_device_capability(0) if torch.cuda.is_available() else (0,0); "
+    "import torch; ok = torch.zeros(1).cuda() is not None; print('OK')"],
+    capture_output=True, text=True)
+if "OK" not in _torch_check.stdout:
+    print("  [FIX] P100/sm_60 PyTorch incompatibility detected — reinstalling with cu126...")
+    _sp.run([_sys.executable, "-m", "pip", "install", "-q",
+        "torch==2.6.0", "torchvision==0.21.0",
+        "--index-url", "https://download.pytorch.org/whl/cu126"],
+        check=True)
+    print("  [FIX] PyTorch cu126 installed — P100/sm_60 now supported ✓")
+else:
+    print("  [OK] PyTorch CUDA check passed — no reinstall needed")
+
 PKGS = [
     "git+https://github.com/huggingface/diffusers.git",
     "transformers>=4.47.0",
