@@ -192,6 +192,9 @@ jobs:
         run: |
           python3 -c "
           import json
+          # NOTE: enable_gpu=True enables GPU. The GPU TYPE (P100/T4/T4x2)
+          # is set in Kaggle UI separately. API only controls on/off.
+          # User must set T4 x2 once in Kaggle UI — push preserves it.
           meta = {
             'id': '${{ secrets.KAGGLE_USERNAME }}/${{ env.NOTEBOOK_SLUG }}',
             'title': '${{ env.NOTEBOOK_SLUG }}',
