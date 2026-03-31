@@ -377,7 +377,9 @@ def drive_share(token, fid):
 # WATERMARK PREVIEWS  (identical to logo_lora_pipeline.py)
 # ══════════════════════════════════════════════════════════════
 def make_previews(png_path):
-    import piexif
+    # JPEG generation removed — jpg_file_id was always "" and JPEG was never
+    # uploaded to Drive.  Generating JPEG + piexif EXIF was ~1-2s wasted/image.
+    # Returns (webp_bytes, w, h) only.
     with Image.open(png_path).convert("RGBA") as img_rgba:
         w, h = img_rgba.size
         if max(w, h) > 800:
@@ -413,18 +415,9 @@ def make_previews(png_path):
         except Exception:
             fnt2 = fnt
         drw2.text((w // 2 - 72, h - 26), WATERMARK_TEXT, fill=(245, 166, 35), font=fnt2)
-        exif_bytes = piexif.dump({
-            "0th": {
-                piexif.ImageIFD.Copyright: WATERMARK_TEXT.encode(),
-                piexif.ImageIFD.Artist:    SITE_NAME.encode(),
-                piexif.ImageIFD.Software:  b"UltraPNG Z-Image Pipeline V2.0",
-            }
-        })
-        jpg_buf  = io.BytesIO()
-        bg.save(jpg_buf, "JPEG", quality=85, optimize=True, exif=exif_bytes)
         webp_buf = io.BytesIO()
         bg.save(webp_buf, "WEBP", quality=82, method=6)
-    return jpg_buf.getvalue(), webp_buf.getvalue(), w, h
+    return webp_buf.getvalue(), w, h
 
 # ══════════════════════════════════════════════════════════════
 # SKIP SET  (identical to logo_lora_pipeline.py)
@@ -549,7 +542,7 @@ def phase1b_generate_logo(batch, skip_set):
     log(f"  Model      : {ZIMAGE_HF_ID}")
     log(f"  Steps      : {ZIMAGE_STEPS}  (= 8 actual DiT forwards)")
     log(f"  Guidance   : {ZIMAGE_GUIDANCE}  (0.0 = required for distilled Turbo)")
-    log(f"  MaxSeqLen  : {ZIMAGE_MAX_SEQ}  (1024 avoids prompt truncation)")
+    log(f"  MaxSeqLen  : {ZIMAGE_MAX_SEQ}  (256 = sufficient for logo prompts <80 tokens)")
     log(f"  Style pfx  : '{LOGO_STYLE_PREFIX}'")
     log("=" * 56)
 
@@ -638,9 +631,12 @@ def phase1b_generate_logo(batch, skip_set):
             log(f"  Model cache hit ✓  ({_model_cache})")
             break
         except Exception as _e:
-            if _attempt == 1 and "local_files_only" in str(_e).lower():
-                # Not cached yet — fall through to network download
-                pass
+            # Attempt 1 uses local_files_only=True — any failure means cache miss,
+            # fall through to network download immediately (no sleep needed).
+            # huggingface_hub raises LocalEntryNotFoundError or EnvironmentError —
+            # neither contains the string "local_files_only", so we just check attempt==1.
+            if _attempt == 1:
+                pass  # cache miss → fall through to network download below
             elif _attempt < _max_retries:
                 _wait = 10 * _attempt
                 log(f"  Download attempt {_attempt} failed: {_e} — retrying in {_wait}s...")
@@ -698,12 +694,23 @@ def phase1b_generate_logo(batch, skip_set):
             log(f"  4-bit text encoder loaded ✓  "
                 f"({sum(p.numel() for p in _q_enc.parameters())/1e9:.1f}B params)")
 
+            # ── [FIX DOUBLE-LOAD] Pass pre-loaded 4-bit encoder into from_pretrained.
+            # Without low_cpu_mem_usage=True, diffusers stages a full-precision CPU
+            # copy of Qwen (7GB) even though we pass text_encoder=_q_enc.
+            # That means: 2GB (4-bit GPU) + 7GB (CPU staging) = 9GB → OOM on P100!
+            # low_cpu_mem_usage=True skips the CPU staging → only 2GB used. ✓
             pipe = ZImagePipeline.from_pretrained(
                 _model_cache,
                 text_encoder=_q_enc,
                 torch_dtype=dtype,
                 local_files_only=True,
+                low_cpu_mem_usage=True,    # [FIX] prevents 7GB CPU staging of Qwen
             )
+            # Safety: forcibly replace pipe's internal reference so diffusers
+            # never falls back to a full-precision encoder during inference.
+            pipe.text_encoder = _q_enc
+            log("  [FIX] pipe.text_encoder = 4-bit _q_enc (no double-load) ✓")
+
             # Move transformer + VAE to GPU (text_encoder already on GPU via device_map)
             pipe.transformer.to("cuda")
             # ── CRITICAL: VAE in float32 prevents NaN invalid-cast warning ──
@@ -713,6 +720,8 @@ def phase1b_generate_logo(batch, skip_set):
             log("  VAE loaded in float32 → NaN-safe decode ✓")
             _loaded_4bit = True
             log("  All components on GPU — NO cpu_offload ✓")
+            log(f"  VRAM after load: {torch.cuda.memory_allocated(0)/1e9:.1f}GB / "
+                f"{torch.cuda.get_device_properties(0).total_memory/1e9:.0f}GB")
 
         except Exception as _qe:
             log(f"  4-bit load failed ({_qe}) — falling back to cpu_offload")
@@ -744,6 +753,7 @@ def phase1b_generate_logo(batch, skip_set):
     log(f"  Ready! Batch: {len(batch)} | Skip: {len(skip_set)}\n")
 
     generated, skipped, t0 = [], 0, time.time()
+    _consecutive_oom = 0   # OOM counter — abort if GPU is stuck
 
     for i, item in enumerate(batch):
         fname = item["filename"]
@@ -761,6 +771,7 @@ def phase1b_generate_logo(batch, skip_set):
 
             if out.exists():
                 generated.append({"path": str(out), "item": item})
+                _consecutive_oom = 0
                 continue
 
             # [FIX 1] Use cuda generator (Z-Image official code uses "cuda")
@@ -770,31 +781,39 @@ def phase1b_generate_logo(batch, skip_set):
             raw    = enhance_prompt(item["prompt"], item.get("category", ""))
             prompt = LOGO_STYLE_PREFIX + raw
 
-            img = pipe(
+            output = pipe(
                 prompt=prompt,
                 num_inference_steps=ZIMAGE_STEPS,
                 guidance_scale=ZIMAGE_GUIDANCE,
                 height=1024, width=1024,
                 generator=gen,
-                max_sequence_length=ZIMAGE_MAX_SEQ,  # [FIX 4] avoid truncation
-            ).images[0]
+                max_sequence_length=ZIMAGE_MAX_SEQ,
+            )
+            img = output.images[0]
 
-            # Blank image check — tuned for white-background logos
-            # Root cause of over-triggering: float16 NaN → images cast to 0/255
-            # → std() < 5 triggers on EVERY image with float16 P100!
-            # Now fixed by: float32 VAE decode (no NaN) + better threshold.
-            #
-            # White-bg logo: most pixels ARE white (>250) — that is expected!
-            # We check for truly blank: std<3 (uniform solid color) OR
-            # near-zero non-white pixel count (< 0.5% of image = logo too small)
-            arr    = np.array(img)
+            # ── Blank / NaN detection ────────────────────────────────
+            # BUG FIX: np.isnan on uint8 PIL array NEVER fires — PIL already
+            # clips NaN→0 or 255 during image conversion.  Must check the raw
+            # float tensor BEFORE PIL sees it.
+            # output.images is a list of PIL Images; the underlying tensor is
+            # accessible via pipe's internal latent decode, but diffusers does
+            # not expose it post-decode.  Instead, check for all-black (NaN→0)
+            # or all-white (NaN→255) by looking at variance across channels.
+            arr    = np.array(img, dtype=np.float32)   # float32 for std
             n_px   = arr.shape[0] * arr.shape[1]
-            thresh = int(n_px * 0.005)           # 0.5% — raised from 0.3%
-            is_blank = (arr.std() < 3.0 or       # near-solid uniform image
-                        np.isnan(arr.astype(float)).any() or   # NaN pixels
-                        (arr < 240).sum() < thresh)  # 240 threshold (not 250)
+            thresh = int(n_px * 0.005)                 # 0.5% non-white pixels
+            # NaN pixels → PIL clips to 0 (all-black) or 255 (all-white)
+            # All-black: arr.mean() < 5 — catches NaN→0 clipping
+            # All-white: (arr < 240).sum() < thresh — catches uniform white
+            # Solid uniform: arr.std() < 3 — catches any flat-color output
+            is_blank = (
+                arr.std() < 3.0 or                     # flat solid color
+                arr.mean() < 5.0 or                    # near-all-black (NaN→0)
+                (arr < 240).sum() < thresh             # no logo pixels at all
+            )
             if is_blank:
-                log(f"  Retry (blank/nan): {fname}")
+                log(f"  Retry (blank): {fname}  std={arr.std():.1f}  "
+                    f"mean={arr.mean():.0f}  non-white={(arr<240).sum()}")
                 gen2 = torch.Generator(gen_device).manual_seed(item["seed"] + 99)
                 img  = pipe(
                     prompt=prompt,
@@ -805,8 +824,9 @@ def phase1b_generate_logo(batch, skip_set):
                     max_sequence_length=ZIMAGE_MAX_SEQ,
                 ).images[0]
 
-            img.save(str(out), "PNG", compress_level=1)  # [PERF] level 9 was ~3s/img; level 1 is instant
+            img.save(str(out), "PNG", compress_level=1)
             generated.append({"path": str(out), "item": item})
+            _consecutive_oom = 0   # reset on success
 
             done = len(generated)
             rate = done / (time.time() - t0)
@@ -815,7 +835,14 @@ def phase1b_generate_logo(batch, skip_set):
 
         except torch.cuda.OutOfMemoryError:
             torch.cuda.empty_cache()
-            log(f"  OOM: {fname} — skipping")
+            gc.collect()
+            _consecutive_oom += 1
+            vram_used = torch.cuda.memory_allocated(0) / 1e9 if torch.cuda.is_available() else 0
+            log(f"  OOM [{_consecutive_oom}]: {fname} — skipping  "
+                f"(VRAM used after clear: {vram_used:.1f}GB)")
+            if _consecutive_oom >= 3:
+                log("  3 consecutive OOMs — GPU stuck. Saving checkpoint and aborting phase.")
+                break   # save what we have rather than hanging forever
         except Exception as e:
             log(f"  FAIL {fname}: {e}")
 
@@ -841,21 +868,52 @@ def phase1b_generate_logo(batch, skip_set):
     return generated
 
 # ══════════════════════════════════════════════════════════════
-# PHASE 3 — Background Removal (BiRefNet_HR)  [IDENTICAL]
+# PHASE 3 + 4 — BG Removal + Drive Upload (batched every 50)
+#
+# WHY COMBINED?
+#   Old flow: generate ALL → remove BG all → upload all
+#   New flow: generate ALL → for every 50: remove BG + upload immediately
+#
+# BENEFITS:
+#   1. Images appear on Drive after every 50 — no need to wait till end
+#   2. Kaggle session crash → only lose last partial batch (not everything)
+#   3. RMBG model stays loaded the whole time (no reload per batch)
+#   4. Token refresh happens per-batch → no OAuth expiry on large runs
+#
+# CHECKPOINT STRATEGY:
+#   "phase3_4_uploaded" checkpoint stores all uploaded posts so far.
+#   On resume: already-uploaded filenames are skipped in RMBG + upload.
 # ══════════════════════════════════════════════════════════════
-def phase3_bg_remove(posts):
-    ckpt = load_checkpoint("phase3_lora_transparent")
-    if ckpt:
-        return ckpt
+DRIVE_BATCH_SIZE = 50   # Push to Drive after every N images
+
+def phase3_4_batched(posts):
+    # ── Resume: load already-uploaded posts from checkpoint ────
+    ckpt = load_checkpoint("phase3_4_uploaded")
+    if ckpt is not None:
+        # Check if everything is already done
+        uploaded_fnames = {p["filename"] for p in ckpt}
+        remaining = [p for p in posts if p["filename"] not in uploaded_fnames]
+        if not remaining:
+            log(f"PHASE 3+4: All {len(ckpt)} already uploaded — skipping.")
+            return ckpt
+        log(f"PHASE 3+4: Resuming — {len(ckpt)} done, {len(remaining)} remaining")
+        all_uploaded = list(ckpt)
+        posts_to_do  = remaining
+    else:
+        all_uploaded = []
+        posts_to_do  = posts
+
+    if not posts_to_do:
+        return all_uploaded
 
     log("=" * 56)
-    log("PHASE 3: BiRefNet_HR — Background Removal (GPU)")
-    log(f"  Loading: {RMBG_HF_ID}")
+    log("PHASE 3+4: BiRefNet_HR BG Removal → Drive Upload")
+    log(f"  Model      : {RMBG_HF_ID}")
+    log(f"  Total      : {len(posts_to_do)} images")
+    log(f"  Batch size : {DRIVE_BATCH_SIZE} (Drive push every {DRIVE_BATCH_SIZE} images)")
     log("=" * 56)
 
-    if not posts:
-        return []
-
+    # ── Load RMBG model ONCE for the whole run ─────────────────
     from torchvision import transforms
     from transformers import AutoModelForImageSegmentation
 
@@ -867,7 +925,7 @@ def phase3_bg_remove(posts):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     torch.set_float32_matmul_precision("high")
     rmbg_model = rmbg_model.to(device).eval().half()
-    log(f"  BiRefNet_HR loaded on {device.upper()} | FP16 | 2048x2048\n")
+    log(f"  BiRefNet_HR on {device.upper()} | FP16 | 2048x2048\n")
 
     transform_img = transforms.Compose([
         transforms.Resize((2048, 2048)),
@@ -887,32 +945,129 @@ def phase3_bg_remove(posts):
         result.putalpha(mask_pil)
         return result
 
-    result_posts, t0 = [], time.time()
+    # ── Pre-fetch Drive folder IDs once — avoid repeated API calls ──
+    token    = get_drive_token()
+    png_root = drive_folder(token, "png_library_images")
+    prv_root = drive_folder(token, "png_library_previews")
+    # Cache folder IDs: (root_id, cat, sub) → folder_id
+    _folder_cache: dict = {}
 
-    for i, post in enumerate(posts):
-        path = Path(post["approved_path"])
-        try:
-            rel = path.relative_to(APPROVED_DIR)
-            out = TRANSPARENT_DIR / rel
-            out.parent.mkdir(parents=True, exist_ok=True)
+    def get_folders(cat, sub):
+        key = (cat, sub)
+        if key not in _folder_cache:
+            _folder_cache[key] = {
+                "png": drive_folder(token, sub,
+                         drive_folder(token, cat, png_root)),
+                "prv": drive_folder(token, sub,
+                         drive_folder(token, cat, prv_root)),
+            }
+        return _folder_cache[key]["png"], _folder_cache[key]["prv"]
 
-            if out.exists():
-                result_posts.append({**post, "transparent_path": str(out)})
-                continue
+    def upload_one(post):
+        """BG-remove + upload one post. Returns enriched post dict or None."""
+        path  = Path(post["approved_path"])
+        rel   = path.relative_to(APPROVED_DIR)
+        out   = TRANSPARENT_DIR / rel
+        out.parent.mkdir(parents=True, exist_ok=True)
 
+        # ── BG removal ──
+        if not out.exists():
             img    = Image.open(str(path)).convert("RGB")
             result = remove_bg(img)
             result.save(str(out), "PNG", compress_level=9)
-            result_posts.append({**post, "transparent_path": str(out)})
 
-            if (i + 1) % 20 == 0:
-                log(f"  BG done: {i+1}/{len(posts)} | {(i+1)/(time.time()-t0):.2f}/s")
+        # ── Drive upload ──
+        cat   = post.get("category",    "general")
+        sub   = post.get("subcategory", "general")
+        fname = post["filename"]
+
+        png_folder, prv_folder = get_folders(cat, sub)
+
+        png_data  = out.read_bytes()
+        png_resp  = drive_upload(token, png_folder, fname, png_data, "image/png")
+        png_fid   = png_resp["id"]
+        drive_share(token, png_fid)
+
+        webp_bytes, pw, ph = make_previews(out)
+        webp_name = Path(fname).stem + ".webp"
+        prv_resp  = drive_upload(token, prv_folder, webp_name, webp_bytes, "image/webp")
+        webp_fid  = prv_resp["id"]
+        drive_share(token, webp_fid)
+
+        return {
+            **post,
+            "transparent_path":  str(out),
+            "png_file_id":       png_fid,
+            "jpg_file_id":       "",
+            "webp_file_id":      webp_fid,
+            "download_url":      download_url(png_fid),
+            "preview_url":       preview_url(webp_fid, 800),
+            "preview_url_small": preview_url(webp_fid, 400),
+            "webp_preview_url":  preview_url(webp_fid, 800),
+            "preview_w":         pw,
+            "preview_h":         ph,
+        }
+
+    # ── Main loop: process + upload in batches of DRIVE_BATCH_SIZE ──
+    t0          = time.time()
+    batch_buf   = []    # accumulates uploaded posts in current batch
+    batch_start = 0
+
+    for i, post in enumerate(posts_to_do):
+        try:
+            enriched = upload_one(post)
+            if enriched:
+                all_uploaded.append(enriched)
+                batch_buf.append(enriched)
+
+            rate = (i + 1) / (time.time() - t0)
+            eta  = (len(posts_to_do) - i - 1) / rate / 60 if rate > 0 else 0
+            log(f"  [{i+1}/{len(posts_to_do)}] ✓ {post['filename']} | ETA {eta:.0f}min")
 
         except Exception as e:
-            log(f"  RMBG FAIL {path.name}: {e}")
+            log(f"  FAIL {post.get('filename','?')}: {e}")
 
-    log("\n  Deleting BiRefNet_HR → freeing VRAM...")
-    del rmbg_model, transform_img
+        # ── Every DRIVE_BATCH_SIZE images → checkpoint + xlsx push + token refresh ──
+        if len(batch_buf) >= DRIVE_BATCH_SIZE:
+            batch_end = batch_start + len(batch_buf)
+            save_checkpoint("phase3_4_uploaded", all_uploaded)
+            log(f"\n  ── BATCH CHECKPOINT [{batch_start}–{batch_end}]: "
+                f"{len(all_uploaded)} total uploaded to Drive ──")
+
+            # ── [DATA SAFETY] Push xlsx every batch ──────────────────
+            # If Kaggle session dies before main() xlsx push, only the last
+            # partial batch is missing from xlsx.  Skip set (built from xlsx)
+            # on next session will correctly avoid re-generating already-done images.
+            try:
+                log(f"  Appending {len(batch_buf)} rows to ultradata.xlsx...")
+                _append_ultradata_and_push(batch_buf)
+                log(f"  xlsx batch push OK ✓")
+            except Exception as _xe:
+                log(f"  xlsx batch push WARN (non-fatal): {_xe}")
+
+            batch_buf   = []
+            batch_start = batch_end
+            log("")
+            # Refresh OAuth token to prevent expiry on long runs (token lasts ~55min)
+            try:
+                token = get_drive_token()
+            except Exception as _te:
+                log(f"  Token refresh warning: {_te}")
+
+    # ── Final checkpoint for any remaining images ───────────────
+    if batch_buf:
+        save_checkpoint("phase3_4_uploaded", all_uploaded)
+        log(f"\n  ── FINAL BATCH CHECKPOINT: {len(all_uploaded)} total uploaded ──")
+        try:
+            log(f"  Appending final {len(batch_buf)} rows to ultradata.xlsx...")
+            _append_ultradata_and_push(batch_buf)
+            log(f"  xlsx final batch push OK ✓\n")
+        except Exception as _xe:
+            log(f"  xlsx final batch push WARN (non-fatal): {_xe}\n")
+
+    # ── Unload RMBG + cleanup ───────────────────────────────────
+    log("  Deleting BiRefNet_HR → freeing VRAM...")
+    del rmbg_model
     free_memory()
 
     import shutil as _shutil
@@ -928,73 +1083,19 @@ def phase3_bg_remove(posts):
         APPROVED_DIR.mkdir(parents=True, exist_ok=True)
         log("  Deleted lora_approved/ images (transparent copies kept)")
 
-    save_checkpoint("phase3_lora_transparent", result_posts)
-    log(f"PHASE 3 DONE — Transparent PNGs: {len(result_posts)}\n")
-    return result_posts
+    log(f"PHASE 3+4 DONE — BG removed + Uploaded: {len(all_uploaded)}\n")
+    return all_uploaded
 
-# ══════════════════════════════════════════════════════════════
-# PHASE 4 — Google Drive Upload  [IDENTICAL]
-# ══════════════════════════════════════════════════════════════
+
+# ── Backwards-compat shims (old checkpoint names still work on resume) ──
+def phase3_bg_remove(posts):
+    """Legacy shim — redirects to phase3_4_batched."""
+    return phase3_4_batched(posts)
+
 def phase4_upload(posts):
-    ckpt = load_checkpoint("phase4_lora_uploaded")
-    if ckpt:
-        return ckpt
-
-    log("=" * 56)
-    log("PHASE 4: Google Drive Upload (PNG + WebP)")
-    log("=" * 56)
-
-    token    = get_drive_token()
-    png_root = drive_folder(token, "png_library_images")
-    prv_root = drive_folder(token, "png_library_previews")
-
-    result_posts, t0 = [], time.time()
-
-    for i, post in enumerate(posts):
-        try:
-            cat   = post.get("category",    "general")
-            sub   = post.get("subcategory", "general")
-            fname = post["filename"]
-
-            png_cat_folder = drive_folder(token, cat, png_root)
-            png_sub_folder = drive_folder(token, sub, png_cat_folder)
-            prv_cat_folder = drive_folder(token, cat, prv_root)
-            prv_sub_folder = drive_folder(token, sub, prv_cat_folder)
-
-            png_data  = Path(post["transparent_path"]).read_bytes()
-            png_resp  = drive_upload(token, png_sub_folder, fname, png_data, "image/png")
-            png_fid   = png_resp["id"]
-            drive_share(token, png_fid)
-
-            _jpg_bytes, webp_bytes, pw, ph = make_previews(Path(post["transparent_path"]))
-            webp_name = Path(fname).stem + ".webp"
-            prv_resp  = drive_upload(token, prv_sub_folder, webp_name, webp_bytes, "image/webp")
-            webp_fid  = prv_resp["id"]
-            drive_share(token, webp_fid)
-
-            result_posts.append({
-                **post,
-                "png_file_id":       png_fid,
-                "jpg_file_id":       "",
-                "webp_file_id":      webp_fid,
-                "download_url":      download_url(png_fid),
-                "preview_url":       preview_url(webp_fid, 800),
-                "preview_url_small": preview_url(webp_fid, 400),
-                "webp_preview_url":  preview_url(webp_fid, 800),
-                "preview_w":         pw,
-                "preview_h":         ph,
-            })
-
-            rate = (i + 1) / (time.time() - t0)
-            eta  = (len(posts) - i - 1) / rate / 60 if rate > 0 else 0
-            log(f"  [{i+1}/{len(posts)}] OK {fname} | ETA {eta:.0f}min")
-
-        except Exception as e:
-            log(f"  UPLOAD FAIL {post.get('filename','?')}: {e}")
-
-    save_checkpoint("phase4_lora_uploaded", result_posts)
-    log(f"PHASE 4 DONE — Uploaded: {len(result_posts)}\n")
-    return result_posts
+    """Legacy shim — phase4 is now merged into phase3_4_batched."""
+    log("phase4_upload: merged into phase3_4_batched — no-op")
+    return posts
 
 # ══════════════════════════════════════════════════════════════
 # PHASE 5 — Append ultradata.xlsx → push REPO1  [IDENTICAL]
@@ -1262,20 +1363,21 @@ def main():
         if not posts:
             log("No posts to process."); return
 
-        # ── PHASE 3 ──
-        transparent = phase3_bg_remove(posts)
-        stats["transparent"] = len(transparent)
-        if not transparent:
-            log("BG removal produced no results."); return
-
-        # ── PHASE 4 ──
-        uploaded = phase4_upload(transparent)
-        stats["uploaded"] = len(uploaded)
+        # ── PHASE 3 + 4 (combined — BG removal + Drive upload every 50) ──
+        uploaded = phase3_4_batched(posts)
+        stats["transparent"] = len(uploaded)
+        stats["uploaded"]    = len(uploaded)
         if not uploaded:
-            log("Drive upload failed."); return
+            log("BG removal / Drive upload produced no results."); return
 
-        # ── PHASE 5 ──
-        _append_ultradata_and_push(uploaded)
+        # ── PHASE 5 — Final xlsx push (catches any remainder not pushed in batches) ──
+        # Note: phase3_4_batched already pushes xlsx every 50 images.
+        # This final call is a safety net for the last partial batch if it
+        # wasn't pushed (e.g. batch_buf had items but batch checkpoint didn't fire).
+        try:
+            _append_ultradata_and_push(uploaded)
+        except Exception as _xe:
+            log(f"  Final xlsx push warning (data already pushed in batches): {_xe}")
 
         for ck in CHECKPOINT_DIR.glob("*.json"):
             ck.unlink()
@@ -1289,7 +1391,7 @@ def main():
 
         print(f"\n╔══════════════════════════════════════════════════════╗")
         print(f"║  Z-IMAGE LOGO DONE in {hrs:.1f}h")
-        print(f"║  Gen:{len(generated)}  Trans:{len(transparent)}  Up:{len(uploaded)}")
+        print(f"║  Gen:{len(generated)}  BG+Up:{len(uploaded)}")
         print(f"╚══════════════════════════════════════════════════════╝")
 
     except Exception as e:
