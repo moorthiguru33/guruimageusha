@@ -291,6 +291,7 @@ jobs:
       - name: Save Progress
         if: success()
         run: |
+          mkdir -p progress
           echo "$EFFECTIVE_END" > progress/lora_batch_tracker.txt
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
