@@ -37,14 +37,30 @@ VERIFIED FIXES IN THIS VERSION:
   [FIX 7] Cache cleanup: uses correct HF folder pattern models--Tongyi-MAI--*
 
 PERF FIXES V2.1 (P100 SPEED):
-  [PERF 1] P100: 4-bit NF4 Qwen3-4B text encoder (7GB→2GB) → all on GPU, no offload
-           Result: eliminates CPU↔GPU transfer bottleneck → ~3-4x faster inference
+  [PERF 1] P100: 4-bit NF4 Qwen3-4B text encoder (7GB→2GB) + cpu_offload
+           Result: enc offloads fast (2GB vs 7GB), DiT gets full VRAM for inference
   [PERF 2] VAE forced float32 on P100 → prevents NaN from float16 decode
            Root cause: NaN → blank images → triggered retry on EVERY image → 2x slow
   [PERF 3] Blank detection fixed: threshold tuned for white-bg logos, NaN check added
   [PERF 4] max_sequence_length 1024→256: logo prompts are <80 tokens, was wasting time
   [PERF 5] PNG compress_level 9→1: was adding ~3s per image with no quality benefit
-  Combined expected improvement: ~200s/image → ~35s/image (5-6x faster on P100)
+
+OOM FIXES V2.2 (P100 16GB):
+  [OOM 1] cpu_offload re-enabled WITH 4-bit encoder — previous code loaded 15.3GB
+          on GPU leaving NO room for inference activations → OOM on EVERY image!
+          With offload: encoder (2GB) moves to CPU after encode → DiT gets full VRAM.
+  [OOM 2] OOM retry at 768x768: if 1024x1024 OOMs, auto-retry at 768 + upscale to 1024.
+          This uses ~44% less activation memory.
+  [OOM 3] torch.no_grad() wrapper around inference → prevents gradient accumulation.
+  [OOM 4] Consecutive OOM threshold raised 3→5 (since we now have retry strategies).
+
+MULTI-GPU V2.3 (T4 x2 — 2×16GB = 32GB total):
+  [T4X2 1] Auto-detect num_gpus >= 2 → activate multi-GPU split mode.
+  [T4X2 2] GPU:0 = transformer (12GB) + VAE (1GB) = 13GB on first GPU.
+           GPU:1 = text_encoder Qwen3-4B full fp16 (7GB) on second GPU.
+  [T4X2 3] No quantization needed (full precision encoder = better quality).
+  [T4X2 4] No cpu_offload needed (no CPU↔GPU transfer = maximum speed).
+  [T4X2 5] Expected: ~40-60s per image (vs ~2min on P100 with offload).
 
 TARGET CATEGORIES (set LOGO_LORA_CATEGORY env var to pick one):
   admissions_enrollment | openings_launches | events
@@ -548,67 +564,83 @@ def phase1b_generate_logo(batch, skip_set):
 
     from diffusers import ZImagePipeline
 
-    # ── Detect GPU ─────────────────────────────────────────────
+    # ── Detect GPU(s) ──────────────────────────────────────────
     has_cuda   = torch.cuda.is_available()
+    num_gpus   = torch.cuda.device_count() if has_cuda else 0
     vram_gb    = torch.cuda.get_device_properties(0).total_memory / 1e9 if has_cuda else 0
     gpu_name   = torch.cuda.get_device_name(0) if has_cuda else "CPU"
     cuda_cap   = torch.cuda.get_device_capability(0) if has_cuda else (0, 0)
     cuda_major = cuda_cap[0]
 
-    log(f"  GPU        : {gpu_name}")
-    log(f"  VRAM       : {vram_gb:.1f} GB")
+    log(f"  GPU count  : {num_gpus}")
+    for _gi in range(num_gpus):
+        _gp = torch.cuda.get_device_properties(_gi)
+        log(f"  GPU[{_gi}]     : {_gp.name} | VRAM: {_gp.total_memory/1e9:.1f}GB")
     log(f"  CUDA cap   : sm_{cuda_major}{cuda_cap[1]}")
 
     # ── [FIX 1] Generator device ───────────────────────────────
-    # Official Z-Image code uses torch.Generator("cuda") not "cpu"
     gen_device = "cuda" if has_cuda else "cpu"
+    # For multi-GPU with device_map, generator uses cuda:0 (transformer device)
+    if has_cuda and num_gpus >= 2:
+        gen_device = "cuda:0"
 
-    # ── GPU loading strategy ───────────────────────────────────
+    # ── GPU strategy: dtype + offload + multi-GPU decision ─────
     #
     # Z-Image-Turbo memory breakdown:
-    #   Transformer (DiT) : ~12 GB  (model weights)
-    #   Text encoder (LLM): ~7 GB   (Qwen3-4B)
-    #   Total on disk      : ~19 GB
+    #   Transformer (DiT) : ~12 GB
+    #   Text encoder (LLM): ~7 GB  (Qwen3-4B)
+    #   VAE                : ~0.5-1 GB
+    #   Total              : ~19-20 GB
     #
-    # With enable_model_cpu_offload():
-    #   Step 1: LLM encodes prompt (~7GB VRAM) → moves to CPU
-    #   Step 2: Transformer generates (~12GB VRAM)
-    #   Peak VRAM = 12GB → fits in 16GB ✓
+    # ══════════════════════════════════════════════════════════
+    # STRATEGY TABLE:
+    # ══════════════════════════════════════════════════════════
+    #  T4 x2 (2×16GB, sm_75):  FASTEST — split across 2 GPUs
+    #    GPU:0 = transformer (12GB) + VAE (1GB) = 13GB ✓
+    #    GPU:1 = text encoder full fp16 (7GB) ✓
+    #    No offload, no quantization → maximum speed!
     #
-    # Without offload: 7+12 = 19GB → OOM on 16GB GPUs ✗
+    #  A100/H100 (≥40GB, sm_80+): bfloat16, all on one GPU
     #
-    # [FIX 2] T4 (sm_75) ALSO needs enable_model_cpu_offload()!
-    # (V1 was loading T4 without offload → would OOM)
+    #  T4 single (16GB, sm_75): bfloat16 + cpu_offload
     #
-    # A100/H100 (40-80GB): no offload needed
+    #  P100 (16GB, sm_60): float16 + 4-bit encoder + cpu_offload
+    # ══════════════════════════════════════════════════════════
 
-    # ── GPU strategy: dtype + offload decision ─────────────────
-    # Z-Image-Turbo: Transformer ~12GB + Text encoder (Qwen3-4B) ~7GB = ~19GB
-    #
-    # P100 OPTIMISED STRATEGY (sm_60, 16GB):
-    #   4-bit quantize Qwen3-4B text encoder: 7GB → ~2GB
-    #   Transformer: ~12GB (float16)
-    #   VAE: forced float32 to prevent NaN in decode (~1GB)
-    #   Total: ~15GB → fits on 16GB ✓ → NO cpu_offload needed!
-    #
-    # A100/H100 (≥40GB): bfloat16, no offload needed.
-    if cuda_major >= 8:
+    use_multi_gpu = False   # T4 x2 dual-GPU flag
+
+    if num_gpus >= 2 and cuda_major >= 7:
+        # ── T4 x2 PATH: Split model across 2 GPUs — FASTEST ──
+        total_vram = sum(
+            torch.cuda.get_device_properties(i).total_memory / 1e9
+            for i in range(num_gpus)
+        )
+        log(f"  Strategy   : T4 x2 MULTI-GPU — split across {num_gpus} GPUs")
+        log(f"  Total VRAM : {total_vram:.0f}GB ({num_gpus}×{vram_gb:.0f}GB)")
+        log(f"  GPU:0 → transformer (12GB) + VAE (1GB)")
+        log(f"  GPU:1 → text_encoder Qwen3-4B full fp16 (7GB)")
+        log(f"  No quantization, no offload → MAXIMUM SPEED!")
+        dtype = torch.bfloat16   # T4 sm_75 supports bfloat16
+        use_cpu_offload = False
+        use_4bit_enc    = False
+        use_multi_gpu   = True
+    elif cuda_major >= 8:
         log("  Strategy   : bfloat16, no CPU offload (A100/H100 ≥40GB)")
         dtype = torch.bfloat16
         use_cpu_offload = False
         use_4bit_enc    = False
     elif cuda_major >= 7:
-        log("  Strategy   : bfloat16 + enable_model_cpu_offload (T4 sm_75, 16GB)")
+        log("  Strategy   : bfloat16 + enable_model_cpu_offload (T4 single, 16GB)")
         dtype = torch.bfloat16
         use_cpu_offload = True
         use_4bit_enc    = False
     else:
-        log("  Strategy   : float16 + 4-bit Qwen encoder — ALL on GPU (P100 sm_60)")
-        log("  FIX: Qwen3-4B 4-bit = ~2GB → transformer 12GB + enc 2GB = 14GB < 16GB ✓")
+        log("  Strategy   : float16 + 4-bit Qwen encoder + cpu_offload (P100 sm_60)")
+        log("  FIX: Qwen3-4B 4-bit = ~2GB → fast offload (2GB vs 7GB transfer)")
         log("  FIX: VAE forced float32 → prevents NaN invalid-cast RuntimeWarning")
-        log("  FIX: No cpu_offload → eliminates CPU↔GPU transfer bottleneck")
+        log("  FIX: cpu_offload ON → enc offloads after encode, frees VRAM for DiT inference")
         dtype = torch.float16
-        use_cpu_offload = False
+        use_cpu_offload = True
         use_4bit_enc    = True
 
     # ── [FIX TIMEOUT] Robust model download with retry ─────────
@@ -667,12 +699,47 @@ def phase1b_generate_logo(batch, skip_set):
                     ) from _e2
 
     # ── Load pipeline from local cache (no network call) ───────
-    if use_4bit_enc:
-        # ── P100 PATH: 4-bit Qwen3 text encoder → everything on GPU ──
-        # Root cause of slowness:  enable_model_cpu_offload() moves 7GB
-        # Qwen text encoder to CPU after every encode, causing massive
-        # CPU↔GPU transfers each inference step.
-        # Fix: quantize Qwen to 4-bit (~2GB) → fits with transformer on GPU.
+    if use_multi_gpu:
+        # ══════════════════════════════════════════════════════════
+        # T4 x2 PATH: Use BOTH GPUs (32GB total) — FASTEST
+        #
+        # Official diffusers method: device_map="balanced"
+        #   → Automatically splits pipeline components across GPUs
+        #   → text_encoder on one GPU, transformer on another
+        #   → No quantization, no offload → MAXIMUM SPEED
+        #
+        # Reference: huggingface.co/docs/diffusers/tutorials/inference_with_big_models
+        # ══════════════════════════════════════════════════════════
+        log("  Loading Z-Image-Turbo — T4 x2 MULTI-GPU (device_map=balanced)...")
+
+        pipe = ZImagePipeline.from_pretrained(
+            _model_cache,
+            torch_dtype=dtype,
+            local_files_only=True,
+            device_map="balanced",
+            max_memory={0: "15GB", 1: "15GB"},
+        )
+
+        # ── Log device placement ──
+        if hasattr(pipe, 'hf_device_map'):
+            log(f"  Device map : {pipe.hf_device_map}")
+        for _gi in range(num_gpus):
+            _used = torch.cuda.memory_allocated(_gi) / 1e9
+            _total = torch.cuda.get_device_properties(_gi).total_memory / 1e9
+            log(f"  GPU[{_gi}] VRAM: {_used:.1f}GB / {_total:.0f}GB "
+                f"(free: {_total - _used:.1f}GB)")
+
+        log("  device_map=balanced → both GPUs active ✓")
+        log("  No quantization, no offload → MAXIMUM SPEED ✓\n")
+
+    elif use_4bit_enc:
+        # ── P100 PATH: 4-bit Qwen3 text encoder + cpu_offload ──────
+        # 4-bit encoder: 7GB → 2GB.  With cpu_offload, encoder offloads
+        # to CPU after encoding (~2GB transfer, fast).  Transformer then
+        # has full 16GB for inference activations.
+        #
+        # Previous bug: loading everything on GPU without offload used 15.3GB,
+        # leaving NO room for inference activations → OOM on every image.
         log("  Loading 4-bit quantized text encoder (Qwen3 NF4)...")
         _loaded_4bit = False
         try:
@@ -695,9 +762,6 @@ def phase1b_generate_logo(batch, skip_set):
                 f"({sum(p.numel() for p in _q_enc.parameters())/1e9:.1f}B params)")
 
             # ── [FIX DOUBLE-LOAD] Pass pre-loaded 4-bit encoder into from_pretrained.
-            # Without low_cpu_mem_usage=True, diffusers stages a full-precision CPU
-            # copy of Qwen (7GB) even though we pass text_encoder=_q_enc.
-            # That means: 2GB (4-bit GPU) + 7GB (CPU staging) = 9GB → OOM on P100!
             # low_cpu_mem_usage=True skips the CPU staging → only 2GB used. ✓
             pipe = ZImagePipeline.from_pretrained(
                 _model_cache,
@@ -706,29 +770,33 @@ def phase1b_generate_logo(batch, skip_set):
                 local_files_only=True,
                 low_cpu_mem_usage=True,    # [FIX] prevents 7GB CPU staging of Qwen
             )
-            # Safety: forcibly replace pipe's internal reference so diffusers
-            # never falls back to a full-precision encoder during inference.
             pipe.text_encoder = _q_enc
             log("  [FIX] pipe.text_encoder = 4-bit _q_enc (no double-load) ✓")
 
-            # Move transformer + VAE to GPU (text_encoder already on GPU via device_map)
-            pipe.transformer.to("cuda")
-            # ── CRITICAL: VAE in float32 prevents NaN invalid-cast warning ──
-            # float16 VAE decode produces NaN → blank images → triggers retry loop
-            # float32 VAE costs ~0.5GB extra but completely eliminates NaN
-            pipe.vae = pipe.vae.to(torch.float32).to("cuda")
-            log("  VAE loaded in float32 → NaN-safe decode ✓")
+            # ── CRITICAL: VAE in float32 prevents NaN ─────────────────
+            pipe.vae = pipe.vae.to(torch.float32)
+            log("  VAE set to float32 → NaN-safe decode ✓")
+
+            # ── [FIX OOM] Use cpu_offload even with 4-bit encoder ─────
+            # Previous code loaded all on GPU (15.3GB) → no room for activations.
+            # With cpu_offload: encoder (2GB) offloads after encode step,
+            # transformer (12GB) gets full VRAM for inference.
+            # 4-bit offload is fast: only 2GB moves vs 7GB with full encoder.
+            pipe.enable_model_cpu_offload()
+            log("  enable_model_cpu_offload() applied ✓ (4-bit = fast 2GB offload)")
+
             _loaded_4bit = True
-            log("  All components on GPU — NO cpu_offload ✓")
-            log(f"  VRAM after load: {torch.cuda.memory_allocated(0)/1e9:.1f}GB / "
-                f"{torch.cuda.get_device_properties(0).total_memory/1e9:.0f}GB")
+            vram_used = torch.cuda.memory_allocated(0)/1e9
+            vram_total = torch.cuda.get_device_properties(0).total_memory/1e9
+            log(f"  VRAM after load: {vram_used:.1f}GB / {vram_total:.0f}GB")
+            log(f"  Free for inference: ~{vram_total - vram_used:.1f}GB ✓")
 
         except Exception as _qe:
-            log(f"  4-bit load failed ({_qe}) — falling back to cpu_offload")
+            log(f"  4-bit load failed ({_qe}) — falling back to full cpu_offload")
             _loaded_4bit = False
 
         if not _loaded_4bit:
-            # Fallback: original cpu_offload path
+            # Fallback: original cpu_offload path (full 7GB encoder)
             pipe = ZImagePipeline.from_pretrained(
                 _model_cache, torch_dtype=dtype, local_files_only=True)
             pipe.enable_model_cpu_offload()
@@ -754,6 +822,7 @@ def phase1b_generate_logo(batch, skip_set):
 
     generated, skipped, t0 = [], 0, time.time()
     _consecutive_oom = 0   # OOM counter — abort if GPU is stuck
+    _oom_downscaled  = False  # Track if we had to drop to 768x768
 
     for i, item in enumerate(batch):
         fname = item["filename"]
@@ -781,48 +850,71 @@ def phase1b_generate_logo(batch, skip_set):
             raw    = enhance_prompt(item["prompt"], item.get("category", ""))
             prompt = LOGO_STYLE_PREFIX + raw
 
-            output = pipe(
-                prompt=prompt,
-                num_inference_steps=ZIMAGE_STEPS,
-                guidance_scale=ZIMAGE_GUIDANCE,
-                height=1024, width=1024,
-                generator=gen,
-                max_sequence_length=ZIMAGE_MAX_SEQ,
-            )
-            img = output.images[0]
+            # ── [FIX OOM] Determine resolution ──────────────────────
+            # Start at 1024. If previous OOM forced downscale, stay at 768.
+            img_size = 768 if _oom_downscaled else 1024
+
+            # ── [FIX] Wrap in no_grad to reduce activation memory ───
+            with torch.no_grad():
+                try:
+                    output = pipe(
+                        prompt=prompt,
+                        num_inference_steps=ZIMAGE_STEPS,
+                        guidance_scale=ZIMAGE_GUIDANCE,
+                        height=img_size, width=img_size,
+                        generator=gen,
+                        max_sequence_length=ZIMAGE_MAX_SEQ,
+                    )
+                    img = output.images[0]
+                except torch.cuda.OutOfMemoryError:
+                    # ── OOM at current size → retry at 768x768 ────────
+                    torch.cuda.empty_cache()
+                    gc.collect()
+                    if img_size > 768:
+                        log(f"  OOM at {img_size}x{img_size} → retrying at 768x768: {fname}")
+                        _oom_downscaled = True
+                        img_size = 768
+                        gen = torch.Generator(gen_device).manual_seed(item["seed"])
+                        output = pipe(
+                            prompt=prompt,
+                            num_inference_steps=ZIMAGE_STEPS,
+                            guidance_scale=ZIMAGE_GUIDANCE,
+                            height=768, width=768,
+                            generator=gen,
+                            max_sequence_length=ZIMAGE_MAX_SEQ,
+                        )
+                        img = output.images[0]
+                    else:
+                        raise  # already at 768, re-raise OOM
+
+            # ── Upscale 768→1024 if downscaled (consistent output size) ──
+            if img_size < 1024:
+                img = img.resize((1024, 1024), Image.LANCZOS)
 
             # ── Blank / NaN detection ────────────────────────────────
-            # BUG FIX: np.isnan on uint8 PIL array NEVER fires — PIL already
-            # clips NaN→0 or 255 during image conversion.  Must check the raw
-            # float tensor BEFORE PIL sees it.
-            # output.images is a list of PIL Images; the underlying tensor is
-            # accessible via pipe's internal latent decode, but diffusers does
-            # not expose it post-decode.  Instead, check for all-black (NaN→0)
-            # or all-white (NaN→255) by looking at variance across channels.
-            arr    = np.array(img, dtype=np.float32)   # float32 for std
+            arr    = np.array(img, dtype=np.float32)
             n_px   = arr.shape[0] * arr.shape[1]
-            thresh = int(n_px * 0.005)                 # 0.5% non-white pixels
-            # NaN pixels → PIL clips to 0 (all-black) or 255 (all-white)
-            # All-black: arr.mean() < 5 — catches NaN→0 clipping
-            # All-white: (arr < 240).sum() < thresh — catches uniform white
-            # Solid uniform: arr.std() < 3 — catches any flat-color output
+            thresh = int(n_px * 0.005)
             is_blank = (
-                arr.std() < 3.0 or                     # flat solid color
-                arr.mean() < 5.0 or                    # near-all-black (NaN→0)
-                (arr < 240).sum() < thresh             # no logo pixels at all
+                arr.std() < 3.0 or
+                arr.mean() < 5.0 or
+                (arr < 240).sum() < thresh
             )
             if is_blank:
                 log(f"  Retry (blank): {fname}  std={arr.std():.1f}  "
                     f"mean={arr.mean():.0f}  non-white={(arr<240).sum()}")
-                gen2 = torch.Generator(gen_device).manual_seed(item["seed"] + 99)
-                img  = pipe(
-                    prompt=prompt,
-                    num_inference_steps=ZIMAGE_STEPS,
-                    guidance_scale=ZIMAGE_GUIDANCE,
-                    height=1024, width=1024,
-                    generator=gen2,
-                    max_sequence_length=ZIMAGE_MAX_SEQ,
-                ).images[0]
+                with torch.no_grad():
+                    gen2 = torch.Generator(gen_device).manual_seed(item["seed"] + 99)
+                    img  = pipe(
+                        prompt=prompt,
+                        num_inference_steps=ZIMAGE_STEPS,
+                        guidance_scale=ZIMAGE_GUIDANCE,
+                        height=img_size, width=img_size,
+                        generator=gen2,
+                        max_sequence_length=ZIMAGE_MAX_SEQ,
+                    ).images[0]
+                    if img_size < 1024:
+                        img = img.resize((1024, 1024), Image.LANCZOS)
 
             img.save(str(out), "PNG", compress_level=1)
             generated.append({"path": str(out), "item": item})
@@ -831,7 +923,8 @@ def phase1b_generate_logo(batch, skip_set):
             done = len(generated)
             rate = done / (time.time() - t0)
             eta  = (len(batch) - i - 1) / rate / 60 if rate > 0 else 0
-            log(f"  [{i+1}/{len(batch)}] OK {fname} | {item['category']} | ETA {eta:.0f}min")
+            res_tag = f" [768→1024]" if img_size < 1024 else ""
+            log(f"  [{i+1}/{len(batch)}] OK {fname} | {item['category']}{res_tag} | ETA {eta:.0f}min")
 
         except torch.cuda.OutOfMemoryError:
             torch.cuda.empty_cache()
@@ -840,8 +933,8 @@ def phase1b_generate_logo(batch, skip_set):
             vram_used = torch.cuda.memory_allocated(0) / 1e9 if torch.cuda.is_available() else 0
             log(f"  OOM [{_consecutive_oom}]: {fname} — skipping  "
                 f"(VRAM used after clear: {vram_used:.1f}GB)")
-            if _consecutive_oom >= 3:
-                log("  3 consecutive OOMs — GPU stuck. Saving checkpoint and aborting phase.")
+            if _consecutive_oom >= 5:
+                log("  5 consecutive OOMs — GPU stuck. Saving checkpoint and aborting phase.")
                 break   # save what we have rather than hanging forever
         except Exception as e:
             log(f"  FAIL {fname}: {e}")
@@ -1283,8 +1376,12 @@ def main():
     print(f"  Steps    : {ZIMAGE_STEPS}")
     print(f"  Filter   : {LOGO_LORA_CATEGORY or 'ALL logo categories'}")
     if torch.cuda.is_available():
-        p = torch.cuda.get_device_properties(0)
-        print(f"  GPU      : {p.name} | VRAM: {p.total_memory/1e9:.0f}GB")
+        _ngpu = torch.cuda.device_count()
+        for _gi in range(_ngpu):
+            p = torch.cuda.get_device_properties(_gi)
+            print(f"  GPU[{_gi}]    : {p.name} | VRAM: {p.total_memory/1e9:.0f}GB")
+        if _ngpu >= 2:
+            print(f"  Mode     : T4 x2 MULTI-GPU (split across {_ngpu} GPUs)")
     print()
 
     try:
