@@ -1,0 +1,96 @@
+name: Migrate Preview Images to GitHub CDN
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Max designs to process (0 = all)'
+        required: false
+        default: '0'
+      resume:
+        description: 'Resume — skip already uploaded images?'
+        required: false
+        default: 'true'
+        type: choice
+        options: ['true', 'false']
+      dry_run:
+        description: 'Dry run (test only, no changes)?'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['false', 'true']
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout guruimageusha
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: guruimageusha
+
+      - name: Clone Gurumoorthi repo
+        run: |
+          git clone https://x-access-token:${{ secrets.GURUMOORTHI_TOKEN }}@github.com/moorthiguru33/Gurumoorthi.git gurumoorthi
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: gurumoorthi
+        run: npm install sharp xlsx
+
+      - name: Run migration script
+        working-directory: gurumoorthi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE_OUTPUT_DIR: ${{ github.workspace }}/guruimageusha
+        run: |
+          FLAGS=""
+          [ "${{ inputs.dry_run }}" = "true" ] && FLAGS="$FLAGS --dry-run"
+          [ "${{ inputs.resume }}"  = "true" ] && FLAGS="$FLAGS --resume"
+          [ "${{ inputs.limit }}"  != "0"    ] && FLAGS="$FLAGS --limit=${{ inputs.limit }}"
+          node migrate-to-github-images.js $FLAGS
+
+      - name: Commit images to guruimageusha
+        if: ${{ inputs.dry_run != 'true' }}
+        working-directory: guruimageusha
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && echo "No new images" || \
+            git commit -m "Add compressed WebP preview images (auto-migration)"
+          git push origin main
+
+      - name: Push data changes to Gurumoorthi
+        if: ${{ inputs.dry_run != 'true' }}
+        working-directory: gurumoorthi
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/designs.json data/d/ data/pages/ designs.xlsx url-mapping.json
+          git diff --cached --quiet && echo "No changes" || \
+            git commit -m "Replace preview URLs with GitHub CDN (guruimageusha)"
+          git push https://x-access-token:${{ secrets.GURUMOORTHI_TOKEN }}@github.com/moorthiguru33/Gurumoorthi.git HEAD:main
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: url-mapping
+          path: |
+            gurumoorthi/url-mapping.json
+            gurumoorthi/migration-errors.json
+
+      - name: Summary
+        if: always()
+        working-directory: gurumoorthi
+        run: |
+          [ -f url-mapping.json ] && echo "Mapped: $(node -e "console.log(Object.keys(require('./url-mapping.json')).length)")" || true
+          [ -f migration-errors.json ] && echo "Errors: $(node -e "console.log(require('./migration-errors.json').length)")" || true
