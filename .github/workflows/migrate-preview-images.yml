@@ -60,9 +60,11 @@ jobs:
 
       - name: Run migrate-to-github-images.js
         working-directory: gurumoorthi
-        env:
+     env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          IMAGE_OUTPUT_DIR: ${{ github.workspace }}/guruimageusha
+          IMAGE_OUTPUT_DIR: ${{ github.workspace }}/guruimageusha/preview_images
+          IMAGE_SUBPATH: preview_images
+
         run: |
           FLAGS=""
           [ "${{ inputs.dry_run }}" = "true" ] && FLAGS="$FLAGS --dry-run"
