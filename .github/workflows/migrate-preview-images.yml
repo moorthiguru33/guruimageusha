@@ -73,15 +73,16 @@ jobs:
             git commit -m "Add compressed WebP preview images (auto-migration)"
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/moorthiguru33/guruimageusha.git main
 
-      - name: Push data file changes to Gurumoorthi
+      # ✅ FIX: designs.xlsx மட்டும் Gurumoorthi repo-ல் push ஆகும்
+      - name: Push designs.xlsx to Gurumoorthi
         if: ${{ inputs.dry_run != 'true' }}
         working-directory: gurumoorthi
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/designs.json data/d/ data/pages/ designs.xlsx url-mapping.json
-          git diff --cached --quiet && echo "No JSON/xlsx changes" || \
-            git commit -m "Replace preview URLs with GitHub CDN (guruimageusha)"
+          git add designs.xlsx url-mapping.json
+          git diff --cached --quiet && echo "No xlsx changes to push" || \
+            git commit -m "Replace preview URLs with GitHub CDN in designs.xlsx"
           git push https://x-access-token:${{ secrets.GURUMOORTHI_TOKEN }}@github.com/moorthiguru33/Gurumoorthi.git HEAD:claude/replace-preview-image-urls-sTR3m
 
       - name: Upload url-mapping artifact
