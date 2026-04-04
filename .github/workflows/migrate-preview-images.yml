@@ -1,5 +1,14 @@
 name: Migrate Preview Images to GitHub CDN
 
+# Runs in guruimageusha (PUBLIC repo = FREE unlimited Actions minutes)
+# This workflow:
+#   1. Clones Gurumoorthi (private) repo - claude/replace-preview-image-urls-sTR3m branch
+#   2. Downloads all design thumbs (Cloudinary / Google Drive)
+#   3. Compresses to WebP < 100 KB using sharp
+#   4. Commits images to THIS (guruimageusha) repo
+#   5. Updates designs.json, data/d/*.json, data/pages/**/*.json, designs.xlsx
+#   6. Pushes changes back to Gurumoorthi repo (same branch)
+
 on:
   workflow_dispatch:
     inputs:
@@ -38,7 +47,7 @@ jobs:
         run: |
           git clone -b claude/replace-preview-image-urls-sTR3m \
             https://x-access-token:${{ secrets.GURUMOORTHI_TOKEN }}@github.com/moorthiguru33/Gurumoorthi.git gurumoorthi
-          echo "Cloned OK"
+          echo "Cloned OK — branch: claude/replace-preview-image-urls-sTR3m"
 
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
@@ -81,7 +90,7 @@ jobs:
           git add data/designs.json data/d/ data/pages/ designs.xlsx url-mapping.json
           git diff --cached --quiet && echo "No JSON/xlsx changes" || \
             git commit -m "Replace preview URLs with GitHub CDN (guruimageusha)"
-          git push https://x-access-token:${{ secrets.GURUMOORTHI_TOKEN }}@github.com/moorthiguru33/Gurumoorthi.git HEAD:main
+          git push https://x-access-token:${{ secrets.GURUMOORTHI_TOKEN }}@github.com/moorthiguru33/Gurumoorthi.git HEAD:claude/replace-preview-image-urls-sTR3m
 
       - name: Upload url-mapping artifact
         if: always()
