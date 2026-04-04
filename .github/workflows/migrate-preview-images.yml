@@ -38,7 +38,7 @@ jobs:
         run: |
           git clone -b claude/replace-preview-image-urls-sTR3m \
             https://x-access-token:${{ secrets.GURUMOORTHI_TOKEN }}@github.com/moorthiguru33/Gurumoorthi.git gurumoorthi
-          echo "Cloned OK — branch: claude/replace-preview-image-urls-sTR3m"
+          echo "Cloned OK"
 
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
@@ -53,15 +53,14 @@ jobs:
         working-directory: gurumoorthi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          IMAGE_OUTPUT_DIR: ${{ github.workspace }}/guruimageusha/preview_images
         run: |
-          mkdir -p $IMAGE_OUTPUT_DIR
           FLAGS=""
           [ "${{ inputs.dry_run }}" = "true" ] && FLAGS="$FLAGS --dry-run"
           [ "${{ inputs.resume }}"  = "true" ] && FLAGS="$FLAGS --resume"
           [ "${{ inputs.limit }}"  != "0"    ] && FLAGS="$FLAGS --limit=${{ inputs.limit }}"
           node migrate-to-github-images.js $FLAGS
 
+      # Push WebP images → guruimageusha repo
       - name: Commit images to guruimageusha
         if: ${{ inputs.dry_run != 'true' }}
         working-directory: guruimageusha
@@ -73,7 +72,7 @@ jobs:
             git commit -m "Add compressed WebP preview images (auto-migration)"
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/moorthiguru33/guruimageusha.git main
 
-      # ✅ FIX: designs.xlsx மட்டும் Gurumoorthi repo-ல் push ஆகும்
+      # Push designs.xlsx (with new CDN URLs) → Gurumoorthi repo
       - name: Push designs.xlsx to Gurumoorthi
         if: ${{ inputs.dry_run != 'true' }}
         working-directory: gurumoorthi
@@ -81,11 +80,11 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add designs.xlsx url-mapping.json
-          git diff --cached --quiet && echo "No xlsx changes to push" || \
-            git commit -m "Replace preview URLs with GitHub CDN in designs.xlsx"
+          git diff --cached --quiet && echo "No xlsx changes" || \
+            git commit -m "Replace preview image URLs with GitHub CDN in designs.xlsx"
           git push https://x-access-token:${{ secrets.GURUMOORTHI_TOKEN }}@github.com/moorthiguru33/Gurumoorthi.git HEAD:claude/replace-preview-image-urls-sTR3m
 
-      - name: Upload url-mapping artifact
+      - name: Upload artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
