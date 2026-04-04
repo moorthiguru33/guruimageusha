@@ -1,14 +1,5 @@
 name: Migrate Preview Images to GitHub CDN
 
-# Runs in guruimageusha (PUBLIC repo = FREE unlimited Actions minutes)
-# This workflow:
-#   1. Clones Gurumoorthi (private) repo - claude/replace-preview-image-urls-sTR3m branch
-#   2. Downloads all design thumbs (Cloudinary / Google Drive)
-#   3. Compresses to WebP < 100 KB using sharp
-#   4. Commits images to THIS (guruimageusha) repo
-#   5. Updates designs.json, data/d/*.json, data/pages/**/*.json, designs.xlsx
-#   6. Pushes changes back to Gurumoorthi repo (same branch)
-
 on:
   workflow_dispatch:
     inputs:
@@ -60,12 +51,11 @@ jobs:
 
       - name: Run migrate-to-github-images.js
         working-directory: gurumoorthi
-     env:
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IMAGE_OUTPUT_DIR: ${{ github.workspace }}/guruimageusha/preview_images
-          IMAGE_SUBPATH: preview_images
-
         run: |
+          mkdir -p $IMAGE_OUTPUT_DIR
           FLAGS=""
           [ "${{ inputs.dry_run }}" = "true" ] && FLAGS="$FLAGS --dry-run"
           [ "${{ inputs.resume }}"  = "true" ] && FLAGS="$FLAGS --resume"
@@ -112,4 +102,4 @@ jobs:
             echo "Mapped: $(node -e "console.log(Object.keys(require('./url-mapping.json')).length)")" || true
           [ -f migration-errors.json ] && \
             echo "Errors: $(node -e "console.log(require('./migration-errors.json').length)")" || true
-          echo "CDN: https://cdn.jsdelivr.net/gh/moorthiguru33/guruimageusha@main/"
+          echo "CDN: https://cdn.jsdelivr.net/gh/moorthiguru33/guruimageusha@main/preview_images/"
