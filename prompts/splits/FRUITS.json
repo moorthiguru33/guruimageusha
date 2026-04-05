@@ -1,0 +1,202 @@
+[
+  {
+    "category": "FRUITS",
+    "category_slug": "fruits",
+    "title": "Red Apple",
+    "index": 1,
+    "prompt": "professional photorealistic studio photograph of a single fresh red apple, whole and intact, covered in natural water droplets, vibrant and juicy appearance, front view, isolated on solid neutral light grey background, clean seamless studio backdrop, soft even lighting with subtle shadows, highly detailed texture, sharp focus, commercial food photography style, 8K ultra high resolution",
+    "filename": "red_apple_01.png",
+    "seed": 600001,
+    "status": "pending"
+  },
+  {
+    "category": "FRUITS",
+    "category_slug": "fruits",
+    "title": "Red Apple",
+    "index": 2,
+    "prompt": "professional photorealistic studio photograph of a single fresh red apple, whole, positioned at a dynamic 45-degree angle showing natural curves and highlights, vibrant colors, isolated on solid neutral light grey background, clean seamless studio backdrop, professional softbox lighting, highly detailed, sharp focus, commercial product photography, 8K ultra high resolution",
+    "filename": "red_apple_02.png",
+    "seed": 600002,
+    "status": "pending"
+  },
+  {
+    "category": "FRUITS",
+    "category_slug": "fruits",
+    "title": "Red Apple",
+    "index": 3,
+    "prompt": "professional photorealistic studio photograph of a single fresh red apple with natural stem and fresh green leaves still attached, whole and pristine, vibrant and farm-fresh look, isolated on solid neutral light grey background, clean seamless studio backdrop, soft diffused lighting, highly detailed surface texture, sharp focus, commercial food photography style, 8K ultra high resolution",
+    "filename": "red_apple_03.png",
+    "seed": 600003,
+    "status": "pending"
+  },
+  {
+    "category": "FRUITS",
+    "category_slug": "fruits",
+    "title": "Red Apple",
+    "index": 4,
+    "prompt": "professional photorealistic studio photograph of a fresh red apple cut in perfect cross-section slice revealing juicy interior details and seeds or flesh texture, vibrant colors, isolated on solid neutral light grey background, clean seamless studio backdrop, bright even lighting, highly detailed macro texture, sharp focus, commercial food photography, 8K ultra high resolution",
+    "filename": "red_apple_04.png",
+    "seed": 600004,
+    "status": "pending"
+  },
+  {
+    "category": "FRUITS",
+    "category_slug": "fruits",
+    "title": "Red Apple",
+    "index": 5,
+    "prompt": "professional photorealistic studio photograph of several fresh slices of red apple neatly arranged in an overlapping composition, vibrant juicy flesh visible, isolated on solid neutral light grey background, clean seamless studio backdrop, soft professional lighting with gentle highlights, highly detailed, sharp focus, appetizing food photography style, 8K ultra high resolution",
+    "filename": "red_apple_05.png",
+    "seed": 600005,
+    "status": "pending"
+  },
+  {
+    "category": "FRUITS",
+    "category_slug": "fruits",
+    "title": "Red Apple",
+    "index": 6,
+    "prompt": "professional photorealistic studio photograph of one whole fresh red apple next to a single clean cut slice revealing interior, natural placement, vibrant and fresh, isolated on solid neutral light grey background, clean seamless studio backdrop, balanced studio lighting, highly detailed, sharp focus, commercial product photography, 8K ultra high resolution",
+    "filename": "red_apple_06.png",
+    "seed": 600006,
+    "status": "pending"
+  },
+  {
+    "category": "FRUITS",
+    "category_slug": "fruits",
+    "title": "Red Apple",
+    "index": 7,
+    "prompt": "professional photorealistic studio close-up macro photograph of fresh red apple surface texture and details, extreme detail on skin or flesh, vibrant natural colors, isolated on solid neutral light grey background, clean seamless studio backdrop, precise macro lighting, razor sharp focus, high-end food photography style, 8K ultra high resolution",
+    "filename": "red_apple_07.png",
+    "seed": 600007,
+    "status": "pending"
+  },
+  {
+    "category": "FRUITS",
+    "category_slug": "fruits",
+    "title": "Red Apple",
+    "index": 8,
+    "prompt": "professional photorealistic studio photograph of a small group of 4-5 fresh red apples in a natural loose cluster arrangement, vibrant and fresh, isolated on solid neutral light grey background, clean seamless studio backdrop, soft even lighting, highly detailed, sharp focus, appetizing commercial food photography, 8K ultra high resolution",
+    "filename": "red_apple_08.png",
+    "seed": 600008,
+    "status": "pending"
+  },
+  {
+    "category": "FRUITS",
+    "category_slug": "fruits",
+    "title": "Red Apple",
+    "index": 9,
+    "prompt": "professional photorealistic studio photograph of a single fresh red apple, elegantly placed with subtle surface reflection on glossy grey, whole and pristine, vibrant colors, isolated on solid neutral light grey background, clean seamless studio backdrop, dramatic yet soft lighting, highly detailed, sharp focus, premium product photography style, 8K ultra high resolution",
+    "filename": "red_apple_09.png",
+    "seed": 600009,
+    "status": "pending"
+  },
+  {
+    "category": "FRUITS",
+    "category_slug": "fruits",
+    "title": "Red Apple",
+    "index": 10,
+    "prompt": "professional photorealistic studio photograph of a mixed composition of whole fresh red apples and a few cut pieces arranged together, natural and appetizing, isolated on solid neutral light grey background, clean seamless studio backdrop, professional food styling lighting, highly detailed textures, sharp focus, commercial photography, 8K ultra high resolution",
+    "filename": "red_apple_10.png",
+    "seed": 600010,
+    "status": "pending"
+  },
+  {
+    "category": "FRUITS",
+    "category_slug": "fruits",
+    "title": "Banana",
+    "index": 1,
+    "prompt": "professional photorealistic studio photograph of a single fresh banana, whole and intact, covered in natural water droplets, vibrant and juicy appearance, front view, isolated on solid neutral light grey background, clean seamless studio backdrop, soft even lighting with subtle shadows, highly detailed texture, sharp focus, commercial food photography style, 8K ultra high resolution",
+    "filename": "banana_01.png",
+    "seed": 600011,
+    "status": "pending"
+  },
+  {
+    "category": "FRUITS",
+    "category_slug": "fruits",
+    "title": "Banana",
+    "index": 2,
+    "prompt": "professional photorealistic studio photograph of a single fresh banana, whole, positioned at a dynamic 45-degree angle showing natural curves and highlights, vibrant colors, isolated on solid neutral light grey background, clean seamless studio backdrop, professional softbox lighting, highly detailed, sharp focus, commercial product photography, 8K ultra high resolution",
+    "filename": "banana_02.png",
+    "seed": 600012,
+    "status": "pending"
+  },
+  {
+    "category": "FRUITS",
+    "category_slug": "fruits",
+    "title": "Banana",
+    "index": 3,
+    "prompt": "professional photorealistic studio photograph of a single fresh banana with natural stem and fresh green leaves still attached, whole and pristine, vibrant and farm-fresh look, isolated on solid neutral light grey background, clean seamless studio backdrop, soft diffused lighting, highly detailed surface texture, sharp focus, commercial food photography style, 8K ultra high resolution",
+    "filename": "banana_03.png",
+    "seed": 600013,
+    "status": "pending"
+  },
+  {
+    "category": "FRUITS",
+    "category_slug": "fruits",
+    "title": "Banana",
+    "index": 4,
+    "prompt": "professional photorealistic studio photograph of a fresh banana cut in perfect cross-section slice revealing juicy interior details and seeds or flesh texture, vibrant colors, isolated on solid neutral light grey background, clean seamless studio backdrop, bright even lighting, highly detailed macro texture, sharp focus, commercial food photography, 8K ultra high resolution",
+    "filename": "banana_04.png",
+    "seed": 600014,
+    "status": "pending"
+  },
+  {
+    "category": "FRUITS",
+    "category_slug": "fruits",
+    "title": "Banana",
+    "index": 5,
+    "prompt": "professional photorealistic studio photograph of several fresh slices of banana neatly arranged in an overlapping composition, vibrant juicy flesh visible, isolated on solid neutral light grey background, clean seamless studio backdrop, soft professional lighting with gentle highlights, highly detailed, sharp focus, appetizing food photography style, 8K ultra high resolution",
+    "filename": "banana_05.png",
+    "seed": 600015,
+    "status": "pending"
+  },
+  {
+    "category": "FRUITS",
+    "category_slug": "fruits",
+    "title": "Banana",
+    "index": 6,
+    "prompt": "professional photorealistic studio photograph of one whole fresh banana next to a single clean cut slice revealing interior, natural placement, vibrant and fresh, isolated on solid neutral light grey background, clean seamless studio backdrop, balanced studio lighting, highly detailed, sharp focus, commercial product photography, 8K ultra high resolution",
+    "filename": "banana_06.png",
+    "seed": 600016,
+    "status": "pending"
+  },
+  {
+    "category": "FRUITS",
+    "category_slug": "fruits",
+    "title": "Banana",
+    "index": 7,
+    "prompt": "professional photorealistic studio close-up macro photograph of fresh banana surface texture and details, extreme detail on skin or flesh, vibrant natural colors, isolated on solid neutral light grey background, clean seamless studio backdrop, precise macro lighting, razor sharp focus, high-end food photography style, 8K ultra high resolution",
+    "filename": "banana_07.png",
+    "seed": 600017,
+    "status": "pending"
+  },
+  {
+    "category": "FRUITS",
+    "category_slug": "fruits",
+    "title": "Banana",
+    "index": 8,
+    "prompt": "professional photorealistic studio photograph of a small group of 4-5 fresh bananas in a natural loose cluster arrangement, vibrant and fresh, isolated on solid neutral light grey background, clean seamless studio backdrop, soft even lighting, highly detailed, sharp focus, appetizing commercial food photography, 8K ultra high resolution",
+    "filename": "banana_08.png",
+    "seed": 600018,
+    "status": "pending"
+  },
+  {
+    "category": "FRUITS",
+    "category_slug": "fruits",
+    "title": "Banana",
+    "index": 9,
+    "prompt": "professional photorealistic studio photograph of a single fresh banana, elegantly placed with subtle surface reflection on glossy grey, whole and pristine, vibrant colors, isolated on solid neutral light grey background, clean seamless studio backdrop, dramatic yet soft lighting, highly detailed, sharp focus, premium product photography style, 8K ultra high resolution",
+    "filename": "banana_09.png",
+    "seed": 600019,
+    "status": "pending"
+  },
+  {
+    "category": "FRUITS",
+    "category_slug": "fruits",
+    "title": "Banana",
+    "index": 10,
+    "prompt": "professional photorealistic studio photograph of a mixed composition of whole fresh bananas and a few cut pieces arranged together, natural and appetizing, isolated on solid neutral light grey background, clean seamless studio backdrop, professional food styling lighting, highly detailed textures, sharp focus, commercial photography, 8K ultra high resolution",
+    "filename": "banana_10.png",
+    "seed": 600020,
+    "status": "pending"
+  }
+]
