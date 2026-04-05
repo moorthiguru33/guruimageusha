@@ -403,10 +403,12 @@ def delete_zip_from_drive(zip_name, folder_id, access_token, existing_files_dict
 # ══════════════════════════════════════════════════════════════════════════════
 
 def trigger_apps_script_extract(apps_script_url, zip_file_id, folder_id,
+                                 access_token,
                                  max_retries=APPS_SCRIPT_MAX_RETRIES,
                                  retry_delay=APPS_SCRIPT_RETRY_DELAY):
     """
     Apps Script webhook-ஐ call பண்ணி ZIP extract trigger பண்ணும்.
+    Google OAuth Bearer token header-ல் அனுப்பும் (403 fix).
     max_retries முறை retry பண்ணும்.
     Returns: response dict or None
     """
@@ -415,7 +417,15 @@ def trigger_apps_script_extract(apps_script_url, zip_file_id, folder_id,
         "zipFileId": zip_file_id,
         "folderId":  folder_id,
     }
+    # Authorization header — 403 fix ✅
+    # Apps Script "Anyone" deploy ஆனாலும் Bearer token அனுப்புவது safe
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type":  "application/json",
+    }
+
     log.debug(f"Apps Script payload: {json.dumps(payload)}")
+    log.debug(f"Apps Script Authorization header: Bearer ***{access_token[-6:]}")
 
     for attempt in range(1, max_retries + 1):
         log.info(f"Apps Script call attempt {attempt}/{max_retries}...")
@@ -426,6 +436,7 @@ def trigger_apps_script_extract(apps_script_url, zip_file_id, folder_id,
             resp = requests.post(
                 apps_script_url,
                 json=payload,
+                headers=headers,
                 timeout=300,
                 allow_redirects=True)
             elapsed = time.time() - t0
@@ -439,9 +450,19 @@ def trigger_apps_script_extract(apps_script_url, zip_file_id, folder_id,
                     result = resp.json()
                 except Exception:
                     result = {"status": "ok", "raw": resp.text[:200]}
-
                 log.ok(f"Apps Script SUCCESS (attempt {attempt}): {json.dumps(result)[:300]}")
                 return result
+
+            elif resp.status_code == 403:
+                log.err(
+                    f"Apps Script attempt {attempt} → HTTP 403 FORBIDDEN\n"
+                    f"  Possible causes:\n"
+                    f"  1. Apps Script not deployed as Web App (Deploy → Manage deployments)\n"
+                    f"  2. 'Who has access' must be 'Anyone' or 'Anyone with Google account'\n"
+                    f"  3. Apps Script URL copied incorrectly (must end with /exec)\n"
+                    f"  Response preview: {resp.text[:200]}"
+                )
+
             else:
                 log.warn(f"Apps Script attempt {attempt} FAILED: "
                          f"HTTP {resp.status_code} | {resp.text[:300]}")
@@ -458,6 +479,7 @@ def trigger_apps_script_extract(apps_script_url, zip_file_id, folder_id,
             time.sleep(retry_delay)
 
     log.err(f"Apps Script FAILED after {max_retries} attempts!")
+    log.err("ACTION REQUIRED: Check Apps Script deployment settings (see 403 message above)")
     return None
 
 
@@ -915,7 +937,8 @@ def process_single_json(json_path, config, access_token):
             # ── Step 7: Apps Script Extract ──
             log.section("Step 7: Apps Script Extract (with retry)")
             extract_result = trigger_apps_script_extract(
-                apps_script_url, zip_file_id, sub_folder_id)
+                apps_script_url, zip_file_id, sub_folder_id,
+                access_token=access_token)
             drive_calls += 1  # webhook
 
             if extract_result:
