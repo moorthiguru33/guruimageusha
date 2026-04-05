@@ -1,28 +1,18 @@
 #!/usr/bin/env python3
 """
-PIXAZO AI - HEADLESS IMAGE GENERATOR v5.0  (GitHub Actions + Google Drive)
+PIXAZO AI - HEADLESS IMAGE GENERATOR v5.1  (GitHub Actions + Google Drive)
 ──────────────────────────────────────────────────────────────────────────
 • prompts/ folder-ல் உள்ள எல்லா JSON files-ஐயும் process பண்ணும்
 • JSON filename = Google Drive subfolder name
-  (e.g., animals.json → Drive/animals/ subfolder)
-• Images → respective Drive subfolder-க்கு upload ஆகும்
+• RATE LIMIT: 9 requests per minute (1 worker only)
 
 Environment Variables Required (GitHub Secrets):
-  PIXAZO_API_KEY           - Pixazo API key
-  GOOGLE_CLIENT_ID         - Google OAuth client ID
-  GOOGLE_CLIENT_SECRET     - Google OAuth client secret
-  GOOGLE_REFRESH_TOKEN     - Google OAuth refresh token
-  GOOGLE_DRIVE_FOLDER_ID   - Parent Google Drive folder ID
+  PIXAZO_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
+  GOOGLE_REFRESH_TOKEN, GOOGLE_DRIVE_FOLDER_ID
 
-Optional Environment Variables:
-  PIXAZO_MODEL             - Model name (default: flux-schnell)
-  PIXAZO_WIDTH             - Image width (default: 1024)
-  PIXAZO_HEIGHT            - Image height (default: 1024)
-  PIXAZO_WORKERS           - Parallel workers (default: 3)
-  PIXAZO_COUNT             - Images per JSON (default: ALL)
-  PIXAZO_NUM_STEPS         - SDXL num_steps (default: 20)
-  PIXAZO_GUIDANCE          - SDXL guidance_scale (default: 5)
-  PIXAZO_PROMPTS_DIR       - Prompts folder path (default: prompts)
+Optional:
+  PIXAZO_MODEL, PIXAZO_WIDTH, PIXAZO_HEIGHT, PIXAZO_COUNT,
+  PIXAZO_NUM_STEPS, PIXAZO_GUIDANCE, PIXAZO_PROMPTS_DIR
 """
 
 import json
@@ -33,7 +23,7 @@ import io
 import requests
 from pathlib import Path
 from datetime import datetime
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from collections import deque
 import threading
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -65,6 +55,61 @@ DEFAULT_NEG_PROMPT = (
 GOOGLE_TOKEN_URL  = "https://oauth2.googleapis.com/token"
 GOOGLE_UPLOAD_URL = "https://www.googleapis.com/upload/drive/v3/files"
 GOOGLE_DRIVE_API  = "https://www.googleapis.com/drive/v3/files"
+
+# ── RATE LIMIT CONFIG ──
+MAX_REQUESTS_PER_MINUTE = 9
+RATE_WINDOW_SECONDS     = 60
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# RATE LIMITER — 9 requests per minute
+# ══════════════════════════════════════════════════════════════════════════════
+class RateLimiter:
+    """
+    Sliding window rate limiter.
+    9 requests per 60 seconds — 10th request will wait until oldest expires.
+    """
+    def __init__(self, max_requests=MAX_REQUESTS_PER_MINUTE,
+                 window_seconds=RATE_WINDOW_SECONDS):
+        self.max_requests   = max_requests
+        self.window_seconds = window_seconds
+        self.timestamps     = deque()
+
+    def wait_if_needed(self):
+        """Call this BEFORE each API request."""
+        now = time.time()
+
+        # Remove timestamps older than the window
+        while self.timestamps and (now - self.timestamps[0]) >= self.window_seconds:
+            self.timestamps.popleft()
+
+        # If we've hit the limit, wait
+        if len(self.timestamps) >= self.max_requests:
+            oldest    = self.timestamps[0]
+            wait_time = self.window_seconds - (now - oldest) + 0.5  # +0.5s safety
+            if wait_time > 0:
+                log.warn(f"Rate limit: {self.max_requests} req/min reached. "
+                         f"Waiting {wait_time:.1f}s...")
+                time.sleep(wait_time)
+                # Clean up again after waiting
+                now = time.time()
+                while self.timestamps and (now - self.timestamps[0]) >= self.window_seconds:
+                    self.timestamps.popleft()
+
+        # Record this request
+        self.timestamps.append(time.time())
+
+    def status(self):
+        """Current usage info"""
+        now = time.time()
+        while self.timestamps and (now - self.timestamps[0]) >= self.window_seconds:
+            self.timestamps.popleft()
+        used = len(self.timestamps)
+        return f"{used}/{self.max_requests} req used in current minute window"
+
+
+# Global rate limiter instance
+rate_limiter = RateLimiter()
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -106,7 +151,6 @@ log = Logger()
 # ══════════════════════════════════════════════════════════════════════════════
 
 def get_google_access_token(client_id, client_secret, refresh_token):
-    """Refresh token -> Access token"""
     resp = requests.post(GOOGLE_TOKEN_URL, data={
         "client_id":     client_id,
         "client_secret": client_secret,
@@ -125,7 +169,6 @@ def get_google_access_token(client_id, client_secret, refresh_token):
 
 
 def find_drive_folder(folder_name, parent_id, access_token):
-    """Parent folder-க்குள் folder_name தேடும்"""
     query = (
         f"name='{folder_name}' and "
         f"'{parent_id}' in parents and "
@@ -146,7 +189,6 @@ def find_drive_folder(folder_name, parent_id, access_token):
 
 
 def create_drive_folder(folder_name, parent_id, access_token):
-    """Drive subfolder create (already exists-னா reuse)"""
     existing_id = find_drive_folder(folder_name, parent_id, access_token)
     if existing_id:
         log.info(f"Drive subfolder exists: '{folder_name}' (id: {existing_id})")
@@ -177,7 +219,6 @@ def create_drive_folder(folder_name, parent_id, access_token):
 
 
 def upload_to_google_drive(file_path, folder_id, access_token, mime_type=None):
-    """Google Drive multipart upload"""
     file_path = Path(file_path)
     if not file_path.exists():
         log.err(f"Upload skipped - file not found: {file_path}")
@@ -227,7 +268,7 @@ def upload_to_google_drive(file_path, folder_id, access_token, mime_type=None):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# PIXAZO API FUNCTIONS  (Original logic)
+# PIXAZO API FUNCTIONS  (with rate limiting)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def generate_image_flux(prompt, seed, api_key, width, height):
@@ -240,6 +281,10 @@ def generate_image_flux(prompt, seed, api_key, width, height):
         "prompt": prompt, "num_steps": int(FLUX_STEPS),
         "seed": int(seed), "width": int(width), "height": int(height),
     }
+
+    # ── RATE LIMIT: wait if needed before calling API ──
+    rate_limiter.wait_if_needed()
+
     resp = requests.post(FLUX_ENDPOINT, json=payload, headers=headers, timeout=180)
     resp.raise_for_status()
     data = resp.json()
@@ -265,6 +310,10 @@ def generate_image_sdxl(prompt, seed, api_key, width, height,
         "num_steps": int(num_steps), "guidance_scale": int(guidance_scale),
         "seed": int(seed),
     }
+
+    # ── RATE LIMIT: wait if needed before calling API ──
+    rate_limiter.wait_if_needed()
+
     resp = requests.post(SDXL_ENDPOINT, json=payload, headers=headers, timeout=180)
     try:
         body_text = resp.text[:600]
@@ -334,7 +383,7 @@ def load_config():
     config["MODEL"]       = os.environ.get("PIXAZO_MODEL", "flux-schnell").strip()
     config["WIDTH"]       = int(os.environ.get("PIXAZO_WIDTH", "1024"))
     config["HEIGHT"]      = int(os.environ.get("PIXAZO_HEIGHT", "1024"))
-    config["WORKERS"]     = int(os.environ.get("PIXAZO_WORKERS", "3"))
+    config["WORKERS"]     = 1   # ALWAYS 1 — rate limit protection
     config["COUNT"]       = os.environ.get("PIXAZO_COUNT", "ALL").strip().upper()
     config["NUM_STEPS"]   = int(os.environ.get("PIXAZO_NUM_STEPS", str(SDXL_NUM_STEPS)))
     config["GUIDANCE"]    = int(os.environ.get("PIXAZO_GUIDANCE", str(SDXL_GUIDANCE)))
@@ -344,29 +393,16 @@ def load_config():
         log.err(f"Invalid model: {config['MODEL']}")
         sys.exit(1)
 
-    if config["MODEL"] in SDXL_MODELS and config["WORKERS"] > 1:
-        log.warn("SDXL model - workers auto-set to 1")
-        config["WORKERS"] = 1
-
     return config
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# PROCESS ONE JSON FILE
+# PROCESS ONE JSON FILE  (sequential, rate-limited)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def process_single_json(json_path, config, access_token):
-    """
-    ஒரு JSON file process:
-    1. JSON load
-    2. Local subfolder create
-    3. Images generate
-    4. Drive subfolder create (JSON filename = folder name)
-    5. Upload all to Drive subfolder
-    6. Save updated JSON
-    """
     json_path = Path(json_path)
-    subfolder_name = json_path.stem  # "animals.json" -> "animals"
+    subfolder_name = json_path.stem
 
     log.step(f"PROCESSING: {json_path.name} -> Drive/{subfolder_name}/")
 
@@ -385,7 +421,6 @@ def process_single_json(json_path, config, access_token):
     model_name = config["MODEL"]
     api_key    = config["PIXAZO_API_KEY"]
     width, height = config["WIDTH"], config["HEIGHT"]
-    workers    = config["WORKERS"]
     num_steps  = config["NUM_STEPS"]
     guidance   = config["GUIDANCE"]
     count_str  = config["COUNT"]
@@ -426,56 +461,61 @@ def process_single_json(json_path, config, access_token):
         log.warn(f"'{json_path.name}' - all done, nothing to generate")
         return result
 
-    # Generate images
+    # Generate images — SEQUENTIAL, 1 at a time, rate-limited
     log.info(f"Generating {total_gen} images | {model_name} | "
-             f"{width}x{height} | Workers:{workers}")
+             f"{width}x{height} | 1 worker | 9 req/min limit")
 
-    done_count = [0]
-    fail_count = [0]
-    lock       = threading.Lock()
-    start_t    = time.time()
+    done_count  = 0
+    fail_count  = 0
+    start_t     = time.time()
     drive_queue = []
 
-    def gen_one(item):
+    for idx, item in enumerate(truly_pending, 1):
         fname    = item.get("filename", f"img_{item.get('index', 0)}.png")
         out_path = local_out / fname
         prompt   = item.get("prompt", "")
         seed     = int(item.get("seed", SDXL_DEFAULT_SEED))
+
+        log.info(f"[{idx}/{total_gen}] Generating: {fname} "
+                 f"({rate_limiter.status()})")
+
         try:
+            # rate_limiter.wait_if_needed() is called inside generate_image_*
             img_url = generate_image_api(
                 prompt, seed, model_name, api_key, width, height,
                 negative_prompt=DEFAULT_NEG_PROMPT,
                 num_steps=num_steps, guidance_scale=guidance)
             download_file(img_url, out_path)
-            with lock:
-                item["status"]      = "completed"
-                item["output_path"] = str(out_path)
-                item["done_at"]     = datetime.now().isoformat()
-                drive_queue.append(out_path)
+            item["status"]      = "completed"
+            item["output_path"] = str(out_path)
+            item["done_at"]     = datetime.now().isoformat()
+            drive_queue.append(out_path)
+            done_count += 1
             log.ok(f"  {fname}")
-            return "ok"
         except Exception as e:
-            with lock:
-                item["status"] = "failed"
+            item["status"] = "failed"
+            fail_count += 1
             log.err(f"  {fname} - {str(e)[:300]}")
-            return "fail"
 
-    with ThreadPoolExecutor(max_workers=workers) as ex:
-        futures = {ex.submit(gen_one, item): item for item in truly_pending}
-        for future in as_completed(futures):
-            res = future.result()
-            with lock:
-                if res == "ok":
-                    done_count[0] += 1
-                elif res == "fail":
-                    fail_count[0] += 1
-            processed = done_count[0] + fail_count[0]
-            pct = processed / total_gen * 100
-            print(f"  [{json_path.name}] {processed}/{total_gen} "
-                  f"({pct:.0f}%) OK:{done_count[0]} FAIL:{fail_count[0]}",
-                  flush=True)
+        # Progress
+        processed = done_count + fail_count
+        elapsed   = max(time.time() - start_t, 0.001)
+        rate      = processed / elapsed * 60  # per minute
+        remaining = total_gen - processed
+        eta_s     = int(remaining / (processed / elapsed)) if processed > 0 else 0
+        print(f"  Progress: {processed}/{total_gen} ({processed/total_gen*100:.0f}%) "
+              f"| OK:{done_count} FAIL:{fail_count} "
+              f"| {rate:.1f} img/min | ETA:{eta_s//60}m{eta_s%60}s",
+              flush=True)
 
-    # Save JSON locally
+        # Save JSON after every image (crash-safe)
+        try:
+            with open(json_path, "w", encoding="utf-8") as fh:
+                json.dump(json_data, fh, indent=2, ensure_ascii=False)
+        except Exception:
+            pass
+
+    # Final JSON save
     try:
         with open(json_path, "w", encoding="utf-8") as fh:
             json.dump(json_data, fh, indent=2, ensure_ascii=False)
@@ -487,7 +527,7 @@ def process_single_json(json_path, config, access_token):
     upload_ok = 0
     upload_fail = 0
 
-    if drive_queue or done_count[0] > 0:
+    if drive_queue or done_count > 0:
         log.info(f"Drive: creating subfolder '{subfolder_name}'...")
         try:
             sub_folder_id = create_drive_folder(
@@ -497,7 +537,6 @@ def process_single_json(json_path, config, access_token):
             sub_folder_id = None
 
         if sub_folder_id:
-            # Upload images
             log.info(f"Uploading {len(drive_queue)} images -> Drive/{subfolder_name}/")
             for fpath in drive_queue:
                 try:
@@ -510,7 +549,7 @@ def process_single_json(json_path, config, access_token):
                     log.err(f"Upload error {fpath.name}: {e}")
                     upload_fail += 1
 
-            # Upload JSON status to same subfolder
+            # Upload JSON to same subfolder
             log.info(f"Uploading {json_path.name} -> Drive/{subfolder_name}/")
             try:
                 upload_to_google_drive(json_path, sub_folder_id, access_token,
@@ -520,13 +559,13 @@ def process_single_json(json_path, config, access_token):
 
     elapsed = int(time.time() - start_t)
     result.update({
-        "generated": done_count[0], "failed": fail_count[0],
+        "generated": done_count, "failed": fail_count,
         "uploaded": upload_ok, "upload_failed": upload_fail,
         "time_seconds": elapsed,
     })
 
     log.info(f"[{json_path.name}] Done {elapsed}s - "
-             f"Gen:{done_count[0]} Fail:{fail_count[0]} "
+             f"Gen:{done_count} Fail:{fail_count} "
              f"Up:{upload_ok} UpFail:{upload_fail}")
     return result
 
@@ -536,14 +575,14 @@ def process_single_json(json_path, config, access_token):
 # ══════════════════════════════════════════════════════════════════════════════
 
 def run_pipeline(config):
-    log.step("PIXAZO AI - HEADLESS GENERATOR v5.0")
+    log.step("PIXAZO AI - HEADLESS GENERATOR v5.1")
     log.info(f"Model: {config['MODEL']} | Size: {config['WIDTH']}x{config['HEIGHT']}")
+    log.info(f"Rate limit: {MAX_REQUESTS_PER_MINUTE} req/min | Workers: 1")
 
     # Find JSON files
     prompts_dir = Path(config["PROMPTS_DIR"])
     if not prompts_dir.exists():
         log.err(f"Prompts folder not found: '{prompts_dir}'")
-        log.info("Create a 'prompts/' folder and put JSON files inside.")
         sys.exit(1)
 
     json_files = sorted(prompts_dir.glob("*.json"))
@@ -599,6 +638,7 @@ def run_pipeline(config):
     print(flush=True)
     log.info(f"TOTALS - Gen:{t_gen} Fail:{t_fail} Up:{t_up} UpFail:{t_uf}")
     log.info(f"Total time: {total_elapsed}s")
+    log.info(f"Effective rate: {t_gen / max(total_elapsed/60, 0.01):.1f} img/min")
 
     if t_fail > 0:
         sys.exit(1)
