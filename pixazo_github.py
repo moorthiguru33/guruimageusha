@@ -402,13 +402,38 @@ def delete_zip_from_drive(zip_name, folder_id, access_token, existing_files_dict
 # APPS SCRIPT — EXTRACT WITH RETRY  ← IMPROVED ✅
 # ══════════════════════════════════════════════════════════════════════════════
 
+def _is_apps_script_auth_error(resp):
+    """
+    HTTP 200 வந்தாலும் body-ல் Auth error HTML இருக்கிறதா check பண்ணும்.
+    Apps Script "Authorization needed" page-ஐ false-success ஆக நம்பாமல் catch பண்ணும்.
+    """
+    content_type = resp.headers.get("Content-Type", "")
+    if "text/html" in content_type:
+        body_lower = resp.text.lower()
+        if any(phrase in body_lower for phrase in [
+            "authorization needed",
+            "sign in",
+            "signin",
+            "accounts.google.com",
+            "oauth",
+            "<title>auth",
+        ]):
+            return True
+    return False
+
+
 def trigger_apps_script_extract(apps_script_url, zip_file_id, folder_id,
-                                 access_token,
+                                 access_token=None,
                                  max_retries=APPS_SCRIPT_MAX_RETRIES,
                                  retry_delay=APPS_SCRIPT_RETRY_DELAY):
     """
     Apps Script webhook-ஐ call பண்ணி ZIP extract trigger பண்ணும்.
-    Google OAuth Bearer token header-ல் அனுப்பும் (403 fix).
+
+    IMPORTANT: Apps Script must be deployed as:
+      Execute as : Me (owner)
+      Who can access : Anyone, even anonymous
+    That way no Authorization header is needed.
+
     max_retries முறை retry பண்ணும்.
     Returns: response dict or None
     """
@@ -417,15 +442,15 @@ def trigger_apps_script_extract(apps_script_url, zip_file_id, folder_id,
         "zipFileId": zip_file_id,
         "folderId":  folder_id,
     }
-    # Authorization header — 403 fix ✅
-    # Apps Script "Anyone" deploy ஆனாலும் Bearer token அனுப்புவது safe
-    headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Content-Type":  "application/json",
-    }
+
+    # Apps Script "Anyone, even anonymous" deploy ஆனால்
+    # Authorization header தேவையில்லை — header இல்லாமல் call பண்ணும்
+    # (Bearer token அனுப்பினால் Apps Script reject பண்ணலாம்)
+    headers = {"Content-Type": "application/json"}
 
     log.debug(f"Apps Script payload: {json.dumps(payload)}")
-    log.debug(f"Apps Script Authorization header: Bearer ***{access_token[-6:]}")
+    log.debug("Apps Script calling WITHOUT Authorization header "
+              "(deploy must be 'Anyone, even anonymous')")
 
     for attempt in range(1, max_retries + 1):
         log.info(f"Apps Script call attempt {attempt}/{max_retries}...")
@@ -442,30 +467,45 @@ def trigger_apps_script_extract(apps_script_url, zip_file_id, folder_id,
             elapsed = time.time() - t0
 
             log.debug(f"Apps Script HTTP {resp.status_code} in {elapsed:.1f}s")
-            log.debug(f"Response headers: {dict(resp.headers)}")
+            log.debug(f"Response Content-Type: {resp.headers.get('Content-Type','?')}")
             log.debug(f"Response body: {resp.text[:500]}")
 
-            if resp.ok:
+            # ── False-positive check: HTTP 200 ஆனால் Auth HTML page ──
+            if resp.ok and _is_apps_script_auth_error(resp):
+                log.err(
+                    f"Apps Script attempt {attempt} → HTTP 200 ஆனால் 'Authorization needed' HTML!\n"
+                    f"  ❌ Apps Script deployment settings தப்பு.\n"
+                    f"  FIX STEPS:\n"
+                    f"  1. script.google.com திற → உங்கள் Project\n"
+                    f"  2. Deploy → Manage deployments → Edit (pencil)\n"
+                    f"  3. 'Execute as'     → Me (owner)\n"
+                    f"  4. 'Who has access' → Anyone, even anonymous  ← IMPORTANT\n"
+                    f"  5. New version deploy பண்ணு → புதிய /exec URL copy பண்ணு\n"
+                    f"  6. GitHub Secret GOOGLE_APPS_SCRIPT_URL update பண்ணு\n"
+                    f"  URL format: https://script.google.com/macros/s/XXXXX/exec"
+                )
+            elif resp.ok:
+                # உண்மையான success — JSON parse பண்ணு
                 try:
                     result = resp.json()
+                    log.ok(f"Apps Script SUCCESS (attempt {attempt}): "
+                           f"{json.dumps(result)[:300]}")
+                    return result
                 except Exception:
+                    # JSON இல்லை ஆனால் HTML இல்லை — plain text ok
                     result = {"status": "ok", "raw": resp.text[:200]}
-                log.ok(f"Apps Script SUCCESS (attempt {attempt}): {json.dumps(result)[:300]}")
-                return result
+                    log.ok(f"Apps Script SUCCESS plain response: {resp.text[:100]}")
+                    return result
 
             elif resp.status_code == 403:
                 log.err(
                     f"Apps Script attempt {attempt} → HTTP 403 FORBIDDEN\n"
-                    f"  Possible causes:\n"
-                    f"  1. Apps Script not deployed as Web App (Deploy → Manage deployments)\n"
-                    f"  2. 'Who has access' must be 'Anyone' or 'Anyone with Google account'\n"
-                    f"  3. Apps Script URL copied incorrectly (must end with /exec)\n"
-                    f"  Response preview: {resp.text[:200]}"
+                    f"  FIX: Deploy → 'Who has access' → 'Anyone, even anonymous'"
                 )
 
             else:
                 log.warn(f"Apps Script attempt {attempt} FAILED: "
-                         f"HTTP {resp.status_code} | {resp.text[:300]}")
+                         f"HTTP {resp.status_code} | {resp.text[:200]}")
 
         except requests.Timeout:
             log.warn(f"Apps Script attempt {attempt} TIMED OUT (300s)")
@@ -479,7 +519,6 @@ def trigger_apps_script_extract(apps_script_url, zip_file_id, folder_id,
             time.sleep(retry_delay)
 
     log.err(f"Apps Script FAILED after {max_retries} attempts!")
-    log.err("ACTION REQUIRED: Check Apps Script deployment settings (see 403 message above)")
     return None
 
 
@@ -937,8 +976,7 @@ def process_single_json(json_path, config, access_token):
             # ── Step 7: Apps Script Extract ──
             log.section("Step 7: Apps Script Extract (with retry)")
             extract_result = trigger_apps_script_extract(
-                apps_script_url, zip_file_id, sub_folder_id,
-                access_token=access_token)
+                apps_script_url, zip_file_id, sub_folder_id)
             drive_calls += 1  # webhook
 
             if extract_result:
