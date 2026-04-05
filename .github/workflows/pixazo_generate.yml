@@ -1,0 +1,154 @@
+# .github/workflows/pixazo_generate.yml
+# ─────────────────────────────────────────────────────────────
+# PIXAZO AI — prompts/ folder scan workflow
+#
+# prompts/ folder-ல JSON போட்டா automatically images generate
+# ஆகும், Drive-ல subfolder-ல save ஆகும்.
+#
+# Drive Structure:
+#   MyDriveFolder/
+#     cats/          ← cats.json images
+#     nature/        ← nature.json images
+#     portraits/     ← portraits.json images
+#
+# Required GitHub Secrets:
+#   PIXAZO_API_KEY, GOOGLE_CLIENT_ID,
+#   GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN,
+#   GOOGLE_DRIVE_FOLDER_ID
+# ─────────────────────────────────────────────────────────────
+
+name: Pixazo Image Generator
+
+on:
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "Model"
+        required: false
+        default: "flux-schnell"
+        type: choice
+        options:
+          - flux-schnell
+          - stable-diffusion
+          - sdxl
+          - stable-diffusion-inpainting
+      count:
+        description: "Images per JSON (ALL or number)"
+        required: false
+        default: "ALL"
+      workers:
+        description: "Parallel workers (1-5)"
+        required: false
+        default: "3"
+
+  # prompts/ folder-ல JSON change ஆனா auto-trigger
+  push:
+    paths:
+      - "prompts/**.json"
+
+  # Daily schedule (optional — uncomment to enable)
+  # schedule:
+  #   - cron: "0 2 * * *"   # Every day 2 AM UTC = 7:30 AM IST
+
+jobs:
+  generate:
+    name: Generate & Upload to Drive
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Python 3.11 setup
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install requests google-api-python-client google-auth
+
+      - name: Show prompts folder contents
+        run: |
+          echo "📂 prompts/ folder:"
+          ls -la prompts/ || echo "⚠️  prompts/ folder not found!"
+
+      - name: Validate secrets
+        run: |
+          MISSING=0
+          [ -z "$PIXAZO_API_KEY" ]          && echo "❌ PIXAZO_API_KEY missing"          && MISSING=1
+          [ -z "$GOOGLE_CLIENT_ID" ]        && echo "❌ GOOGLE_CLIENT_ID missing"        && MISSING=1
+          [ -z "$GOOGLE_CLIENT_SECRET" ]    && echo "❌ GOOGLE_CLIENT_SECRET missing"    && MISSING=1
+          [ -z "$GOOGLE_REFRESH_TOKEN" ]    && echo "❌ GOOGLE_REFRESH_TOKEN missing"    && MISSING=1
+          [ -z "$GOOGLE_DRIVE_FOLDER_ID" ]  && echo "⚠️  GOOGLE_DRIVE_FOLDER_ID not set (Drive upload skipped)"
+          [ $MISSING -eq 1 ] && exit 1
+          echo "✅ All required secrets present!"
+        env:
+          PIXAZO_API_KEY:          ${{ secrets.PIXAZO_API_KEY }}
+          GOOGLE_CLIENT_ID:        ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET:    ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN:    ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          GOOGLE_DRIVE_FOLDER_ID:  ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+
+      - name: Generate images from prompts/
+        run: |
+          python pixazo_headless.py \
+            --prompts-dir  prompts \
+            --output-dir   output \
+            --model        "${{ github.event.inputs.model   || 'flux-schnell' }}" \
+            --workers      "${{ github.event.inputs.workers || '3' }}" \
+            --count        "${{ github.event.inputs.count   || 'ALL' }}"
+        env:
+          PIXAZO_API_KEY:          ${{ secrets.PIXAZO_API_KEY }}
+          GOOGLE_CLIENT_ID:        ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET:    ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN:    ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          GOOGLE_DRIVE_FOLDER_ID:  ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+
+      - name: Show output folder structure
+        if: always()
+        run: |
+          echo "📁 Output structure:"
+          find output -type f 2>/dev/null | head -50 || echo "No output folder."
+
+      # GitHub Artifact backup (7 days)
+      - name: Save as GitHub Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixazo-output-run${{ github.run_number }}
+          path: output/
+          retention-days: 7
+          if-no-files-found: warn
+
+      # Commit updated JSON status back to repo (optional)
+      - name: Commit updated JSON status
+        if: success()
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add prompts/*.json || true
+          git diff --staged --quiet || git commit -m "chore: update image generation status [skip ci]"
+          git push || true
+
+      - name: Job Summary
+        if: always()
+        run: |
+          echo "## 🎨 Pixazo Generation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Model | ${{ github.event.inputs.model || 'flux-schnell' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Count | ${{ github.event.inputs.count || 'ALL' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Run # | ${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Output subfolders" >> $GITHUB_STEP_SUMMARY
+          for d in output/*/; do
+            name=$(basename "$d")
+            count=$(ls "$d"*.png 2>/dev/null | wc -l)
+            echo "- **$name/** — $count image(s)" >> $GITHUB_STEP_SUMMARY
+          done
