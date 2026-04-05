@@ -1,18 +1,13 @@
 # ══════════════════════════════════════════════════════════════════════════════
-# PIXAZO AI - GitHub Actions Workflow v5.0
+# PIXAZO AI - GitHub Actions Workflow v5.1
 # ══════════════════════════════════════════════════════════════════════════════
-# prompts/ folder-ல் JSON files போடுங்க → auto-generate → Google Drive upload
-# JSON filename = Drive subfolder name (animals.json → Drive/animals/)
-#
-# SETUP:  GitHub → Settings → Secrets → Actions → add these 5 secrets:
-#   PIXAZO_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
-#   GOOGLE_REFRESH_TOKEN, GOOGLE_DRIVE_FOLDER_ID
+# Rate limit: 9 requests/minute | 1 worker only
+# prompts/ folder JSON files -> Drive subfolders (JSON name = folder name)
 # ══════════════════════════════════════════════════════════════════════════════
 
 name: Pixazo AI - Generate Images
 
 on:
-  # Manual trigger
   workflow_dispatch:
     inputs:
       model:
@@ -40,18 +35,11 @@ on:
         required: false
         default: "1024"
         type: string
-      workers:
-        description: "Parallel workers"
-        required: false
-        default: "3"
-        type: string
 
-  # Auto-trigger when prompts/ folder changes
   push:
     paths:
       - "prompts/**"
 
-  # Daily 6 AM UTC = 11:30 AM IST (uncomment to enable)
   # schedule:
   #   - cron: "0 6 * * *"
 
@@ -61,7 +49,7 @@ permissions:
 jobs:
   generate-images:
     runs-on: ubuntu-latest
-    timeout-minutes: 180  # 3 hours max
+    timeout-minutes: 360  # 6 hours (9 img/min = ~540 img max)
 
     steps:
       - name: Checkout repository
@@ -88,7 +76,6 @@ jobs:
           PIXAZO_COUNT:           ${{ github.event.inputs.count || 'ALL' }}
           PIXAZO_WIDTH:           ${{ github.event.inputs.width || '1024' }}
           PIXAZO_HEIGHT:          ${{ github.event.inputs.height || '1024' }}
-          PIXAZO_WORKERS:         ${{ github.event.inputs.workers || '3' }}
           PIXAZO_PROMPTS_DIR:     "prompts"
         run: python pixazo_github.py
 
