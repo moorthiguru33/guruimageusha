@@ -1,0 +1,101 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# PIXAZO AI - GitHub Actions Workflow v5.0
+# ══════════════════════════════════════════════════════════════════════════════
+# prompts/ folder-ல் JSON files போடுங்க → auto-generate → Google Drive upload
+# JSON filename = Drive subfolder name (animals.json → Drive/animals/)
+#
+# SETUP:  GitHub → Settings → Secrets → Actions → add these 5 secrets:
+#   PIXAZO_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
+#   GOOGLE_REFRESH_TOKEN, GOOGLE_DRIVE_FOLDER_ID
+# ══════════════════════════════════════════════════════════════════════════════
+
+name: Pixazo AI - Generate Images
+
+on:
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "Model"
+        required: false
+        default: "flux-schnell"
+        type: choice
+        options:
+          - flux-schnell
+          - sdxl
+          - sdxl-base
+          - stable-diffusion-inpainting
+      count:
+        description: "Images per JSON (number or ALL)"
+        required: false
+        default: "ALL"
+        type: string
+      width:
+        description: "Image width"
+        required: false
+        default: "1024"
+        type: string
+      height:
+        description: "Image height"
+        required: false
+        default: "1024"
+        type: string
+      workers:
+        description: "Parallel workers"
+        required: false
+        default: "3"
+        type: string
+
+  # Auto-trigger when prompts/ folder changes
+  push:
+    paths:
+      - "prompts/**"
+
+  # Daily 6 AM UTC = 11:30 AM IST (uncomment to enable)
+  # schedule:
+  #   - cron: "0 6 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  generate-images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180  # 3 hours max
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Generate Images & Upload to Google Drive
+        env:
+          PIXAZO_API_KEY:         ${{ secrets.PIXAZO_API_KEY }}
+          GOOGLE_CLIENT_ID:       ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET:   ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN:   ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+          PIXAZO_MODEL:           ${{ github.event.inputs.model || 'flux-schnell' }}
+          PIXAZO_COUNT:           ${{ github.event.inputs.count || 'ALL' }}
+          PIXAZO_WIDTH:           ${{ github.event.inputs.width || '1024' }}
+          PIXAZO_HEIGHT:          ${{ github.event.inputs.height || '1024' }}
+          PIXAZO_WORKERS:         ${{ github.event.inputs.workers || '3' }}
+          PIXAZO_PROMPTS_DIR:     "prompts"
+        run: python pixazo_github.py
+
+      - name: Commit updated JSON statuses
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add prompts/*.json
+          git diff --cached --quiet || git commit -m "Auto-update: image generation status [skip ci]"
+          git push || echo "Nothing to push"
