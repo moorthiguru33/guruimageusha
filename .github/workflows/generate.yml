@@ -1,8 +1,7 @@
 # ══════════════════════════════════════════════════════════════════════════════
-# PIXAZO AI - GitHub Actions Workflow v5.1
+# PIXAZO AI - GitHub Actions Workflow v6.0
 # ══════════════════════════════════════════════════════════════════════════════
-# Rate limit: 9 requests/minute | 1 worker only
-# prompts/ folder JSON files -> Drive subfolders (JSON name = folder name)
+# Smart ZIP Upload: generate → ZIP → upload 1 file → auto-extract → cleanup
 # ══════════════════════════════════════════════════════════════════════════════
 
 name: Pixazo AI - Generate Images
@@ -49,7 +48,7 @@ permissions:
 jobs:
   generate-images:
     runs-on: ubuntu-latest
-    timeout-minutes: 360  # 6 hours (9 img/min = ~540 img max)
+    timeout-minutes: 360
 
     steps:
       - name: Checkout repository
@@ -65,18 +64,19 @@ jobs:
       - name: Install dependencies
         run: pip install requests
 
-      - name: Generate Images & Upload to Google Drive
+      - name: Generate Images & Smart Upload to Google Drive
         env:
-          PIXAZO_API_KEY:         ${{ secrets.PIXAZO_API_KEY }}
-          GOOGLE_CLIENT_ID:       ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET:   ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          GOOGLE_REFRESH_TOKEN:   ${{ secrets.GOOGLE_REFRESH_TOKEN }}
-          GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
-          PIXAZO_MODEL:           ${{ github.event.inputs.model || 'flux-schnell' }}
-          PIXAZO_COUNT:           ${{ github.event.inputs.count || 'ALL' }}
-          PIXAZO_WIDTH:           ${{ github.event.inputs.width || '1024' }}
-          PIXAZO_HEIGHT:          ${{ github.event.inputs.height || '1024' }}
-          PIXAZO_PROMPTS_DIR:     "prompts"
+          PIXAZO_API_KEY:          ${{ secrets.PIXAZO_API_KEY }}
+          GOOGLE_CLIENT_ID:        ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET:    ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN:    ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          GOOGLE_DRIVE_FOLDER_ID:  ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+          GOOGLE_APPS_SCRIPT_URL:  ${{ secrets.GOOGLE_APPS_SCRIPT_URL }}
+          PIXAZO_MODEL:            ${{ github.event.inputs.model || 'flux-schnell' }}
+          PIXAZO_COUNT:            ${{ github.event.inputs.count || 'ALL' }}
+          PIXAZO_WIDTH:            ${{ github.event.inputs.width || '1024' }}
+          PIXAZO_HEIGHT:           ${{ github.event.inputs.height || '1024' }}
+          PIXAZO_PROMPTS_DIR:      "prompts"
         run: python pixazo_github.py
 
       - name: Commit updated JSON statuses
