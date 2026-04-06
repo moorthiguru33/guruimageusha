@@ -7,7 +7,10 @@
     "prompt": "A single ornate horizontal pill-shaped banner UI element with rounded ends, thick glossy gold metallic border with gradient sheen, interior filled with deep royal purple color and seamless Islamic geometric star pattern tessellation in subtle lighter purple, soft inner shadow, smooth shiny gold frame with highlight reflections at top edge, clean white background, transparent PNG style, vector-quality rendering, isolated decorative title bar element, 8K resolution, sharp edges, no text",
     "filename": "ornate_banner_islamic_pill_purple_gold_01.png",
     "seed": 900001,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/ornate_banner_prompts/ornate_banner_islamic_pill_purple_gold_01.png",
+    "done_at": "2026-04-06T17:26:08.829999",
+    "drive_uploaded": true
   },
   {
     "category": "ORNATE_BANNERS",
@@ -17,7 +20,10 @@
     "prompt": "A single ornate horizontal pill-shaped banner UI element with rounded ends, thick glossy gold metallic border with gradient sheen, interior filled with rich teal cyan color and seamless Islamic geometric star pattern tessellation in subtle lighter teal, soft inner shadow, smooth shiny gold frame with highlight reflections at top edge, clean white background, transparent PNG style, vector-quality rendering, isolated decorative title bar element, 8K resolution, sharp edges, no text",
     "filename": "ornate_banner_islamic_pill_teal_gold_01.png",
     "seed": 900002,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/ornate_banner_prompts/ornate_banner_islamic_pill_teal_gold_01.png",
+    "done_at": "2026-04-06T17:26:14.373512",
+    "drive_uploaded": true
   },
   {
     "category": "ORNATE_BANNERS",
@@ -27,7 +33,10 @@
     "prompt": "A single ornate horizontal medieval-style banner UI element with inward notched pointed ends resembling a game title bar, thick polished gold metallic frame with bevel and emboss effect, interior filled with deep dark crimson red with subtle fabric texture, four decorative gold corner flourishes with trefoil ornaments, clean light grey background, vector-quality rendering, isolated decorative nameplate element, 8K resolution, no text, sharp crisp edges",
     "filename": "ornate_banner_medieval_pointed_darkred_gold_01.png",
     "seed": 900003,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/ornate_banner_prompts/ornate_banner_medieval_pointed_darkred_gold_01.png",
+    "done_at": "2026-04-06T17:26:20.215687",
+    "drive_uploaded": true
   },
   {
     "category": "ORNATE_BANNERS",
@@ -37,7 +46,10 @@
     "prompt": "A single ornate horizontal medieval-style banner UI element with inward notched pointed ends resembling a game title bar, thick polished gold metallic frame with bevel and emboss effect, interior filled with deep midnight navy blue with subtle fabric texture, four decorative gold corner flourishes with trefoil ornaments, clean light grey background, vector-quality rendering, isolated decorative nameplate element, 8K resolution, no text, sharp crisp edges",
     "filename": "ornate_banner_medieval_pointed_navy_gold_01.png",
     "seed": 900004,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/ornate_banner_prompts/ornate_banner_medieval_pointed_navy_gold_01.png",
+    "done_at": "2026-04-06T17:26:26.073063",
+    "drive_uploaded": true
   },
   {
     "category": "ORNATE_BANNERS",
@@ -47,7 +59,10 @@
     "prompt": "A single ornate horizontal Arabic Islamic-style banner UI element with double-pointed diamond ends, elaborate gold filigree corner decorations with fleur-de-lis motifs and scrollwork, thin gold line underline extending beyond frame, interior filled with vibrant crimson red with subtle arabesque geometric lattice pattern, clean white background, transparent PNG style, vector-quality rendering, isolated decorative title bar element, 8K resolution, no text",
     "filename": "ornate_banner_arabic_pointed_red_gold_01.png",
     "seed": 900005,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/ornate_banner_prompts/ornate_banner_arabic_pointed_red_gold_01.png",
+    "done_at": "2026-04-06T17:26:30.795934",
+    "drive_uploaded": true
   },
   {
     "category": "ORNATE_BANNERS",
@@ -57,7 +72,10 @@
     "prompt": "A single ornate horizontal Arabic Islamic-style banner UI element with double-pointed diamond ends, elaborate gold filigree corner decorations with fleur-de-lis motifs and scrollwork, thin gold line underline extending beyond frame, interior filled with pearl silver white with subtle arabesque geometric lattice pattern giving soft sheen, clean white background, transparent PNG style, vector-quality rendering, isolated decorative title bar element, 8K resolution, no text",
     "filename": "ornate_banner_arabic_pointed_silver_gold_01.png",
     "seed": 900006,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/ornate_banner_prompts/ornate_banner_arabic_pointed_silver_gold_01.png",
+    "done_at": "2026-04-06T17:26:34.795341",
+    "drive_uploaded": true
   },
   {
     "category": "ORNATE_BANNERS",
@@ -67,7 +85,10 @@
     "prompt": "A single ornate horizontal banner UI element with a large decorative mandala circle medallion attached on the left side overlapping the frame, gold border on the medallion and main bar, interior filled with rich royal blue with intricate mandala geometric repeat pattern in darker blue tones, rectangular bar with slightly notched right end, gold border outline on entire element, clean white background, transparent PNG style, vector-quality rendering, 8K resolution, no text",
     "filename": "ornate_banner_mandala_circle_left_blue_gold_01.png",
     "seed": 900007,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/ornate_banner_prompts/ornate_banner_mandala_circle_left_blue_gold_01.png",
+    "done_at": "2026-04-06T17:26:40.670723",
+    "drive_uploaded": true
   },
   {
     "category": "ORNATE_BANNERS",
@@ -77,7 +98,10 @@
     "prompt": "A single ornate horizontal banner UI element with a large decorative mandala circle medallion attached on the right side overlapping the frame, gold border on the medallion and main bar, interior filled with deep burgundy red with intricate mandala geometric repeat pattern in darker red tones with glowing center effect, rectangular bar with slightly notched left end, gold border outline on entire element, clean white background, transparent PNG style, vector-quality rendering, 8K resolution, no text",
     "filename": "ornate_banner_mandala_circle_right_red_gold_01.png",
     "seed": 900008,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/ornate_banner_prompts/ornate_banner_mandala_circle_right_red_gold_01.png",
+    "done_at": "2026-04-06T17:26:45.826092",
+    "drive_uploaded": true
   },
   {
     "category": "ORNATE_BANNERS",
@@ -87,7 +111,10 @@
     "prompt": "A single ornate horizontal pill-shaped banner UI element with rounded ends, silver-white outer border with subtle grey shadow, large ornate gold circle badge with decorative leaf and petal border pattern attached on left side, interior filled with hot pink to deep magenta gradient with light streak gloss effect, glossy sheen with bright highlight diagonal band, clean white background, transparent PNG style, vector-quality rendering, 8K resolution, no text",
     "filename": "ornate_banner_glossy_circle_badge_pink_gold_01.png",
     "seed": 900009,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/ornate_banner_prompts/ornate_banner_glossy_circle_badge_pink_gold_01.png",
+    "done_at": "2026-04-06T17:26:50.715284",
+    "drive_uploaded": true
   },
   {
     "category": "ORNATE_BANNERS",
@@ -97,7 +124,10 @@
     "prompt": "A single ornate horizontal pill-shaped banner UI element with rounded ends, silver-white outer border with subtle grey shadow, large ornate gold circle badge with decorative leaf and petal border pattern attached on left side, interior filled with ivory cream white with soft pearlescent light streak gloss effect, clean white background, transparent PNG style, vector-quality rendering, 8K resolution, no text",
     "filename": "ornate_banner_glossy_circle_badge_cream_gold_01.png",
     "seed": 900010,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/ornate_banner_prompts/ornate_banner_glossy_circle_badge_cream_gold_01.png",
+    "done_at": "2026-04-06T17:27:09.322622",
+    "drive_uploaded": true
   },
   {
     "category": "ORNATE_BANNERS",
@@ -107,7 +137,10 @@
     "prompt": "A single ornate horizontal medieval-style banner UI element with inward notched pointed ends resembling a game title bar, thick polished gold metallic frame with bevel and emboss effect, interior filled with deep forest emerald green with subtle fabric texture, four decorative gold corner flourishes with trefoil ornaments, clean light grey background, vector-quality rendering, isolated decorative nameplate element, 8K resolution, no text, sharp crisp edges",
     "filename": "ornate_banner_medieval_pointed_green_gold_01.png",
     "seed": 900011,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/ornate_banner_prompts/ornate_banner_medieval_pointed_green_gold_01.png",
+    "done_at": "2026-04-06T17:27:13.166275",
+    "drive_uploaded": true
   },
   {
     "category": "ORNATE_BANNERS",
@@ -117,7 +150,10 @@
     "prompt": "A single ornate horizontal banner UI element in baroque style, elaborate gold filigree scrollwork and acanthus leaf ornaments on both ends forming decorative caps, thick raised gold border with engraved floral motif, interior filled with deep violet purple with damask brocade texture pattern in darker tones, clean white background, transparent PNG style, vector-quality rendering, 8K resolution, no text, regal luxurious look",
     "filename": "ornate_banner_baroque_scroll_violet_gold_01.png",
     "seed": 900012,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/ornate_banner_prompts/ornate_banner_baroque_scroll_violet_gold_01.png",
+    "done_at": "2026-04-06T17:27:19.183968",
+    "drive_uploaded": true
   },
   {
     "category": "ORNATE_BANNERS",
@@ -127,7 +163,10 @@
     "prompt": "A single ornate horizontal banner UI element in Mughal Indian style, decorative pointed arch cutouts at both ends with lotus flower corner ornaments in gold, thick polished gold border with fine engraved line details, interior filled with warm saffron orange with intricate Mughal jali lattice pattern in slightly darker orange, clean white background, transparent PNG style, vector-quality rendering, 8K resolution, no text, palatial opulent aesthetic",
     "filename": "ornate_banner_mughal_arch_saffron_gold_01.png",
     "seed": 900013,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/ornate_banner_prompts/ornate_banner_mughal_arch_saffron_gold_01.png",
+    "done_at": "2026-04-06T17:27:26.339065",
+    "drive_uploaded": true
   },
   {
     "category": "ORNATE_BANNERS",
@@ -137,7 +176,10 @@
     "prompt": "A single ornate horizontal banner UI element in Byzantine style, gold border with cross-pattern embossed ornaments at regular intervals along the top and bottom edge, decorative fleur medallions at four corners, interior filled with rich sapphire blue with subtle mosaic tile geometric pattern, gold divider line at center of border, clean white background, transparent PNG style, vector-quality rendering, 8K resolution, no text, ancient regal style",
     "filename": "ornate_banner_byzantine_cross_sapphire_gold_01.png",
     "seed": 900014,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/ornate_banner_prompts/ornate_banner_byzantine_cross_sapphire_gold_01.png",
+    "done_at": "2026-04-06T17:27:31.752645",
+    "drive_uploaded": true
   },
   {
     "category": "ORNATE_BANNERS",
@@ -147,7 +189,10 @@
     "prompt": "A single ornate horizontal banner UI element in Persian style, ends shaped as eight-pointed star polygon geometric cutouts, thick gold metallic border with arabesque vine scrollwork engraved along entire frame, interior filled with jade green with seamless 16-point star rosette tessellation pattern in subtle lighter green tones, clean white background, transparent PNG style, vector-quality rendering, 8K resolution, no text",
     "filename": "ornate_banner_persian_star_end_jade_gold_01.png",
     "seed": 900015,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/ornate_banner_prompts/ornate_banner_persian_star_end_jade_gold_01.png",
+    "done_at": "2026-04-06T17:27:37.080729",
+    "drive_uploaded": true
   },
   {
     "category": "ORNATE_BANNERS",
@@ -157,7 +202,10 @@
     "prompt": "A single ornate horizontal banner UI element in Art Deco style, sunburst radiating line pattern decorations at both ends formed in gold, sharp geometric angled cuts at corners, thick polished gold frame with stepped Art Deco banding detail, interior filled with deep matte black with subtle repeating Art Deco fan and chevron pattern in dark charcoal, clean white background, transparent PNG style, vector-quality rendering, 8K resolution, no text, luxury glamour aesthetic",
     "filename": "ornate_banner_artdeco_sunburst_black_gold_01.png",
     "seed": 900016,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/ornate_banner_prompts/ornate_banner_artdeco_sunburst_black_gold_01.png",
+    "done_at": "2026-04-06T17:27:42.988438",
+    "drive_uploaded": true
   },
   {
     "category": "ORNATE_BANNERS",
@@ -167,7 +215,10 @@
     "prompt": "A single ornate horizontal banner UI element in Celtic style, interlaced knotwork ribbon pattern forming the gold border weaving over and under itself continuously, circular Celtic knot medallions at both ends of the bar, interior filled with warm dark chocolate brown with subtle woven linen textile texture, clean white background, transparent PNG style, vector-quality rendering, 8K resolution, no text, ancient manuscript illumination aesthetic",
     "filename": "ornate_banner_celtic_knotwork_brown_gold_01.png",
     "seed": 900017,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/ornate_banner_prompts/ornate_banner_celtic_knotwork_brown_gold_01.png",
+    "done_at": "2026-04-06T17:27:47.164684",
+    "drive_uploaded": true
   },
   {
     "category": "ORNATE_BANNERS",
@@ -177,7 +228,10 @@
     "prompt": "A single ornate horizontal banner UI element in Ottoman style, thick gold border with repeating tulip and carnation floral motif inspired by Ottoman iznik tile art along top and bottom edge, decorative pointed finial drops at ends, interior filled with deep maroon wine red with intricate Ottoman floral arabesque pattern in subtle darker tones, clean white background, transparent PNG style, vector-quality rendering, 8K resolution, no text, sultan palace aesthetic",
     "filename": "ornate_banner_ottoman_tughra_maroon_gold_01.png",
     "seed": 900018,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/ornate_banner_prompts/ornate_banner_ottoman_tughra_maroon_gold_01.png",
+    "done_at": "2026-04-06T17:27:51.589616",
+    "drive_uploaded": true
   },
   {
     "category": "ORNATE_BANNERS",
@@ -187,7 +241,10 @@
     "prompt": "A single ornate horizontal banner UI element in Chinese imperial palace style, gold border with cloud ruyi-head pattern repeating along frame edges, dragon head ornamental motifs at both ends in sculpted gold relief, decorative double happiness and cloud knot accents at corners, interior filled with imperial vermillion red with subtle embossed traditional wave and cloud brocade pattern, clean white background, transparent PNG style, vector-quality rendering, 8K resolution, no text, Forbidden City aesthetic",
     "filename": "ornate_banner_chinese_dragon_imperial_red_gold_01.png",
     "seed": 900019,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/ornate_banner_prompts/ornate_banner_chinese_dragon_imperial_red_gold_01.png",
+    "done_at": "2026-04-06T17:28:08.885919",
+    "drive_uploaded": true
   },
   {
     "category": "ORNATE_BANNERS",
@@ -197,6 +254,9 @@
     "prompt": "A single ornate horizontal banner UI element in Rajput Indian palace style, thick gold border with carved stone jaali lattice window pattern framing the bar, decorative miniature elephant silhouette icons at all four corners in gold, peacock feather fan ornament drops at both ends, interior filled with rich turquoise teal with intricate Rajasthani mirror work and geometric tile pattern in subtle darker tones, clean white background, transparent PNG style, vector-quality rendering, 8K resolution, no text, palace heritage aesthetic",
     "filename": "ornate_banner_rajput_jaali_turquoise_gold_01.png",
     "seed": 900020,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/ornate_banner_prompts/ornate_banner_rajput_jaali_turquoise_gold_01.png",
+    "done_at": "2026-04-06T17:28:16.484823",
+    "drive_uploaded": true
   }
 ]
