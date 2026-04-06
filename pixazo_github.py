@@ -443,11 +443,10 @@ def trigger_apps_script_extract(apps_script_url, zip_file_id, folder_id,
         "folderId":  folder_id,
     }
 
-    # Apps Script "Anyone" deploy-க்கு Authorization header தேவை
-    # (Only "Anyone, even anonymous" doesn't need it — most Workspace accounts don't have that option)
+    # Apps Script "Anyone, even anonymous" deploy ஆனால்
+    # Authorization header தேவையில்லை — header இல்லாமல் call பண்ணும்
+    # (Bearer token அனுப்பினால் Apps Script reject பண்ணலாம்)
     headers = {"Content-Type": "application/json"}
-    if access_token:
-        headers["Authorization"] = f"Bearer {access_token}"
 
     log.debug(f"Apps Script payload: {json.dumps(payload)}")
     log.debug("Apps Script calling WITHOUT Authorization header "
@@ -753,7 +752,6 @@ def load_config():
         "GOOGLE_CLIENT_SECRET":   "Google OAuth Client Secret",
         "GOOGLE_REFRESH_TOKEN":   "Google OAuth Refresh Token",
         "GOOGLE_DRIVE_FOLDER_ID": "Google Drive Parent Folder ID",
-        "GOOGLE_APPS_SCRIPT_URL": "Google Apps Script Web App URL",
     }
     missing = []
     for key, label in required.items():
@@ -818,7 +816,6 @@ def process_single_json(json_path, config, access_token):
     guidance         = config["GUIDANCE"]
     count_str        = config["COUNT"]
     parent_folder_id = config["GOOGLE_DRIVE_FOLDER_ID"]
-    apps_script_url  = config["GOOGLE_APPS_SCRIPT_URL"]
 
     # ── Local output ──
     local_out = Path("generated_images") / subfolder_name
@@ -950,96 +947,42 @@ def process_single_json(json_path, config, access_token):
         except Exception:
             pass
 
-    # ── ZIP + Upload + Extract + Verify + Cleanup ──
+    # ── Direct Upload to Drive (no ZIP, no Apps Script needed) ──
     drive_calls  = 2  # folder + list (already done)
-    zip_uploaded = False
-    zip_file_id  = None
-    zip_name     = None
-    verify_result = {"verified": [], "missing": [], "success": False}
+    uploaded_count = 0
+    failed_uploads = []
 
     if new_images:
-        # ── Step 5: Create ZIP ──
-        log.section("Step 5: Create ZIP")
-        zip_name = f"{subfolder_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
-        zip_path = local_out / zip_name
-        create_zip_from_files(new_images, zip_path)
+        log.section(f"Step 5: Upload {len(new_images)} Images Directly to Drive")
+        log.info(f"Uploading to Drive/{subfolder_name}/...")
 
-        # ── Step 6: Upload ZIP to Drive ──
-        log.section("Step 6: Upload ZIP to Drive")
-        log.info(f"Uploading '{zip_name}' to Drive/{subfolder_name}/...")
-        zip_file_id = upload_to_google_drive(zip_path, sub_folder_id, access_token)
-        drive_calls += 1
+        for img_idx, img_path in enumerate(new_images, 1):
+            fname = Path(img_path).name
+            log.info(f"  [{img_idx}/{len(new_images)}] Uploading: {fname}")
+            file_id = upload_to_google_drive(img_path, sub_folder_id, access_token)
+            drive_calls += 1
 
-        if zip_file_id:
-            zip_uploaded = True
-            log.ok(f"ZIP uploaded successfully: id={zip_file_id}")
-
-            # ── Step 7: Apps Script Extract ──
-            log.section("Step 7: Apps Script Extract (with retry)")
-            extract_result = trigger_apps_script_extract(
-                apps_script_url, zip_file_id, sub_folder_id,
-                access_token=access_token)
-            drive_calls += 1  # webhook
-
-            if extract_result:
-                log.ok("Apps Script extract triggered successfully")
+            if file_id:
+                uploaded_count += 1
+                # Mark as uploaded in JSON
+                for item in json_data:
+                    if item.get("filename") == fname:
+                        item["drive_uploaded"] = True
+                        break
+                log.ok(f"  Uploaded: {fname}")
             else:
-                log.warn("Apps Script extract FAILED — will verify and cleanup manually")
+                failed_uploads.append(fname)
+                log.err(f"  Upload FAILED: {fname}")
 
-            # ── Step 8: Verify Extraction ← NEW ✅ ──
-            log.section("Step 8: Verify Extracted Images in Drive")
-            expected_names = [Path(p).name for p in new_images]
-            verify_result  = verify_extraction(
-                expected_names, sub_folder_id, access_token)
-            drive_calls += 1  # list files for verify
-
-            if verify_result["success"]:
-                log.ok(f"All {len(verify_result['verified'])} images verified in Drive!")
-            else:
-                log.err(f"{len(verify_result['missing'])} image(s) NOT found in Drive:")
-                for mf in verify_result["missing"]:
-                    log.err(f"  ❌ {mf}")
-
-            # ── Step 9: Delete ZIP from Drive ──
-            log.section("Step 9: Delete ZIP from Drive")
-            drive_files_now = verify_result.get("drive_files", {})
-
-            if not verify_result["success"]:
-                # Extract fail ஆனா ZIP-ஐ வைச்சிரு — manually extract பண்ணலாம்
-                log.warn(f"Extraction FAILED — ZIP '{zip_name}' kept in Drive for manual recovery")
-                log.warn(f"  Manual fix: Drive folder-ல் ZIP-ஐ right-click → Extract")
-            elif zip_name in drive_files_now:
-                log.info(f"ZIP still in Drive — deleting via Python API...")
-                deleted = delete_drive_file(
-                    drive_files_now[zip_name], zip_name, access_token)
-                drive_calls += 1
-                if deleted:
-                    log.ok(f"ZIP deleted from Drive: '{zip_name}'")
-                else:
-                    log.warn(f"ZIP deletion failed — '{zip_name}' may remain in Drive")
-            else:
-                log.ok(f"ZIP already removed from Drive (Apps Script handled it)")
-
-            # Mark drive_uploaded on verified items
-            verified_set = set(verify_result["verified"])
-            for item in json_data:
-                fname = item.get("filename", "")
-                if fname in verified_set:
-                    item["drive_uploaded"] = True
-
+        if failed_uploads:
+            log.err(f"{len(failed_uploads)} upload(s) failed:")
+            for mf in failed_uploads:
+                log.err(f"  ❌ {mf}")
         else:
-            log.err("ZIP upload to Drive FAILED — skipping extract/verify")
+            log.ok(f"All {uploaded_count} images uploaded to Drive!")
 
-        # Cleanup local ZIP
-        try:
-            zip_path.unlink()
-            log.debug(f"Local ZIP deleted: {zip_path}")
-            log.info("Local ZIP cleaned up")
-        except Exception as e:
-            log.warn(f"Could not delete local ZIP: {e}")
-
-        # ── Step 10: Upload JSON status to Drive ──
-        log.section("Step 10: Upload JSON Status to Drive")
+        # ── Upload JSON status to Drive ──
+        log.section("Step 6: Upload JSON Status to Drive")
         log.info(f"Uploading '{json_path.name}' to Drive/{subfolder_name}/...")
         upload_to_google_drive(json_path, sub_folder_id, access_token,
                                mime_type="application/json")
@@ -1058,9 +1001,9 @@ def process_single_json(json_path, config, access_token):
     result.update({
         "generated":    done_count,
         "failed":       fail_count,
-        "uploaded":     len(new_images) if zip_uploaded else 0,
-        "verified":     len(verify_result["verified"]),
-        "missing":      len(verify_result["missing"]),
+        "uploaded":     uploaded_count,
+        "verified":     uploaded_count,
+        "missing":      len(failed_uploads),
         "drive_calls":  drive_calls,
         "time_seconds": elapsed,
     })
@@ -1068,8 +1011,8 @@ def process_single_json(json_path, config, access_token):
     log.info(
         f"[{json_path.name}] Done {elapsed}s | "
         f"Gen:{done_count} Fail:{fail_count} | "
-        f"Verified:{len(verify_result['verified'])} "
-        f"Missing:{len(verify_result['missing'])} | "
+        f"Uploaded:{uploaded_count} "
+        f"UploadFail:{len(failed_uploads)} | "
         f"DriveAPICalls:{drive_calls}"
     )
     return result
@@ -1083,10 +1026,9 @@ def run_pipeline(config):
     log.step("PIXAZO AI - HEADLESS GENERATOR v7.0 (FIXED)")
     log.info(f"Model: {config['MODEL']} | Size: {config['WIDTH']}x{config['HEIGHT']}")
     log.info(f"Rate limit: {MAX_REQUESTS_PER_MINUTE} req/min | Workers: 1")
-    log.info(f"Apps Script retries: {APPS_SCRIPT_MAX_RETRIES}")
     log.info(f"Debug logging: {'ON' if Logger.debug_enabled else 'OFF'} "
              f"(set PIXAZO_DEBUG=1 to enable)")
-    log.info(f"Upload mode: ZIP → Extract → Verify → Cleanup")
+    log.info(f"Upload mode: Direct image upload to Drive")
 
     prompts_dir = Path(config["PROMPTS_DIR"])
     if not prompts_dir.exists():
