@@ -443,10 +443,11 @@ def trigger_apps_script_extract(apps_script_url, zip_file_id, folder_id,
         "folderId":  folder_id,
     }
 
-    # Apps Script "Anyone, even anonymous" deploy ஆனால்
-    # Authorization header தேவையில்லை — header இல்லாமல் call பண்ணும்
-    # (Bearer token அனுப்பினால் Apps Script reject பண்ணலாம்)
+    # Apps Script "Anyone" deploy-க்கு Authorization header தேவை
+    # (Only "Anyone, even anonymous" doesn't need it — most Workspace accounts don't have that option)
     headers = {"Content-Type": "application/json"}
+    if access_token:
+        headers["Authorization"] = f"Bearer {access_token}"
 
     log.debug(f"Apps Script payload: {json.dumps(payload)}")
     log.debug("Apps Script calling WITHOUT Authorization header "
@@ -976,7 +977,8 @@ def process_single_json(json_path, config, access_token):
             # ── Step 7: Apps Script Extract ──
             log.section("Step 7: Apps Script Extract (with retry)")
             extract_result = trigger_apps_script_extract(
-                apps_script_url, zip_file_id, sub_folder_id)
+                apps_script_url, zip_file_id, sub_folder_id,
+                access_token=access_token)
             drive_calls += 1  # webhook
 
             if extract_result:
@@ -998,12 +1000,15 @@ def process_single_json(json_path, config, access_token):
                 for mf in verify_result["missing"]:
                     log.err(f"  ❌ {mf}")
 
-            # ── Step 9: Delete ZIP from Drive ← NEW ✅ ──
+            # ── Step 9: Delete ZIP from Drive ──
             log.section("Step 9: Delete ZIP from Drive")
-            # Use the drive_files returned by verify (fresh list — no extra API call)
             drive_files_now = verify_result.get("drive_files", {})
 
-            if zip_name in drive_files_now:
+            if not verify_result["success"]:
+                # Extract fail ஆனா ZIP-ஐ வைச்சிரு — manually extract பண்ணலாம்
+                log.warn(f"Extraction FAILED — ZIP '{zip_name}' kept in Drive for manual recovery")
+                log.warn(f"  Manual fix: Drive folder-ல் ZIP-ஐ right-click → Extract")
+            elif zip_name in drive_files_now:
                 log.info(f"ZIP still in Drive — deleting via Python API...")
                 deleted = delete_drive_file(
                     drive_files_now[zip_name], zip_name, access_token)
