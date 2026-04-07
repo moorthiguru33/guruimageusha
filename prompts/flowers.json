@@ -7,7 +7,10 @@
     "prompt": "A professional high-resolution digital illustration of a single perfect blooming red rose with morning dewdrops on velvety petals and elegant green stem, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "red_rose_classic_bloom_51.png",
     "seed": 900051,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/red_rose_classic_bloom_51.png",
+    "done_at": "2026-04-07T16:49:04.764104",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -17,7 +20,10 @@
     "prompt": "A professional high-resolution digital illustration of a beautiful soft pink rose in full bloom with layered petals and delicate fragrant appearance, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "pink_rose_romantic_bloom_52.png",
     "seed": 900052,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/pink_rose_romantic_bloom_52.png",
+    "done_at": "2026-04-07T16:49:09.568050",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -27,7 +33,10 @@
     "prompt": "A professional high-resolution digital illustration of a pristine white rose with perfect spiral petal arrangement symbolizing purity and elegance, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "white_rose_pure_elegance_53.png",
     "seed": 900053,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/white_rose_pure_elegance_53.png",
+    "done_at": "2026-04-07T16:49:15.086317",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -37,7 +46,10 @@
     "prompt": "A professional high-resolution digital illustration of a cheerful bright yellow rose in full bloom radiating warmth and happiness, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "yellow_rose_sunshine_bloom_54.png",
     "seed": 900054,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/yellow_rose_sunshine_bloom_54.png",
+    "done_at": "2026-04-07T16:49:20.677488",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -47,7 +59,10 @@
     "prompt": "A professional high-resolution digital illustration of a rare and stunning purple rose with deep violet petals and mysterious romantic appearance, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "purple_rose_mystical_bloom_55.png",
     "seed": 900055,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/purple_rose_mystical_bloom_55.png",
+    "done_at": "2026-04-07T16:49:25.253110",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -57,7 +72,10 @@
     "prompt": "A professional high-resolution digital illustration of a vibrant orange rose with warm sunset colors blending from coral to deep tangerine, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "orange_rose_vibrant_bloom_56.png",
     "seed": 900056,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/orange_rose_vibrant_bloom_56.png",
+    "done_at": "2026-04-07T16:49:29.983159",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -67,7 +85,10 @@
     "prompt": "A professional high-resolution digital illustration of a lush bouquet of red roses tied with a satin ribbon in a classic floral arrangement, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "red_rose_bouquet_arrangement_57.png",
     "seed": 900057,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/red_rose_bouquet_arrangement_57.png",
+    "done_at": "2026-04-07T16:49:35.059636",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -77,7 +98,10 @@
     "prompt": "A professional high-resolution digital illustration of a delicate cluster of white jasmine flowers with star-shaped blooms and glossy dark green leaves, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "white_jasmine_cluster_58.png",
     "seed": 900058,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/white_jasmine_cluster_58.png",
+    "done_at": "2026-04-07T16:49:42.204898",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -87,7 +111,10 @@
     "prompt": "A professional high-resolution digital illustration of beautiful white Arabian jasmine mogra flowers with waxy petals and heavenly fragrance, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "arabian_jasmine_mogra_59.png",
     "seed": 900059,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/arabian_jasmine_mogra_59.png",
+    "done_at": "2026-04-07T16:49:47.313331",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -97,7 +124,10 @@
     "prompt": "A professional high-resolution digital illustration of a sacred pink lotus flower in full bloom with layered petals and golden center, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "pink_lotus_sacred_bloom_60.png",
     "seed": 900060,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/pink_lotus_sacred_bloom_60.png",
+    "done_at": "2026-04-07T16:50:05.888471",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -107,7 +137,10 @@
     "prompt": "A professional high-resolution digital illustration of a pristine white lotus symbolizing spiritual enlightenment and purity, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "white_lotus_pure_bloom_61.png",
     "seed": 900061,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/white_lotus_pure_bloom_61.png",
+    "done_at": "2026-04-07T16:50:11.409121",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -117,7 +150,10 @@
     "prompt": "A professional high-resolution digital illustration of a rare purple lotus flower with cosmic purple and indigo petals, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "purple_lotus_cosmic_bloom_62.png",
     "seed": 900062,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/purple_lotus_cosmic_bloom_62.png",
+    "done_at": "2026-04-07T16:50:17.105820",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -127,7 +163,10 @@
     "prompt": "A professional high-resolution digital illustration of a sacred ancient Egyptian blue lotus with distinctive azure petals and golden stamens, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "blue_lotus_sacred_bloom_63.png",
     "seed": 900063,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/blue_lotus_sacred_bloom_63.png",
+    "done_at": "2026-04-07T16:50:24.310899",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -137,7 +176,10 @@
     "prompt": "A professional high-resolution digital illustration of a large classic sunflower with bright yellow petals and rich brown seed disk, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "giant_sunflower_classic_64.png",
     "seed": 900064,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/giant_sunflower_classic_64.png",
+    "done_at": "2026-04-07T16:50:30.196487",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -147,7 +189,10 @@
     "prompt": "A professional high-resolution digital illustration of a cheerful single sunflower on a long sturdy stem with large bright golden petals, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "sunflower_field_single_stem_65.png",
     "seed": 900065,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/sunflower_field_single_stem_65.png",
+    "done_at": "2026-04-07T16:50:34.082440",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -157,7 +202,10 @@
     "prompt": "A professional high-resolution digital illustration of a vibrant red hibiscus with large five petals and prominent staminal column, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "red_hibiscus_tropical_bloom_66.png",
     "seed": 900066,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/red_hibiscus_tropical_bloom_66.png",
+    "done_at": "2026-04-07T16:50:40.486337",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -167,7 +215,10 @@
     "prompt": "A professional high-resolution digital illustration of a beautiful pink Hawaiian hibiscus in full bloom with silky delicate petals, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "pink_hibiscus_hawaiian_bloom_67.png",
     "seed": 900067,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/pink_hibiscus_hawaiian_bloom_67.png",
+    "done_at": "2026-04-07T16:50:45.626379",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -177,7 +228,10 @@
     "prompt": "A professional high-resolution digital illustration of a stunning golden yellow hibiscus with delicate veined petals, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "yellow_hibiscus_golden_bloom_68.png",
     "seed": 900068,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/yellow_hibiscus_golden_bloom_68.png",
+    "done_at": "2026-04-07T16:50:51.852801",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -187,7 +241,10 @@
     "prompt": "A professional high-resolution digital illustration of a wild tiger lily with vibrant orange recurved petals and distinctive dark spots, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "tiger_lily_wild_orange_69.png",
     "seed": 900069,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/tiger_lily_wild_orange_69.png",
+    "done_at": "2026-04-07T16:51:07.920435",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -197,7 +254,10 @@
     "prompt": "A professional high-resolution digital illustration of a serene water lily floating with round lily pads and delicate petals, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "water_lily_serene_float_70.png",
     "seed": 900070,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/water_lily_serene_float_70.png",
+    "done_at": "2026-04-07T16:51:13.324524",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -207,7 +267,10 @@
     "prompt": "A professional high-resolution digital illustration of an elegant white calla lily with its iconic trumpet-shaped spathe and yellow spadix, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "calla_lily_white_elegant_71.png",
     "seed": 900071,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/calla_lily_white_elegant_71.png",
+    "done_at": "2026-04-07T16:51:17.274158",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -217,7 +280,10 @@
     "prompt": "A professional high-resolution digital illustration of a lush full pink peony in gorgeous bloom with hundreds of layered silky petals, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "pink_peony_lush_bloom_72.png",
     "seed": 900072,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/pink_peony_lush_bloom_72.png",
+    "done_at": "2026-04-07T16:51:26.261610",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -227,7 +293,10 @@
     "prompt": "A professional high-resolution digital illustration of a magnificent red Chinese peony in full bloom symbolizing prosperity and honor, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "red_peony_chinese_royal_73.png",
     "seed": 900073,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/red_peony_chinese_royal_73.png",
+    "done_at": "2026-04-07T16:51:31.405292",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -237,7 +306,10 @@
     "prompt": "A professional high-resolution digital illustration of a perfect red tulip in bloom representing passionate love and spring renewal, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "red_tulip_spring_classic_74.png",
     "seed": 900074,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/red_tulip_spring_classic_74.png",
+    "done_at": "2026-04-07T16:51:35.632091",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -247,7 +319,10 @@
     "prompt": "A professional high-resolution digital illustration of an elegant purple tulip in full bloom symbolizing royalty and admiration, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "purple_tulip_royal_bloom_75.png",
     "seed": 900075,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/purple_tulip_royal_bloom_75.png",
+    "done_at": "2026-04-07T16:51:39.772551",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -257,7 +332,10 @@
     "prompt": "A professional high-resolution digital illustration of a pristine white tulip with smooth perfect petals symbolizing forgiveness, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "white_tulip_pure_spring_76.png",
     "seed": 900076,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/white_tulip_pure_spring_76.png",
+    "done_at": "2026-04-07T16:51:46.241351",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -267,7 +345,10 @@
     "prompt": "A professional high-resolution digital illustration of a dramatic parrot tulip with frilled multi-colored petals in exotic display, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "parrot_tulip_frilled_colorful_77.png",
     "seed": 900077,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/parrot_tulip_frilled_colorful_77.png",
+    "done_at": "2026-04-07T16:51:53.297098",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -277,7 +358,10 @@
     "prompt": "A professional high-resolution digital illustration of an exotic purple Phalaenopsis orchid with intricate labellum patterns, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "purple_orchid_phalaenopsis_78.png",
     "seed": 900078,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/purple_orchid_phalaenopsis_78.png",
+    "done_at": "2026-04-07T16:52:08.071533",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -287,7 +371,10 @@
     "prompt": "A professional high-resolution digital illustration of a pure white moth orchid with graceful arching stem and perfect symmetrical flowers, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "white_orchid_moth_elegant_79.png",
     "seed": 900079,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/white_orchid_moth_elegant_79.png",
+    "done_at": "2026-04-07T16:52:22.091810",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -297,7 +384,10 @@
     "prompt": "A professional high-resolution digital illustration of a spray of delicate pink dendrobium orchid flowers with slender graceful petals, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "pink_dendrobium_orchid_cluster_80.png",
     "seed": 900080,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/pink_dendrobium_orchid_cluster_80.png",
+    "done_at": "2026-04-07T16:52:27.818219",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -307,7 +397,10 @@
     "prompt": "A professional high-resolution digital illustration of a classic white daisy with sunny yellow center and radiating white petals, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "white_daisy_classic_field_81.png",
     "seed": 900081,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/white_daisy_classic_field_81.png",
+    "done_at": "2026-04-07T16:52:34.609301",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -317,7 +410,10 @@
     "prompt": "A professional high-resolution digital illustration of a vibrant pink gerbera daisy with bold petals and prominent center disk, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "pink_gerbera_daisy_vibrant_82.png",
     "seed": 900082,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/pink_gerbera_daisy_vibrant_82.png",
+    "done_at": "2026-04-07T16:52:42.251048",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -327,7 +423,10 @@
     "prompt": "A professional high-resolution digital illustration of bright orange marigold flowers with ruffled layered petals for festivals, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "orange_marigold_festival_83.png",
     "seed": 900083,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/orange_marigold_festival_83.png",
+    "done_at": "2026-04-07T16:52:48.409214",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -337,7 +436,10 @@
     "prompt": "A professional high-resolution digital illustration of cheerful yellow marigold flowers perfect for traditional garlands and puja, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "yellow_marigold_traditional_84.png",
     "seed": 900084,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/yellow_marigold_traditional_84.png",
+    "done_at": "2026-04-07T16:52:54.419497",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -347,7 +449,10 @@
     "prompt": "A professional high-resolution digital illustration of delicate pink Japanese cherry blossom sakura flowers on a branch in spring bloom, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "pink_cherry_blossom_sakura_85.png",
     "seed": 900085,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/pink_cherry_blossom_sakura_85.png",
+    "done_at": "2026-04-07T16:53:00.315660",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -357,7 +462,10 @@
     "prompt": "A professional high-resolution digital illustration of pristine white cherry blossom flowers on a dark branch representing impermanence, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "white_cherry_blossom_branch_86.png",
     "seed": 900086,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/white_cherry_blossom_branch_86.png",
+    "done_at": "2026-04-07T16:53:07.338571",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -367,7 +475,10 @@
     "prompt": "A professional high-resolution digital illustration of a beautiful sprig of purple lavender with tiny fragrant flowers on long stems, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "purple_lavender_provence_sprig_87.png",
     "seed": 900087,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/purple_lavender_provence_sprig_87.png",
+    "done_at": "2026-04-07T16:53:13.712108",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -377,7 +488,10 @@
     "prompt": "A professional high-resolution digital illustration of a beautiful pink plumeria frangipani flower with five overlapping petals and yellow center, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "pink_plumeria_frangipani_88.png",
     "seed": 900088,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/pink_plumeria_frangipani_88.png",
+    "done_at": "2026-04-07T16:53:20.144072",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -387,7 +501,10 @@
     "prompt": "A professional high-resolution digital illustration of classic white and yellow plumeria tropical flower associated with Hawaiian leis, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "white_plumeria_hawaii_89.png",
     "seed": 900089,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/white_plumeria_hawaii_89.png",
+    "done_at": "2026-04-07T16:53:27.034319",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -397,7 +514,10 @@
     "prompt": "A professional high-resolution digital illustration of a delicate red poppy with papery translucent petals and dark dramatic center, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "red_poppy_meadow_bloom_90.png",
     "seed": 900090,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/red_poppy_meadow_bloom_90.png",
+    "done_at": "2026-04-07T16:53:34.468659",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -407,7 +527,10 @@
     "prompt": "A professional high-resolution digital illustration of a stately purple iris with distinctive falls standards and velvety beard, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "purple_iris_classic_bloom_91.png",
     "seed": 900091,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/purple_iris_classic_bloom_91.png",
+    "done_at": "2026-04-07T16:53:38.769243",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -417,7 +540,10 @@
     "prompt": "A professional high-resolution digital illustration of a pink carnation with its distinctive ruffled petals and sweet fragrance, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "pink_carnation_ruffled_bloom_92.png",
     "seed": 900092,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/pink_carnation_ruffled_bloom_92.png",
+    "done_at": "2026-04-07T16:53:47.674548",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -427,7 +553,10 @@
     "prompt": "A professional high-resolution digital illustration of a bold red anthurium with heart-shaped waxy spathe and prominent spadix, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "red_anthurium_tropical_93.png",
     "seed": 900093,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/red_anthurium_tropical_93.png",
+    "done_at": "2026-04-07T16:53:52.528192",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -437,7 +566,10 @@
     "prompt": "A professional high-resolution digital illustration of a gorgeous pink magnolia flower with large tulip-shaped petals, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "pink_magnolia_spring_bloom_94.png",
     "seed": 900094,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/pink_magnolia_spring_bloom_94.png",
+    "done_at": "2026-04-07T16:53:58.582981",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -447,7 +579,10 @@
     "prompt": "A professional high-resolution digital illustration of a dramatic bird of paradise flower with orange and blue petals like a tropical bird, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "bird_of_paradise_tropical_95.png",
     "seed": 900095,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/bird_of_paradise_tropical_95.png",
+    "done_at": "2026-04-07T16:54:07.048693",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -457,7 +592,10 @@
     "prompt": "A professional high-resolution digital illustration of a lush cluster of small blue hydrangea flowers forming a spherical mophead, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "blue_hydrangea_mophead_cluster_96.png",
     "seed": 900096,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/blue_hydrangea_mophead_cluster_96.png",
+    "done_at": "2026-04-07T16:54:12.646092",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -467,7 +605,10 @@
     "prompt": "A professional high-resolution digital illustration of a stunning pink ranunculus with hundreds of perfectly layered papery petals, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "pink_ranunculus_layered_97.png",
     "seed": 900097,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/pink_ranunculus_layered_97.png",
+    "done_at": "2026-04-07T16:54:20.062901",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -477,7 +618,10 @@
     "prompt": "A professional high-resolution digital illustration of a cascading cluster of fragrant purple wisteria flowers in romantic display, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "purple_wisteria_cascade_98.png",
     "seed": 900098,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/purple_wisteria_cascade_98.png",
+    "done_at": "2026-04-07T16:54:29.079325",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -487,7 +631,10 @@
     "prompt": "A professional high-resolution digital illustration of a cheerful pansy with velvety multicolor petals and distinctive face-like pattern, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "multicolor_pansy_velvet_99.png",
     "seed": 900099,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/multicolor_pansy_velvet_99.png",
+    "done_at": "2026-04-07T16:54:34.793401",
+    "drive_uploaded": true
   },
   {
     "category": "FLOWERS",
@@ -497,6 +644,9 @@
     "prompt": "A professional high-resolution digital illustration of a wild rose hip with vivid red orange berries and glossy green leaves on a stem, vivid natural botanical colors, detailed petal and stamen textures, isolated on transparent implied white background, crisp clean cutout edges, no background elements, commercial quality digital artwork, soft even studio lighting, 8K ultra high resolution, photorealistic detail, masterpiece",
     "filename": "pink_rose_hip_berry_stem_100.png",
     "seed": 900100,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/flowers/pink_rose_hip_berry_stem_100.png",
+    "done_at": "2026-04-07T16:54:40.847861",
+    "drive_uploaded": true
   }
 ]
