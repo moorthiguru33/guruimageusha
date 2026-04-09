@@ -31,13 +31,13 @@ jobs:
       - name: Checkout guruimageusha
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.TOKEN }}
           path: guruimageusha
 
       - name: Clone Gurumoorthi repo (script branch)
         run: |
           git clone -b claude/replace-preview-image-urls-sTR3m \
-            https://x-access-token:${{ secrets.GURUMOORTHI_TOKEN }}@github.com/moorthiguru33/Gurumoorthi.git gurumoorthi
+            https://x-access-token:${{ secrets.TOKEN }}@github.com/moorthiguru33/Gurumoorthi.git gurumoorthi
           echo "Cloned OK"
 
       - name: Setup Node.js 20
@@ -52,25 +52,13 @@ jobs:
       - name: Run migrate-to-github-images.js
         working-directory: gurumoorthi
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         run: |
           FLAGS=""
           [ "${{ inputs.dry_run }}" = "true" ] && FLAGS="$FLAGS --dry-run"
           [ "${{ inputs.resume }}"  = "true" ] && FLAGS="$FLAGS --resume"
           [ "${{ inputs.limit }}"  != "0"    ] && FLAGS="$FLAGS --limit=${{ inputs.limit }}"
           node migrate-to-github-images.js $FLAGS
-
-      # Push WebP images → guruimageusha repo
-      - name: Commit images to guruimageusha
-        if: ${{ inputs.dry_run != 'true' }}
-        working-directory: guruimageusha
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git diff --cached --quiet && echo "No new images" || \
-            git commit -m "Add compressed WebP preview images (auto-migration)"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/moorthiguru33/guruimageusha.git main
 
       # Push designs.xlsx (with new CDN URLs) → Gurumoorthi repo
       - name: Push designs.xlsx to Gurumoorthi
@@ -82,7 +70,7 @@ jobs:
           git add designs.xlsx url-mapping.json
           git diff --cached --quiet && echo "No xlsx changes" || \
             git commit -m "Replace preview image URLs with GitHub CDN in designs.xlsx"
-          git push https://x-access-token:${{ secrets.GURUMOORTHI_TOKEN }}@github.com/moorthiguru33/Gurumoorthi.git HEAD:claude/replace-preview-image-urls-sTR3m
+          git push https://x-access-token:${{ secrets.TOKEN }}@github.com/moorthiguru33/Gurumoorthi.git HEAD:claude/replace-preview-image-urls-sTR3m
 
       - name: Upload artifacts
         if: always()
