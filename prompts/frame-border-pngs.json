@@ -397,7 +397,11 @@
     "prompt": "wedding photo frame, lace roses, decorative frame border, empty center space, gentle rim light, cut-out transparent background, commercial quality PNG, ultra-sharp, vivid",
     "filename": "frame_wedding-frame_00030.png",
     "seed": "5692089",
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/frame-border-pngs/frame_wedding-frame_00030.png",
+    "done_at": "2026-04-10T14:52:13.386838",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Frame & Border PNGs",
@@ -407,7 +411,11 @@
     "prompt": "wedding photo frame, lace roses, decorative frame border, empty center space, subtle gradient lighting, transparent background, clean cutout, high-detail illustration, digital art quality",
     "filename": "frame_wedding-frame_00031.png",
     "seed": "9640588",
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/frame-border-pngs/frame_wedding-frame_00031.png",
+    "done_at": "2026-04-10T14:52:19.755980",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Frame & Border PNGs",
@@ -417,7 +425,11 @@
     "prompt": "heart shaped photo frame, decorative frame border, empty center space, clean flat lighting, cut-out transparent background, commercial quality PNG, ultra-sharp, vivid",
     "filename": "frame_heart-frame_00032.png",
     "seed": "3840750",
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/frame-border-pngs/frame_heart-frame_00032.png",
+    "done_at": "2026-04-10T14:52:25.364831",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Frame & Border PNGs",
@@ -427,7 +439,11 @@
     "prompt": "square instagram post border frame, decorative frame border, empty center space, bright even lighting, isolated on transparent background, crisp edges, 4K resolution, professional illustration",
     "filename": "frame_instagram-frame_00033.png",
     "seed": "7371422",
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/frame-border-pngs/frame_instagram-frame_00033.png",
+    "done_at": "2026-04-10T14:52:28.907294",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Frame & Border PNGs",
@@ -437,7 +453,11 @@
     "prompt": "ornate golden baroque photo frame, luxury, decorative frame border, empty center space, soft diffused light, transparent background, PNG, ultra high quality, sharp edges, professional clipart",
     "filename": "frame_gold-ornate-frame_00034.png",
     "seed": "5108973",
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/frame-border-pngs/frame_gold-ornate-frame_00034.png",
+    "done_at": "2026-04-10T14:52:33.627292",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Frame & Border PNGs",
@@ -447,7 +467,11 @@
     "prompt": "tribal ethnic pattern border frame, decorative frame border, empty center space, soft diffused light, transparent PNG, studio quality, sharp focus, vibrant colors, no background",
     "filename": "frame_tribal-frame_00035.png",
     "seed": "5269324",
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/frame-border-pngs/frame_tribal-frame_00035.png",
+    "done_at": "2026-04-10T14:52:38.868736",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Frame & Border PNGs",
@@ -457,7 +481,11 @@
     "prompt": "ornate golden baroque photo frame, luxury, decorative frame border, empty center space, clean flat lighting, white background, PNG clipart, highly detailed, vector-style, clean edges",
     "filename": "frame_gold-ornate-frame_00036.png",
     "seed": "4730734",
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/frame-border-pngs/frame_gold-ornate-frame_00036.png",
+    "done_at": "2026-04-10T14:52:42.123960",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Frame & Border PNGs",
@@ -467,7 +495,11 @@
     "prompt": "ornate golden baroque photo frame, luxury, decorative frame border, empty center space, product photography lighting, isolated on transparent background, crisp edges, 4K resolution, professional illustration",
     "filename": "frame_gold-ornate-frame_00037.png",
     "seed": "5756445",
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/frame-border-pngs/frame_gold-ornate-frame_00037.png",
+    "done_at": "2026-04-10T14:52:46.683066",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Frame & Border PNGs",
@@ -477,7 +509,11 @@
     "prompt": "square instagram post border frame, decorative frame border, empty center space, subtle gradient lighting, cut-out transparent background, commercial quality PNG, ultra-sharp, vivid",
     "filename": "frame_instagram-frame_00038.png",
     "seed": "123303",
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/frame-border-pngs/frame_instagram-frame_00038.png",
+    "done_at": "2026-04-10T14:52:52.951034",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Frame & Border PNGs",
@@ -487,7 +523,11 @@
     "prompt": "vintage Victorian floral decorative frame, decorative frame border, empty center space, bright even lighting, white background, PNG clipart, highly detailed, vector-style, clean edges",
     "filename": "frame_vintage-floral-frame_00039.png",
     "seed": "5407023",
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/frame-border-pngs/frame_vintage-floral-frame_00039.png",
+    "done_at": "2026-04-10T14:53:14.315486",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Frame & Border PNGs",
