@@ -35,7 +35,7 @@ jobs:
       - name: 📥 Checkout ultrapng (output repo)
         uses: actions/checkout@v4
         with:
-          repository: guruimageusha/ultrapng   # ← உங்கள் ultrapng repo பெயர் சரியாக இருக்க வேண்டும்
+          repository: moorthiguru33/ultrapng
           token: ${{ secrets.TOKEN }}
           path: output
           fetch-depth: 0
