@@ -1,0 +1,100 @@
+name: 🤖 UltraPNG Cross-Repo Build
+
+# ─────────────────────────────────────────────────────────────────
+# இந்த workflow guruimageusha repo-ல் இருக்கும்.
+# Data → guruimageusha/data/  (json files push செய்யும் போது trigger)
+# Output → ultrapng repo-ல் push செய்யும் (png/, category/, sitemap.xml)
+# ─────────────────────────────────────────────────────────────────
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'data/**'        # புதிய JSON data வரும்போது auto build
+  schedule:
+    - cron: '30 0 * * *' # Daily 6:00 AM IST (00:30 UTC)
+  workflow_dispatch:      # Manual trigger button
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: AI Build → Push to UltraPNG
+
+    steps:
+      # ── Step 1: Checkout guruimageusha (scripts + data source) ──
+      - name: 📥 Checkout guruimageusha (source repo)
+        uses: actions/checkout@v4
+        with:
+          path: source
+          fetch-depth: 0
+
+      # ── Step 2: Checkout ultrapng (output repo) ──
+      - name: 📥 Checkout ultrapng (output repo)
+        uses: actions/checkout@v4
+        with:
+          repository: guruimageusha/ultrapng   # ← உங்கள் ultrapng repo பெயர் சரியாக இருக்க வேண்டும்
+          token: ${{ secrets.TOKEN }}
+          path: output
+          fetch-depth: 0
+
+      # ── Step 3: Setup Node.js ──
+      - name: 🟢 Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ── Step 4: Install dependencies (source repo) ──
+      - name: 📦 Install dependencies
+        working-directory: source
+        run: npm install
+
+      # ── Step 5: Copy data from guruimageusha → ultrapng/data ──
+      # (Source repo-ல் புதிய JSON files இருந்தால் output-க்கு copy செய்)
+      - name: 📋 Sync data files to ultrapng
+        run: |
+          mkdir -p output/data
+          # Copy all JSON data files from source to output
+          cp -v source/data/*.json output/data/ 2>/dev/null || true
+          echo "✅ Data files synced"
+
+      # ── Step 6: Run AI-powered build ──
+      - name: 🧠 Run AI Build (SEO Title + Keywords via Groq)
+        working-directory: source
+        env:
+          GROQ_API_KEY: ${{ vars.GROQ_API_KEY }}
+          OUTPUT_DIR: ${{ github.workspace }}/output
+        run: node scripts/build.js
+
+      # ── Step 7: Build summary ──
+      - name: 📊 Build Summary
+        run: |
+          echo "=== Generated Files ==="
+          find output/png/ -name "index.html" 2>/dev/null | wc -l | xargs echo "📄 Post pages:"
+          find output/category/ -name "index.html" 2>/dev/null | wc -l | xargs echo "📂 Category pages:"
+          echo "=== AI Cache Status ==="
+          [ -f output/data/ai_titles.json ] && cat output/data/ai_titles.json | python3 -c "import json,sys; d=json.load(sys.stdin); print(f'🤖 AI Titles cached: {len(d)}')" || echo "🤖 AI Titles: new cache"
+          [ -f output/data/category_descriptions.json ] && cat output/data/category_descriptions.json | python3 -c "import json,sys; d=json.load(sys.stdin); print(f'📝 Category Descriptions: {len(d)}')" || echo "📝 Category Desc: new cache"
+
+      # ── Step 8: Commit & Push to ultrapng repo ──
+      - name: 📤 Push Generated Files → ultrapng repo
+        working-directory: output
+        run: |
+          git config user.name "UltraPNG AI Bot"
+          git config user.email "bot@ultrapng.com"
+
+          # Stage all generated content + AI cache files
+          git add png/ category/ search-index/ sitemap.xml robots.txt index.html 2>/dev/null || true
+          git add data/ai_titles.json data/category_descriptions.json data/ai_keywords.json 2>/dev/null || true
+
+          # Only commit if there are changes
+          if git diff --staged --quiet; then
+            echo "✅ No changes to commit — site is already up to date"
+          else
+            POST_COUNT=$(find png/ -name "index.html" 2>/dev/null | wc -l)
+            git commit -m "🤖 AI Build: $(date '+%Y-%m-%d %H:%M IST') — ${POST_COUNT} posts"
+            git push
+            echo "✅ Successfully pushed to ultrapng repo"
+          fi
