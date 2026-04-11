@@ -25,70 +25,138 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 360
     permissions:
-      contents: write
+      contents: write   # write access to THIS repo (guruimageusha)
 
     steps:
+      # ── 1. Checkout guruimageusha (THIS repo) ─────────────────────────────
       - name: Checkout guruimageusha
         uses: actions/checkout@v4
         with:
           repository: moorthiguru33/guruimageusha
           token: ${{ secrets.TOKEN }}
           path: guruimageusha
+          fetch-depth: 1
 
-      - name: Clone Gurumoorthi repo (script branch)
+      # ── 2. Clone Gurumoorthi repo (main branch) ───────────────────────────
+      #    BUG FIX: Clone from 'main', not a specific feature branch
+      - name: Clone Gurumoorthi repo
         run: |
-          git clone -b claude/replace-preview-image-urls-sTR3m \
+          git clone --depth=1 \
             https://x-access-token:${{ secrets.TOKEN }}@github.com/moorthiguru33/Gurumoorthi.git gurumoorthi
-          echo "Cloned OK"
+          echo "Cloned Gurumoorthi OK — branch: $(git -C gurumoorthi branch --show-current)"
 
+      # ── 3. Create preview_images folder in guruimageusha checkout ─────────
+      #    BUG FIX: Create folder + .gitkeep so git tracks it
+      - name: Prepare preview_images folder
+        run: |
+          mkdir -p guruimageusha/preview_images
+          if [ ! -f guruimageusha/preview_images/.gitkeep ]; then
+            touch guruimageusha/preview_images/.gitkeep
+          fi
+          echo "preview_images/ ready"
+
+      # ── 4. Setup Node.js ──────────────────────────────────────────────────
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
+      # ── 5. Install dependencies ───────────────────────────────────────────
       - name: Install dependencies
         working-directory: gurumoorthi
         run: npm install sharp xlsx
 
+      # ── 6. Copy updated migrate script into gurumoorthi ───────────────────
+      #    (in case the repo has an older version of the script)
+      - name: Verify migrate script exists
+        working-directory: gurumoorthi
+        run: |
+          if [ ! -f migrate-to-github-images.js ]; then
+            echo "ERROR: migrate-to-github-images.js not found in gurumoorthi!"
+            exit 1
+          fi
+          echo "Script found: $(wc -l < migrate-to-github-images.js) lines"
+
+      # ── 7. Run migration script ───────────────────────────────────────────
+      #    BUG FIX: Use --preview-dir to save images LOCALLY to guruimageusha
+      #    checkout instead of unreliable GitHub API uploads
       - name: Run migrate-to-github-images.js
         working-directory: gurumoorthi
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         run: |
-          FLAGS=""
+          FLAGS="--preview-dir=../guruimageusha/preview_images"
           [ "${{ inputs.dry_run }}" = "true" ] && FLAGS="$FLAGS --dry-run"
           [ "${{ inputs.resume }}"  = "true" ] && FLAGS="$FLAGS --resume"
           [ "${{ inputs.limit }}"  != "0"    ] && FLAGS="$FLAGS --limit=${{ inputs.limit }}"
+          echo "Running: node migrate-to-github-images.js $FLAGS"
           node migrate-to-github-images.js $FLAGS
 
-      # Push designs.xlsx (with new CDN URLs) → Gurumoorthi repo
+      # ── 8. Commit + Push preview images to guruimageusha ──────────────────
+      #    BUG FIX: This step was missing — images were saved locally but never pushed!
+      - name: Push preview images to guruimageusha
+        if: ${{ inputs.dry_run != 'true' }}
+        working-directory: guruimageusha
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add preview_images/
+          COUNT=$(git diff --cached --numstat | wc -l)
+          echo "Files to commit in guruimageusha: $COUNT"
+
+          if git diff --cached --quiet; then
+            echo "No new preview images to push (all already exist)"
+          else
+            git commit -m "Add preview images for Gurumoorthi CDN [$(date '+%Y-%m-%d %H:%M')]"
+            git push https://x-access-token:${{ secrets.TOKEN }}@github.com/moorthiguru33/guruimageusha.git HEAD:main
+            echo "✓ Preview images pushed to guruimageusha/main"
+          fi
+
+      # ── 9. Commit + Push designs.xlsx to Gurumoorthi (main) ───────────────
+      #    BUG FIX: Push to 'main' not a feature branch that might not exist
       - name: Push designs.xlsx to Gurumoorthi
         if: ${{ inputs.dry_run != 'true' }}
         working-directory: gurumoorthi
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add designs.xlsx url-mapping.json
-          git diff --cached --quiet && echo "No xlsx changes" || \
-            git commit -m "Replace preview image URLs with GitHub CDN in designs.xlsx"
-          git push https://x-access-token:${{ secrets.TOKEN }}@github.com/moorthiguru33/Gurumoorthi.git HEAD:claude/replace-preview-image-urls-sTR3m
 
+          git add designs.xlsx url-mapping.json
+
+          if git diff --cached --quiet; then
+            echo "No changes in designs.xlsx (all URLs already updated)"
+          else
+            MAPPED=$(node -e "try{console.log(Object.keys(require('./url-mapping.json')).length)}catch{console.log(0)}" 2>/dev/null || echo 0)
+            git commit -m "Replace preview image URLs with GitHub CDN in designs.xlsx ($MAPPED URLs updated)"
+            git push https://x-access-token:${{ secrets.TOKEN }}@github.com/moorthiguru33/Gurumoorthi.git HEAD:main
+            echo "✓ designs.xlsx pushed to Gurumoorthi/main"
+          fi
+
+      # ── 10. Upload artifacts ───────────────────────────────────────────────
       - name: Upload artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: url-mapping
+          name: url-mapping-${{ github.run_number }}
           path: |
             gurumoorthi/url-mapping.json
             gurumoorthi/migration-errors.json
 
+      # ── 11. Print summary ──────────────────────────────────────────────────
       - name: Print summary
         if: always()
-        working-directory: gurumoorthi
         run: |
           echo "===== MIGRATION SUMMARY ====="
-          [ -f url-mapping.json ] && \
-            echo "Mapped: $(node -e "console.log(Object.keys(require('./url-mapping.json')).length)")" || true
-          [ -f migration-errors.json ] && \
-            echo "Errors: $(node -e "console.log(require('./migration-errors.json').length)")" || true
-          echo "CDN: https://cdn.jsdelivr.net/gh/moorthiguru33/guruimageusha@main/preview_images/"
+          if [ -f gurumoorthi/url-mapping.json ]; then
+            MAPPED=$(node -e "console.log(Object.keys(require('./gurumoorthi/url-mapping.json')).length)" 2>/dev/null || echo 0)
+            echo "URLs mapped: $MAPPED"
+          fi
+          if [ -f gurumoorthi/migration-errors.json ]; then
+            ERRS=$(node -e "console.log(require('./gurumoorthi/migration-errors.json').length)" 2>/dev/null || echo 0)
+            echo "Errors: $ERRS"
+          fi
+          echo ""
+          echo "Preview images CDN base:"
+          echo "  https://cdn.jsdelivr.net/gh/moorthiguru33/guruimageusha@main/preview_images/"
+          echo ""
+          echo "Local images in guruimageusha/preview_images/:"
+          ls guruimageusha/preview_images/ | grep -c '.webp' | xargs echo "  WebP files:"
