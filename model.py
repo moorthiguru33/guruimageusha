@@ -1,28 +1,39 @@
 #!/usr/bin/env python3
 """
-PIXAZO AI - HEADLESS IMAGE GENERATOR v9.0 (ModelScope Edition)
-──────────────────────────────────────────────────────────────
+PIXAZO AI - HEADLESS IMAGE GENERATOR v10.0 (ModelScope Edition)
+────────────────────────────────────────────────────────────────
 ModelScope Async API + Google Drive Batch Upload
+Auto Model Rotation when per-model quota (500/day) is exhausted
 
 MODELS (Cloud Inference - Free API):
-  ✅ Qwen/Qwen-Image           — Alibaba 20B model (best quality)
-  ✅ Qwen/Qwen-Image-2512      — Latest Dec 2025 update
-  ✅ Tongyi-MAI/Z-Image-Turbo  — Ultra-fast turbo (9 steps)
+  ✅ Tongyi-MAI/Z-Image-Turbo  — Ultra-fast turbo (9 steps)      [500/day]
+  ✅ Tongyi-MAI/Z-Image        — Full quality Z-Image model       [500/day]
+  ✅ Qwen/Qwen-Image           — Alibaba 20B model (best quality) [500/day]
+  ✅ Qwen/Qwen-Image-2512      — Latest Dec 2025 update           [500/day]
+  ✅ MusePublic/Qwen-image     — MusePublic variant               [500/day]
+
+  Total possible per day (all 5 models): 2000+ images
 
 API FLOW (Async):
-  1.  POST /v1/images/generations  → task_id கிடைக்கும்
-  2.  GET  /v1/tasks/{task_id}      → 5s-க்கு ஒரு முறை poll பண்ணும்
-  3.  status=succeeded → image URL download பண்ணும்
+  1.  POST /v1/images/generations  → task_id
+  2.  GET  /v1/tasks/{task_id}     → poll every 5s
+  3.  status=SUCCEED → image URL download
 
 Environment Variables Required:
   SCOPE, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
   GOOGLE_REFRESH_TOKEN, GOOGLE_DRIVE_FOLDER_ID
 
 Optional:
-  PIXAZO_MODEL, PIXAZO_WIDTH, PIXAZO_HEIGHT, PIXAZO_COUNT,
-  PIXAZO_NUM_STEPS, PIXAZO_GUIDANCE, PIXAZO_PROMPTS_DIR,
-  PIXAZO_DEBUG (set to "1" for verbose debug logs)
-  PIXAZO_UPLOAD_BATCH_SIZE (default: 500)
+  PIXAZO_MODELS          — comma-separated model rotation list
+                           e.g. "z-image-turbo,z-image,qwen-image"
+                           default: "z-image-turbo,z-image,qwen-image,qwen-image-2512,muse-qwen"
+  PIXAZO_MODEL           — single model (overrides PIXAZO_MODELS if set alone)
+  PIXAZO_WIDTH           — image width  (default: 1024)
+  PIXAZO_HEIGHT          — image height (default: 1024)
+  PIXAZO_COUNT           — images per JSON (number or ALL)
+  PIXAZO_PROMPTS_DIR     — prompts folder (default: prompts)
+  PIXAZO_UPLOAD_BATCH_SIZE — upload batch size (default: 500)
+  PIXAZO_DEBUG           — set to "1" for verbose debug logs
 """
 
 import base64
@@ -41,25 +52,30 @@ from collections import deque
 # ENDPOINTS & CONSTANTS
 # ══════════════════════════════════════════════════════════════════════════════
 
-# ModelScope Async Image Generation API (confirmed working)
 MODELSCOPE_BASE_URL   = "https://api-inference.modelscope.ai/"
 MODELSCOPE_SUBMIT_URL = f"{MODELSCOPE_BASE_URL}v1/images/generations"
 MODELSCOPE_TASK_URL   = f"{MODELSCOPE_BASE_URL}v1/tasks/{{task_id}}"
 
-# Cloud Inference-ல் available ஆன models மட்டும் (verified)
+# ── All available ModelScope AIGC image models ──
 MODELSCOPE_MODEL_IDS = {
-    "qwen-image":        "Qwen/Qwen-Image",
-    "qwen-image-2512":   "Qwen/Qwen-Image-2512",
-    "z-image-turbo":     "Tongyi-MAI/Z-Image-Turbo",
+    "z-image-turbo":   "Tongyi-MAI/Z-Image-Turbo",   # fastest, 9 steps
+    "z-image":         "Tongyi-MAI/Z-Image",           # full quality
+    "qwen-image":      "Qwen/Qwen-Image",              # 20B best quality
+    "qwen-image-2512": "Qwen/Qwen-Image-2512",         # Dec 2025 update
+    "muse-qwen":       "MusePublic/Qwen-image",        # MusePublic variant
 }
 
-# Z-Image-Turbo: guidance=0.0, steps=9 (distilled model)
-# Qwen-Image:    guidance=4.0, steps=50
+# ── Per-model generation defaults ──
 MODEL_DEFAULTS = {
-    "qwen-image":      {"steps": 50, "guidance": 4.0,  "neg_prompt": True},
-    "qwen-image-2512": {"steps": 50, "guidance": 4.0,  "neg_prompt": True},
-    "z-image-turbo":   {"steps": 9,  "guidance": 0.0,  "neg_prompt": False},
+    "z-image-turbo":   {"steps": 9,  "guidance": 0.0, "neg_prompt": False},
+    "z-image":         {"steps": 30, "guidance": 2.0, "neg_prompt": True},
+    "qwen-image":      {"steps": 50, "guidance": 4.0, "neg_prompt": True},
+    "qwen-image-2512": {"steps": 50, "guidance": 4.0, "neg_prompt": True},
+    "muse-qwen":       {"steps": 50, "guidance": 4.0, "neg_prompt": True},
 }
+
+# Official per-model daily limit (from ModelScope docs)
+MODEL_DAILY_LIMIT = 500
 
 VALID_MODELS      = set(MODELSCOPE_MODEL_IDS.keys())
 SDXL_DEFAULT_SEED = 40
@@ -73,29 +89,122 @@ GOOGLE_TOKEN_URL  = "https://oauth2.googleapis.com/token"
 GOOGLE_UPLOAD_URL = "https://www.googleapis.com/upload/drive/v3/files"
 GOOGLE_DRIVE_API  = "https://www.googleapis.com/drive/v3/files"
 
-MAX_REQUESTS_PER_MINUTE  = 9
-RATE_WINDOW_SECONDS      = 60
-APPS_SCRIPT_MAX_RETRIES  = 3
-APPS_SCRIPT_RETRY_DELAY  = 10
-VERIFY_WAIT_SECONDS      = 5
+MAX_REQUESTS_PER_MINUTE   = 9
+RATE_WINDOW_SECONDS       = 60
+APPS_SCRIPT_MAX_RETRIES   = 3
+APPS_SCRIPT_RETRY_DELAY   = 10
+VERIFY_WAIT_SECONDS       = 5
 DEFAULT_UPLOAD_BATCH_SIZE = 500
 
-# Async task polling constants
-TASK_POLL_INTERVAL = 5    # 5 seconds-க்கு ஒரு முறை poll
-TASK_MAX_WAIT      = 300  # max 5 நிமிடம் காத்திருக்கும்
+TASK_POLL_INTERVAL = 5    # seconds between polls
+TASK_MAX_WAIT      = 300  # max 5 minutes per task
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# GOOGLE AUTH — AUTO REFRESH  ✅ NEW v8.0
+# MODEL QUOTA TRACKER  ✅ NEW v10.0
+# ══════════════════════════════════════════════════════════════════════════════
+
+class ModelQuotaTracker:
+    """
+    Tracks per-model remaining quota from ModelScope response headers.
+    Auto-switches to next model when current model quota is exhausted.
+
+    Headers used:
+      modelscope-ratelimit-model-requests-limit     → model daily limit
+      modelscope-ratelimit-model-requests-remaining → model remaining quota
+      modelscope-ratelimit-requests-limit           → user total daily limit
+      modelscope-ratelimit-requests-remaining       → user total remaining quota
+    """
+
+    def __init__(self, model_rotation: list):
+        if not model_rotation:
+            raise ValueError("model_rotation list cannot be empty")
+
+        self.rotation        = model_rotation         # ordered list of model keys
+        self.current_idx     = 0                      # index into rotation
+        self.model_remaining = {}                     # model_key → remaining count
+        self.user_remaining  = None                   # total user remaining
+        self.exhausted       = set()                  # models with 0 remaining
+
+        # Initialize all models as having full quota
+        for m in model_rotation:
+            self.model_remaining[m] = MODEL_DAILY_LIMIT
+
+        log.info(f"Model rotation: {' → '.join(rotation_display(model_rotation))}")
+
+    @property
+    def current_model(self) -> str:
+        return self.rotation[self.current_idx]
+
+    def update_from_headers(self, headers: dict, model_key: str):
+        """Parse ModelScope quota headers and update internal state."""
+        try:
+            model_limit = int(headers.get(
+                "modelscope-ratelimit-model-requests-limit", MODEL_DAILY_LIMIT))
+            model_rem   = int(headers.get(
+                "modelscope-ratelimit-model-requests-remaining",
+                self.model_remaining.get(model_key, MODEL_DAILY_LIMIT)))
+            user_rem    = int(headers.get(
+                "modelscope-ratelimit-requests-remaining", 9999))
+
+            self.model_remaining[model_key] = model_rem
+            self.user_remaining             = user_rem
+
+            log.debug(
+                f"Quota headers → model={model_key} "
+                f"remaining={model_rem}/{model_limit} | "
+                f"user_total_remaining={user_rem}"
+            )
+
+            if model_rem <= 0:
+                log.warn(f"Model '{model_key}' quota EXHAUSTED (0 remaining)")
+                self.exhausted.add(model_key)
+
+        except (ValueError, TypeError):
+            pass  # headers absent — ignore
+
+    def should_switch(self) -> bool:
+        """Returns True if current model is exhausted."""
+        return self.current_model in self.exhausted
+
+    def switch_to_next(self) -> bool:
+        """
+        Advance to next non-exhausted model in rotation.
+        Returns True if a valid model was found, False if all exhausted.
+        """
+        original = self.current_idx
+        for _ in range(len(self.rotation)):
+            self.current_idx = (self.current_idx + 1) % len(self.rotation)
+            if self.current_model not in self.exhausted:
+                log.ok(
+                    f"Switched to model: '{self.current_model}' "
+                    f"({MODELSCOPE_MODEL_IDS[self.current_model]})"
+                )
+                return True
+        # All exhausted — stay at original
+        self.current_idx = original
+        return False
+
+    def status_line(self) -> str:
+        parts = []
+        for m in self.rotation:
+            rem = self.model_remaining.get(m, "?")
+            tag = "✅" if m not in self.exhausted else "❌"
+            parts.append(f"{tag}{m}:{rem}")
+        user_str = f" | user_total:{self.user_remaining}" if self.user_remaining is not None else ""
+        return "  ".join(parts) + user_str
+
+
+def rotation_display(rotation):
+    return [f"{k}({MODELSCOPE_MODEL_IDS[k]})" for k in rotation]
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GOOGLE AUTH — AUTO REFRESH
 # ══════════════════════════════════════════════════════════════════════════════
 
 class GoogleAuth:
-    """
-    Google OAuth2 token manager with auto-refresh.
-    Token 50 minute-க்கு ஒரு முறை auto-refresh பண்ணும்.
-    (Google 60 min கொடுக்கும், 50 min-ல் refresh — safe margin)
-    """
-    TOKEN_TTL = 3000  # 50 minutes in seconds
+    TOKEN_TTL = 3000  # 50 minutes
 
     def __init__(self, client_id, client_secret, refresh_token):
         self.client_id     = client_id
@@ -105,7 +214,6 @@ class GoogleAuth:
         self._token_time   = 0
 
     def get_token(self):
-        """Token expire ஆகிவிட்டால் auto-refresh பண்ணும்"""
         elapsed = time.time() - self._token_time
         if not self._token or elapsed > self.TOKEN_TTL:
             mins = int(elapsed // 60)
@@ -125,25 +233,20 @@ class GoogleAuth:
 
 
 def _fetch_google_token(client_id, client_secret, refresh_token):
-    """Raw token fetch — use GoogleAuth.get_token() instead"""
     resp = requests.post(GOOGLE_TOKEN_URL, data={
         "client_id":     client_id,
         "client_secret": client_secret,
         "refresh_token": refresh_token,
         "grant_type":    "refresh_token",
     }, timeout=30)
-
     if not resp.ok:
-        log.err(f"Token refresh failed: HTTP {resp.status_code} | {resp.text[:200]}")
-        raise RuntimeError(f"Token refresh failed: {resp.status_code}")
-
+        raise RuntimeError(f"Token refresh failed: {resp.status_code} | {resp.text[:200]}")
     token = resp.json().get("access_token")
     if not token:
         raise RuntimeError("No access_token in response")
     return token
 
 
-# Legacy function kept for compatibility
 def get_google_access_token(client_id, client_secret, refresh_token):
     return _fetch_google_token(client_id, client_secret, refresh_token)
 
@@ -151,6 +254,7 @@ def get_google_access_token(client_id, client_secret, refresh_token):
 # ══════════════════════════════════════════════════════════════════════════════
 # RATE LIMITER
 # ══════════════════════════════════════════════════════════════════════════════
+
 class RateLimiter:
     def __init__(self, max_requests=MAX_REQUESTS_PER_MINUTE,
                  window_seconds=RATE_WINDOW_SECONDS):
@@ -180,12 +284,14 @@ class RateLimiter:
             self.timestamps.popleft()
         return f"{len(self.timestamps)}/{self.max_requests} req in window"
 
+
 rate_limiter = RateLimiter()
 
 
 # ══════════════════════════════════════════════════════════════════════════════
 # LOGGER
 # ══════════════════════════════════════════════════════════════════════════════
+
 class Logger:
     debug_enabled = os.environ.get("PIXAZO_DEBUG", "0").strip() == "1"
 
@@ -224,6 +330,7 @@ class Logger:
     def section(msg):
         print(f"\n  ── {msg} ──", flush=True)
 
+
 log = Logger()
 
 
@@ -240,12 +347,10 @@ def find_drive_folder(folder_name, parent_id, access_token):
     resp = requests.get(GOOGLE_DRIVE_API,
         params={"q": query, "fields": "files(id,name)", "pageSize": 1},
         headers={"Authorization": f"Bearer {access_token}"}, timeout=30)
-
     log.debug(f"Folder search HTTP {resp.status_code}")
     if not resp.ok:
         log.warn(f"Folder search failed: HTTP {resp.status_code}")
         return None
-
     files = resp.json().get("files", [])
     if files:
         log.debug(f"Found existing folder id={files[0]['id']}")
@@ -259,7 +364,6 @@ def create_drive_folder(folder_name, parent_id, access_token):
     if existing:
         log.info(f"Drive subfolder exists: '{folder_name}' (id={existing})")
         return existing
-
     log.debug(f"Creating new Drive folder: '{folder_name}'")
     metadata = {
         "name":     folder_name,
@@ -270,11 +374,9 @@ def create_drive_folder(folder_name, parent_id, access_token):
         "Authorization": f"Bearer {access_token}",
         "Content-Type":  "application/json",
     }, timeout=30)
-
     log.debug(f"Create folder HTTP {resp.status_code}")
     if not resp.ok:
         raise RuntimeError(f"Folder create failed: {resp.status_code} | {resp.text[:200]}")
-
     fid = resp.json().get("id")
     log.ok(f"Created subfolder: '{folder_name}' (id={fid})")
     return fid
@@ -285,39 +387,32 @@ def create_drive_folder(folder_name, parent_id, access_token):
 # ══════════════════════════════════════════════════════════════════════════════
 
 def list_drive_files(folder_id, access_token):
-    """Drive subfolder files list. Returns: dict { filename -> file_id }"""
     log.debug(f"Listing files in Drive folder id={folder_id}")
     all_files  = {}
     page_token = None
     page_num   = 0
-
     while True:
         page_num += 1
         params = {
-            "q":         f"'{folder_id}' in parents and trashed=false",
-            "fields":    "nextPageToken, files(id,name,size,mimeType)",
-            "pageSize":  1000,
+            "q":        f"'{folder_id}' in parents and trashed=false",
+            "fields":   "nextPageToken, files(id,name,size,mimeType)",
+            "pageSize": 1000,
         }
         if page_token:
             params["pageToken"] = page_token
-
         log.debug(f"  Listing page {page_num}...")
         resp = requests.get(GOOGLE_DRIVE_API, params=params,
             headers={"Authorization": f"Bearer {access_token}"}, timeout=30)
-
         log.debug(f"  List HTTP {resp.status_code}")
         if not resp.ok:
             log.err(f"List files failed: HTTP {resp.status_code} | {resp.text[:200]}")
             return all_files
-
         data = resp.json()
         for f in data.get("files", []):
             all_files[f["name"]] = f["id"]
-
         page_token = data.get("nextPageToken")
         if not page_token:
             break
-
     log.info(f"Drive folder has {len(all_files)} existing file(s)")
     return all_files
 
@@ -331,9 +426,7 @@ def upload_to_google_drive(file_path, folder_id, access_token, mime_type=None):
     if not file_path.exists():
         log.err(f"Upload skipped — file not found: {file_path}")
         return None
-
     if mime_type is None:
-        ext = file_path.suffix.lower()
         mime_map = {
             ".png":  "image/png",
             ".jpg":  "image/jpeg",
@@ -342,13 +435,11 @@ def upload_to_google_drive(file_path, folder_id, access_token, mime_type=None):
             ".json": "application/json",
             ".zip":  "application/zip",
         }
-        mime_type = mime_map.get(ext, "application/octet-stream")
-
+        mime_type = mime_map.get(file_path.suffix.lower(), "application/octet-stream")
     size_mb  = file_path.stat().st_size / (1024 * 1024)
     metadata = {"name": file_path.name, "parents": [folder_id]}
     boundary = "pixazo_upload_boundary"
     body     = io.BytesIO()
-
     body.write(f"--{boundary}\r\n".encode())
     body.write(b"Content-Type: application/json; charset=UTF-8\r\n\r\n")
     body.write(json.dumps(metadata).encode())
@@ -359,7 +450,6 @@ def upload_to_google_drive(file_path, folder_id, access_token, mime_type=None):
         body.write(f.read())
     body.write(b"\r\n")
     body.write(f"--{boundary}--\r\n".encode())
-
     upload_start = time.time()
     resp = requests.post(
         f"{GOOGLE_UPLOAD_URL}?uploadType=multipart",
@@ -368,30 +458,25 @@ def upload_to_google_drive(file_path, folder_id, access_token, mime_type=None):
             "Content-Type":  f"multipart/related; boundary={boundary}",
         },
         data=body.getvalue(), timeout=300)
-
     elapsed = time.time() - upload_start
     log.debug(f"Upload HTTP {resp.status_code} in {elapsed:.1f}s")
-
     if not resp.ok:
         log.err(f"Upload FAILED '{file_path.name}': HTTP {resp.status_code} | {resp.text[:300]}")
         return None
-
     file_id = resp.json().get("id", "")
     log.ok(f"Uploaded: '{file_path.name}' ({size_mb:.1f} MB) → id={file_id} in {elapsed:.1f}s")
     return file_id
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# GOOGLE DRIVE — DELETE FILE
+# GOOGLE DRIVE — DELETE
 # ══════════════════════════════════════════════════════════════════════════════
 
 def delete_drive_file(file_id, file_name, access_token):
-    log.debug(f"Deleting Drive file: '{file_name}' (id={file_id})")
     resp = requests.delete(
         f"{GOOGLE_DRIVE_API}/{file_id}",
         headers={"Authorization": f"Bearer {access_token}"},
         timeout=30)
-
     if resp.status_code in (200, 204):
         log.ok(f"Drive file deleted: '{file_name}' (id={file_id})")
         return True
@@ -407,7 +492,6 @@ def delete_zip_from_drive(zip_name, folder_id, access_token, existing_files_dict
     else:
         fresh   = list_drive_files(folder_id, access_token)
         file_id = fresh.get(zip_name)
-
     if not file_id:
         log.warn(f"ZIP '{zip_name}' not found in Drive — may already be deleted")
         return False
@@ -415,157 +499,19 @@ def delete_zip_from_drive(zip_name, folder_id, access_token, existing_files_dict
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# APPS SCRIPT — EXTRACT WITH RETRY
-# ══════════════════════════════════════════════════════════════════════════════
-
-def _is_apps_script_auth_error(resp):
-    content_type = resp.headers.get("Content-Type", "")
-    if "text/html" in content_type:
-        body_lower = resp.text.lower()
-        if any(phrase in body_lower for phrase in [
-            "authorization needed", "sign in", "signin",
-            "accounts.google.com", "oauth", "<title>auth",
-        ]):
-            return True
-    return False
-
-
-def trigger_apps_script_extract(apps_script_url, zip_file_id, folder_id,
-                                 access_token=None,
-                                 max_retries=APPS_SCRIPT_MAX_RETRIES,
-                                 retry_delay=APPS_SCRIPT_RETRY_DELAY):
-    payload = {
-        "action":    "extract_and_cleanup",
-        "zipFileId": zip_file_id,
-        "folderId":  folder_id,
-    }
-    headers = {"Content-Type": "application/json"}
-
-    for attempt in range(1, max_retries + 1):
-        log.info(f"Apps Script call attempt {attempt}/{max_retries}...")
-        try:
-            t0   = time.time()
-            resp = requests.post(apps_script_url, json=payload, headers=headers,
-                                  timeout=300, allow_redirects=True)
-            elapsed = time.time() - t0
-
-            if resp.ok and _is_apps_script_auth_error(resp):
-                log.err(
-                    f"Apps Script → HTTP 200 but 'Authorization needed' HTML!\n"
-                    f"  FIX: Deploy → 'Who has access' → 'Anyone, even anonymous'"
-                )
-            elif resp.ok:
-                try:
-                    result = resp.json()
-                    log.ok(f"Apps Script SUCCESS: {json.dumps(result)[:300]}")
-                    return result
-                except Exception:
-                    log.ok(f"Apps Script SUCCESS plain: {resp.text[:100]}")
-                    return {"status": "ok", "raw": resp.text[:200]}
-            elif resp.status_code == 403:
-                log.err("Apps Script → HTTP 403 FORBIDDEN. Fix deployment settings.")
-            else:
-                log.warn(f"Apps Script attempt {attempt} FAILED: HTTP {resp.status_code}")
-
-        except requests.Timeout:
-            log.warn(f"Apps Script attempt {attempt} TIMED OUT (300s)")
-        except requests.ConnectionError as e:
-            log.warn(f"Apps Script attempt {attempt} CONNECTION ERROR: {e}")
-        except Exception as e:
-            log.warn(f"Apps Script attempt {attempt} EXCEPTION: {e}")
-
-        if attempt < max_retries:
-            log.info(f"Waiting {retry_delay}s before retry...")
-            time.sleep(retry_delay)
-
-    log.err(f"Apps Script FAILED after {max_retries} attempts!")
-    return None
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# EXTRACTION VERIFICATION
-# ══════════════════════════════════════════════════════════════════════════════
-
-def verify_extraction(expected_filenames, folder_id, access_token,
-                      wait_seconds=VERIFY_WAIT_SECONDS):
-    log.section("Extraction Verification")
-    log.info(f"Waiting {wait_seconds}s for Apps Script to finish extraction...")
-    time.sleep(wait_seconds)
-    log.info(f"Verifying {len(expected_filenames)} image(s) in Drive...")
-
-    current_files = list_drive_files(folder_id, access_token)
-    verified = []
-    missing  = []
-
-    for fname in expected_filenames:
-        if fname in current_files:
-            verified.append(fname)
-        else:
-            missing.append(fname)
-
-    if not missing:
-        log.ok(f"Verification PASSED: {len(verified)}/{len(expected_filenames)} confirmed")
-    else:
-        log.err(f"Verification FAILED: {len(missing)} MISSING!")
-        for m in missing:
-            log.err(f"  MISSING: {m}")
-
-    return {
-        "verified":    verified,
-        "missing":     missing,
-        "success":     len(missing) == 0,
-        "drive_files": current_files,
-    }
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# ZIP HELPER
-# ══════════════════════════════════════════════════════════════════════════════
-
-def create_zip_from_files(file_paths, zip_path):
-    zip_path = Path(zip_path)
-    added    = 0
-    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
-        for fp in file_paths:
-            fp = Path(fp)
-            if fp.exists():
-                zf.write(fp, fp.name)
-                added += 1
-            else:
-                log.warn(f"  Skipped (not found): {fp}")
-
-    size_mb = zip_path.stat().st_size / (1024 * 1024)
-    log.ok(f"ZIP created: '{zip_path.name}' ({added} files, {size_mb:.1f} MB)")
-    return zip_path
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# BATCH UPLOAD TO DRIVE  ✅ NEW v8.0
+# BATCH UPLOAD TO DRIVE
 # ══════════════════════════════════════════════════════════════════════════════
 
 def upload_batch_to_drive(batch_images, sub_folder_id, auth, json_data, batch_num):
-    """
-    batch_images: list of Path objects (local image files)
-    auth: GoogleAuth object — token auto-refresh included
-    json_data: reference for status update
-    batch_num: for logging
-
-    Returns: (uploaded_count, failed_list)
-    """
     total = len(batch_images)
     log.step(f"BATCH {batch_num} UPLOAD: {total} images → Google Drive")
-
     uploaded_list = []
     failed_list   = []
-
     for i, img_path in enumerate(batch_images, 1):
-        fname = Path(img_path).name
+        fname        = Path(img_path).name
         log.info(f"  [{i}/{total}] Uploading: {fname} | Token: {auth.token_age_str()}")
-
-        # Token auto-refresh on every upload call
         access_token = auth.get_token()
         file_id      = upload_to_google_drive(img_path, sub_folder_id, access_token)
-
         if file_id:
             uploaded_list.append(fname)
             for item in json_data:
@@ -577,34 +523,25 @@ def upload_batch_to_drive(batch_images, sub_folder_id, auth, json_data, batch_nu
         else:
             failed_list.append(fname)
             log.err(f"  Upload FAILED: {fname}")
-
-    log.info(
-        f"Batch {batch_num} complete: "
-        f"✅ {len(uploaded_list)} uploaded | ❌ {len(failed_list)} failed"
-    )
+    log.info(f"Batch {batch_num} complete: ✅ {len(uploaded_list)} uploaded | ❌ {len(failed_list)} failed")
     return len(uploaded_list), failed_list
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# PIXAZO IMAGE GENERATION
+# IMAGE GENERATION — MODELSCOPE ASYNC API  ✅ v10.0
 # ══════════════════════════════════════════════════════════════════════════════
 
 def generate_image_modelscope(prompt, seed, api_key, width, height,
-                               model_name="qwen-image",
+                               model_name="z-image-turbo",
                                negative_prompt="",
                                num_steps=None,
-                               guidance_scale=None):
+                               guidance_scale=None,
+                               quota_tracker=None):
     """
-    ModelScope Official Async API (confirmed working pattern).
+    ModelScope Async API.
+    Returns: (image_url: str, response_headers: dict)
 
-    STEP 1: POST /v1/images/generations
-            Header: X-ModelScope-Async-Mode: true  ← முக்கியம்!
-    STEP 2: GET  /v1/tasks/{task_id}
-            Header: X-ModelScope-Task-Type: image_generation
-            Poll: task_status == "SUCCEED"
-    STEP 3: output_images[0] → URL → download
-
-    Returns: URL string
+    quota_tracker: ModelQuotaTracker — updated from response headers automatically.
     """
     model_id  = MODELSCOPE_MODEL_IDS[model_name]
     model_cfg = MODEL_DEFAULTS[model_name]
@@ -613,18 +550,15 @@ def generate_image_modelscope(prompt, seed, api_key, width, height,
     guidance = guidance_scale if guidance_scale is not None else model_cfg["guidance"]
     use_neg  = model_cfg["neg_prompt"]
 
-    # ── Submit headers (X-ModelScope-Async-Mode required!) ──
     submit_headers = {
-        "Authorization":          f"Bearer {api_key}",
-        "Content-Type":           "application/json",
+        "Authorization":           f"Bearer {api_key}",
+        "Content-Type":            "application/json",
         "X-ModelScope-Async-Mode": "true",
     }
-
-    # ── Poll headers ──
     poll_headers = {
-        "Authorization":            f"Bearer {api_key}",
-        "Content-Type":             "application/json",
-        "X-ModelScope-Task-Type":   "image_generation",
+        "Authorization":          f"Bearer {api_key}",
+        "Content-Type":           "application/json",
+        "X-ModelScope-Task-Type": "image_generation",
     }
 
     payload = {
@@ -644,7 +578,7 @@ def generate_image_modelscope(prompt, seed, api_key, width, height,
 
     rate_limiter.wait_if_needed()
 
-    # ── STEP 1: Task Submit ──
+    # ── STEP 1: Submit Task ──
     t0 = time.time()
     resp = requests.post(
         MODELSCOPE_SUBMIT_URL,
@@ -654,16 +588,17 @@ def generate_image_modelscope(prompt, seed, api_key, width, height,
     )
     log.debug(f"Submit HTTP {resp.status_code} in {time.time()-t0:.1f}s")
 
+    # ── Read quota headers from submit response ──
+    if quota_tracker is not None:
+        quota_tracker.update_from_headers(dict(resp.headers), model_name)
+
     if not resp.ok:
-        raise ValueError(
-            f"Submit failed: HTTP {resp.status_code} | {resp.text[:600]}")
+        raise ValueError(f"Submit failed: HTTP {resp.status_code} | {resp.text[:600]}")
 
     submit_data = resp.json()
-    task_id = submit_data.get("task_id")
-
+    task_id     = submit_data.get("task_id")
     if not task_id:
-        raise ValueError(
-            f"task_id இல்லை response-ல்: {json.dumps(submit_data)[:300]}")
+        raise ValueError(f"task_id missing in response: {json.dumps(submit_data)[:300]}")
 
     log.info(f"Task submitted: {task_id} | Polling every {TASK_POLL_INTERVAL}s...")
 
@@ -675,10 +610,8 @@ def generate_image_modelscope(prompt, seed, api_key, width, height,
     while time.time() < deadline:
         time.sleep(TASK_POLL_INTERVAL)
         poll_count += 1
-
-        poll_resp = requests.get(poll_url, headers=poll_headers, timeout=30)
+        poll_resp  = requests.get(poll_url, headers=poll_headers, timeout=30)
         log.debug(f"Poll #{poll_count} HTTP {poll_resp.status_code}")
-
         if not poll_resp.ok:
             log.warn(f"Poll failed: HTTP {poll_resp.status_code} — retrying...")
             continue
@@ -688,16 +621,13 @@ def generate_image_modelscope(prompt, seed, api_key, width, height,
         log.debug(f"task_status: {task_status}")
 
         if task_status == "SUCCEED":
-            # ── STEP 3: output_images[0] → URL ──
             output_images = task_data.get("output_images", [])
             if output_images:
                 img_url = output_images[0]
                 elapsed = int(time.time() - t0)
                 log.ok(f"Image ready in {elapsed}s | {img_url[:80]}...")
-                return img_url
-            raise ValueError(
-                f"SUCCEED ஆனால் output_images இல்லை: "
-                f"{json.dumps(task_data)[:400]}")
+                return img_url, dict(resp.headers)
+            raise ValueError(f"SUCCEED but no output_images: {json.dumps(task_data)[:400]}")
 
         elif task_status == "FAILED":
             err = task_data.get("error") or task_data.get("message", "Unknown")
@@ -707,51 +637,6 @@ def generate_image_modelscope(prompt, seed, api_key, width, height,
         log.info(f"  {task_status} ... {elapsed}s elapsed")
 
     raise TimeoutError(f"Task {task_id} timed out after {TASK_MAX_WAIT}s")
-
-
-
-def _extract_image_url(task_data):
-    """Task response-இல் இருந்து image URL எடுக்கும்."""
-    output = task_data.get("output", task_data)
-
-    # images array format
-    if "images" in output:
-        imgs = output["images"]
-        if imgs:
-            img = imgs[0]
-            if isinstance(img, dict):
-                return img.get("url") or img.get("imageUrl")
-            if isinstance(img, str) and img.startswith("http"):
-                return img
-
-    # flat URL fields
-    for key in ("url", "image_url", "imageUrl", "output_url", "result"):
-        val = output.get(key)
-        if val and isinstance(val, str) and val.startswith("http"):
-            return val
-        if val and isinstance(val, list) and val:
-            v = val[0]
-            if isinstance(v, str) and v.startswith("http"):
-                return v
-            if isinstance(v, dict):
-                u = v.get("url") or v.get("imageUrl")
-                if u:
-                    return u
-
-    return None
-
-
-def generate_image_api(prompt, seed, model_name, api_key, width, height,
-                        negative_prompt="", num_steps=None,
-                        guidance_scale=None):
-    """அனைத்து ModelScope models-க்கும் பொதுவான entry point."""
-    return generate_image_modelscope(
-        prompt, seed, api_key, width, height,
-        model_name=model_name,
-        negative_prompt=negative_prompt,
-        num_steps=num_steps,
-        guidance_scale=guidance_scale,
-    )
 
 
 def download_file(url, save_path):
@@ -769,10 +654,19 @@ def download_file(url, save_path):
 # CONFIG
 # ══════════════════════════════════════════════════════════════════════════════
 
+DEFAULT_MODEL_ROTATION = [
+    "z-image-turbo",
+    "z-image",
+    "qwen-image",
+    "qwen-image-2512",
+    "muse-qwen",
+]
+
+
 def load_config():
     config   = {}
     required = {
-        "SCOPE":                  "ModelScope API Key (modelscope.cn/my/myaccesstoken)",
+        "SCOPE":                  "ModelScope API Key",
         "GOOGLE_CLIENT_ID":       "Google OAuth Client ID",
         "GOOGLE_CLIENT_SECRET":   "Google OAuth Client Secret",
         "GOOGLE_REFRESH_TOKEN":   "Google OAuth Refresh Token",
@@ -784,42 +678,56 @@ def load_config():
         if not val:
             missing.append(f"  - {key} ({label})")
         config[key] = val
-
     if missing:
         log.err("Missing environment variables:")
         for m in missing:
             print(m, flush=True)
         sys.exit(1)
 
-    config["MODEL"]             = os.environ.get("PIXAZO_MODEL", "qwen-image").strip()
+    # ── Model rotation (v10.0) ──
+    # PIXAZO_MODELS = "z-image-turbo,z-image,qwen-image"  (comma-separated)
+    # PIXAZO_MODEL  = "z-image-turbo"  (single model, for backwards compat)
+    models_env  = os.environ.get("PIXAZO_MODELS", "").strip()
+    model_single = os.environ.get("PIXAZO_MODEL", "").strip()
+
+    if models_env:
+        rotation = [m.strip() for m in models_env.split(",") if m.strip()]
+    elif model_single:
+        rotation = [model_single]
+    else:
+        rotation = DEFAULT_MODEL_ROTATION
+
+    # Validate
+    invalid = [m for m in rotation if m not in VALID_MODELS]
+    if invalid:
+        log.err(f"Invalid model(s) in rotation: {invalid}")
+        log.err(f"Valid models: {sorted(VALID_MODELS)}")
+        sys.exit(1)
+
+    config["MODEL_ROTATION"]    = rotation
+    config["MODEL"]             = rotation[0]   # primary (for display)
     config["WIDTH"]             = int(os.environ.get("PIXAZO_WIDTH",  "1024"))
     config["HEIGHT"]            = int(os.environ.get("PIXAZO_HEIGHT", "1024"))
-    config["WORKERS"]           = 1
     config["COUNT"]             = os.environ.get("PIXAZO_COUNT", "ALL").strip().upper()
-    config["NUM_STEPS"]         = None   # model defaults use பண்ணும்
-    config["GUIDANCE"]          = None   # model defaults use பண்ணும்
+    config["NUM_STEPS"]         = None
+    config["GUIDANCE"]          = None
     config["PROMPTS_DIR"]       = os.environ.get("PIXAZO_PROMPTS_DIR", "prompts").strip()
     config["UPLOAD_BATCH_SIZE"] = int(os.environ.get(
         "PIXAZO_UPLOAD_BATCH_SIZE", str(DEFAULT_UPLOAD_BATCH_SIZE)))
 
-    if config["MODEL"] not in VALID_MODELS:
-        log.err(f"Invalid model: '{config['MODEL']}'")
-        log.err(f"Valid models: {sorted(VALID_MODELS)}")
-        sys.exit(1)
-
-    log.debug(f"Config: MODEL={config['MODEL']} SIZE={config['WIDTH']}x{config['HEIGHT']} "
+    log.debug(f"Config: ROTATION={rotation} SIZE={config['WIDTH']}x{config['HEIGHT']} "
               f"COUNT={config['COUNT']} BATCH={config['UPLOAD_BATCH_SIZE']}")
     return config
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# PROCESS ONE JSON FILE  ✅ v8.0 — batch upload + auto token refresh
+# PROCESS ONE JSON FILE  ✅ v10.0 — Auto model rotation
 # ══════════════════════════════════════════════════════════════════════════════
 
-def process_single_json(json_path, config, auth):
+def process_single_json(json_path, config, auth, quota_tracker):
     """
-    auth: GoogleAuth object — token auto-refresh பண்ணும்.
-    ஒவ்வொரு UPLOAD_BATCH_SIZE images-க்கும் Drive-க்கு upload பண்ணும்.
+    quota_tracker: ModelQuotaTracker shared across all JSON files.
+    Auto-switches model when per-model 500/day quota is exhausted.
     """
     json_path      = Path(json_path)
     subfolder_name = json_path.stem
@@ -837,8 +745,6 @@ def process_single_json(json_path, config, auth):
     done_c = sum(1 for x in json_data if x.get("status") == "completed")
     log.info(f"JSON: {total} total | {done_c} done | {total - done_c} pending")
 
-    # ── Config ──
-    model_name        = config["MODEL"]
     api_key           = config["SCOPE"]
     width, height     = config["WIDTH"], config["HEIGHT"]
     num_steps         = config["NUM_STEPS"]
@@ -847,20 +753,16 @@ def process_single_json(json_path, config, auth):
     parent_folder_id  = config["GOOGLE_DRIVE_FOLDER_ID"]
     upload_batch_size = config["UPLOAD_BATCH_SIZE"]
 
-    # ── Local output ──
     local_out = Path("generated_images") / subfolder_name
     local_out.mkdir(parents=True, exist_ok=True)
 
-    # ── Create/find Drive subfolder ──
     log.section("Step 1: Drive Subfolder")
     sub_folder_id = create_drive_folder(subfolder_name, parent_folder_id, auth.get_token())
     log.info(f"Drive subfolder id={sub_folder_id}")
 
-    # ── List existing files in Drive ──
     log.section("Step 2: List Existing Drive Files")
     existing_in_drive = list_drive_files(sub_folder_id, auth.get_token())
 
-    # ── Build pending list ──
     log.section("Step 3: Build Pending List")
     items_pending = [x for x in json_data if x.get("status") != "completed"]
     skipped_disk  = 0
@@ -870,19 +772,16 @@ def process_single_json(json_path, config, auth):
     for item in items_pending:
         fname    = item.get("filename", f"img_{item.get('index', 0)}.png")
         out_path = local_out / fname
-
         if out_path.exists():
             item["status"]      = "completed"
             item["output_path"] = str(out_path)
             skipped_disk += 1
             continue
-
         if fname in existing_in_drive:
             item["status"]         = "completed"
             item["drive_uploaded"] = True
             skipped_drive += 1
             continue
-
         truly_pending.append(item)
 
     if skipped_disk:
@@ -904,7 +803,7 @@ def process_single_json(json_path, config, auth):
         "failed":        0,
         "uploaded":      0,
         "upload_failed": 0,
-        "drive_calls":   2,   # folder + list already done
+        "drive_calls":   2,
         "batches":       0,
         "time_seconds":  0,
     }
@@ -915,21 +814,24 @@ def process_single_json(json_path, config, auth):
             json.dump(json_data, fh, indent=2, ensure_ascii=False)
         return result
 
-    # ═══════════════════════════════════════════════════════════════════════════
-    # GENERATE + BATCH UPLOAD LOOP  ✅ KEY CHANGE in v8.0
-    # ═══════════════════════════════════════════════════════════════════════════
+    # ══════════════════════════════════════════════════════════════════════
+    # GENERATE + BATCH UPLOAD LOOP with Auto Model Rotation  ✅ v10.0
+    # ══════════════════════════════════════════════════════════════════════
     log.section(
         f"Step 4: Generate {total_gen} Images "
         f"(Batch upload every {upload_batch_size})"
     )
-    log.info(f"Model={model_name} | Size={width}x{height} | Rate=9 req/min")
+    log.info(f"Model rotation: {quota_tracker.rotation}")
+    log.info(f"Active model: {quota_tracker.current_model} "
+             f"({MODELSCOPE_MODEL_IDS[quota_tracker.current_model]})")
+    log.info(f"Size={width}x{height} | Rate=9 req/min")
 
     done_count          = 0
     fail_count          = 0
     total_uploaded      = 0
     total_upload_failed = []
     start_t             = time.time()
-    current_batch       = []   # accumulate until batch_size
+    current_batch       = []
     batch_num           = 0
 
     for idx, item in enumerate(truly_pending, 1):
@@ -938,36 +840,63 @@ def process_single_json(json_path, config, auth):
         prompt   = item.get("prompt", "")
         seed     = int(item.get("seed", SDXL_DEFAULT_SEED))
 
+        # ── Auto model switch check ──
+        if quota_tracker.should_switch():
+            log.warn(
+                f"Model '{quota_tracker.current_model}' quota exhausted! "
+                f"Switching to next model..."
+            )
+            if not quota_tracker.switch_to_next():
+                log.err("ALL models quota exhausted for today! Stopping generation.")
+                log.err(f"Quota status: {quota_tracker.status_line()}")
+                break
+
+        active_model = quota_tracker.current_model
+
         log.info(
             f"[{idx}/{total_gen}] Generating: {fname} | "
-            f"seed={seed} | {rate_limiter.status()} | "
-            f"Token: {auth.token_age_str()}"
+            f"model={active_model} | seed={seed} | "
+            f"{rate_limiter.status()} | Token: {auth.token_age_str()}"
         )
+        log.debug(f"Quota: {quota_tracker.status_line()}")
 
         try:
-            img_result = generate_image_api(
-                prompt, seed, model_name, api_key, width, height,
-                negative_prompt=DEFAULT_NEG_PROMPT,
-                num_steps=num_steps, guidance_scale=guidance)
+            model_cfg = MODEL_DEFAULTS[active_model]
+            neg_p     = DEFAULT_NEG_PROMPT if model_cfg["neg_prompt"] else ""
 
-            # ModelScope async API always returns URL
-            if isinstance(img_result, bytes):
-                with open(str(out_path), "wb") as f:
-                    f.write(img_result)
-            else:
-                download_file(img_result, out_path)
+            img_url, resp_headers = generate_image_modelscope(
+                prompt, seed, api_key, width, height,
+                model_name=active_model,
+                negative_prompt=neg_p,
+                num_steps=num_steps,
+                guidance_scale=guidance,
+                quota_tracker=quota_tracker,
+            )
+
+            download_file(img_url, out_path)
 
             item["status"]      = "completed"
             item["output_path"] = str(out_path)
             item["done_at"]     = datetime.now().isoformat()
+            item["model_used"]  = active_model   # track which model generated it
             current_batch.append(out_path)
             done_count += 1
-            log.ok(f"  Generated: {fname}")
+            log.ok(f"  Generated: {fname} [model={active_model}]")
 
         except Exception as e:
+            err_str = str(e)[:300]
             item["status"] = "failed"
             fail_count    += 1
-            log.err(f"  FAILED: {fname} — {str(e)[:300]}")
+            log.err(f"  FAILED: {fname} — {err_str}")
+
+            # If Task FAILED, this model might be quota-exhausted on AIGC side
+            # Force quota check on next iteration
+            if "Task FAILED" in err_str:
+                log.warn(
+                    f"Task FAILED detected on model '{active_model}'. "
+                    f"Marking as potentially exhausted and switching..."
+                )
+                quota_tracker.exhausted.add(active_model)
 
         # ── Progress ──
         processed = done_count + fail_count
@@ -979,31 +908,29 @@ def process_single_json(json_path, config, auth):
             f"  Progress: {processed}/{total_gen} ({processed/total_gen*100:.0f}%) "
             f"| OK:{done_count} FAIL:{fail_count} "
             f"| {rate:.1f} img/min | ETA:{eta_s//60}m{eta_s%60}s "
+            f"| Model:{quota_tracker.current_model} "
             f"| Batch queue: {len(current_batch)}/{upload_batch_size}",
             flush=True
         )
 
-        # ── Trigger batch upload every upload_batch_size images ──
+        # ── Trigger batch upload ──
         if len(current_batch) >= upload_batch_size:
             batch_num += 1
             log.section(
                 f"BATCH {batch_num} TRIGGERED "
                 f"({len(current_batch)} images ready) — uploading to Drive now..."
             )
-
-            # Save JSON before upload (crash safety)
             try:
                 with open(json_path, "w", encoding="utf-8") as fh:
                     json.dump(json_data, fh, indent=2, ensure_ascii=False)
             except Exception:
                 pass
-
             up_count, failed = upload_batch_to_drive(
                 current_batch, sub_folder_id, auth, json_data, batch_num)
             total_uploaded      += up_count
             total_upload_failed += failed
             result["drive_calls"] += up_count + len(failed)
-            current_batch = []   # reset batch buffer
+            current_batch = []
             log.ok(f"Batch {batch_num} done. Resuming generation...")
 
         # Periodic crash-safe JSON save
@@ -1013,7 +940,7 @@ def process_single_json(json_path, config, auth):
         except Exception:
             pass
 
-    # ── Final batch: upload remaining images ──
+    # ── Final batch upload ──
     if current_batch:
         batch_num += 1
         log.section(
@@ -1027,7 +954,7 @@ def process_single_json(json_path, config, auth):
         result["drive_calls"] += up_count + len(failed)
         current_batch = []
 
-    # ── Upload JSON status file to Drive ──
+    # ── Upload JSON status file ──
     log.section("Upload JSON Status to Drive")
     upload_to_google_drive(json_path, sub_folder_id, auth.get_token(),
                            mime_type="application/json")
@@ -1057,10 +984,7 @@ def process_single_json(json_path, config, auth):
         for mf in total_upload_failed:
             log.err(f"  ❌ {mf}")
     else:
-        log.ok(
-            f"All {total_uploaded} images uploaded in "
-            f"{batch_num} batch(es)!"
-        )
+        log.ok(f"All {total_uploaded} images uploaded in {batch_num} batch(es)!")
 
     log.info(
         f"[{json_path.name}] Done {elapsed}s | "
@@ -1072,13 +996,21 @@ def process_single_json(json_path, config, auth):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# MAIN PIPELINE  ✅ v8.0 — GoogleAuth object
+# MAIN PIPELINE  ✅ v10.0
 # ══════════════════════════════════════════════════════════════════════════════
 
 def run_pipeline(config):
-    log.step("PIXAZO AI - HEADLESS GENERATOR v8.0 (ModelScope API + Token Auto-Refresh + Batch Upload)")
-    log.info(f"Model: {config['MODEL']} | Size: {config['WIDTH']}x{config['HEIGHT']}")
-    log.info(f"Rate limit: {MAX_REQUESTS_PER_MINUTE} req/min | Workers: 1")
+    rotation = config["MODEL_ROTATION"]
+    max_day  = len(rotation) * MODEL_DAILY_LIMIT
+
+    log.step(
+        "PIXAZO AI - HEADLESS GENERATOR v10.0 "
+        "(ModelScope API + Multi-Model Rotation + Auto Quota Switch)"
+    )
+    log.info(f"Model rotation ({len(rotation)} models): {rotation}")
+    log.info(f"Max images today (all models): ~{max_day}")
+    log.info(f"Size: {config['WIDTH']}x{config['HEIGHT']}")
+    log.info(f"Rate limit: {MAX_REQUESTS_PER_MINUTE} req/min")
     log.info(f"Upload batch size: every {config['UPLOAD_BATCH_SIZE']} images")
     log.info(f"Token auto-refresh: every {GoogleAuth.TOKEN_TTL//60} min")
     log.info(f"Debug logging: {'ON' if Logger.debug_enabled else 'OFF'}")
@@ -1097,14 +1029,17 @@ def run_pipeline(config):
     for jf in json_files:
         log.info(f"  {jf.name} → Drive/{jf.stem}/")
 
-    # ── GoogleAuth — auto-refresh token ──
+    # ── Google Auth ──
     log.step("Google Drive Authentication")
     auth = GoogleAuth(
         config["GOOGLE_CLIENT_ID"],
         config["GOOGLE_CLIENT_SECRET"],
         config["GOOGLE_REFRESH_TOKEN"]
     )
-    auth.get_token()   # First token fetch + validate credentials
+    auth.get_token()
+
+    # ── Shared quota tracker (persists across all JSON files) ──
+    quota_tracker = ModelQuotaTracker(rotation)
 
     # ── Process each JSON ──
     all_results = []
@@ -1112,8 +1047,9 @@ def run_pipeline(config):
 
     for idx, jf in enumerate(json_files, 1):
         log.step(f"FILE {idx}/{len(json_files)}: {jf.name}")
+        log.info(f"Quota status: {quota_tracker.status_line()}")
         try:
-            r = process_single_json(jf, config, auth)   # auth object, not token string
+            r = process_single_json(jf, config, auth, quota_tracker)
             all_results.append(r)
         except Exception as e:
             log.err(f"Error in {jf.name}: {e}")
@@ -1130,7 +1066,7 @@ def run_pipeline(config):
                 "error":         str(e),
             })
 
-    # ── Final summary ──
+    # ── Final Summary ──
     total_elapsed = int(time.time() - total_start)
     log.step("FINAL SUMMARY")
 
@@ -1144,7 +1080,6 @@ def run_pipeline(config):
         bat = r.get("batches",       0)
         t_gen += g; t_fail += f; t_up += u
         t_uf  += uf; t_dc  += dc; t_bat += bat
-
         st = "OK  " if (f == 0 and uf == 0 and "error" not in r) else "WARN"
         print(
             f"  [{st}] {r['json']:30s} | "
@@ -1157,6 +1092,7 @@ def run_pipeline(config):
              f"Uploaded:{t_up} UpFail:{t_uf} | "
              f"Batches:{t_bat} DriveCalls:{t_dc}")
     log.info(f"Total time: {total_elapsed}s ({total_elapsed//60}m{total_elapsed%60}s)")
+    log.info(f"Final quota: {quota_tracker.status_line()}")
 
     if t_fail > 0 or t_uf > 0:
         log.warn(f"Completed with issues — GenFail:{t_fail} UploadFail:{t_uf}")
