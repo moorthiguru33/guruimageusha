@@ -7,7 +7,11 @@
     "prompt": "highly realistic photorealistic 16k ultra sharp image of vibrant fresh fruits banana apple orange mango grapes pineapple watermelon papaya strawberry lemon avocado peach pear cherry blueberry overflowing in an oversized handwoven bamboo basket, solid light grey background, sharper focus good bright lighting wonderful illumination, highly detailed textures intricate details, professional food photography studio shot",
     "filename": "assorted-fruits-bamboo-basket-21.jpg",
     "seed": 123456809,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/new/assorted-fruits-bamboo-basket-21.jpg",
+    "done_at": "2026-04-12T07:35:04.385201",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Wooden Bowl",
@@ -17,7 +21,11 @@
     "prompt": "highly realistic photorealistic 16k ultra sharp image of vibrant fresh fruits banana apple orange mango grapes pineapple watermelon papaya strawberry lemon avocado peach pear cherry blueberry artfully arranged in a beautifully carved rustic wooden bowl, solid light grey background, sharper focus good bright lighting wonderful illumination, highly detailed textures intricate details, professional food photography studio shot",
     "filename": "assorted-fruits-wooden-bowl-3.jpg",
     "seed": 223456791,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/new/assorted-fruits-wooden-bowl-3.jpg",
+    "done_at": "2026-04-12T07:35:39.993814",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Clay Pot (Earthen Pot)",
