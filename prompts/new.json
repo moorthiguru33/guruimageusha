@@ -35,7 +35,11 @@
     "prompt": "highly realistic photorealistic 16k ultra sharp image of vibrant fresh fruits banana apple orange mango grapes pineapple watermelon papaya strawberry lemon avocado peach pear cherry blueberry in a handmade terracotta clay pot, solid light grey background, sharper focus good bright lighting wonderful illumination, highly detailed textures intricate details, professional food photography studio shot",
     "filename": "assorted-fruits-clay-pot-3.jpg",
     "seed": 323456791,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/new/assorted-fruits-clay-pot-3.jpg",
+    "done_at": "2026-04-12T07:40:17.052755",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Wicker Basket",
@@ -45,7 +49,11 @@
     "prompt": "highly realistic photorealistic 16k ultra sharp image of vibrant fresh fruits banana apple orange mango grapes pineapple watermelon papaya strawberry lemon avocado peach pear cherry blueberry piled high in a large vintage wicker basket, solid light grey background, sharper focus good bright lighting wonderful illumination, highly detailed textures intricate details, professional food photography studio shot",
     "filename": "assorted-fruits-wicker-basket-3.jpg",
     "seed": 523456791,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/new/assorted-fruits-wicker-basket-3.jpg",
+    "done_at": "2026-04-12T07:42:18.687942",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Marble Plate",
