@@ -1,0 +1,91 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# PIXAZO AI - GitHub Actions Workflow v9.0 (ModelScope Edition)
+# ══════════════════════════════════════════════════════════════════════════════
+# ModelScope Async API: generate → batch upload → Google Drive
+# Available Models (Free Cloud Inference):
+#   - qwen-image        → Qwen/Qwen-Image (20B, best quality)
+#   - qwen-image-2512   → Qwen/Qwen-Image-2512 (Dec 2025 update)
+#   - z-image-turbo     → Tongyi-MAI/Z-Image-Turbo (fastest, 9 steps)
+# ══════════════════════════════════════════════════════════════════════════════
+
+name: Pixazo AI - Generate Images (ModelScope)
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "Model (ModelScope Cloud Inference)"
+        required: false
+        default: "qwen-image"
+        type: choice
+        options:
+          - qwen-image
+          - qwen-image-2512
+          - z-image-turbo
+      count:
+        description: "Images per JSON (number or ALL)"
+        required: false
+        default: "ALL"
+        type: string
+      width:
+        description: "Image width"
+        required: false
+        default: "1024"
+        type: string
+      height:
+        description: "Image height"
+        required: false
+        default: "1024"
+        type: string
+
+  push:
+    paths:
+      - "prompts/**"
+
+  # schedule:
+  #   - cron: "0 6 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  generate-images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Generate Images & Smart Upload to Google Drive
+        env:
+          SCOPE:                   ${{ secrets.SCOPE }}
+          GOOGLE_CLIENT_ID:        ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET:    ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN:    ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          GOOGLE_DRIVE_FOLDER_ID:  ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+          GOOGLE_APPS_SCRIPT_URL:  ${{ secrets.GOOGLE_APPS_SCRIPT_URL }}
+          PIXAZO_MODEL:            ${{ github.event.inputs.model || 'qwen-image' }}
+          PIXAZO_COUNT:            ${{ github.event.inputs.count || 'ALL' }}
+          PIXAZO_WIDTH:            ${{ github.event.inputs.width || '1024' }}
+          PIXAZO_HEIGHT:           ${{ github.event.inputs.height || '1024' }}
+          PIXAZO_PROMPTS_DIR:      "prompts"
+        run: python model.py
+
+      - name: Commit updated JSON statuses
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add prompts/*.json
+          git diff --cached --quiet || git commit -m "Auto-update: image generation status [skip ci]"
+          git push || echo "Nothing to push"
