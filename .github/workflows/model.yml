@@ -1,11 +1,16 @@
 # ══════════════════════════════════════════════════════════════════════════════
-# PIXAZO AI - GitHub Actions Workflow v9.0 (ModelScope Edition)
+# PIXAZO AI - GitHub Actions Workflow v10.0 (ModelScope Multi-Model Rotation)
 # ══════════════════════════════════════════════════════════════════════════════
-# ModelScope Async API: generate → batch upload → Google Drive
-# Available Models (Free Cloud Inference):
-#   - qwen-image        → Qwen/Qwen-Image (20B, best quality)
-#   - qwen-image-2512   → Qwen/Qwen-Image-2512 (Dec 2025 update)
-#   - z-image-turbo     → Tongyi-MAI/Z-Image-Turbo (fastest, 9 steps)
+# Auto Model Rotation: switches to next model when 500/day quota exhausted
+#
+# Available Models (Free Cloud Inference, 500 calls/day each):
+#   z-image-turbo    → Tongyi-MAI/Z-Image-Turbo  (fastest, 9 steps)
+#   z-image          → Tongyi-MAI/Z-Image         (full quality)
+#   qwen-image       → Qwen/Qwen-Image            (20B, best quality)
+#   qwen-image-2512  → Qwen/Qwen-Image-2512       (Dec 2025 update)
+#   muse-qwen        → MusePublic/Qwen-image      (MusePublic variant)
+#
+# Max per day: ~2000+ images (using all 5 models = 2500 calls)
 # ══════════════════════════════════════════════════════════════════════════════
 
 name: Pixazo AI - Generate Images (ModelScope)
@@ -13,25 +18,41 @@ name: Pixazo AI - Generate Images (ModelScope)
 on:
   workflow_dispatch:
     inputs:
-      model:
-        description: "Model (ModelScope Cloud Inference)"
+      models:
+        description: "Model rotation (comma-separated, in order of use)"
         required: false
-        default: "qwen-image"
+        default: "z-image-turbo,z-image,qwen-image,qwen-image-2512,muse-qwen"
         type: choice
         options:
-          - qwen-image
-          - qwen-image-2512
-          - z-image-turbo
+          # ── All 5 models (max ~2500 images/day) ──
+          - "z-image-turbo,z-image,qwen-image,qwen-image-2512,muse-qwen"
+          # ── Fast only (turbo first, then full Z-Image) ──
+          - "z-image-turbo,z-image"
+          # ── Qwen family only ──
+          - "qwen-image,qwen-image-2512,muse-qwen"
+          # ── Single models ──
+          - "z-image-turbo"
+          - "z-image"
+          - "qwen-image"
+          - "qwen-image-2512"
+          - "muse-qwen"
+          # ── Best quality combo ──
+          - "qwen-image,z-image"
+          # ── Speed + Quality combo ──
+          - "z-image-turbo,qwen-image"
+
       count:
         description: "Images per JSON (number or ALL)"
         required: false
         default: "ALL"
         type: string
+
       width:
         description: "Image width"
         required: false
         default: "1024"
         type: string
+
       height:
         description: "Image height"
         required: false
@@ -75,7 +96,7 @@ jobs:
           GOOGLE_REFRESH_TOKEN:    ${{ secrets.GOOGLE_REFRESH_TOKEN }}
           GOOGLE_DRIVE_FOLDER_ID:  ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
           GOOGLE_APPS_SCRIPT_URL:  ${{ secrets.GOOGLE_APPS_SCRIPT_URL }}
-          PIXAZO_MODEL:            ${{ github.event.inputs.model || 'qwen-image' }}
+          PIXAZO_MODELS:           ${{ github.event.inputs.models || 'z-image-turbo,z-image,qwen-image,qwen-image-2512,muse-qwen' }}
           PIXAZO_COUNT:            ${{ github.event.inputs.count || 'ALL' }}
           PIXAZO_WIDTH:            ${{ github.event.inputs.width || '1024' }}
           PIXAZO_HEIGHT:           ${{ github.event.inputs.height || '1024' }}
