@@ -594,25 +594,36 @@ def generate_image_modelscope(prompt, seed, api_key, width, height,
                                num_steps=None,
                                guidance_scale=None):
     """
-    ModelScope Async API மூலம் image generate பண்ணும்.
+    ModelScope Official Async API (confirmed working pattern).
 
-    STEP 1: POST /v1/images/generations  → task_id
-    STEP 2: GET  /v1/tasks/{task_id}     → poll until succeeded
-    STEP 3: Return image URL string
+    STEP 1: POST /v1/images/generations
+            Header: X-ModelScope-Async-Mode: true  ← முக்கியம்!
+    STEP 2: GET  /v1/tasks/{task_id}
+            Header: X-ModelScope-Task-Type: image_generation
+            Poll: task_status == "SUCCEED"
+    STEP 3: output_images[0] → URL → download
 
-    Returns: URL string (download_file() மூலம் save பண்ணலாம்)
+    Returns: URL string
     """
-    model_id     = MODELSCOPE_MODEL_IDS[model_name]
-    model_cfg    = MODEL_DEFAULTS[model_name]
+    model_id  = MODELSCOPE_MODEL_IDS[model_name]
+    model_cfg = MODEL_DEFAULTS[model_name]
 
-    # model-specific defaults use பண்ணவும்
-    steps    = num_steps     if num_steps     is not None else model_cfg["steps"]
+    steps    = num_steps      if num_steps      is not None else model_cfg["steps"]
     guidance = guidance_scale if guidance_scale is not None else model_cfg["guidance"]
     use_neg  = model_cfg["neg_prompt"]
 
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type":  "application/json",
+    # ── Submit headers (X-ModelScope-Async-Mode required!) ──
+    submit_headers = {
+        "Authorization":          f"Bearer {api_key}",
+        "Content-Type":           "application/json",
+        "X-ModelScope-Async-Mode": "true",
+    }
+
+    # ── Poll headers ──
+    poll_headers = {
+        "Authorization":            f"Bearer {api_key}",
+        "Content-Type":             "application/json",
+        "X-ModelScope-Task-Type":   "image_generation",
     }
 
     payload = {
@@ -633,9 +644,13 @@ def generate_image_modelscope(prompt, seed, api_key, width, height,
     rate_limiter.wait_if_needed()
 
     # ── STEP 1: Task Submit ──
-    t0   = time.time()
-    resp = requests.post(MODELSCOPE_SUBMIT_URL, json=payload,
-                         headers=headers, timeout=60)
+    t0 = time.time()
+    resp = requests.post(
+        MODELSCOPE_SUBMIT_URL,
+        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+        headers=submit_headers,
+        timeout=60,
+    )
     log.debug(f"Submit HTTP {resp.status_code} in {time.time()-t0:.1f}s")
 
     if not resp.ok:
@@ -643,9 +658,7 @@ def generate_image_modelscope(prompt, seed, api_key, width, height,
             f"Submit failed: HTTP {resp.status_code} | {resp.text[:600]}")
 
     submit_data = resp.json()
-    task_id = (submit_data.get("task_id")
-               or submit_data.get("id")
-               or submit_data.get("request_id"))
+    task_id = submit_data.get("task_id")
 
     if not task_id:
         raise ValueError(
@@ -662,40 +675,38 @@ def generate_image_modelscope(prompt, seed, api_key, width, height,
         time.sleep(TASK_POLL_INTERVAL)
         poll_count += 1
 
-        poll_resp = requests.get(poll_url, headers=headers, timeout=30)
+        poll_resp = requests.get(poll_url, headers=poll_headers, timeout=30)
         log.debug(f"Poll #{poll_count} HTTP {poll_resp.status_code}")
 
         if not poll_resp.ok:
             log.warn(f"Poll failed: HTTP {poll_resp.status_code} — retrying...")
             continue
 
-        task_data  = poll_resp.json()
-        status     = (task_data.get("status")
-                      or task_data.get("task_status", "")).lower()
-        log.debug(f"Task status: {status}")
+        task_data   = poll_resp.json()
+        task_status = task_data.get("task_status", "")
+        log.debug(f"task_status: {task_status}")
 
-        if status in ("succeeded", "success", "completed", "finished"):
-            # ── STEP 3: Image URL extract ──
-            img_url = _extract_image_url(task_data)
-            if img_url:
+        if task_status == "SUCCEED":
+            # ── STEP 3: output_images[0] → URL ──
+            output_images = task_data.get("output_images", [])
+            if output_images:
+                img_url = output_images[0]
                 elapsed = int(time.time() - t0)
-                log.ok(f"Image ready in {elapsed}s | URL: {img_url[:80]}...")
+                log.ok(f"Image ready in {elapsed}s | {img_url[:80]}...")
                 return img_url
             raise ValueError(
-                f"Task succeeded ஆனால் image URL இல்லை: "
+                f"SUCCEED ஆனால் output_images இல்லை: "
                 f"{json.dumps(task_data)[:400]}")
 
-        elif status in ("failed", "error"):
-            err = (task_data.get("error")
-                   or task_data.get("message", "Unknown error"))
-            raise ValueError(f"Task failed: {err}")
+        elif task_status == "FAILED":
+            err = task_data.get("error") or task_data.get("message", "Unknown")
+            raise ValueError(f"Task FAILED: {err}")
 
-        # pending / running → continue polling
         elapsed = int(time.time() - t0)
-        log.info(f"  Still processing... {elapsed}s elapsed (status={status})")
+        log.info(f"  {task_status} ... {elapsed}s elapsed")
 
-    raise TimeoutError(
-        f"Task {task_id} timed out after {TASK_MAX_WAIT}s")
+    raise TimeoutError(f"Task {task_id} timed out after {TASK_MAX_WAIT}s")
+
 
 
 def _extract_image_url(task_data):
