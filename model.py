@@ -42,8 +42,9 @@ from collections import deque
 # ══════════════════════════════════════════════════════════════════════════════
 
 # ModelScope Async Image Generation API (confirmed working)
-MODELSCOPE_SUBMIT_URL = "https://api-inference.modelscope.cn/v1/images/generations"
-MODELSCOPE_TASK_URL   = "https://api-inference.modelscope.cn/v1/tasks/{task_id}"
+MODELSCOPE_BASE_URL   = "https://api-inference.modelscope.ai/"
+MODELSCOPE_SUBMIT_URL = f"{MODELSCOPE_BASE_URL}v1/images/generations"
+MODELSCOPE_TASK_URL   = f"{MODELSCOPE_BASE_URL}v1/tasks/{{task_id}}"
 
 # Cloud Inference-ல் available ஆன models மட்டும் (verified)
 MODELSCOPE_MODEL_IDS = {
