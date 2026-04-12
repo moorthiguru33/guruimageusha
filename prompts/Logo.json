@@ -1,65 +1,422 @@
 [
-{ "category": "marketing offer logo", "category_slug": "buy-2-get-1-free-logo", "title": "Buy 2 Get 1 Free modern bold retail promotional logo design with clean typography and solid grey background", "index": 1, "prompt": "Create a bold modern logo text 'BUY 2 GET 1 FREE' with strong sans-serif typography, minimal design, centered composition, high contrast white and black text on solid grey background, subtle shadow, professional retail branding style, ultra sharp, no clutter", "filename": "buy2get1_style1.png", "seed": 112233, "status": "pending" },
-
-{ "category": "marketing offer logo", "category_slug": "buy-2-get-1-free-logo", "title": "Buy 2 Get 1 Free luxury premium gold typography offer logo for branding with elegant minimal grey background", "index": 2, "prompt": "Design a luxury style logo 'BUY 2 GET 1 FREE' using elegant serif typography, gold metallic effect, minimal layout, centered text, soft lighting, solid grey background, premium brand feel, high detail", "filename": "buy2get1_style2.png", "seed": 112234, "status": "pending" },
-
-{ "category": "marketing offer logo", "category_slug": "buy-2-get-1-free-logo", "title": "Buy 2 Get 1 Free neon glow futuristic promotional logo with modern typography and grey background", "index": 3, "prompt": "Create futuristic neon glowing logo text 'BUY 2 GET 1 FREE', cyberpunk style, vibrant neon accents, glowing edges, bold font, centered, solid grey background, high contrast, modern retail promo vibe", "filename": "buy2get1_style3.png", "seed": 112235, "status": "pending" },
-
-{ "category": "marketing offer logo", "category_slug": "buy-2-get-1-free-logo", "title": "Buy 2 Get 1 Free handwritten brush style creative sale logo with artistic typography grey background", "index": 4, "prompt": "Design a creative brush lettering logo 'BUY 2 GET 1 FREE', hand-drawn typography, artistic strokes, slightly rough edges, minimal composition, centered on solid grey background, modern trendy feel", "filename": "buy2get1_style4.png", "seed": 112236, "status": "pending" },
-
-{ "category": "marketing offer logo", "category_slug": "buy-2-get-1-free-logo", "title": "Buy 2 Get 1 Free 3D embossed text promotional logo with depth and shadow on grey background", "index": 5, "prompt": "Create 3D embossed logo text 'BUY 2 GET 1 FREE', depth effect, realistic shadows, slightly raised text, metallic or matte finish, centered on solid grey background, high resolution", "filename": "buy2get1_style5.png", "seed": 112237, "status": "pending" },
-
-{ "category": "marketing offer logo", "category_slug": "buy-2-get-1-free-logo", "title": "Buy 2 Get 1 Free minimalist clean typography logo for ecommerce sale banner grey background", "index": 6, "prompt": "Minimalist logo design 'BUY 2 GET 1 FREE', clean sans-serif font, simple spacing, centered layout, monochrome style, solid grey background, modern ecommerce aesthetic", "filename": "buy2get1_style6.png", "seed": 112238, "status": "pending" },
-
-{ "category": "marketing offer logo", "category_slug": "buy-2-get-1-free-logo", "title": "Buy 2 Get 1 Free vintage retro badge style promotional logo with classic typography grey background", "index": 7, "prompt": "Create retro vintage badge style logo 'BUY 2 GET 1 FREE', classic fonts, badge shape, subtle texture, centered, solid grey background, nostalgic marketing style", "filename": "buy2get1_style7.png", "seed": 112239, "status": "pending" },
-
-{ "category": "marketing offer logo", "category_slug": "buy-2-get-1-free-logo", "title": "Buy 2 Get 1 Free geometric modern logo with sharp shapes and bold typography on grey background", "index": 8, "prompt": "Design geometric style logo 'BUY 2 GET 1 FREE', sharp shapes, structured layout, bold typography, minimal color palette, centered composition, solid grey background", "filename": "buy2get1_style8.png", "seed": 112240, "status": "pending" },
-
-{ "category": "marketing offer logo", "category_slug": "buy-2-get-1-free-logo", "title": "Buy 2 Get 1 Free playful cartoon style sale logo with fun typography on grey background", "index": 9, "prompt": "Create playful cartoon style logo 'BUY 2 GET 1 FREE', rounded fonts, fun design, slight bounce effect, minimal icons, centered on solid grey background, friendly retail vibe", "filename": "buy2get1_style9.png", "seed": 112241, "status": "pending" },
-
-{ "category": "marketing offer logo", "category_slug": "buy-2-get-1-free-logo", "title": "Buy 2 Get 1 Free bold gradient modern promotional logo with smooth color transitions grey background", "index": 10, "prompt": "Design modern gradient logo 'BUY 2 GET 1 FREE', smooth gradient text, bold typography, clean layout, centered on solid grey background, high contrast and clarity", "filename": "buy2get1_style10.png", "seed": 112242, "status": "pending" },
-
-
-
-{ "category": "discount logo", "category_slug": "10-percent-discount-logo", "title": "10 percent discount modern bold typography logo for retail sale promotion clean grey background design", "index": 11, "prompt": "Create bold logo text '10% DISCOUNT', modern sans-serif font, centered, strong visual hierarchy, minimal design, solid grey background, retail branding style", "filename": "discount10_style1.png", "seed": 212233, "status": "pending" },
-
-{ "category": "discount logo", "category_slug": "10-percent-discount-logo", "title": "10 percent discount luxury elegant typography logo with premium gold effect grey background", "index": 12, "prompt": "Design premium logo '10% DISCOUNT' with elegant serif typography, gold metallic style, minimal layout, centered on solid grey background, high-end branding feel", "filename": "discount10_style2.png", "seed": 212234, "status": "pending" },
-
-{ "category": "discount logo", "category_slug": "10-percent-discount-logo", "title": "10 percent discount neon glow futuristic logo design with vibrant lighting grey background", "index": 13, "prompt": "Create neon glowing logo '10% DISCOUNT', futuristic style, glowing edges, bold font, centered composition, solid grey background, high contrast", "filename": "discount10_style3.png", "seed": 212235, "status": "pending" },
-
-{ "category": "discount logo", "category_slug": "10-percent-discount-logo", "title": "10 percent discount handwritten brush typography creative sale logo grey background", "index": 14, "prompt": "Design brush lettering logo '10% DISCOUNT', artistic handwritten style, bold strokes, centered layout, solid grey background, modern creative feel", "filename": "discount10_style4.png", "seed": 212236, "status": "pending" },
-
-{ "category": "discount logo", "category_slug": "10-percent-discount-logo", "title": "10 percent discount 3D embossed promotional logo with depth shadow and modern style grey background", "index": 15, "prompt": "Create 3D embossed logo '10% DISCOUNT', realistic depth, shadows, slightly raised text, centered on solid grey background, high resolution detail", "filename": "discount10_style5.png", "seed": 212237, "status": "pending" },
-
-{ "category": "discount logo", "category_slug": "10-percent-discount-logo", "title": "10 percent discount minimalist clean typography ecommerce logo design grey background", "index": 16, "prompt": "Minimal logo '10% DISCOUNT', clean font, simple layout, centered, monochrome, solid grey background, modern ecommerce look", "filename": "discount10_style6.png", "seed": 212238, "status": "pending" },
-
-{ "category": "discount logo", "category_slug": "10-percent-discount-logo", "title": "10 percent discount vintage retro badge style promotional logo classic design grey background", "index": 17, "prompt": "Create vintage badge logo '10% DISCOUNT', retro typography, badge shape, subtle texture, centered on solid grey background", "filename": "discount10_style7.png", "seed": 212239, "status": "pending" },
-
-{ "category": "discount logo", "category_slug": "10-percent-discount-logo", "title": "10 percent discount geometric modern sharp typography logo design grey background", "index": 18, "prompt": "Design geometric logo '10% DISCOUNT', structured layout, sharp lines, bold font, centered, solid grey background", "filename": "discount10_style8.png", "seed": 212240, "status": "pending" },
-
-{ "category": "discount logo", "category_slug": "10-percent-discount-logo", "title": "10 percent discount playful fun cartoon style promotional logo grey background", "index": 19, "prompt": "Create playful logo '10% DISCOUNT', rounded font, fun style, friendly design, centered on solid grey background", "filename": "discount10_style9.png", "seed": 212241, "status": "pending" },
-
-{ "category": "discount logo", "category_slug": "10-percent-discount-logo", "title": "10 percent discount gradient modern promotional logo smooth color typography grey background", "index": 20, "prompt": "Design gradient logo '10% DISCOUNT', smooth color blend, bold typography, centered on solid grey background", "filename": "discount10_style10.png", "seed": 212242, "status": "pending" },
-
-
-
-{ "category": "discount logo", "category_slug": "50-percent-discount-logo", "title": "50 percent discount bold modern sale logo with strong typography clean grey background design", "index": 21, "prompt": "Create bold logo '50% DISCOUNT OFFER', modern font, strong emphasis, centered layout, minimal design, solid grey background", "filename": "discount50_style1.png", "seed": 312233, "status": "pending" },
-
-{ "category": "discount logo", "category_slug": "50-percent-discount-logo", "title": "50 percent discount luxury premium gold typography sale logo elegant grey background", "index": 22, "prompt": "Design luxury logo '50% DISCOUNT OFFER', elegant serif font, gold metallic effect, centered, solid grey background", "filename": "discount50_style2.png", "seed": 312234, "status": "pending" },
-
-{ "category": "discount logo", "category_slug": "50-percent-discount-logo", "title": "50 percent discount neon glowing futuristic promotional logo grey background", "index": 23, "prompt": "Create neon logo '50% DISCOUNT OFFER', glowing effect, futuristic style, centered on solid grey background", "filename": "discount50_style3.png", "seed": 312235, "status": "pending" },
-
-{ "category": "discount logo", "category_slug": "50-percent-discount-logo", "title": "50 percent discount brush lettering creative sale logo modern typography grey background", "index": 24, "prompt": "Design brush style logo '50% DISCOUNT OFFER', artistic strokes, bold lettering, centered on solid grey background", "filename": "discount50_style4.png", "seed": 312236, "status": "pending" },
-
-{ "category": "discount logo", "category_slug": "50-percent-discount-logo", "title": "50 percent discount 3D embossed bold promotional logo depth shadow grey background", "index": 25, "prompt": "Create 3D embossed logo '50% DISCOUNT OFFER', depth effect, realistic shadows, centered on solid grey background", "filename": "discount50_style5.png", "seed": 312237, "status": "pending" },
-
-{ "category": "discount logo", "category_slug": "50-percent-discount-logo", "title": "50 percent discount minimalist clean ecommerce typography logo grey background", "index": 26, "prompt": "Minimal logo '50% DISCOUNT OFFER', clean font, centered layout, solid grey background", "filename": "discount50_style6.png", "seed": 312238, "status": "pending" },
-
-{ "category": "discount logo", "category_slug": "50-percent-discount-logo", "title": "50 percent discount vintage retro badge promotional logo classic typography grey background", "index": 27, "prompt": "Create retro badge logo '50% DISCOUNT OFFER', classic fonts, centered, solid grey background", "filename": "discount50_style7.png", "seed": 312239, "status": "pending" },
-
-{ "category": "discount logo", "category_slug": "50-percent-discount-logo", "title": "50 percent discount geometric modern sharp typography promotional logo grey background", "index": 28, "prompt": "Design geometric logo '50% DISCOUNT OFFER', sharp shapes, bold font, centered on solid grey background", "filename": "discount50_style8.png", "seed": 312240, "status": "pending" },
-
-{ "category": "discount logo", "category_slug": "50-percent-discount-logo", "title": "50 percent discount playful fun cartoon promotional logo design grey background", "index": 29, "prompt": "Create playful logo '50% DISCOUNT OFFER', rounded font, fun style, centered on solid grey background", "filename": "discount50_style9.png", "seed": 312241, "status": "pending" },
-
-{ "category": "discount logo", "category_slug": "50-percent-discount-logo", "title": "50 percent discount gradient modern promotional logo smooth typography grey background", "index": 30, "prompt": "Design gradient logo '50% DISCOUNT OFFER', smooth color transitions, bold typography, centered on solid grey background", "filename": "discount50_style10.png", "seed": 312242, "status": "pending" }
+  {
+    "category": "marketing offer logo",
+    "category_slug": "buy-2-get-1-free-logo",
+    "title": "Buy 2 Get 1 Free modern bold retail promotional logo design with clean typography and solid grey background",
+    "index": 1,
+    "prompt": "Create a bold modern logo text 'BUY 2 GET 1 FREE' with strong sans-serif typography, minimal design, centered composition, high contrast white and black text on solid grey background, subtle shadow, professional retail branding style, ultra sharp, no clutter",
+    "filename": "buy2get1_style1.png",
+    "seed": 112233,
+    "status": "completed",
+    "output_path": "generated_images/Logo/buy2get1_style1.png",
+    "done_at": "2026-04-12T08:15:43.910345",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "marketing offer logo",
+    "category_slug": "buy-2-get-1-free-logo",
+    "title": "Buy 2 Get 1 Free luxury premium gold typography offer logo for branding with elegant minimal grey background",
+    "index": 2,
+    "prompt": "Design a luxury style logo 'BUY 2 GET 1 FREE' using elegant serif typography, gold metallic effect, minimal layout, centered text, soft lighting, solid grey background, premium brand feel, high detail",
+    "filename": "buy2get1_style2.png",
+    "seed": 112234,
+    "status": "completed",
+    "output_path": "generated_images/Logo/buy2get1_style2.png",
+    "done_at": "2026-04-12T08:16:18.961531",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "marketing offer logo",
+    "category_slug": "buy-2-get-1-free-logo",
+    "title": "Buy 2 Get 1 Free neon glow futuristic promotional logo with modern typography and grey background",
+    "index": 3,
+    "prompt": "Create futuristic neon glowing logo text 'BUY 2 GET 1 FREE', cyberpunk style, vibrant neon accents, glowing edges, bold font, centered, solid grey background, high contrast, modern retail promo vibe",
+    "filename": "buy2get1_style3.png",
+    "seed": 112235,
+    "status": "completed",
+    "output_path": "generated_images/Logo/buy2get1_style3.png",
+    "done_at": "2026-04-12T08:16:54.210531",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "marketing offer logo",
+    "category_slug": "buy-2-get-1-free-logo",
+    "title": "Buy 2 Get 1 Free handwritten brush style creative sale logo with artistic typography grey background",
+    "index": 4,
+    "prompt": "Design a creative brush lettering logo 'BUY 2 GET 1 FREE', hand-drawn typography, artistic strokes, slightly rough edges, minimal composition, centered on solid grey background, modern trendy feel",
+    "filename": "buy2get1_style4.png",
+    "seed": 112236,
+    "status": "completed",
+    "output_path": "generated_images/Logo/buy2get1_style4.png",
+    "done_at": "2026-04-12T08:17:22.468922",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "marketing offer logo",
+    "category_slug": "buy-2-get-1-free-logo",
+    "title": "Buy 2 Get 1 Free 3D embossed text promotional logo with depth and shadow on grey background",
+    "index": 5,
+    "prompt": "Create 3D embossed logo text 'BUY 2 GET 1 FREE', depth effect, realistic shadows, slightly raised text, metallic or matte finish, centered on solid grey background, high resolution",
+    "filename": "buy2get1_style5.png",
+    "seed": 112237,
+    "status": "completed",
+    "output_path": "generated_images/Logo/buy2get1_style5.png",
+    "done_at": "2026-04-12T08:17:51.628630",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "marketing offer logo",
+    "category_slug": "buy-2-get-1-free-logo",
+    "title": "Buy 2 Get 1 Free minimalist clean typography logo for ecommerce sale banner grey background",
+    "index": 6,
+    "prompt": "Minimalist logo design 'BUY 2 GET 1 FREE', clean sans-serif font, simple spacing, centered layout, monochrome style, solid grey background, modern ecommerce aesthetic",
+    "filename": "buy2get1_style6.png",
+    "seed": 112238,
+    "status": "completed",
+    "output_path": "generated_images/Logo/buy2get1_style6.png",
+    "done_at": "2026-04-12T08:18:20.886572",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "marketing offer logo",
+    "category_slug": "buy-2-get-1-free-logo",
+    "title": "Buy 2 Get 1 Free vintage retro badge style promotional logo with classic typography grey background",
+    "index": 7,
+    "prompt": "Create retro vintage badge style logo 'BUY 2 GET 1 FREE', classic fonts, badge shape, subtle texture, centered, solid grey background, nostalgic marketing style",
+    "filename": "buy2get1_style7.png",
+    "seed": 112239,
+    "status": "completed",
+    "output_path": "generated_images/Logo/buy2get1_style7.png",
+    "done_at": "2026-04-12T08:18:56.206714",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "marketing offer logo",
+    "category_slug": "buy-2-get-1-free-logo",
+    "title": "Buy 2 Get 1 Free geometric modern logo with sharp shapes and bold typography on grey background",
+    "index": 8,
+    "prompt": "Design geometric style logo 'BUY 2 GET 1 FREE', sharp shapes, structured layout, bold typography, minimal color palette, centered composition, solid grey background",
+    "filename": "buy2get1_style8.png",
+    "seed": 112240,
+    "status": "completed",
+    "output_path": "generated_images/Logo/buy2get1_style8.png",
+    "done_at": "2026-04-12T08:19:30.444367",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "marketing offer logo",
+    "category_slug": "buy-2-get-1-free-logo",
+    "title": "Buy 2 Get 1 Free playful cartoon style sale logo with fun typography on grey background",
+    "index": 9,
+    "prompt": "Create playful cartoon style logo 'BUY 2 GET 1 FREE', rounded fonts, fun design, slight bounce effect, minimal icons, centered on solid grey background, friendly retail vibe",
+    "filename": "buy2get1_style9.png",
+    "seed": 112241,
+    "status": "completed",
+    "output_path": "generated_images/Logo/buy2get1_style9.png",
+    "done_at": "2026-04-12T08:20:04.934345",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "marketing offer logo",
+    "category_slug": "buy-2-get-1-free-logo",
+    "title": "Buy 2 Get 1 Free bold gradient modern promotional logo with smooth color transitions grey background",
+    "index": 10,
+    "prompt": "Design modern gradient logo 'BUY 2 GET 1 FREE', smooth gradient text, bold typography, clean layout, centered on solid grey background, high contrast and clarity",
+    "filename": "buy2get1_style10.png",
+    "seed": 112242,
+    "status": "completed",
+    "output_path": "generated_images/Logo/buy2get1_style10.png",
+    "done_at": "2026-04-12T08:20:39.498031",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "discount logo",
+    "category_slug": "10-percent-discount-logo",
+    "title": "10 percent discount modern bold typography logo for retail sale promotion clean grey background design",
+    "index": 11,
+    "prompt": "Create bold logo text '10% DISCOUNT', modern sans-serif font, centered, strong visual hierarchy, minimal design, solid grey background, retail branding style",
+    "filename": "discount10_style1.png",
+    "seed": 212233,
+    "status": "completed",
+    "output_path": "generated_images/Logo/discount10_style1.png",
+    "done_at": "2026-04-12T08:21:13.943764",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "discount logo",
+    "category_slug": "10-percent-discount-logo",
+    "title": "10 percent discount luxury elegant typography logo with premium gold effect grey background",
+    "index": 12,
+    "prompt": "Design premium logo '10% DISCOUNT' with elegant serif typography, gold metallic style, minimal layout, centered on solid grey background, high-end branding feel",
+    "filename": "discount10_style2.png",
+    "seed": 212234,
+    "status": "completed",
+    "output_path": "generated_images/Logo/discount10_style2.png",
+    "done_at": "2026-04-12T08:21:48.977480",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "discount logo",
+    "category_slug": "10-percent-discount-logo",
+    "title": "10 percent discount neon glow futuristic logo design with vibrant lighting grey background",
+    "index": 13,
+    "prompt": "Create neon glowing logo '10% DISCOUNT', futuristic style, glowing edges, bold font, centered composition, solid grey background, high contrast",
+    "filename": "discount10_style3.png",
+    "seed": 212235,
+    "status": "completed",
+    "output_path": "generated_images/Logo/discount10_style3.png",
+    "done_at": "2026-04-12T08:22:23.843013",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "discount logo",
+    "category_slug": "10-percent-discount-logo",
+    "title": "10 percent discount handwritten brush typography creative sale logo grey background",
+    "index": 14,
+    "prompt": "Design brush lettering logo '10% DISCOUNT', artistic handwritten style, bold strokes, centered layout, solid grey background, modern creative feel",
+    "filename": "discount10_style4.png",
+    "seed": 212236,
+    "status": "completed",
+    "output_path": "generated_images/Logo/discount10_style4.png",
+    "done_at": "2026-04-12T08:22:58.453624",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "discount logo",
+    "category_slug": "10-percent-discount-logo",
+    "title": "10 percent discount 3D embossed promotional logo with depth shadow and modern style grey background",
+    "index": 15,
+    "prompt": "Create 3D embossed logo '10% DISCOUNT', realistic depth, shadows, slightly raised text, centered on solid grey background, high resolution detail",
+    "filename": "discount10_style5.png",
+    "seed": 212237,
+    "status": "completed",
+    "output_path": "generated_images/Logo/discount10_style5.png",
+    "done_at": "2026-04-12T08:23:32.969934",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "discount logo",
+    "category_slug": "10-percent-discount-logo",
+    "title": "10 percent discount minimalist clean typography ecommerce logo design grey background",
+    "index": 16,
+    "prompt": "Minimal logo '10% DISCOUNT', clean font, simple layout, centered, monochrome, solid grey background, modern ecommerce look",
+    "filename": "discount10_style6.png",
+    "seed": 212238,
+    "status": "completed",
+    "output_path": "generated_images/Logo/discount10_style6.png",
+    "done_at": "2026-04-12T08:24:07.277461",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "discount logo",
+    "category_slug": "10-percent-discount-logo",
+    "title": "10 percent discount vintage retro badge style promotional logo classic design grey background",
+    "index": 17,
+    "prompt": "Create vintage badge logo '10% DISCOUNT', retro typography, badge shape, subtle texture, centered on solid grey background",
+    "filename": "discount10_style7.png",
+    "seed": 212239,
+    "status": "completed",
+    "output_path": "generated_images/Logo/discount10_style7.png",
+    "done_at": "2026-04-12T08:24:41.960836",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "discount logo",
+    "category_slug": "10-percent-discount-logo",
+    "title": "10 percent discount geometric modern sharp typography logo design grey background",
+    "index": 18,
+    "prompt": "Design geometric logo '10% DISCOUNT', structured layout, sharp lines, bold font, centered, solid grey background",
+    "filename": "discount10_style8.png",
+    "seed": 212240,
+    "status": "completed",
+    "output_path": "generated_images/Logo/discount10_style8.png",
+    "done_at": "2026-04-12T08:25:16.597780",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "discount logo",
+    "category_slug": "10-percent-discount-logo",
+    "title": "10 percent discount playful fun cartoon style promotional logo grey background",
+    "index": 19,
+    "prompt": "Create playful logo '10% DISCOUNT', rounded font, fun style, friendly design, centered on solid grey background",
+    "filename": "discount10_style9.png",
+    "seed": 212241,
+    "status": "completed",
+    "output_path": "generated_images/Logo/discount10_style9.png",
+    "done_at": "2026-04-12T08:25:50.844720",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "discount logo",
+    "category_slug": "10-percent-discount-logo",
+    "title": "10 percent discount gradient modern promotional logo smooth color typography grey background",
+    "index": 20,
+    "prompt": "Design gradient logo '10% DISCOUNT', smooth color blend, bold typography, centered on solid grey background",
+    "filename": "discount10_style10.png",
+    "seed": 212242,
+    "status": "completed",
+    "output_path": "generated_images/Logo/discount10_style10.png",
+    "done_at": "2026-04-12T08:26:25.652454",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "discount logo",
+    "category_slug": "50-percent-discount-logo",
+    "title": "50 percent discount bold modern sale logo with strong typography clean grey background design",
+    "index": 21,
+    "prompt": "Create bold logo '50% DISCOUNT OFFER', modern font, strong emphasis, centered layout, minimal design, solid grey background",
+    "filename": "discount50_style1.png",
+    "seed": 312233,
+    "status": "completed",
+    "output_path": "generated_images/Logo/discount50_style1.png",
+    "done_at": "2026-04-12T08:26:59.912211",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "discount logo",
+    "category_slug": "50-percent-discount-logo",
+    "title": "50 percent discount luxury premium gold typography sale logo elegant grey background",
+    "index": 22,
+    "prompt": "Design luxury logo '50% DISCOUNT OFFER', elegant serif font, gold metallic effect, centered, solid grey background",
+    "filename": "discount50_style2.png",
+    "seed": 312234,
+    "status": "completed",
+    "output_path": "generated_images/Logo/discount50_style2.png",
+    "done_at": "2026-04-12T08:27:28.271990",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "discount logo",
+    "category_slug": "50-percent-discount-logo",
+    "title": "50 percent discount neon glowing futuristic promotional logo grey background",
+    "index": 23,
+    "prompt": "Create neon logo '50% DISCOUNT OFFER', glowing effect, futuristic style, centered on solid grey background",
+    "filename": "discount50_style3.png",
+    "seed": 312235,
+    "status": "completed",
+    "output_path": "generated_images/Logo/discount50_style3.png",
+    "done_at": "2026-04-12T08:27:56.881980",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "discount logo",
+    "category_slug": "50-percent-discount-logo",
+    "title": "50 percent discount brush lettering creative sale logo modern typography grey background",
+    "index": 24,
+    "prompt": "Design brush style logo '50% DISCOUNT OFFER', artistic strokes, bold lettering, centered on solid grey background",
+    "filename": "discount50_style4.png",
+    "seed": 312236,
+    "status": "completed",
+    "output_path": "generated_images/Logo/discount50_style4.png",
+    "done_at": "2026-04-12T08:28:31.751690",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "discount logo",
+    "category_slug": "50-percent-discount-logo",
+    "title": "50 percent discount 3D embossed bold promotional logo depth shadow grey background",
+    "index": 25,
+    "prompt": "Create 3D embossed logo '50% DISCOUNT OFFER', depth effect, realistic shadows, centered on solid grey background",
+    "filename": "discount50_style5.png",
+    "seed": 312237,
+    "status": "completed",
+    "output_path": "generated_images/Logo/discount50_style5.png",
+    "done_at": "2026-04-12T08:29:06.992442",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "discount logo",
+    "category_slug": "50-percent-discount-logo",
+    "title": "50 percent discount minimalist clean ecommerce typography logo grey background",
+    "index": 26,
+    "prompt": "Minimal logo '50% DISCOUNT OFFER', clean font, centered layout, solid grey background",
+    "filename": "discount50_style6.png",
+    "seed": 312238,
+    "status": "completed",
+    "output_path": "generated_images/Logo/discount50_style6.png",
+    "done_at": "2026-04-12T08:29:48.697089",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "discount logo",
+    "category_slug": "50-percent-discount-logo",
+    "title": "50 percent discount vintage retro badge promotional logo classic typography grey background",
+    "index": 27,
+    "prompt": "Create retro badge logo '50% DISCOUNT OFFER', classic fonts, centered, solid grey background",
+    "filename": "discount50_style7.png",
+    "seed": 312239,
+    "status": "completed",
+    "output_path": "generated_images/Logo/discount50_style7.png",
+    "done_at": "2026-04-12T08:30:30.881360",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "discount logo",
+    "category_slug": "50-percent-discount-logo",
+    "title": "50 percent discount geometric modern sharp typography promotional logo grey background",
+    "index": 28,
+    "prompt": "Design geometric logo '50% DISCOUNT OFFER', sharp shapes, bold font, centered on solid grey background",
+    "filename": "discount50_style8.png",
+    "seed": 312240,
+    "status": "completed",
+    "output_path": "generated_images/Logo/discount50_style8.png",
+    "done_at": "2026-04-12T08:30:59.870804",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "discount logo",
+    "category_slug": "50-percent-discount-logo",
+    "title": "50 percent discount playful fun cartoon promotional logo design grey background",
+    "index": 29,
+    "prompt": "Create playful logo '50% DISCOUNT OFFER', rounded font, fun style, centered on solid grey background",
+    "filename": "discount50_style9.png",
+    "seed": 312241,
+    "status": "completed",
+    "output_path": "generated_images/Logo/discount50_style9.png",
+    "done_at": "2026-04-12T08:31:34.463650",
+    "drive_uploaded": true,
+    "batch_num": 1
+  },
+  {
+    "category": "discount logo",
+    "category_slug": "50-percent-discount-logo",
+    "title": "50 percent discount gradient modern promotional logo smooth typography grey background",
+    "index": 30,
+    "prompt": "Design gradient logo '50% DISCOUNT OFFER', smooth color transitions, bold typography, centered on solid grey background",
+    "filename": "discount50_style10.png",
+    "seed": 312242,
+    "status": "completed",
+    "output_path": "generated_images/Logo/discount50_style10.png",
+    "done_at": "2026-04-12T08:32:02.412608",
+    "drive_uploaded": true,
+    "batch_num": 1
+  }
 ]
