@@ -632,7 +632,7 @@ def generate_image_modelscope(prompt, seed, api_key, width, height,
         "prompt":              prompt,
         "size":                f"{int(width)}x{int(height)}",
         "n":                   1,
-        "seed":                int(seed),
+        "seed":                int(seed) % 2147483647,
         "num_inference_steps": int(steps),
         "guidance_scale":      float(guidance),
     }
