@@ -7206,7 +7206,12 @@
     "prompt": "Fresh sweet limes (mosambi) surrounded by a swirling spiral vortex of pale golden green juice liquid, halved mosambi showing pale green-yellow segments at center of composition, dynamic rotational motion with curved juice tendrils and flying fruit pieces, solid seamless light grey background, dramatic directional studio lighting with rim highlights, ultra-sharp photorealistic textures, vibrant pale yellow-green saturated tones, hundreds of micro-droplets in spiral formation, cinematic food photography style",
     "filename": "sweet-lime-mosambi_juice_splash_grey_bg_06.png",
     "seed": 900595,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/fruit_juice_splash_updated/sweet-lime-mosambi_juice_splash_grey_bg_06.png",
+    "done_at": "2026-04-12T17:28:08.915808",
+    "model_used": "qwen-image-2512",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "FRUITS_JUICE_SPLASH",
@@ -7217,7 +7222,12 @@
     "prompt": "Fresh sweet limes (mosambi) and halved mosambi showing pale green-yellow segments arranged artistically with a dynamic burst of pale golden green juice splash radiating outward from center, solid seamless light grey background, professional even overhead studio lighting, ultra-sharp textures viewed from directly above, vibrant pale yellow-green colors, perfect composition with juice droplets scattered symmetrically, premium food styling, crystal clear resolution, photorealistic, ultra-detailed, 4K, razor sharp focus, professional studio lighting, vivid saturated colors, commercial food photography",
     "filename": "sweet-lime-mosambi_juice_splash_grey_bg_07.png",
     "seed": 900596,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/fruit_juice_splash_updated/sweet-lime-mosambi_juice_splash_grey_bg_07.png",
+    "done_at": "2026-04-12T17:28:54.953854",
+    "model_used": "qwen-image-2512",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "FRUITS_JUICE_SPLASH",
