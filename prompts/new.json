@@ -63,7 +63,8 @@
     "prompt": "highly realistic photorealistic 16k ultra sharp image of vibrant fresh fruits banana apple orange mango grapes pineapple watermelon papaya strawberry lemon avocado peach pear cherry blueberry artfully arranged on an elegant veined marble plate, solid light grey background, sharper focus good bright lighting wonderful illumination, highly detailed textures intricate details, professional food photography studio shot",
     "filename": "assorted-fruits-marble-plate-3.jpg",
     "seed": 823456791,
-    "status": "pending"
+    "status": "completed",
+    "drive_uploaded": true
   },
   {
     "category": "Banana Leaf",
@@ -73,7 +74,8 @@
     "prompt": "highly realistic photorealistic 16k ultra sharp image of vibrant fresh fruits banana apple orange mango grapes pineapple watermelon papaya strawberry lemon avocado peach pear cherry blueberry displayed on multiple layered fresh banana leaves, solid light grey background, sharper focus good bright lighting wonderful illumination, highly detailed textures intricate details, professional food photography studio shot",
     "filename": "assorted-fruits-banana-leaf-3.jpg",
     "seed": 1323456791,
-    "status": "pending"
+    "status": "completed",
+    "drive_uploaded": true
   },
   {
     "category": "Palm Leaf Basket",
@@ -83,7 +85,8 @@
     "prompt": "highly realistic photorealistic 16k ultra sharp image of vibrant fresh fruits banana apple orange mango grapes pineapple watermelon papaya strawberry lemon avocado peach pear cherry blueberry in a decorative woven palm leaf basket, solid light grey background, sharper focus good bright lighting wonderful illumination, highly detailed textures intricate details, professional food photography studio shot",
     "filename": "assorted-fruits-palm-leaf-basket-3.jpg",
     "seed": 1423456791,
-    "status": "pending"
+    "status": "completed",
+    "drive_uploaded": true
   },
   {
     "category": "Fruit Stand (Tiered Stand)",
@@ -93,7 +96,8 @@
     "prompt": "highly realistic photorealistic 16k ultra sharp image of vibrant fresh fruits banana apple orange mango grapes pineapple watermelon papaya strawberry lemon avocado peach pear cherry blueberry elegantly displayed on an antique tiered fruit stand, solid light grey background, sharper focus good bright lighting wonderful illumination, highly detailed textures intricate details, professional food photography studio shot",
     "filename": "assorted-fruits-fruit-stand-3.jpg",
     "seed": 2123456791,
-    "status": "pending"
+    "status": "completed",
+    "drive_uploaded": true
   },
   {
     "category": "Picnic Basket",
@@ -103,7 +107,11 @@
     "prompt": "highly realistic photorealistic 16k ultra sharp image of vibrant fresh fruits banana apple orange mango grapes pineapple watermelon papaya strawberry lemon avocado peach pear cherry blueberry spilling from an open lid classic picnic basket, solid light grey background, sharper focus good bright lighting wonderful illumination, highly detailed textures intricate details, professional food photography studio shot",
     "filename": "assorted-fruits-picnic-basket-3.jpg",
     "seed": 2323456791,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/new/assorted-fruits-picnic-basket-3.jpg",
+    "done_at": "2026-04-12T08:01:15.572133",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Leaf Plate",
@@ -113,6 +121,10 @@
     "prompt": "highly realistic photorealistic 16k ultra sharp image of vibrant fresh fruits banana apple orange mango grapes pineapple watermelon papaya strawberry lemon avocado peach pear cherry blueberry arranged on a creatively folded natural leaf plate, solid light grey background, sharper focus good bright lighting wonderful illumination, highly detailed textures intricate details, professional food photography studio shot",
     "filename": "assorted-fruits-leaf-plate-3.jpg",
     "seed": 2623456791,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/new/assorted-fruits-leaf-plate-3.jpg",
+    "done_at": "2026-04-12T08:01:50.937590",
+    "drive_uploaded": true,
+    "batch_num": 1
   }
 ]
