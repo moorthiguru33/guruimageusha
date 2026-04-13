@@ -179,8 +179,7 @@ jobs:
       - name: Run Section 2
         if: steps.gate.outputs.should_run == 'true'
         env:
-          GROQ_API_KEY:         ${{ secrets.GROQ_API_KEY }}
-          GROQ_MODEL:           ${{ secrets.GROQ_MODEL }}
+          SCOPE:                ${{ secrets.SCOPE }}
           REPO2_TOKEN:          ${{ secrets.REPO_2_TOKEN }}
           REPO2_SLUG:           ${{ secrets.REPO_2 }}
           REPO2_MAX_PER_JSON:   "200"
