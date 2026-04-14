@@ -157,7 +157,12 @@
     "prompt": "Ultra photorealistic high resolution image, nano skin details with visible pores freckles and fine hairs, sharp focus 8k, professional studio lighting with soft shadows, beautiful gorgeous young Indian woman age 22-28, long wavy chestnut brown hair with highlights, wearing bright orange fuzzy knit sweater with blue jeans, hand on chin in thoughtful pose with one eyebrow raised, solid light grey seamless background, cinematic composition, perfect anatomy, highly detailed face eyes lips, stock photo style",
     "filename": "expressive-woman-pose-011-indian.jpg",
     "seed": 826600539,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/Women_Models/expressive-woman-pose-011-indian.jpg",
+    "done_at": "2026-04-14T20:00:44.131801",
+    "model_used": "muse-qwen",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Expressive Women Promotional Stock Photos",
@@ -167,7 +172,12 @@
     "prompt": "Ultra photorealistic high resolution image, nano skin details with visible pores freckles and fine hairs, sharp focus 8k, professional studio lighting with soft shadows, beautiful beautiful young American Caucasian woman age 22-28, straight black shoulder-length hair with side part, wearing professional blue button-up collared shirt, blowing a kiss towards the camera with puckered lips, solid light grey seamless background, cinematic composition, perfect anatomy, highly detailed face eyes lips, stock photo style",
     "filename": "expressive-woman-pose-012-american.jpg",
     "seed": 895285932,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/Women_Models/expressive-woman-pose-012-american.jpg",
+    "done_at": "2026-04-14T20:02:27.359974",
+    "model_used": "muse-qwen",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Expressive Women Promotional Stock Photos",
