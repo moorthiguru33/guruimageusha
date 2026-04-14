@@ -615,9 +615,13 @@ def phase5_drive_upload(items):
                 res       = drive_upload(token, get_sub(sf),
                                          f"{stem}.png", png_bytes, "image/png")
                 drive_share(token, res["id"])
-                item["png_drive_id"] = res["id"]   # -> phase8 ultradata
+                item["png_drive_id"]     = res["id"]
+                # Permanent direct-download URL (no login needed)
+                item["png_download_url"] = (
+                    f"https://drive.google.com/uc?export=download&id={res['id']}"
+                )
                 uploaded.append(item)
-                log(f"    [{j+1:>2}/{len(batch)}] OK  {stem}.png -> Drive")
+                log(f"    [{j+1:>2}/{len(batch)}] OK  {stem}.png -> Drive  id={res['id']}")
             except Exception as e:
                 log(f"    FAIL Drive [{item['name']}]: {e}")
 
@@ -656,7 +660,8 @@ def phase6_github_upload(items):
                 branch        = PREVIEW_BRANCH,
             )
             cdn = jsdelivr_url(GH_OWNER, PREVIEW_REPO, PREVIEW_BRANCH, gh_path)
-            item["preview_cdn_url"] = cdn   # -> phase8 ultradata
+            item["preview_cdn_url"] = cdn       # -> phase8 ultradata (preview_url)
+            item["webp_file_id"]    = gh_path   # -> phase8 ultradata (webp_file_id)
             log(f"    CDN: {cdn}")
             result.append(item)
             time.sleep(0.4)
@@ -727,11 +732,23 @@ def phase8_update_ultradata(items):
         wb       = openpyxl.Workbook()
         file_sha = None
 
-    ws      = wb.active
-    HEADERS = ["stem", "category", "drive_id", "webp_cdn",
-               "width", "height", "date"]
+    ws = wb.active
 
-    # Ensure headers exist; add missing columns
+    # ── Column schema — matches ultradata format exactly ──────────
+    HEADERS = [
+        "date_added",    # today YYYY-MM-DD
+        "subject_name",  # filename stem  (e.g. "red_apple_01")
+        "category",      # Drive subfolder  (e.g. "fruits")
+        "subcategory",   # second-level category — derived or blank
+        "filename",      # stem + ".png"
+        "png_file_id",   # Google Drive file ID of the original PNG
+        "webp_file_id",  # GitHub path  e.g. preview_webp/red_apple_01.webp
+        "download_url",  # permanent Drive download link (no login needed)
+        "preview_url",   # jsDelivr CDN URL for the WebP preview
+        "seo_status",    # default "pending" — update manually when done
+    ]
+
+    # Ensure header row exists; add any missing columns (non-destructive)
     if ws.max_row == 0 or ws.cell(row=1, column=1).value is None:
         ws.append(HEADERS)
         log("  Headers written (new sheet)")
@@ -743,20 +760,32 @@ def phase8_update_ultradata(items):
                 ws.cell(row=1, column=ws.max_column + 1, value=col_name)
                 existing.append(col_name)
                 log(f"  Added missing column: '{col_name}'")
+        # Re-read to pick up any newly added columns
         HEADERS = [ws.cell(row=1, column=c).value
                    for c in range(1, ws.max_column + 1)]
 
     today = datetime.now().strftime("%Y-%m-%d")
     added = 0
     for item in items:
+        stem     = item.get("stem", "")
+        category = item.get("subfolder_name", "")
+
+        # subcategory: split "category/sub" on "/" if present, else blank
+        parts       = category.split("/", 1)
+        cat_clean   = parts[0].strip()
+        subcat      = parts[1].strip() if len(parts) > 1 else ""
+
         row = {
-            "stem":     item.get("stem",            ""),
-            "category": item.get("subfolder_name",  ""),
-            "drive_id": item.get("png_drive_id",    ""),  # phase5
-            "webp_cdn": item.get("preview_cdn_url", ""),  # phase6 — jsDelivr URL
-            "width":    item.get("preview_w",       ""),  # phase4
-            "height":   item.get("preview_h",       ""),  # phase4
-            "date":     today,
+            "date_added":   today,
+            "subject_name": stem,                               # e.g. red_apple_01
+            "category":     cat_clean,                         # Drive subfolder
+            "subcategory":  subcat,                            # blank unless "/" in name
+            "filename":     f"{stem}.png",                     # original PNG filename
+            "png_file_id":  item.get("png_drive_id",     ""),  # Drive file ID  (phase5)
+            "webp_file_id": item.get("webp_file_id",     ""),  # GH path        (phase6)
+            "download_url": item.get("png_download_url", ""),  # Drive dl URL   (phase5)
+            "preview_url":  item.get("preview_cdn_url",  ""),  # jsDelivr URL   (phase6)
+            "seo_status":   "pending",                         # fill manually when done
         }
         ws.append([row.get(h, "") for h in HEADERS])
         added += 1
