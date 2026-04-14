@@ -5,7 +5,7 @@ inject_creds_pending.py
 Reads pending_pipeline.py, prepends os.environ credential lines,
 and pushes the assembled notebook to Kaggle for GPU execution.
 
-Run by GitHub Actions — never commit credentials directly.
+Updated on 14-Apr-2026 — GH_TOKEN & GH_OWNER now properly injected.
 """
 
 import os
@@ -28,6 +28,8 @@ def _require(key):
 GOOGLE_CLIENT_ID     = _require("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = _require("GOOGLE_CLIENT_SECRET")
 GOOGLE_REFRESH_TOKEN = _require("GOOGLE_REFRESH_TOKEN")
+GH_TOKEN             = _require("GH_TOKEN")          # ← NEW
+GH_OWNER             = _require("GH_OWNER")          # ← NEW
 KAGGLE_USERNAME      = _require("KAGGLE_USERNAME")
 KAGGLE_KEY           = _require("KAGGLE_KEY")
 
@@ -37,7 +39,7 @@ WATERMARK_TEXT      = os.environ.get("WATERMARK_TEXT",      "www.ultrapng.com")
 UPSCALE_FACTOR      = os.environ.get("UPSCALE_FACTOR",      "2")
 PENDING_FOLDER_NAME = os.environ.get("PENDING_FOLDER_NAME", "pending")
 MAX_INPUT_SIZE      = os.environ.get("MAX_INPUT_SIZE",      "1200")
-REMBG_MODEL         = os.environ.get("REMBG_MODEL",         "isnet-general-use")
+REMBG_MODEL         = os.environ.get("REMBG_MODEL",         "birefnet-general")
 NOTEBOOK_SLUG       = os.environ.get("KAGGLE_NOTEBOOK_SLUG","pending-drive-pipeline")
 
 # ══════════════════════════════════════════════════════════════════
@@ -59,6 +61,8 @@ import os
 os.environ["GOOGLE_CLIENT_ID"]     = {json.dumps(GOOGLE_CLIENT_ID)}
 os.environ["GOOGLE_CLIENT_SECRET"] = {json.dumps(GOOGLE_CLIENT_SECRET)}
 os.environ["GOOGLE_REFRESH_TOKEN"] = {json.dumps(GOOGLE_REFRESH_TOKEN)}
+os.environ["GH_TOKEN"]             = {json.dumps(GH_TOKEN)}
+os.environ["GH_OWNER"]             = {json.dumps(GH_OWNER)}
 os.environ["RUN_ITEMS_COUNT"]      = {json.dumps(RUN_ITEMS_COUNT)}
 os.environ["WATERMARK_TEXT"]       = {json.dumps(WATERMARK_TEXT)}
 os.environ["UPSCALE_FACTOR"]       = {json.dumps(UPSCALE_FACTOR)}
@@ -123,7 +127,6 @@ result = subprocess.run(
 print(result.stdout)
 if result.returncode != 0:
     print("STDERR:", result.stderr)
-    # Some 400 errors are recoverable (slug title mismatch etc.) — print but don't always fail
     if "already exists" in result.stderr.lower() or "409" in result.stderr:
         print("⚠️  Conflict — kernel may already be running. Check Kaggle manually.")
     else:
