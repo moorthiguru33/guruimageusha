@@ -1,50 +1,12 @@
 name: Section 2 - SEO JSON Builder
 
 on:
-  # Auto-trigger when ultradata.xlsx is updated (Kaggle pipeline finishes)
-  push:
-    branches: [main]
-    paths:
-      - 'ultradata.xlsx'
-
-  schedule:
-    # Daily 8:00 AM IST (02:30 UTC) — catches any missed ultradata updates
-    - cron: '30 2 * * *'
-
   workflow_dispatch:
     inputs:
-      mode:
-        description: "Run mode — scheduled (batch per day) or instant (process all pending now)"
-        required: false
-        default: "scheduled"
-        type: choice
-        options:
-          - scheduled
-          - instant
-      instant_count:
-        description: "Instant run: number of SEO generations to process now (empty = cap/default)"
+      count:
+        description: "Number of pending items to process (leave empty = ALL pending)"
         required: false
         default: ""
-      batch_size:
-        description: "Items per run in scheduled mode (default 220 to match Section 1 daily output)"
-        required: false
-        default: "220"
-      scheduled_days:
-        description: "Number of days to run (each day generates batch_size SEO)"
-        required: false
-        default: "10"
-      scheduler_action:
-        description: "Scheduler action for scheduled mode"
-        required: false
-        default: "start"
-        type: choice
-        options:
-          - start
-          - stop
-      daily_time_utc:
-        description: "Daily trigger time in UTC (HH:MM). Example: 02:30"
-        required: false
-        default: "02:30"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -58,142 +20,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Ensure jq available
-        run: |
-          set -euo pipefail
-          if ! command -v jq >/dev/null 2>&1; then
-            sudo apt-get update -y
-            sudo apt-get install -y jq
-          fi
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
 
-      - name: Gate scheduler (manual set / cron tick / push trigger)
-        id: gate
-        run: |
-          set -euo pipefail
-
-          EVENT="${{ github.event_name }}"
-          NOW_HM="$(date -u +%H:%M)"
-          TODAY="$(date -u +%Y-%m-%d)"
-
-          CONFIG_PATH="progress/s2_scheduler.json"
-          mkdir -p progress
-
-          echo "Now(UTC): $NOW_HM  Today: $TODAY  Event: $EVENT"
-
-          SHOULD_RUN="false"
-          RUN_MODE="scheduled"
-          RUN_BATCH_SIZE="220"
-          RUN_SCHEDULED_DAYS="10"
-          RUN_INSTANT_COUNT=""
-          CONFIG_WRITTEN="false"
-
-          # Push trigger (ultradata.xlsx updated) — always run immediately
-          if [ "$EVENT" = "push" ]; then
-            SHOULD_RUN="true"
-            RUN_MODE="scheduled"
-            RUN_BATCH_SIZE="220"
-            RUN_SCHEDULED_DAYS="1"
-            RUN_INSTANT_COUNT=""
-            echo "Push trigger: ultradata.xlsx updated → running SEO batch"
-
-          elif [ "$EVENT" = "workflow_dispatch" ]; then
-            IN_MODE="${{ github.event.inputs.mode }}"
-            IN_BATCH="${{ github.event.inputs.batch_size }}"
-            IN_DAYS="${{ github.event.inputs.scheduled_days }}"
-            IN_TIME="${{ github.event.inputs.daily_time_utc }}"
-            INSTANT_COUNT="${{ github.event.inputs.instant_count }}"
-            SCHED_ACTION="${{ github.event.inputs.scheduler_action }}"
-
-            [ -z "$IN_MODE" ]         && IN_MODE="scheduled"
-            [ -z "$IN_BATCH" ]        && IN_BATCH="220"
-            [ -z "$IN_DAYS" ]         && IN_DAYS="10"
-            [ -z "$IN_TIME" ]         && IN_TIME="02:30"
-            [ -z "$INSTANT_COUNT" ]   && INSTANT_COUNT=""
-            [ -z "$SCHED_ACTION" ]    && SCHED_ACTION="start"
-
-            if [ "$SCHED_ACTION" = "stop" ]; then
-              printf '{\n  "enabled": false,\n  "daily_time_utc": "%s",\n  "remaining_days": 0,\n  "daily_batch_size": %s,\n  "last_run_date": ""\n}\n' \
-                "$IN_TIME" "$IN_BATCH" > "$CONFIG_PATH"
-              SHOULD_RUN="false"
-              RUN_MODE="scheduled"
-              RUN_BATCH_SIZE="$IN_BATCH"
-              RUN_SCHEDULED_DAYS="0"
-              CONFIG_WRITTEN="true"
-            else
-              if [ "$IN_MODE" = "instant" ]; then
-                SHOULD_RUN="true"
-                RUN_MODE="instant"
-                RUN_BATCH_SIZE="$IN_BATCH"
-                RUN_SCHEDULED_DAYS="$IN_DAYS"
-                RUN_INSTANT_COUNT="$INSTANT_COUNT"
-              else
-                printf '{\n  "enabled": true,\n  "daily_time_utc": "%s",\n  "remaining_days": %s,\n  "daily_batch_size": %s,\n  "last_run_date": ""\n}\n' \
-                  "$IN_TIME" "$IN_DAYS" "$IN_BATCH" > "$CONFIG_PATH"
-                RUN_MODE="scheduled"
-                RUN_BATCH_SIZE="$IN_BATCH"
-                RUN_SCHEDULED_DAYS="$IN_DAYS"
-                CONFIG_WRITTEN="true"
-                SHOULD_RUN="true"
-              fi
-            fi
-
-          else
-            # cron tick
-            if [ ! -f "$CONFIG_PATH" ]; then
-              # No config — run with defaults anyway (catches any pending items)
-              SHOULD_RUN="true"
-              RUN_MODE="scheduled"
-              RUN_BATCH_SIZE="220"
-              RUN_SCHEDULED_DAYS="1"
-            else
-              ENABLED="$(jq -r '.enabled // true' "$CONFIG_PATH" || echo 'true')"
-              REM="$(jq -r '.remaining_days // 1' "$CONFIG_PATH" || echo '1')"
-              LAST_RUN="$(jq -r '.last_run_date // ""' "$CONFIG_PATH" || echo '')"
-              DAILY_BS="$(jq -r '.daily_batch_size // 220' "$CONFIG_PATH" || echo '220')"
-
-              if [ "$ENABLED" = "true" ] && [ "$LAST_RUN" != "$TODAY" ]; then
-                SHOULD_RUN="true"
-                RUN_MODE="scheduled"
-                RUN_BATCH_SIZE="$DAILY_BS"
-                RUN_SCHEDULED_DAYS="$REM"
-              fi
-            fi
-          fi
-
-          echo "should_run=$SHOULD_RUN"                 >> $GITHUB_OUTPUT
-          echo "run_mode=$RUN_MODE"                     >> $GITHUB_OUTPUT
-          echo "run_batch_size=$RUN_BATCH_SIZE"         >> $GITHUB_OUTPUT
-          echo "run_scheduled_days=$RUN_SCHEDULED_DAYS" >> $GITHUB_OUTPUT
-          echo "run_instant_count=$RUN_INSTANT_COUNT"   >> $GITHUB_OUTPUT
-          echo "config_written=$CONFIG_WRITTEN"         >> $GITHUB_OUTPUT
-
-          echo "Gate: should_run=$SHOULD_RUN  mode=$RUN_MODE  batch=$RUN_BATCH_SIZE  days=$RUN_SCHEDULED_DAYS"
-
-      - name: Commit scheduler config (set)
-        if: steps.gate.outputs.config_written == 'true'
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "scheduler: set Section 2 SEO [skip ci]"
-          file_pattern: "progress/s2_scheduler.json"
-
-      - name: Setup Python (only if running)
-        if: steps.gate.outputs.should_run == 'true'
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install deps (only if running)
-        if: steps.gate.outputs.should_run == 'true'
+      - name: Install dependencies
         run: pip install openpyxl requests pillow
 
       - name: Run Section 2
-        if: steps.gate.outputs.should_run == 'true'
         env:
           SCOPE:                ${{ secrets.SCOPE }}
           REPO2_TOKEN:          ${{ secrets.REPO_2_TOKEN }}
@@ -202,48 +43,5 @@ jobs:
           GOOGLE_CLIENT_ID:     ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
-          S2_RUN_MODE:          ${{ steps.gate.outputs.run_mode }}
-          S2_BATCH_SIZE:        ${{ steps.gate.outputs.run_batch_size }}
-          S2_SCHEDULED_DAYS:    ${{ steps.gate.outputs.run_scheduled_days }}
-          S2_INSTANT_COUNT:     ${{ steps.gate.outputs.run_instant_count }}
+          S2_COUNT:             ${{ github.event.inputs.count }}
         run: python section2_runner.py
-
-      - name: Pull latest before commit (only if running)
-        if: steps.gate.outputs.should_run == 'true'
-        run: |
-          git fetch origin main
-          git rebase origin/main || git merge origin/main --no-edit
-
-      - name: Decrement scheduler after a scheduled run
-        if: steps.gate.outputs.should_run == 'true' && steps.gate.outputs.run_mode == 'scheduled'
-        run: |
-          set -euo pipefail
-          CONFIG_PATH="progress/s2_scheduler.json"
-          TODAY="$(date -u +%Y-%m-%d)"
-          mkdir -p progress
-
-          if [ ! -f "$CONFIG_PATH" ]; then
-            printf '{\n  "enabled": true,\n  "daily_time_utc": "02:30",\n  "remaining_days": 0,\n  "daily_batch_size": 220,\n  "last_run_date": "%s"\n}\n' "$TODAY" > "$CONFIG_PATH"
-            exit 0
-          fi
-
-          REM="$(jq -r '.remaining_days // 0' "$CONFIG_PATH")"
-          if [ "$REM" -le 0 ]; then
-            # Keep enabled=true so cron continues picking up pending items
-            jq ".last_run_date=\"$TODAY\"" "$CONFIG_PATH" > "${CONFIG_PATH}.tmp"
-            mv "${CONFIG_PATH}.tmp" "$CONFIG_PATH"
-            exit 0
-          fi
-
-          NEW_REM=$((REM - 1))
-          [ "$NEW_REM" -lt 0 ] && NEW_REM=0
-          jq ".remaining_days=$NEW_REM | .last_run_date=\"$TODAY\" | .enabled=true" \
-            "$CONFIG_PATH" > "${CONFIG_PATH}.tmp"
-          mv "${CONFIG_PATH}.tmp" "$CONFIG_PATH"
-
-      - name: Commit progress tracker
-        if: steps.gate.outputs.should_run == 'true'
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "progress: section2 update [skip ci] [mode=${{ steps.gate.outputs.run_mode }}]"
-          file_pattern: "progress/s2_batch_tracker.txt progress/s2_scheduler.json"
