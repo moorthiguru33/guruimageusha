@@ -2,7 +2,6 @@ import json
 import os
 import re
 import subprocess
-import io
 import time
 from dataclasses import dataclass
 from datetime import datetime
@@ -10,28 +9,20 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 
-ULTRADATA_XLSX    = "ultradata.xlsx"
-WATERMARK_TEXT    = "www.ultrapng.com"
-S2_TRACKER_FILE   = "progress/s2_batch_tracker.txt"
-INSTANT_CAP       = 1000    # GitHub Actions 6-hr safety cap for instant mode
+ULTRADATA_XLSX  = "ultradata.xlsx"
+WATERMARK_TEXT  = "www.ultrapng.com"
+INSTANT_CAP     = 2000   # safety cap — prevents accidental runaway
 
 # ── MODELSCOPE SETTINGS ────────────────────────────────────────
-# API Key  : GitHub Actions secret → "SCOPE"
-# Endpoint : https://api-inference.modelscope.ai/v1/
-# Primary  : Qwen/Qwen2.5-72B-Instruct   (best quality)
-# Fallback : Qwen/Qwen2.5-32B-Instruct
-# Last     : Qwen/Qwen2.5-7B-Instruct
-MS_SLEEP_SEC   = 2.0    # base sleep between calls
-MS_RETRY_WAIT  = 10.0   # retry wait on API errors
-MS_ENDPOINT    = "https://api-inference.modelscope.ai/v1/chat/completions"
-
-MS_MODELS = [
-    "Qwen/Qwen2.5-72B-Instruct",   # Primary  — best quality
-    "Qwen/Qwen2.5-32B-Instruct",   # Fallback
-    "Qwen/Qwen2.5-7B-Instruct",    # Last resort
+MS_SLEEP_SEC  = 2.0
+MS_RETRY_WAIT = 10.0
+MS_ENDPOINT   = "https://api-inference.modelscope.ai/v1/chat/completions"
+MS_MODELS     = [
+    "Qwen/Qwen2.5-72B-Instruct",
+    "Qwen/Qwen2.5-32B-Instruct",
+    "Qwen/Qwen2.5-7B-Instruct",
 ]
-
-_ms_dynamic_sleep = 2.0   # auto-adjusted on 429
+_ms_dynamic_sleep = 2.0
 
 
 # ══════════════════════════════════════════════════════════════
@@ -42,11 +33,11 @@ def _word_count(s: str) -> int:
     return len([w for w in re.split(r"\s+", (s or "").strip()) if w])
 
 
+def _today() -> str:
+    return datetime.utcnow().strftime("%Y-%m-%d")
+
+
 def _clean_json_str(raw: str) -> str:
-    """
-    Best-effort cleanup of LLM-returned JSON before parsing.
-    Handles: trailing commas, stray control characters, markdown fences.
-    """
     raw = re.sub(r"^```(?:json)?\s*", "", raw.strip(), flags=re.I)
     raw = re.sub(r"\s*```$", "", raw.strip())
     raw = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", raw)
@@ -55,13 +46,9 @@ def _clean_json_str(raw: str) -> str:
 
 
 def _repair_truncated_json(raw: str) -> str:
-    """
-    Salvage JSON that was cut off mid-stream by a token-limit.
-    """
     depth: list = []
     in_str = False
     esc    = False
-
     for ch in raw:
         if esc:
             esc = False
@@ -80,10 +67,8 @@ def _repair_truncated_json(raw: str) -> str:
             depth.pop()
         elif ch == ']' and depth and depth[-1] == '[':
             depth.pop()
-
     if not depth and not in_str:
         return raw
-
     patched = raw.rstrip()
     patched = re.sub(r',\s*$', '', patched)
     if in_str:
@@ -93,54 +78,18 @@ def _repair_truncated_json(raw: str) -> str:
     return patched
 
 
-def _today() -> str:
-    return datetime.utcnow().strftime("%Y-%m-%d")
-
-
 # ══════════════════════════════════════════════════════════════
-# PROGRESS TRACKER  (progress/s2_batch_tracker.txt)
-# ══════════════════════════════════════════════════════════════
-
-def _read_s2_tracker(root: Path) -> int:
-    p = root / S2_TRACKER_FILE
-    try:
-        return int(p.read_text(encoding="utf-8").strip())
-    except Exception:
-        return 0
-
-
-def _write_s2_tracker(root: Path, total: int) -> None:
-    p = root / S2_TRACKER_FILE
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(str(total), encoding="utf-8")
-
-
-# ══════════════════════════════════════════════════════════════
-# MODELSCOPE SEO  (subject → all SEO fields)
+# MODELSCOPE SEO
 # ══════════════════════════════════════════════════════════════
 
 def _modelscope_seo(subject_name: str, retries: int = 3) -> Dict[str, str]:
-    """
-    Single API call: ModelScope Qwen model generates all SEO fields.
-
-    title       → 50–60 chars, Google-ready, keyword-first
-    h1          → 8–14 words, descriptive page heading
-    meta_desc   → under 155 chars, compelling snippet
-    alt_text    → screen-reader description
-    tags        → 8–10 keywords (comma-separated)
-    description → EXACTLY 30 SEO keywords, comma-separated
-                  (e.g. "mosambi png, mosambi hd image, mosambi transparent background, ...")
-
-    Model: Qwen/Qwen2.5-72B-Instruct (primary)
-    Fallback: Qwen/Qwen2.5-32B-Instruct → Qwen/Qwen2.5-7B-Instruct
-    """
     import requests
     global _ms_dynamic_sleep
 
-    key = os.environ.get("SCOPE", "").strip()
-    if not key:
-        raise RuntimeError("Missing SCOPE API key in environment")
+    key     = os.environ.get("SCOPE", "").strip()
     subject = (subject_name or "").strip()
+    if not key:
+        raise RuntimeError("Missing SCOPE API key")
     if not subject:
         raise RuntimeError("Missing subject_name")
 
@@ -199,9 +148,7 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
         j0 = content.find("{")
         j1 = content.rfind("}") + 1
         if j0 == -1 or j1 == 0:
-            snippet = (content or "").strip()[:200].replace("\n", " ")
-            raise ValueError(f"No JSON in response — got: {snippet!r}")
-
+            raise ValueError(f"No JSON in response: {content[:200]!r}")
         raw = _clean_json_str(content[j0:j1])
         try:
             data = json.loads(raw, strict=False)
@@ -210,7 +157,7 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
             try:
                 data = json.loads(repaired, strict=False)
             except json.JSONDecodeError:
-                raise ValueError(f"JSON parse failed (even after repair): {e}") from e
+                raise ValueError(f"JSON parse failed: {e}") from e
 
         def _str(val, fallback="") -> str:
             if val is None:
@@ -226,11 +173,9 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
         alt_text  = _str(data.get("alt_text")) or title
         tags      = _str(data.get("tags"))
 
-        # Trim meta_desc to 155 chars if needed
         if len(meta_desc) > 155:
             meta_desc = meta_desc[:152] + "..."
 
-        # Count keywords in description — soft warning only
         kw_count = len([k for k in desc.split(",") if k.strip()])
         if kw_count < 28:
             print(f"\n    [WARN] description has {kw_count} keywords (target 30) — accepted",
@@ -268,8 +213,7 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
                 if r.status_code == 429:
                     retry_after = float(r.headers.get("retry-after", "30"))
                     _ms_dynamic_sleep = min(max(retry_after, 5), 60)
-                    print(f"\n    [MS] 429 on {model} — waiting {retry_after:.0f}s ...",
-                          flush=True)
+                    print(f"\n    [429] {model} — waiting {retry_after:.0f}s ...", flush=True)
                     time.sleep(retry_after + 1)
                     continue
                 if r.status_code == 400:
@@ -282,67 +226,83 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
                 content_str = r.json()["choices"][0]["message"]["content"].strip()
                 result = _parse_seo(content_str)
                 if model_idx > 0:
-                    print(f"    [MS] used fallback model: {model}", flush=True)
+                    print(f"    [MS] fallback model used: {model}", flush=True)
                 return result
 
             except Exception as e:
                 last_err = e
                 if attempt < retries:
                     wait = MS_RETRY_WAIT * attempt
-                    print(f"\n    [MS] attempt {attempt}/{retries} on {model} failed: {e}"
-                          f" — retry in {wait:.0f}s", flush=True)
+                    print(f"\n    [MS] attempt {attempt}/{retries} failed: {e} — retry in {wait:.0f}s",
+                          flush=True)
                     time.sleep(wait)
 
-        print(f"\n    [MS] {model} exhausted after {retries} attempts: {last_err}",
-              flush=True)
+        print(f"\n    [MS] {model} exhausted: {last_err}", flush=True)
 
     raise RuntimeError(f"All ModelScope models failed. Last: {last_err}")
 
 
 # ══════════════════════════════════════════════════════════════
-# ULTRADATA XLSX  READ / APPEND
+# ULTRADATA XLSX  READ / UPDATE
 # ══════════════════════════════════════════════════════════════
 
-def _read_ultradata_rows(xlsx_path: Path) -> List[Dict[str, str]]:
-    """Read ultradata.xlsx — returns only rows where seo_status != 'completed'."""
+def _read_pending_rows(xlsx_path: Path) -> List[Dict[str, str]]:
+    """Read ultradata.xlsx — return only rows where seo_status = 'pending'."""
     import openpyxl
     wb = openpyxl.load_workbook(str(xlsx_path))
     ws = wb.active
     if ws.max_row < 2:
         return []
+
     headers = [str(c.value or "").strip() for c in ws[1]]
     idx     = {h: i for i, h in enumerate(headers)}
-    needed  = ["subject_name", "filename", "download_url", "preview_url"]
+
+    needed = ["subject_name", "filename", "download_url", "preview_url"]
     for h in needed:
         if h not in idx:
             raise RuntimeError(f"ultradata.xlsx missing column: {h}")
-    optional = ["category", "subcategory", "seo_status"]
+
     out = []
     for r in ws.iter_rows(min_row=2, values_only=True):
-        row = {h: ("" if r[idx[h]] is None else str(r[idx[h]]).strip()) for h in needed}
-        for h in optional:
-            row[h] = ("" if h not in idx or r[idx[h]] is None else str(r[idx[h]]).strip())
-        if not row["filename"] or not row["subject_name"]:
+        def _v(col):
+            return "" if col not in idx or r[idx[col]] is None else str(r[idx[col]]).strip()
+
+        status = _v("seo_status").lower()
+        if status == "completed":
             continue
-        # Skip rows already completed by Section 2
-        if row.get("seo_status", "").strip().lower() == "completed":
+
+        filename     = _v("filename")
+        subject_name = _v("subject_name")
+        if not filename or not subject_name:
             continue
-        out.append(row)
+
+        out.append({
+            "subject_name": subject_name,
+            "filename":     filename,
+            "download_url": _v("download_url"),
+            "preview_url":  _v("preview_url"),
+            "webp_file_id": _v("webp_file_id"),
+            "category":     _v("category"),
+            "subcategory":  _v("subcategory"),
+            "date_added":   _v("date_added"),
+        })
+
     return out
 
 
-def _update_ultradata_seo_status(xlsx_path: Path, completed_filenames: set) -> int:
-    """Mark seo_status='completed' for finished rows. Adds column if missing."""
+def _mark_completed(xlsx_path: Path, completed_filenames: set) -> int:
+    """Mark seo_status = 'completed' for finished rows."""
     import openpyxl
     if not xlsx_path.exists() or not completed_filenames:
         return 0
+
     wb = openpyxl.load_workbook(str(xlsx_path))
     ws = wb.active
     if ws.max_row < 2:
         return 0
+
     headers = [str(c.value or "").strip() for c in ws[1]]
 
-    # Add seo_status column if not present
     if "seo_status" not in headers:
         seo_col = len(headers) + 1
         ws.cell(row=1, column=seo_col, value="seo_status")
@@ -350,322 +310,21 @@ def _update_ultradata_seo_status(xlsx_path: Path, completed_filenames: set) -> i
     else:
         seo_col = headers.index("seo_status") + 1
 
-    filename_col = headers.index("filename") + 1 if "filename" in headers else None
-    if not filename_col:
+    if "filename" not in headers:
         return 0
+    filename_col = headers.index("filename") + 1
 
     updated = 0
     for row in ws.iter_rows(min_row=2):
-        fn_cell = row[filename_col - 1]
-        fn = str(fn_cell.value or "").strip()
-        seo_cell = row[seo_col - 1]
+        fn  = str(row[filename_col - 1].value or "").strip()
+        cell = row[seo_col - 1]
         if fn in completed_filenames:
-            if str(seo_cell.value or "").strip() != "completed":
-                seo_cell.value = "completed"
+            if str(cell.value or "").strip() != "completed":
+                cell.value = "completed"
                 updated += 1
-        elif not seo_cell.value:
-            # Back-fill "pending" for old rows without status
-            seo_cell.value = "pending"
 
     wb.save(str(xlsx_path))
     return updated
-
-
-def _append_ultradata_rows(xlsx_path: Path, new_rows: List[Dict[str, str]]) -> int:
-    import openpyxl
-    from openpyxl import Workbook
-    headers = [
-        "date_added", "subject_name", "category", "subcategory",
-        "filename", "png_file_id", "webp_file_id", "download_url", "preview_url",
-    ]
-    if xlsx_path.exists():
-        wb = openpyxl.load_workbook(str(xlsx_path))
-        ws = wb.active
-        if ws.max_row < 1:
-            ws.append(headers)
-    else:
-        wb = Workbook()
-        ws = wb.active
-        ws.append(headers)
-    appended = 0
-    for r in new_rows:
-        ws.append([
-            r.get("date_added", _today()),
-            r.get("subject_name", ""),
-            r.get("category", ""),
-            r.get("subcategory", ""),
-            r.get("filename", ""),
-            r.get("png_file_id", ""),
-            r.get("webp_file_id", ""),
-            r.get("download_url", ""),
-            r.get("preview_url", ""),
-        ])
-        appended += 1
-    wb.save(str(xlsx_path))
-    return appended
-
-
-# ══════════════════════════════════════════════════════════════
-# GOOGLE DRIVE HELPERS
-# ══════════════════════════════════════════════════════════════
-
-def _drive_token() -> str:
-    import requests
-    r = requests.post(
-        "https://oauth2.googleapis.com/token",
-        data={
-            "client_id":     os.environ.get("GOOGLE_CLIENT_ID", ""),
-            "client_secret": os.environ.get("GOOGLE_CLIENT_SECRET", ""),
-            "refresh_token": os.environ.get("GOOGLE_REFRESH_TOKEN", ""),
-            "grant_type":    "refresh_token",
-        },
-        timeout=30,
-    )
-    r.raise_for_status()
-    d = r.json()
-    if "access_token" not in d:
-        raise RuntimeError(f"Drive token error: {d}")
-    return d["access_token"]
-
-
-def _drive_folder(token: str, name: str, parent: str = "") -> str:
-    import requests
-    h = {"Authorization": f"Bearer {token}"}
-    q = f"name='{name}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
-    if parent:
-        q += f" and '{parent}' in parents"
-    r = requests.get("https://www.googleapis.com/drive/v3/files",
-                     headers=h,
-                     params={"q": q, "fields": "files(id,name)"},
-                     timeout=30)
-    r.raise_for_status()
-    files = r.json().get("files", [])
-    if files:
-        return files[0]["id"]
-    meta = {"name": name, "mimeType": "application/vnd.google-apps.folder"}
-    if parent:
-        meta["parents"] = [parent]
-    c = requests.post("https://www.googleapis.com/drive/v3/files",
-                      headers={**h, "Content-Type": "application/json"},
-                      json=meta, timeout=30)
-    c.raise_for_status()
-    return c.json()["id"]
-
-
-def _drive_list_png(token: str, folder_id: str) -> List[Dict[str, str]]:
-    import requests
-    h       = {"Authorization": f"Bearer {token}"}
-    q       = (f"'{folder_id}' in parents and trashed=false and "
-               f"(mimeType='image/png' or name contains '.png')")
-    results = []
-    page_token = None
-    while True:
-        params = {"q": q, "fields": "nextPageToken,files(id,name,parents,mimeType)",
-                  "pageSize": 1000}
-        if page_token:
-            params["pageToken"] = page_token
-        r = requests.get("https://www.googleapis.com/drive/v3/files",
-                         headers=h, params=params, timeout=30)
-        r.raise_for_status()
-        data = r.json()
-        results.extend(data.get("files", []))
-        page_token = data.get("nextPageToken")
-        if not page_token:
-            break
-    return results
-
-
-def _drive_list_folders(token: str, folder_id: str) -> List[Dict[str, str]]:
-    import requests
-    h       = {"Authorization": f"Bearer {token}"}
-    q       = (f"'{folder_id}' in parents and trashed=false and "
-               f"mimeType='application/vnd.google-apps.folder'")
-    results = []
-    page_token = None
-    while True:
-        params = {"q": q, "fields": "nextPageToken,files(id,name)",
-                  "pageSize": 1000}
-        if page_token:
-            params["pageToken"] = page_token
-        r = requests.get("https://www.googleapis.com/drive/v3/files",
-                         headers=h, params=params, timeout=30)
-        r.raise_for_status()
-        data = r.json()
-        results.extend(data.get("files", []))
-        page_token = data.get("nextPageToken")
-        if not page_token:
-            break
-    return results
-
-
-def _drive_download(token: str, file_id: str) -> bytes:
-    import requests
-    r = requests.get(f"https://www.googleapis.com/drive/v3/files/{file_id}",
-                     headers={"Authorization": f"Bearer {token}"},
-                     params={"alt": "media"}, timeout=120)
-    r.raise_for_status()
-    return r.content
-
-
-def _drive_upload(token: str, folder_id: str, name: str,
-                  data: bytes, mime: str) -> Dict[str, str]:
-    import requests
-    h        = {"Authorization": f"Bearer {token}"}
-    boundary = "----UltraPNGS2"
-    metadata = json.dumps({"name": name, "parents": [folder_id]})
-    body = (
-        f"--{boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n{metadata}\r\n"
-        f"--{boundary}\r\nContent-Type: {mime}\r\n\r\n"
-    ).encode() + data + f"\r\n--{boundary}--".encode()
-    r = requests.post(
-        "https://www.googleapis.com/upload/drive/v3/files"
-        "?uploadType=multipart&fields=id,name",
-        headers={**h, "Content-Type": f'multipart/related; boundary="{boundary}"'},
-        data=body, timeout=120)
-    r.raise_for_status()
-    return r.json()
-
-
-def _drive_share(token: str, file_id: str) -> None:
-    import requests
-    requests.post(
-        f"https://www.googleapis.com/drive/v3/files/{file_id}/permissions",
-        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-        json={"role": "reader", "type": "anyone"}, timeout=30)
-
-
-def _drive_move(token: str, file_id: str,
-                add_parent: str, remove_parent: str) -> None:
-    import requests
-    r = requests.patch(
-        f"https://www.googleapis.com/drive/v3/files/{file_id}",
-        headers={"Authorization": f"Bearer {token}"},
-        params={"addParents": add_parent, "removeParents": remove_parent,
-                "fields": "id"}, timeout=30)
-    r.raise_for_status()
-
-
-def _preview_url(fid: str, size: int = 800) -> str:
-    return f"https://lh3.googleusercontent.com/d/{fid}=s{size}"
-
-
-def _download_url(fid: str) -> str:
-    return (f"https://drive.usercontent.google.com/download"
-            f"?id={fid}&export=download&authuser=0")
-
-
-# ══════════════════════════════════════════════════════════════
-# PREVIEW IMAGE MAKER  (checkerboard bg + watermark)
-# ══════════════════════════════════════════════════════════════
-
-def _make_webp_preview(png_bytes: bytes) -> bytes:
-    from PIL import Image, ImageDraw, ImageFont
-    with Image.open(io.BytesIO(png_bytes)).convert("RGBA") as img_rgba:
-        w, h = img_rgba.size
-        if max(w, h) > 800:
-            ratio    = 800 / max(w, h)
-            img_rgba = img_rgba.resize((int(w * ratio), int(h * ratio)), Image.LANCZOS)
-        w, h = img_rgba.size
-        bg   = Image.new("RGB", (w, h), (255, 255, 255))
-        drw  = ImageDraw.Draw(bg)
-        for y in range(0, h, 20):
-            for x in range(0, w, 20):
-                if (y // 20 + x // 20) % 2 == 1:
-                    drw.rectangle([x, y, x + 20, y + 20], fill=(232, 232, 232))
-        bg.paste(img_rgba.convert("RGB"), mask=img_rgba.split()[3])
-        try:
-            fnt = ImageFont.truetype(
-                "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 13)
-        except Exception:
-            fnt = ImageFont.load_default()
-        wm_layer = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-        wm_draw  = ImageDraw.Draw(wm_layer)
-        for y in range(-h, h + 110, 110):
-            for x in range(-w, w + 110, 110):
-                wm_draw.text((x, y), WATERMARK_TEXT, fill=(0, 0, 0, 42), font=fnt)
-        wm_rot  = wm_layer.rotate(-30, expand=False)
-        bg_rgba = bg.convert("RGBA")
-        bg_rgba.alpha_composite(wm_rot)
-        out = bg_rgba.convert("RGB")
-        d2  = ImageDraw.Draw(out)
-        d2.rectangle([0, h - 36, w, h], fill=(13, 13, 20))
-        d2.text((w // 2 - 72, h - 26), WATERMARK_TEXT, fill=(245, 166, 35), font=fnt)
-        buf = io.BytesIO()
-        out.save(buf, "WEBP", quality=82, method=4)
-        return buf.getvalue()
-
-
-# ══════════════════════════════════════════════════════════════
-# MANUAL DROP PROCESSOR
-# ══════════════════════════════════════════════════════════════
-
-def _process_manual_drop_and_update_ultradata(xlsx_path: Path) -> List[Dict[str, str]]:
-    token          = _drive_token()
-    manual_root    = _drive_folder(token, "manual drop")
-    png_root       = _drive_folder(token, "png_library_images")
-    prev_root      = _drive_folder(token, "png_library_previews")
-    library_manual = _drive_folder(token, "manual_drop", png_root)
-    preview_manual = _drive_folder(token, "manual_drop", prev_root)
-
-    files = _drive_list_png(token, manual_root)
-    if not files:
-        print("  Manual drop: no new files found.")
-        return []
-
-    print(f"  Manual drop: {len(files)} file(s) found.")
-    new_rows: List[Dict[str, str]] = []
-    for f in files:
-        fid        = f["id"]
-        name       = f.get("name", "untitled.png")
-        old_parent = (f.get("parents") or [manual_root])[0]
-        print(f"    Processing: {name}", end=" ", flush=True)
-        try:
-            png_bytes  = _drive_download(token, fid)
-            webp_bytes = _make_webp_preview(png_bytes)
-            webp       = _drive_upload(token, preview_manual,
-                                       Path(name).stem + ".webp",
-                                       webp_bytes, "image/webp")
-            _drive_share(token, webp["id"])
-            _drive_move(token, fid, library_manual, old_parent)
-            _drive_share(token, fid)
-            subject = Path(name).stem.replace("_", " ").replace("-", " ").title()
-            new_rows.append({
-                "date_added":   _today(),
-                "subject_name": subject,
-                "category":     "manual_drop",
-                "subcategory":  "manual_drop",
-                "filename":     name,
-                "png_file_id":  fid,
-                "webp_file_id": webp["id"],
-                "download_url": _download_url(fid),
-                "preview_url":  _preview_url(webp["id"], 800),
-            })
-            print("✓")
-        except Exception as e:
-            print(f"✗ SKIP ({e})")
-
-    if new_rows:
-        _append_ultradata_rows(xlsx_path, new_rows)
-        print(f"  Manual drop: appended {len(new_rows)} row(s) to ultradata.xlsx")
-    return new_rows
-
-
-# ══════════════════════════════════════════════════════════════
-# LIBRARY FILE SCANNER
-# ══════════════════════════════════════════════════════════════
-
-def _library_file_names(token: str) -> set:
-    """Walk all sub-folders of png_library_images and collect filenames."""
-    png_root = _drive_folder(token, "png_library_images")
-    names    = set()
-    queue    = [png_root]
-    while queue:
-        current = queue.pop(0)
-        for f in _drive_list_png(token, current):
-            names.add((f.get("name") or "").strip())
-        for sf in _drive_list_folders(token, current):
-            queue.append(sf["id"])
-    return names
 
 
 # ══════════════════════════════════════════════════════════════
@@ -690,15 +349,17 @@ def _clone_repo2(cfg: Repo2Config, workdir: Path) -> Path:
     return workdir
 
 
-def _load_repo2_entries(repo2_dir: Path,
-                        data_dir: str) -> Tuple[Dict[str, Any], List[Path]]:
+def _load_existing_entries(repo2_dir: Path, data_dir: str) -> Tuple[Dict[str, Any], List[Path]]:
+    """Load all existing JSON entries. Returns (filename→entry dict, sorted file list)."""
     d = repo2_dir / data_dir
     d.mkdir(parents=True, exist_ok=True)
+
     files = sorted([p for p in d.glob("json*.json") if p.is_file()])
     if not files:
         f1 = d / "json1.json"
         f1.write_text("[]", encoding="utf-8")
         files = [f1]
+
     all_entries: Dict[str, Any] = {}
     for f in files:
         try:
@@ -710,64 +371,68 @@ def _load_repo2_entries(repo2_dir: Path,
                         all_entries[fn] = e
         except Exception:
             continue
+
     return all_entries, files
 
 
-def _save_repo2_files(repo2_dir: Path, data_dir: str,
-                      file_entries: Dict[Path, List[Dict[str, Any]]]) -> None:
+def _get_active_file(files: List[Path], repo2_dir: Path, data_dir: str,
+                     max_entries: int,
+                     file_entries: Dict[Path, List]) -> Path:
+    """Return the current target JSON file. Creates a new one if last is full."""
+    last = files[-1]
+    n    = len(file_entries.get(last, []))
+
+    if n < max_entries:
+        return last
+
+    # last is full — create next
+    m   = re.match(r"json(\d+)\.json$", last.name)
+    nxt = (int(m.group(1)) + 1) if m else (len(files) + 1)
+    newf = repo2_dir / data_dir / f"json{nxt}.json"
+    newf.write_text("[]", encoding="utf-8")
+    files.append(newf)
+    file_entries[newf] = []
+    print(f"\n  [JSON] Created {newf.name} (previous file full)", flush=True)
+    return newf
+
+
+def _save_json_files(file_entries: Dict[Path, List]) -> None:
     for f, arr in file_entries.items():
         tmp = f.with_suffix(f.suffix + ".tmp")
         tmp.write_text(json.dumps(arr, ensure_ascii=False, indent=2), encoding="utf-8")
         tmp.replace(f)
 
 
-def _ensure_capacity(files: List[Path], repo2_dir: Path,
-                     data_dir: str, max_entries: int,
-                     file_entries: Dict[Path, List[Dict[str, Any]]] = None) -> Path:
-    last = files[-1]
-    if file_entries is not None and last in file_entries:
-        n = len(file_entries[last])
-    else:
-        try:
-            arr = json.loads(last.read_text(encoding="utf-8"))
-            n   = len(arr) if isinstance(arr, list) else 0
-        except Exception:
-            n = 0
-    if n < max_entries:
-        return last
-    m   = re.match(r"json(\d+)\.json$", last.name)
-    nxt = (int(m.group(1)) + 1) if m else (len(files) + 1)
-    newf = repo2_dir / data_dir / f"json{nxt}.json"
-    newf.write_text("[]", encoding="utf-8")
-    files.append(newf)
-    if file_entries is not None:
-        file_entries[newf] = []
-    return newf
-
-
 def _commit_push_repo2(repo2_dir: Path, cfg: Repo2Config, added: int) -> None:
-    subprocess.run(["git", "config", "user.name", "github-actions[bot]"],
+    subprocess.run(["git", "config", "user.name",  "github-actions[bot]"],
                    cwd=str(repo2_dir), check=True)
     subprocess.run(["git", "config", "user.email",
                     "github-actions[bot]@users.noreply.github.com"],
                    cwd=str(repo2_dir), check=True)
-    # Add JSON data dir + ultradata.xlsx (now lives in private ultrapng repo)
+
     subprocess.run(["git", "add", cfg.data_dir], cwd=str(repo2_dir), check=True)
+
     xlsx_in_repo2 = repo2_dir / ULTRADATA_XLSX
     if xlsx_in_repo2.exists():
         subprocess.run(["git", "add", ULTRADATA_XLSX], cwd=str(repo2_dir), check=True)
+
     diff = subprocess.run(["git", "diff", "--staged", "--quiet"], cwd=str(repo2_dir))
     if diff.returncode == 0:
         print("  Repo2: nothing to commit — already up-to-date.")
         return
-    subprocess.run(["git", "commit", "-m", f"seo: add {added} entries from ultradata"],
-                   cwd=str(repo2_dir), check=True)
+
+    subprocess.run(
+        ["git", "commit", "-m", f"seo: add {added} entries [section2]"],
+        cwd=str(repo2_dir), check=True
+    )
+
     result = subprocess.run(["git", "push"], cwd=str(repo2_dir),
-                            capture_output=True, text=True)
+                             capture_output=True, text=True)
     if result.returncode != 0:
         print(f"  [ERROR] git push failed:\n{result.stderr}")
         raise RuntimeError("Repo2 push failed — check REPO2_TOKEN permissions.")
-    print(f"  Repo2: pushed {added} new SEO entries ✓")
+
+    print(f"  Repo2: pushed {added} SEO entries ✓")
 
 
 # ══════════════════════════════════════════════════════════════
@@ -780,133 +445,84 @@ def main() -> None:
     repo2_token = os.environ.get("REPO2_TOKEN", "").strip()
     repo2_slug  = os.environ.get("REPO2_SLUG",  "").strip()
     if not repo2_token or not repo2_slug:
-        raise SystemExit("Missing REPO2_TOKEN or REPO2_SLUG")
+        raise SystemExit("❌  Missing REPO2_TOKEN or REPO2_SLUG in environment")
 
-    max_per_file   = int(os.environ.get("REPO2_MAX_PER_JSON", "200"))
-    run_mode       = os.environ.get("S2_RUN_MODE",        "scheduled").strip().lower()
-    batch_size     = int(os.environ.get("S2_BATCH_SIZE",     "220").strip())
-    scheduled_days = int(os.environ.get("S2_SCHEDULED_DAYS", "200").strip())
-    checkpoint_every = int(os.environ.get("S2_CHECKPOINT_EVERY", "50").strip() or "50")
-    if checkpoint_every <= 0:
-        checkpoint_every = 50
+    max_per_file     = int(os.environ.get("REPO2_MAX_PER_JSON", "200"))
+    checkpoint_every = 50   # push to repo every N items (crash safety)
 
-    instant_count_env = (os.environ.get("S2_INSTANT_COUNT", "") or "").strip()
-    instant_count_req: int | None = None
-    if instant_count_env:
+    # ── How many to process ──────────────────────────────────
+    count_env = (os.environ.get("S2_COUNT", "") or "").strip()
+    requested: int | None = None
+    if count_env:
         try:
-            v = int(instant_count_env)
+            v = int(count_env)
             if v > 0:
-                instant_count_req = v
+                requested = min(v, INSTANT_CAP)
         except Exception:
-            instant_count_req = None
+            pass
 
-    print("=" * 62)
+    print("=" * 60)
     print("  Section 2 — SEO JSON Builder")
-    print(f"  Mode           : {run_mode}")
-    print(f"  Batch size     : {batch_size}  |  Instant cap: {INSTANT_CAP}")
-    print(f"  Scheduled days : {scheduled_days}")
-    if run_mode == "instant" and instant_count_req:
-        print(f"  Instant count  : {instant_count_req}")
-    print(f"  ModelScope     : {MS_MODELS[0]}  (sleep {MS_SLEEP_SEC}s)")
-    print("=" * 62)
+    print(f"  Requested count : {requested if requested else 'ALL pending'}")
+    print(f"  Safety cap      : {INSTANT_CAP}")
+    print(f"  Max per JSON    : {max_per_file}")
+    print(f"  Model           : {MS_MODELS[0]}")
+    print("=" * 60)
 
-    # ── STEP 1: Clone repo2 FIRST (ultradata.xlsx lives there — private repo) ──
-    print("\n[Step 1] Cloning Repo2 (private ultrapng repo) ...")
+    # ── STEP 1: Clone private ultrapng repo ──────────────────
+    print("\n[Step 1] Cloning private ultrapng repo ...")
     cfg       = Repo2Config(token=repo2_token, slug=repo2_slug)
     repo2_dir = _clone_repo2(cfg, root / "_repo2_work")
 
-    # ultradata.xlsx now lives in the PRIVATE ultrapng repo (not source repo)
+    # ultradata.xlsx lives in private ultrapng repo
     xlsx = repo2_dir / ULTRADATA_XLSX
     if not xlsx.exists():
         raise SystemExit(
-            f"Missing {ULTRADATA_XLSX} in private repo ({repo2_slug}).\n"
-            f"  ➜ Please move ultradata.xlsx from guruimageusha-main → {repo2_slug} manually (once)."
+            f"❌  {ULTRADATA_XLSX} not found in {repo2_slug}.\n"
+            f"    Please push ultradata.xlsx to the root of that repo."
         )
 
-    # ── STEP 2: Manual drop scan ─────────────────────────────
-    print("\n[Step 2] Manual drop scan ...")
-    _process_manual_drop_and_update_ultradata(xlsx)
+    # ── STEP 2: Read pending rows ────────────────────────────
+    print("\n[Step 2] Reading pending rows from ultradata.xlsx ...")
+    pending = _read_pending_rows(xlsx)
+    print(f"  Pending rows : {len(pending)}")
 
-    # ── STEP 3: Read ultradata rows ──────────────────────────
-    print("\n[Step 3] Reading ultradata.xlsx (from private repo) ...")
-    all_rows = _read_ultradata_rows(xlsx)
-    print(f"  Total rows in xlsx : {len(all_rows)}")
-    if not all_rows:
-        print("  No rows — nothing to do.")
+    if not pending:
+        print("  ✅  Nothing pending — all done.")
         return
 
-    # ── STEP 4: PNG availability check ──────────────────────
-    print("\n[Step 4] Checking Drive png_library_images ...")
-    drive_token   = _drive_token()
-    library_names = _library_file_names(drive_token)
-    print(f"  PNG files in Drive : {len(library_names)}")
+    # Deduplicate by filename
+    seen: set = set()
+    deduped   = []
+    for r in pending:
+        fn = r.get("filename", "")
+        if fn and fn not in seen:
+            seen.add(fn)
+            deduped.append(r)
+    pending = deduped
 
-    rows_with_png    = [r for r in all_rows if r.get("filename", "") in library_names]
-    rows_missing_png = [r for r in all_rows if r.get("filename", "") not in library_names]
+    # ── STEP 3: Load existing SEO from repo2 ────────────────
+    print("\n[Step 3] Loading existing SEO entries from repo2 ...")
+    existing, files = _load_existing_entries(repo2_dir, cfg.data_dir)
+    print(f"  Existing SEO entries : {len(existing)}")
 
-    if rows_missing_png:
-        print(f"  ⚠  {len(rows_missing_png)} row(s) skipped — PNG not in Drive library "
-              f"(will retry once PNG arrives):")
-        for r in rows_missing_png[:10]:
-            print(f"       • {r['filename']}  ({r['subject_name']})")
-        if len(rows_missing_png) > 10:
-            print(f"       ... and {len(rows_missing_png) - 10} more")
+    # Filter out already-done
+    todo = [r for r in pending if r["filename"] not in existing]
+    print(f"  Still to generate    : {len(todo)}")
 
-    print(f"  Rows with PNG ready: {len(rows_with_png)}")
-    if not rows_with_png:
-        print("  No valid rows with PNG — nothing to process.")
+    if not todo:
+        print("  ✅  All pending rows already have SEO in repo2.")
         return
 
-    # ── STEP 5: Load repo2 existing SEO entries ──────────────
-    print("\n[Step 5] Loading existing SEO entries from Repo2 ...")
-    existing, files = _load_repo2_entries(repo2_dir, cfg.data_dir)
-    missing = [r for r in rows_with_png if r["filename"] not in existing]
+    # ── STEP 4: Decide count ─────────────────────────────────
+    target = min(requested, len(todo)) if requested else len(todo)
+    print(f"\n  ▶  Will generate SEO for {target} item(s) ...")
 
-    # Dedupe by filename
-    seen_missing_filenames: set[str] = set()
-    deduped_missing = []
-    for r in missing:
-        fn = str((r or {}).get("filename", "") or "").strip()
-        if not fn or fn in seen_missing_filenames:
-            continue
-        seen_missing_filenames.add(fn)
-        deduped_missing.append(r)
-    missing = deduped_missing
+    # ── STEP 5: Generate SEO ─────────────────────────────────
+    print(f"\n[Step 4] Generating SEO ...\n")
 
-    print(f"  Repo2 existing SEO : {len(existing)}")
-    print(f"  Rows with PNG      : {len(rows_with_png)}")
-    print(f"  Pending SEO        : {len(missing)}")
-
-    if not missing:
-        print("\n  All entries have SEO — nothing to add.")
-        return
-
-    # ── STEP 6: Decide how many to run ──────────────────────
-    total_pending = len(missing)
-    if run_mode == "instant":
-        if instant_count_req is not None:
-            desired_added = min(instant_count_req, INSTANT_CAP)
-            if instant_count_req > INSTANT_CAP:
-                print(f"\n⚠  Instant mode: requested {instant_count_req} but cap is "
-                      f"{INSTANT_CAP}. Will run {desired_added}.")
-            else:
-                print(f"\n▶  Instant mode: target {desired_added} SEO generations.")
-        else:
-            desired_added = min(len(missing), INSTANT_CAP)
-            print(f"\n▶  Instant mode: target {desired_added} SEO generations (cap/default).")
-    else:
-        desired_added = min(batch_size, len(missing))
-        if desired_added < len(missing):
-            print(f"\n▶  Scheduled mode: target {desired_added} out of {len(missing)} pending.")
-        else:
-            print(f"\n▶  Scheduled mode: target {desired_added} SEO generations (all remaining).")
-
-    # ── STEP 7: Generate SEO ─────────────────────────────────
-    est_min = max(1, desired_added) * MS_SLEEP_SEC / 60
-    print(f"\n[Step 7] Generating SEO — target: {desired_added} item(s) ...")
-    print(f"         Estimated time: ~{est_min:.1f} minutes\n")
-
-    file_entries: Dict[Path, List[Dict[str, Any]]] = {}
+    # Pre-load file_entries from disk
+    file_entries: Dict[Path, List] = {}
     for f in files:
         try:
             arr = json.loads(f.read_text(encoding="utf-8"))
@@ -914,106 +530,102 @@ def main() -> None:
         except Exception:
             file_entries[f] = []
 
-    added = 0
-    pending_since_last_push = 0
-    completed_filenames: set = set()  # Track filenames that got SEO this run
+    added               = 0
+    completed_filenames : set = set()
+    pending_push        = 0
 
-    for i, r in enumerate(missing, 1):
-        if added >= desired_added:
+    for i, r in enumerate(todo, 1):
+        if added >= target:
             break
-        subject     = r["subject_name"]
-        preview_url = r.get("preview_url", "")
-        print(f"  [{i}/{len(missing)}] {subject} ...", end=" ", flush=True)
+
+        subject  = r["subject_name"]
+        filename = r["filename"]
+
+        print(f"  [{i}/{target}] {subject} ({filename}) ...", end=" ", flush=True)
+
         try:
-            seo    = _modelscope_seo(subject)
-            target = _ensure_capacity(files, repo2_dir, cfg.data_dir, max_per_file,
-                                      file_entries)
-            if target not in file_entries:
-                file_entries[target] = []
-
-            base_slug = re.sub(r"[^a-z0-9]+", "-",
-                               subject.lower()).strip("-") or "untitled"
-            fn_id     = re.sub(r"[^0-9]", "", r["filename"])[-4:] or "0"
-            slug      = f"{base_slug}-{fn_id}"
-
-            file_entries[target].append({
-                "category":          r.get("category", ""),
-                "subcategory":       r.get("subcategory", ""),
-                "subject_name":      subject,
-                "filename":          r["filename"],
-                "slug":              slug,
-                "download_url":      r["download_url"],
-                "preview_url":       preview_url,
-                "webp_preview_url":  r.get("webp_preview_url", preview_url),
-                "title":             seo["title"],
-                "h1":                seo["h1"],
-                "meta_desc":         seo["meta_desc"],
-                "alt_text":          seo["alt_text"],
-                "tags":              seo["tags"],
-                "description":       seo["description"],
-                "word_count":        _word_count(seo["description"]),
-                "date_added":        r.get("date_added", _today()),
-            })
-            completed_filenames.add(r["filename"])
-            added += 1
-            pending_since_last_push += 1
-            kw = len([k for k in seo["description"].split(",") if k.strip()])
-            print(f"✓  title={len(seo['title'])}c  keywords={kw}")
-
-            # Checkpoint push every N items (saves JSON + ultradata.xlsx)
-            if pending_since_last_push >= checkpoint_every:
-                print(f"\n  [Checkpoint] Saving & pushing {pending_since_last_push} entries ...")
-                _save_repo2_files(repo2_dir, cfg.data_dir, file_entries)
-                # Mark completed rows in ultradata.xlsx before pushing
-                _update_ultradata_seo_status(xlsx, completed_filenames)
-                _commit_push_repo2(repo2_dir, cfg, pending_since_last_push)
-                pending_since_last_push = 0
-
+            seo = _modelscope_seo(subject)
         except Exception as e:
             print(f"✗ SKIP ({e})")
+            continue
 
-        # Sleep between calls
-        if added < desired_added and i < len(missing):
+        # Build slug
+        base_slug = re.sub(r"[^a-z0-9]+", "-", subject.lower()).strip("-") or "untitled"
+        fn_digits = re.sub(r"[^0-9]", "", filename)[-4:].zfill(4)
+        slug      = f"{base_slug}-{fn_digits}"
+
+        # webp preview URL — built from webp_file_id if available
+        webp_fid     = r.get("webp_file_id", "")
+        webp_preview = (
+            f"https://lh3.googleusercontent.com/d/{webp_fid}=s800"
+            if webp_fid else r.get("preview_url", "")
+        )
+
+        # Choose target JSON file
+        target_file = _get_active_file(files, repo2_dir, cfg.data_dir,
+                                       max_per_file, file_entries)
+        if target_file not in file_entries:
+            file_entries[target_file] = []
+
+        file_entries[target_file].append({
+            "category":         r.get("category", ""),
+            "subcategory":      r.get("subcategory", ""),
+            "subject_name":     subject,
+            "filename":         filename,
+            "slug":             slug,
+            "download_url":     r["download_url"],
+            "preview_url":      r["preview_url"],
+            "webp_preview_url": webp_preview,
+            "title":            seo["title"],
+            "h1":               seo["h1"],
+            "meta_desc":        seo["meta_desc"],
+            "alt_text":         seo["alt_text"],
+            "tags":             seo["tags"],
+            "description":      seo["description"],
+            "word_count":       _word_count(seo["description"]),
+            "date_added":       r.get("date_added", _today()),
+        })
+
+        completed_filenames.add(filename)
+        added       += 1
+        pending_push += 1
+
+        kw = len([k for k in seo["description"].split(",") if k.strip()])
+        print(f"✓  title={len(seo['title'])}c  kw={kw}", flush=True)
+
+        # Checkpoint: save + push every N items
+        if pending_push >= checkpoint_every:
+            print(f"\n  [Checkpoint] Saving {pending_push} entries to repo ...")
+            _save_json_files(file_entries)
+            _mark_completed(xlsx, completed_filenames)
+            _commit_push_repo2(repo2_dir, cfg, pending_push)
+            pending_push = 0
+            print()
+
+        # Sleep between API calls
+        if added < target:
             global _ms_dynamic_sleep
             time.sleep(_ms_dynamic_sleep)
             if _ms_dynamic_sleep > MS_SLEEP_SEC:
                 _ms_dynamic_sleep = max(MS_SLEEP_SEC, _ms_dynamic_sleep * 0.85)
 
-    # ── STEP 8: Save & push remaining (JSON + ultradata.xlsx → private repo) ──
-    if pending_since_last_push > 0:
-        print(f"\n[Step 8] Saving & pushing remaining {pending_since_last_push} entries ...")
-        _save_repo2_files(repo2_dir, cfg.data_dir, file_entries)
-        # Mark completed in ultradata.xlsx before final push
-        updated_rows = _update_ultradata_seo_status(xlsx, completed_filenames)
-        print(f"  ultradata.xlsx: {updated_rows} row(s) marked as completed")
-        _commit_push_repo2(repo2_dir, cfg, pending_since_last_push)
-    elif completed_filenames:
-        # All were checkpoint-pushed, but update ultradata status if any pending
-        updated_rows = _update_ultradata_seo_status(xlsx, completed_filenames)
-        if updated_rows:
-            print(f"\n[Step 8] Updating ultradata.xlsx status ({updated_rows} rows) ...")
-            _commit_push_repo2(repo2_dir, cfg, 0)
-    else:
-        print("  Repo2: no remaining entries to push.")
+    # ── STEP 6: Final save + push ────────────────────────────
+    if pending_push > 0 or completed_filenames:
+        print(f"\n[Step 5] Final save & push ({pending_push} remaining) ...")
+        _save_json_files(file_entries)
+        updated = _mark_completed(xlsx, completed_filenames)
+        print(f"  ultradata.xlsx: {updated} row(s) marked completed")
+        _commit_push_repo2(repo2_dir, cfg, pending_push)
 
-    # ── STEP 9: Update progress tracker (source repo only) ───
-    prev_total = _read_s2_tracker(root)
-    new_total  = prev_total + added
-    _write_s2_tracker(root, new_total)
-
-    print("\n" + "=" * 62)
-    print(f"  Section 2 complete — added {added} SEO entries.")
-    print(f"  Total SEO entries to date : {new_total}")
-    print(f"  ultradata.xlsx → saved in private repo ({repo2_slug}) ✅")
-    if rows_missing_png:
-        print(f"  ⚠  PNG-missing rows skipped : {len(rows_missing_png)}"
-              f"  (auto-retried next run once PNG arrives in Drive)")
-    if run_mode == "scheduled":
-        remaining = total_pending - added
-        if remaining > 0:
-            days_left = (remaining + batch_size - 1) // batch_size
-            print(f"  Remaining pending : {remaining}  (~{days_left} more scheduled runs)")
-    print("=" * 62)
+    # ── Summary ──────────────────────────────────────────────
+    print("\n" + "=" * 60)
+    print(f"  ✅  Section 2 complete")
+    print(f"  Added this run    : {added}")
+    print(f"  Total in repo2    : {len(existing) + added}")
+    remaining = len(todo) - added
+    if remaining > 0:
+        print(f"  Still pending     : {remaining} (run again to continue)")
+    print("=" * 60)
 
 
 if __name__ == "__main__":
