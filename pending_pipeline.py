@@ -1,21 +1,22 @@
 """
 ╔══════════════════════════════════════════════════════════════════╗
-║   Pending Drive Pipeline  V3.0                                   ║
+║   Pending Drive Pipeline  V3.2                                   ║
 ╠══════════════════════════════════════════════════════════════════╣
 ║  PHASE 1 → Discovery     List pending folder + subfolders        ║
 ║  PHASE 2 → Download      Batch download JPG/PNG from Drive       ║
 ║  PHASE 3 → rembg 2       BRIA birefnet-general bg removal (HF)  ║
-║  PHASE 4 → Preview       WebP <80KB + diagonal watermark         ║
-║  PHASE 5 → Drive Upload  Original PNG → png_library_images/      ║
-║  PHASE 6 → GitHub Upload Preview WebP → guruimageusha/preview_png║
+║  PHASE 4 → WebP Preview  <80 KB + checkered BG + watermark      ║
+║  PHASE 5 → Drive Upload  Original transparent PNG → Drive        ║
+║  PHASE 6 → GitHub Upload WebP preview → guruimageusha/preview_webp║
 ║  PHASE 7 → Move          Original → pending/finished/{subfolder} ║
 ║  PHASE 8 → ultradata     Append rows → ultrapng/ultradata.xlsx   ║
 ╚══════════════════════════════════════════════════════════════════╝
 
-inject_creds_pending.py prepends:
-  GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / GOOGLE_REFRESH_TOKEN
-  GH_TOKEN / GH_OWNER
-os.environ lines before this file.
+inject_creds_pending.py prepends env vars before this file runs.
+Required secrets  : GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
+                    GOOGLE_REFRESH_TOKEN, GH_TOKEN, GH_OWNER
+Tunable variables : RUN_ITEMS_COUNT, REMBG_MODEL,
+                    WATERMARK_TEXT, PENDING_FOLDER_NAME
 """
 
 import os, sys, json, time, gc, io, subprocess, math, base64
@@ -35,62 +36,68 @@ os.environ["HUGGINGFACE_HUB_CACHE"] = str(HF_CACHE)
 os.environ["TRANSFORMERS_CACHE"]    = str(HF_CACHE)
 
 # ══════════════════════════════════════════════════════════════════
-#  ✏️  USER CONFIG  — edit these values directly
+# CONFIG  — all values read from env vars (set via GitHub Actions)
+#           defaults are used when running locally
 # ══════════════════════════════════════════════════════════════════
-RUN_ITEMS_COUNT     = 50                  # Images to process per run
-WATERMARK_TEXT      = "www.ultrapng.com"  # Watermark & footer text
-PENDING_FOLDER_NAME = "pending"           # Source Drive folder name
-REMBG_MODEL         = "birefnet-general"  # BRIA AI — best quality in rembg 2
-BATCH_SIZE          = 50                  # Upload batch size
+def _env_int(key, default):
+    try:
+        return int(os.environ.get(key, default))
+    except ValueError:
+        return default
 
-PREVIEW_MAX_SIDE    = 800                 # Max side (px) for preview WebP
-PREVIEW_MAX_BYTES   = 80 * 1024          # 80 KB hard limit for preview WebP
+RUN_ITEMS_COUNT     = _env_int("RUN_ITEMS_COUNT", 50)   # selectable per run
+WATERMARK_TEXT      = os.environ.get("WATERMARK_TEXT",      "www.ultrapng.com")
+PENDING_FOLDER_NAME = os.environ.get("PENDING_FOLDER_NAME", "pending")
+REMBG_MODEL         = os.environ.get("REMBG_MODEL",         "birefnet-general")
+BATCH_SIZE          = min(RUN_ITEMS_COUNT, 50)           # Drive upload sub-batch
 
-PREVIEW_REPO        = "guruimageusha"     # GitHub repo for preview WebPs
-PREVIEW_BRANCH      = "main"
-PREVIEW_FOLDER      = "preview_png"       # Folder inside guruimageusha repo
+WEBP_MAX_SIDE  = 800
+WEBP_MAX_BYTES = 80 * 1024          # 80 KB hard limit
 
-ULTRADATA_REPO      = "ultrapng"          # GitHub repo that holds ultradata.xlsx
-ULTRADATA_FILE      = "ultradata.xlsx"    # xlsx path in ultrapng repo
-ULTRADATA_BRANCH    = "main"
-# ══════════════════════════════════════════════════════════════════
+PREVIEW_REPO   = os.environ.get("PREVIEW_REPO",   "guruimageusha")
+PREVIEW_BRANCH = os.environ.get("PREVIEW_BRANCH", "main")
+PREVIEW_FOLDER = os.environ.get("PREVIEW_FOLDER", "preview_webp")
 
-# Drive credentials — injected by inject_creds_pending.py
-GOOGLE_CLIENT_ID     = os.environ.get("GOOGLE_CLIENT_ID", "")
+ULTRADATA_REPO   = os.environ.get("ULTRADATA_REPO",   "ultrapng")
+ULTRADATA_FILE   = os.environ.get("ULTRADATA_FILE",   "ultradata.xlsx")
+ULTRADATA_BRANCH = os.environ.get("ULTRADATA_BRANCH", "main")
+
+# Secrets (injected by inject_creds_pending.py)
+GOOGLE_CLIENT_ID     = os.environ.get("GOOGLE_CLIENT_ID",     "")
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 GOOGLE_REFRESH_TOKEN = os.environ.get("GOOGLE_REFRESH_TOKEN", "")
+GH_TOKEN             = os.environ.get("GH_TOKEN",             "")
+GH_OWNER             = os.environ.get("GH_OWNER",             "")
 
-# GitHub credentials — injected by inject_creds_pending.py
-GH_TOKEN = os.environ.get("GH_TOKEN", "")
-GH_OWNER = os.environ.get("GH_OWNER", "")
-
+# Working directories
 WORKING_DIR     = Path("/kaggle/working")
 DOWNLOAD_DIR    = WORKING_DIR / "downloads"
 TRANSPARENT_DIR = WORKING_DIR / "transparent"
-PREVIEW_DIR     = WORKING_DIR / "previews"
+WEBP_DIR        = WORKING_DIR / "webp_previews"
 
-for d in [DOWNLOAD_DIR, TRANSPARENT_DIR, PREVIEW_DIR]:
-    d.mkdir(parents=True, exist_ok=True)
+for _d in [DOWNLOAD_DIR, TRANSPARENT_DIR, WEBP_DIR]:
+    _d.mkdir(parents=True, exist_ok=True)
 
 # ══════════════════════════════════════════════════════════════════
 # INSTALL DEPENDENCIES
+# NOTE: birefnet-general uses PyTorch+transformers (pre-installed on
+#       Kaggle GPU).  onnxruntime is NOT needed and NOT installed.
 # ══════════════════════════════════════════════════════════════════
 print("=" * 64)
 print("Installing dependencies...")
-PKGS = [
+for _pkg in [
     "Pillow>=10.0",
     "numpy",
     "requests",
     "openpyxl",
-    "rembg[gpu]>=2.0.0",       # rembg v2 — birefnet-general from HuggingFace
-    "onnxruntime-gpu",
-]
-for pkg in PKGS:
-    r = subprocess.run(
-        [sys.executable, "-m", "pip", "install", "-q", "--no-warn-script-location", pkg],
-        capture_output=True, text=True
+    "rembg[gpu]>=2.0.0",    # rembg v2 — loads birefnet-general from HuggingFace
+]:
+    _r = subprocess.run(
+        [sys.executable, "-m", "pip", "install", "-q",
+         "--no-warn-script-location", _pkg],
+        capture_output=True, text=True,
     )
-    print(f"  {'OK  ' if r.returncode == 0 else 'WARN'} {pkg}")
+    print(f"  {'OK  ' if _r.returncode == 0 else 'WARN'} {_pkg}")
 print("Done!\n")
 
 import torch
@@ -121,7 +128,7 @@ def free_memory():
         torch.cuda.empty_cache()
         torch.cuda.synchronize()
     used = torch.cuda.memory_allocated(0) / 1e9 if torch.cuda.is_available() else 0
-    log(f"  GPU freed → {used:.2f} GB remaining")
+    log(f"  GPU freed -> {used:.2f} GB remaining")
 
 def gpu_info():
     if torch.cuda.is_available():
@@ -133,7 +140,7 @@ def gpu_info():
         log("  GPU: not available — running on CPU")
 
 # ══════════════════════════════════════════════════════════════════
-# GOOGLE DRIVE API
+# GOOGLE DRIVE — token
 # ══════════════════════════════════════════════════════════════════
 _token_cache = {"value": None, "expires": 0}
 
@@ -149,18 +156,79 @@ def get_drive_token():
     d = r.json()
     if "access_token" not in d:
         raise RuntimeError(f"Drive token error: {d}")
-    _token_cache.update({"value": d["access_token"], "expires": time.time() + 3200})
+    _token_cache.update({"value": d["access_token"],
+                         "expires": time.time() + 3200})
     return _token_cache["value"]
 
-def _h(token):
+def _dh(token):
     return {"Authorization": f"Bearer {token}"}
 
-def _gh(token):
-    return {
-        "Authorization": f"token {token}",
-        "Accept": "application/vnd.github.v3+json",
-    }
+# ══════════════════════════════════════════════════════════════════
+# GOOGLE DRIVE — folder  (get-or-create with cache + retry)
+# ══════════════════════════════════════════════════════════════════
+_folder_cache = {}   # cache: "parent_id::name" -> folder_id
 
+def drive_folder_get_or_create(token, name, parent_id=None):
+    """
+    - Search for folder by name (+ parent).
+    - If found  → return its ID immediately  (never create a duplicate).
+    - If absent → create it and return the new ID.
+    - In-process cache avoids redundant API calls within the same run.
+    - Retries up to 3 times on transient network errors.
+    """
+    cache_key = f"{parent_id or 'root'}::{name}"
+    if cache_key in _folder_cache:
+        return _folder_cache[cache_key]
+
+    q = (f"name='{name}' and mimeType='application/vnd.google-apps.folder'"
+         f" and trashed=false")
+    if parent_id:
+        q += f" and '{parent_id}' in parents"
+
+    for attempt in range(1, 4):
+        try:
+            # 1 — search first
+            r = req.get(
+                "https://www.googleapis.com/drive/v3/files",
+                headers=_dh(token),
+                params={"q": q, "fields": "files(id,name)", "pageSize": 1},
+                timeout=30,
+            )
+            r.raise_for_status()
+            files = r.json().get("files", [])
+            if files:
+                fid = files[0]["id"]
+                _folder_cache[cache_key] = fid
+                return fid
+
+            # 2 — not found: create
+            meta = {"name": name,
+                    "mimeType": "application/vnd.google-apps.folder"}
+            if parent_id:
+                meta["parents"] = [parent_id]
+            r2 = req.post(
+                "https://www.googleapis.com/drive/v3/files",
+                headers={**_dh(token), "Content-Type": "application/json"},
+                json=meta, timeout=30,
+            )
+            r2.raise_for_status()
+            fid = r2.json()["id"]
+            _folder_cache[cache_key] = fid
+            log(f"  Created folder '{name}' -> {fid}")
+            return fid
+
+        except Exception as e:
+            if attempt < 3:
+                log(f"  folder retry {attempt}/3 [{name}]: {e}")
+                time.sleep(4 * attempt)
+            else:
+                raise RuntimeError(
+                    f"drive_folder_get_or_create failed '{name}': {e}"
+                ) from e
+
+# ══════════════════════════════════════════════════════════════════
+# GOOGLE DRIVE — file helpers
+# ══════════════════════════════════════════════════════════════════
 def drive_list(token, folder_id, mime_filter=None):
     q = f"'{folder_id}' in parents and trashed=false"
     if mime_filter:
@@ -172,7 +240,7 @@ def drive_list(token, folder_id, mime_filter=None):
         if page_token:
             params["pageToken"] = page_token
         r = req.get("https://www.googleapis.com/drive/v3/files",
-                    headers=_h(token), params=params, timeout=30)
+                    headers=_dh(token), params=params, timeout=30)
         r.raise_for_status()
         data = r.json()
         results.extend(data.get("files", []))
@@ -182,11 +250,9 @@ def drive_list(token, folder_id, mime_filter=None):
     return results
 
 def drive_list_images(token, folder_id):
-    q = (
-        f"'{folder_id}' in parents and trashed=false and "
-        "(mimeType='image/jpeg' or mimeType='image/png' or "
-        " name contains '.jpg' or name contains '.jpeg' or name contains '.png')"
-    )
+    q = (f"'{folder_id}' in parents and trashed=false and "
+         "(mimeType='image/jpeg' or mimeType='image/png' or "
+         " name contains '.jpg' or name contains '.jpeg' or name contains '.png')")
     results, page_token = [], None
     while True:
         params = {"q": q, "pageSize": 1000,
@@ -194,7 +260,7 @@ def drive_list_images(token, folder_id):
         if page_token:
             params["pageToken"] = page_token
         r = req.get("https://www.googleapis.com/drive/v3/files",
-                    headers=_h(token), params=params, timeout=30)
+                    headers=_dh(token), params=params, timeout=30)
         r.raise_for_status()
         data = r.json()
         results.extend(data.get("files", []))
@@ -203,31 +269,11 @@ def drive_list_images(token, folder_id):
             break
     return results
 
-def drive_folder_get_or_create(token, name, parent_id=None):
-    q = f"name='{name}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
-    if parent_id:
-        q += f" and '{parent_id}' in parents"
-    r = req.get("https://www.googleapis.com/drive/v3/files",
-                headers=_h(token),
-                params={"q": q, "fields": "files(id)", "pageSize": 1},
-                timeout=30)
-    files = r.json().get("files", [])
-    if files:
-        return files[0]["id"]
-    meta = {"name": name, "mimeType": "application/vnd.google-apps.folder"}
-    if parent_id:
-        meta["parents"] = [parent_id]
-    r2 = req.post("https://www.googleapis.com/drive/v3/files",
-                  headers={**_h(token), "Content-Type": "application/json"},
-                  json=meta, timeout=30)
-    r2.raise_for_status()
-    return r2.json()["id"]
-
-def drive_upload(token, folder_id, name, data: bytes, mime="image/png", retries=3):
+def drive_upload(token, folder_id, name, data, mime="image/png", retries=3):
     for attempt in range(1, retries + 1):
         try:
             metadata = json.dumps({"name": name, "parents": [folder_id]})
-            boundary = "----PendingPipe3"
+            boundary = "----PendingPipe32"
             body = (
                 f"--{boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n"
                 f"{metadata}\r\n--{boundary}\r\nContent-Type: {mime}\r\n\r\n"
@@ -235,14 +281,16 @@ def drive_upload(token, folder_id, name, data: bytes, mime="image/png", retries=
             r = req.post(
                 "https://www.googleapis.com/upload/drive/v3/files"
                 "?uploadType=multipart&fields=id,name",
-                headers={**_h(token), "Content-Type": f'multipart/related; boundary="{boundary}"'},
-                data=body, timeout=180)
+                headers={**_dh(token),
+                         "Content-Type": f'multipart/related; boundary="{boundary}"'},
+                data=body, timeout=180,
+            )
             if r.ok:
                 return r.json()
             raise RuntimeError(f"HTTP {r.status_code}: {r.text[:200]}")
         except Exception as e:
             if attempt < retries:
-                log(f"    Upload retry {attempt}/{retries}: {e}")
+                log(f"    Drive upload retry {attempt}/{retries}: {e}")
                 time.sleep(6 * attempt)
             else:
                 raise
@@ -251,7 +299,7 @@ def drive_share(token, fid):
     try:
         req.post(
             f"https://www.googleapis.com/drive/v3/files/{fid}/permissions",
-            headers={**_h(token), "Content-Type": "application/json"},
+            headers={**_dh(token), "Content-Type": "application/json"},
             json={"role": "reader", "type": "anyone"}, timeout=30)
     except Exception:
         pass
@@ -259,7 +307,7 @@ def drive_share(token, fid):
 def drive_move(token, fid, add_parent_id, remove_parent_id):
     r = req.patch(
         f"https://www.googleapis.com/drive/v3/files/{fid}",
-        headers=_h(token),
+        headers=_dh(token),
         params={"addParents": add_parent_id, "removeParents": remove_parent_id,
                 "fields": "id,parents"},
         timeout=30)
@@ -268,31 +316,31 @@ def drive_move(token, fid, add_parent_id, remove_parent_id):
 
 def drive_download_bytes(token, fid):
     r = req.get(f"https://www.googleapis.com/drive/v3/files/{fid}",
-                headers=_h(token), params={"alt": "media"}, timeout=180)
+                headers=_dh(token), params={"alt": "media"}, timeout=180)
     r.raise_for_status()
     return r.content
 
 # ══════════════════════════════════════════════════════════════════
 # GITHUB API
 # ══════════════════════════════════════════════════════════════════
-def github_get_sha(token, owner, repo, path, branch="main"):
-    """Return existing file SHA (needed for update), or None if new file."""
-    url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
-    r = req.get(url, headers=_gh(token), params={"ref": branch}, timeout=30)
-    if r.status_code == 200:
-        return r.json().get("sha")
-    return None
+def _gh(token):
+    return {"Authorization": f"token {token}",
+            "Accept": "application/vnd.github.v3+json"}
 
-def github_upload_file(token, owner, repo, path, content_bytes, message,
-                       branch="main", retries=3):
-    """Create or update a file in a GitHub repo via Contents API."""
+def github_get_sha(token, owner, repo, path, branch="main"):
+    """Return blob SHA of an existing file, or None if not found."""
+    url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
+    r   = req.get(url, headers=_gh(token), params={"ref": branch}, timeout=30)
+    return r.json().get("sha") if r.status_code == 200 else None
+
+def github_upload_file(token, owner, repo, path, content_bytes,
+                       message, branch="main", retries=3):
+    """Create or update a file (fetches SHA first so updates never fail)."""
     url  = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
     sha  = github_get_sha(token, owner, repo, path, branch)
-    body = {
-        "message": message,
-        "content": base64.b64encode(content_bytes).decode(),
-        "branch":  branch,
-    }
+    body = {"message": message,
+            "content": base64.b64encode(content_bytes).decode(),
+            "branch":  branch}
     if sha:
         body["sha"] = sha
     for attempt in range(1, retries + 1):
@@ -310,29 +358,27 @@ def github_upload_file(token, owner, repo, path, content_bytes, message,
                 raise
 
 def jsdelivr_url(owner, repo, branch, path):
-    """Return a jsDelivr CDN URL for a GitHub file."""
     return f"https://cdn.jsdelivr.net/gh/{owner}/{repo}@{branch}/{path}"
 
 # ══════════════════════════════════════════════════════════════════
-# PNG PREVIEW  (checkered BG + diagonal watermark + footer, <80 KB)
+# WEBP PREVIEW  (checkered BG + diagonal watermark + footer bar)
 # ══════════════════════════════════════════════════════════════════
 def _get_font(size=13):
-    for path in [
+    for fpath in [
         "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
         "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
     ]:
         try:
-            return ImageFont.truetype(path, size)
+            return ImageFont.truetype(fpath, size)
         except Exception:
             continue
     return ImageFont.load_default()
 
-def _render_preview(img_rgba: Image.Image) -> Image.Image:
-    """Compose checkered bg + RGBA image + diagonal watermark + footer bar."""
+def _render_webp_canvas(img_rgba):
     w, h = img_rgba.size
 
-    # ── Checkered background ──────────────────────────────────────
+    # 1 — checkered background
     cs  = 20
     bg  = Image.new("RGB", (w, h), (255, 255, 255))
     drw = ImageDraw.Draw(bg)
@@ -342,19 +388,18 @@ def _render_preview(img_rgba: Image.Image) -> Image.Image:
                 drw.rectangle([cx, ry, cx + cs, ry + cs], fill=(232, 232, 232))
     bg.paste(img_rgba.convert("RGB"), mask=img_rgba.split()[3])
 
-    # ── Diagonal watermark ────────────────────────────────────────
+    # 2 — diagonal watermark  (−30°, alpha 42)
     fnt_wm   = _get_font(12)
     wm_layer = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     wm_draw  = ImageDraw.Draw(wm_layer)
     for ry in range(-h, h + 120, 120):
         for cx in range(-w, w + 120, 120):
             wm_draw.text((cx, ry), WATERMARK_TEXT, fill=(0, 0, 0, 42), font=fnt_wm)
-    wm_rot  = wm_layer.rotate(-30, expand=False)
     bg_rgba = bg.convert("RGBA")
-    bg_rgba.alpha_composite(wm_rot)
+    bg_rgba.alpha_composite(wm_layer.rotate(-30, expand=False))
     bg = bg_rgba.convert("RGB")
 
-    # ── Footer bar ────────────────────────────────────────────────
+    # 3 — footer bar
     fnt_ft = _get_font(14)
     drw2   = ImageDraw.Draw(bg)
     drw2.rectangle([0, h - 32, w, h], fill=(13, 13, 20))
@@ -366,78 +411,71 @@ def _render_preview(img_rgba: Image.Image) -> Image.Image:
     drw2.text((tx, h - 22), WATERMARK_TEXT, fill=(245, 166, 35), font=fnt_ft)
     return bg
 
-def make_webp_preview(img_rgba: Image.Image,
-                      max_side: int = PREVIEW_MAX_SIDE,
-                      max_bytes: int = PREVIEW_MAX_BYTES):
+def make_webp_preview(img_rgba):
     """
-    Render a WebP preview image under max_bytes (80 KB).
-    Uses binary-search on WebP quality for maximum quality within the limit.
-    Falls back to dimension reduction if quality=5 still exceeds limit.
+    Produce WebP bytes under WEBP_MAX_BYTES (80 KB).
+      1. Resize longest side to WEBP_MAX_SIDE (800 px)
+      2. Binary-search WebP quality 5→92 for best quality under limit
+      3. If quality=5 still too big, shrink dimensions by 12% per step
     Returns (webp_bytes, width, height).
     """
     img_rgba = img_rgba.convert("RGBA")
     ow, oh   = img_rgba.size
 
-    # Initial resize to fit within max_side
-    scale = min(1.0, max_side / max(ow, oh, 1))
-    rw    = max(int(ow * scale), 60)
-    rh    = max(int(oh * scale), 60)
-    resized = img_rgba.resize((rw, rh), Image.LANCZOS)
-    preview = _render_preview(resized)
+    scale  = min(1.0, WEBP_MAX_SIDE / max(ow, oh, 1))
+    rw     = max(int(ow * scale), 60)
+    rh     = max(int(oh * scale), 60)
+    canvas = _render_webp_canvas(img_rgba.resize((rw, rh), Image.LANCZOS))
 
-    # Binary-search WebP quality → best quality that fits under max_bytes
     lo, hi, best = 5, 92, None
     while lo <= hi:
         mid = (lo + hi) // 2
         buf = io.BytesIO()
-        preview.save(buf, "WEBP", quality=mid, method=6)
-        if buf.tell() <= max_bytes:
+        canvas.save(buf, "WEBP", quality=mid, method=6)
+        if buf.tell() <= WEBP_MAX_BYTES:
             best = buf.getvalue()
             lo   = mid + 1
         else:
             hi   = mid - 1
 
     if best is not None:
-        return best, preview.width, preview.height
+        return best, canvas.width, canvas.height
 
-    # Quality=5 still too large → shrink dimensions progressively
+    # Still too large — shrink dimensions
     while max(rw, rh) > 80:
-        scale *= 0.88
-        rw = max(int(ow * scale), 60)
-        rh = max(int(oh * scale), 60)
-        resized = img_rgba.resize((rw, rh), Image.LANCZOS)
-        preview = _render_preview(resized)
-        buf = io.BytesIO()
-        preview.save(buf, "WEBP", quality=5, method=6)
-        if buf.tell() <= max_bytes:
-            return buf.getvalue(), preview.width, preview.height
+        scale  *= 0.88
+        rw      = max(int(ow * scale), 60)
+        rh      = max(int(oh * scale), 60)
+        canvas  = _render_webp_canvas(img_rgba.resize((rw, rh), Image.LANCZOS))
+        buf     = io.BytesIO()
+        canvas.save(buf, "WEBP", quality=5, method=6)
+        if buf.tell() <= WEBP_MAX_BYTES:
+            return buf.getvalue(), canvas.width, canvas.height
 
-    # Last resort — return whatever we have
     buf = io.BytesIO()
-    preview.save(buf, "WEBP", quality=5, method=6)
-    return buf.getvalue(), preview.width, preview.height
+    canvas.save(buf, "WEBP", quality=5, method=6)
+    return buf.getvalue(), canvas.width, canvas.height
 
 # ══════════════════════════════════════════════════════════════════
 # PHASE 1: DISCOVERY
 # ══════════════════════════════════════════════════════════════════
 def phase1_discovery():
     log_section("PHASE 1: Discovery")
-    token = get_drive_token()
-
+    token      = get_drive_token()
     pending_id = drive_folder_get_or_create(token, PENDING_FOLDER_NAME)
     log(f"  '{PENDING_FOLDER_NAME}' folder ID: {pending_id}")
 
     subfolders = drive_list(token, pending_id,
                             mime_filter="application/vnd.google-apps.folder")
     subfolders = [sf for sf in subfolders if sf["name"].lower() != "finished"]
-    log(f"  Subfolders: {len(subfolders)}")
+    log(f"  Subfolders found: {len(subfolders)}")
 
     all_items = []
     for sf in subfolders:
         if len(all_items) >= RUN_ITEMS_COUNT:
             break
         images = drive_list_images(token, sf["id"])
-        log(f"  └─ '{sf['name']}': {len(images)} image(s)")
+        log(f"  -- '{sf['name']}': {len(images)} image(s)")
         for img in images:
             all_items.append({
                 "fid":            img["id"],
@@ -445,20 +483,18 @@ def phase1_discovery():
                 "stem":           Path(img["name"]).stem,
                 "subfolder_id":   sf["id"],
                 "subfolder_name": sf["name"],
-                "pending_id":     pending_id,
             })
             if len(all_items) >= RUN_ITEMS_COUNT:
                 break
 
-    log(f"  Items selected: {len(all_items)}")
+    log(f"  Items selected: {len(all_items)}/{RUN_ITEMS_COUNT}")
     return all_items, pending_id
 
 # ══════════════════════════════════════════════════════════════════
 # PHASE 2: DOWNLOAD
 # ══════════════════════════════════════════════════════════════════
 def phase2_download(items):
-    log_section("PHASE 2: Download images from Drive")
-    token      = get_drive_token()
+    log_section(f"PHASE 2: Download  ({len(items)} images from Drive)")
     downloaded = []
     for i, item in enumerate(items):
         try:
@@ -473,49 +509,46 @@ def phase2_download(items):
             item["local_path"] = str(local)
             downloaded.append(item)
         except Exception as e:
-            log(f"  FAIL: {item['name']}: {e}")
+            log(f"  FAIL [{item['name']}]: {e}")
     log(f"  Downloaded: {len(downloaded)}/{len(items)}")
     return downloaded
 
 # ══════════════════════════════════════════════════════════════════
-# PHASE 3: REMBG 2  —  BRIA birefnet-general (HuggingFace)
+# PHASE 3: BRIA rembg 2  (birefnet-general — HuggingFace / PyTorch)
 # ══════════════════════════════════════════════════════════════════
 def phase3_remove_bg(items):
-    log_section(f"PHASE 3: rembg 2  [{REMBG_MODEL}]  (HuggingFace)")
+    log_section(f"PHASE 3: BRIA rembg 2  [{REMBG_MODEL}]  (HuggingFace)")
     gpu_info()
 
     try:
         from rembg import remove, new_session
     except ImportError as e:
-        log(f"  rembg import error: {e}")
+        log(f"  rembg import error: {e}  — skipping bg removal")
         for item in items:
             item["transparent_path"] = item["local_path"]
         return items
 
-    log(f"  Loading session: {REMBG_MODEL} ...")
+    log(f"  Loading BRIA session: {REMBG_MODEL} ...")
     session = new_session(REMBG_MODEL)
     log("  Session ready")
 
     result = []
     for i, item in enumerate(items):
         try:
-            # Read directly from original downloaded file — no upscale
-            img_bytes = Path(item["local_path"]).read_bytes()
             log(f"  [{i+1:>3}/{len(items)}] {item['name']}")
-
-            out_bytes = remove(img_bytes, session=session)
-
+            out_bytes = remove(Path(item["local_path"]).read_bytes(),
+                               session=session)
             dst = TRANSPARENT_DIR / f"{item['stem']}.png"
             dst.write_bytes(out_bytes)
-            item["transparent_path"] = str(dst)
-
+            item["transparent_path"] = str(dst)    # -> phase4
             chk  = Image.open(io.BytesIO(out_bytes))
             w, h = chk.size
-            log(f"    → {w}×{h} | {len(out_bytes)//1024} KB (transparent PNG)")
+            chk.close()
+            log(f"    -> {w}x{h}  {len(out_bytes)//1024} KB  (transparent PNG)")
             result.append(item)
         except Exception as e:
             log(f"  FAIL rembg [{item['name']}]: {e}")
-            item["transparent_path"] = item["local_path"]
+            item["transparent_path"] = item["local_path"]  # fallback: original
             result.append(item)
 
     del session
@@ -524,83 +557,81 @@ def phase3_remove_bg(items):
     return result
 
 # ══════════════════════════════════════════════════════════════════
-# PHASE 4: PNG PREVIEWS  (<80 KB)
+# PHASE 4: WEBP PREVIEWS  (<80 KB, checkered BG, watermark)
 # ══════════════════════════════════════════════════════════════════
-def phase4_make_previews(items):
-    log_section(f"PHASE 4: WebP previews (<{PREVIEW_MAX_BYTES//1024} KB + watermark)")
+def phase4_make_webp_previews(items):
+    log_section(f"PHASE 4: WebP previews  (<{WEBP_MAX_BYTES//1024} KB + watermark)")
     result = []
     for i, item in enumerate(items):
         try:
-            img_rgba   = Image.open(item["transparent_path"]).convert("RGBA")
+            img_rgba           = Image.open(item["transparent_path"]).convert("RGBA")
             webp_bytes, pw, ph = make_webp_preview(img_rgba)
             img_rgba.close()
 
-            # Save preview locally
-            prev_path = PREVIEW_DIR / f"{item['stem']}.webp"
-            prev_path.write_bytes(webp_bytes)
+            out_path = WEBP_DIR / f"{item['stem']}.webp"
+            out_path.write_bytes(webp_bytes)
 
-            item["preview_bytes"] = webp_bytes
-            item["preview_path"]  = str(prev_path)
-            item["preview_w"]     = pw
-            item["preview_h"]     = ph
-            log(f"  [{i+1:>3}/{len(items)}] {item['name']} → {len(webp_bytes)//1024} KB ({pw}×{ph})")
+            item["webp_bytes"] = webp_bytes  # -> phase6 GitHub upload
+            item["webp_path"]  = str(out_path)
+            item["preview_w"]  = pw          # -> phase8 ultradata
+            item["preview_h"]  = ph
+
+            log(f"  [{i+1:>3}/{len(items)}] {item['stem']}.webp  "
+                f"{len(webp_bytes)//1024} KB  ({pw}x{ph})")
             result.append(item)
         except Exception as e:
-            log(f"  FAIL preview [{item['name']}]: {e}")
+            log(f"  FAIL webp [{item['name']}]: {e}")
     return result
 
 # ══════════════════════════════════════════════════════════════════
-# PHASE 5: DRIVE UPLOAD  (original transparent PNG → Google Drive)
+# PHASE 5: DRIVE UPLOAD  (transparent PNG -> png_library_images/)
 # ══════════════════════════════════════════════════════════════════
 def phase5_drive_upload(items):
-    log_section(f"PHASE 5: Drive upload — original PNG (batch={BATCH_SIZE})")
-    token = get_drive_token()
-
+    log_section(f"PHASE 5: Drive upload — transparent PNG  "
+                f"({len(items)} items, batch={BATCH_SIZE})")
+    token    = get_drive_token()
     png_root = drive_folder_get_or_create(token, "png_library_images")
-    log(f"  png_library_images → {png_root}")
+    log(f"  png_library_images -> {png_root}")
 
-    _png_cache = {}
-
-    def png_sub(sf):
-        if sf not in _png_cache:
-            _png_cache[sf] = drive_folder_get_or_create(token, sf, png_root)
-        return _png_cache[sf]
+    _sub_cache = {}
+    def get_sub(sf):
+        if sf not in _sub_cache:
+            tok = get_drive_token()
+            _sub_cache[sf] = drive_folder_get_or_create(tok, sf, png_root)
+            log(f"  Sub-folder '{sf}' -> {_sub_cache[sf]}")
+        return _sub_cache[sf]
 
     uploaded  = []
     n_batches = math.ceil(len(items) / BATCH_SIZE)
-
     for b in range(n_batches):
         batch = items[b * BATCH_SIZE : (b + 1) * BATCH_SIZE]
-        log(f"\n  ── Batch {b+1}/{n_batches}  ({len(batch)} items) ──")
+        log(f"\n  -- Batch {b+1}/{n_batches}  ({len(batch)} items) --")
         for j, item in enumerate(batch):
             try:
                 token     = get_drive_token()
-                sf        = item["subfolder_name"]
                 stem      = item["stem"]
-
+                sf        = item["subfolder_name"]
                 png_bytes = Path(item["transparent_path"]).read_bytes()
-                png_res   = drive_upload(token, png_sub(sf),
+                res       = drive_upload(token, get_sub(sf),
                                          f"{stem}.png", png_bytes, "image/png")
-                drive_share(token, png_res["id"])
-
-                item["png_drive_id"] = png_res["id"]
+                drive_share(token, res["id"])
+                item["png_drive_id"] = res["id"]   # -> phase8 ultradata
                 uploaded.append(item)
-                log(f"    [{j+1:>2}/{len(batch)}] ✓ {stem}.png → Drive")
+                log(f"    [{j+1:>2}/{len(batch)}] OK  {stem}.png -> Drive")
             except Exception as e:
-                log(f"    FAIL Drive upload [{item['name']}]: {e}")
+                log(f"    FAIL Drive [{item['name']}]: {e}")
 
-    log(f"\n  Uploaded to Drive: {len(uploaded)}/{len(items)}")
+    log(f"\n  Drive uploaded: {len(uploaded)}/{len(items)}")
     return uploaded
 
 # ══════════════════════════════════════════════════════════════════
-# PHASE 6: GITHUB UPLOAD  (preview PNG → guruimageusha/preview_png)
+# PHASE 6: GITHUB UPLOAD  (WebP -> guruimageusha/preview_webp/)
 # ══════════════════════════════════════════════════════════════════
 def phase6_github_upload(items):
     log_section(
-        f"PHASE 6: GitHub upload — preview WebP → "
-        f"{GH_OWNER}/{PREVIEW_REPO}/{PREVIEW_FOLDER}/"
+        f"PHASE 6: GitHub upload — WebP  "
+        f"-> {GH_OWNER}/{PREVIEW_REPO}/{PREVIEW_FOLDER}/"
     )
-
     if not GH_TOKEN or not GH_OWNER:
         log("  SKIP — GH_TOKEN or GH_OWNER not set")
         for item in items:
@@ -610,154 +641,132 @@ def phase6_github_upload(items):
     result = []
     for i, item in enumerate(items):
         try:
-            stem       = item["stem"]
-            gh_path    = f"{PREVIEW_FOLDER}/{stem}.webp"
-            webp_bytes = item["preview_bytes"]
-
-            log(f"  [{i+1:>3}/{len(items)}] {stem}.webp "
-                f"({len(webp_bytes)//1024} KB) → {PREVIEW_REPO}/{gh_path}")
+            stem    = item["stem"]
+            gh_path = f"{PREVIEW_FOLDER}/{stem}.webp"
+            log(f"  [{i+1:>3}/{len(items)}] {stem}.webp  "
+                f"{len(item['webp_bytes'])//1024} KB  -> {PREVIEW_REPO}/{gh_path}")
 
             github_upload_file(
                 token         = GH_TOKEN,
                 owner         = GH_OWNER,
                 repo          = PREVIEW_REPO,
                 path          = gh_path,
-                content_bytes = webp_bytes,
+                content_bytes = item["webp_bytes"],
                 message       = f"preview: add {stem}.webp",
                 branch        = PREVIEW_BRANCH,
             )
-
-            cdn_url = jsdelivr_url(GH_OWNER, PREVIEW_REPO, PREVIEW_BRANCH, gh_path)
-            item["preview_cdn_url"] = cdn_url
-            log(f"    CDN: {cdn_url}")
+            cdn = jsdelivr_url(GH_OWNER, PREVIEW_REPO, PREVIEW_BRANCH, gh_path)
+            item["preview_cdn_url"] = cdn   # -> phase8 ultradata
+            log(f"    CDN: {cdn}")
             result.append(item)
-
-            time.sleep(0.4)   # Gentle rate-limit buffer for GitHub API
+            time.sleep(0.4)
 
         except Exception as e:
-            log(f"  FAIL GitHub upload [{item['name']}]: {e}")
+            log(f"  FAIL GitHub [{item['name']}]: {e}")
             item["preview_cdn_url"] = ""
             result.append(item)
 
-    log(f"  Uploaded to GitHub: {len([x for x in result if x.get('preview_cdn_url')])}/{len(items)}")
+    ok = len([x for x in result if x.get("preview_cdn_url")])
+    log(f"  GitHub uploaded: {ok}/{len(items)}")
     return result
 
 # ══════════════════════════════════════════════════════════════════
-# PHASE 7: MOVE ORIGINALS  (pending → pending/finished/{subfolder})
+# PHASE 7: MOVE ORIGINALS  (pending/* -> pending/finished/*)
 # ══════════════════════════════════════════════════════════════════
-def phase7_move_originals(uploaded_items, pending_id):
-    log_section("PHASE 7: Move originals → pending/finished/{subfolder}/")
+def phase7_move_originals(items, pending_id):
+    log_section("PHASE 7: Move originals -> pending/finished/{subfolder}/")
     token       = get_drive_token()
     finished_id = drive_folder_get_or_create(token, "finished", pending_id)
-    log(f"  finished/ → {finished_id}")
+    log(f"  finished/ -> {finished_id}")
 
     _fin_cache = {}
-
-    def fin_sub(sf):
+    def get_fin_sub(sf):
         if sf not in _fin_cache:
-            _fin_cache[sf] = drive_folder_get_or_create(token, sf, finished_id)
+            tok = get_drive_token()
+            _fin_cache[sf] = drive_folder_get_or_create(tok, sf, finished_id)
         return _fin_cache[sf]
 
     moved = 0
-    for item in uploaded_items:
+    for item in items:
         try:
             token = get_drive_token()
             sf    = item["subfolder_name"]
-            drive_move(token, item["fid"], fin_sub(sf), item["subfolder_id"])
-            log(f"  ✓ {item['name']} → finished/{sf}/")
+            drive_move(token, item["fid"], get_fin_sub(sf), item["subfolder_id"])
+            log(f"  OK  {item['name']}  -> finished/{sf}/")
             moved += 1
         except Exception as e:
             log(f"  FAIL move [{item['name']}]: {e}")
-
-    log(f"  Moved: {moved}/{len(uploaded_items)}")
+    log(f"  Moved: {moved}/{len(items)}")
 
 # ══════════════════════════════════════════════════════════════════
 # PHASE 8: UPDATE ultradata.xlsx  (ultrapng repo)
 # ══════════════════════════════════════════════════════════════════
 def phase8_update_ultradata(items):
     log_section(
-        f"PHASE 8: Update {ULTRADATA_FILE} → "
-        f"{GH_OWNER}/{ULTRADATA_REPO}"
+        f"PHASE 8: Update {ULTRADATA_FILE}  -> {GH_OWNER}/{ULTRADATA_REPO}"
     )
-
     if not GH_TOKEN or not GH_OWNER:
         log("  SKIP — GH_TOKEN or GH_OWNER not set")
         return
 
     import openpyxl
 
-    # ── Download existing xlsx from ultrapng repo ─────────────────
-    url = (
-        f"https://api.github.com/repos/{GH_OWNER}/{ULTRADATA_REPO}"
-        f"/contents/{ULTRADATA_FILE}"
-    )
+    url = (f"https://api.github.com/repos/{GH_OWNER}/{ULTRADATA_REPO}"
+           f"/contents/{ULTRADATA_FILE}")
     r   = req.get(url, headers=_gh(GH_TOKEN),
                   params={"ref": ULTRADATA_BRANCH}, timeout=30)
 
     if r.status_code == 200:
-        data       = r.json()
-        file_sha   = data.get("sha")
-        xlsx_bytes = base64.b64decode(data["content"].replace("\n", ""))
-        wb         = openpyxl.load_workbook(io.BytesIO(xlsx_bytes))
-        log(f"  Loaded existing {ULTRADATA_FILE} (SHA: {file_sha[:8]}...)")
+        data     = r.json()
+        file_sha = data.get("sha")
+        wb       = openpyxl.load_workbook(
+            io.BytesIO(base64.b64decode(data["content"].replace("\n", ""))))
+        log(f"  Loaded existing {ULTRADATA_FILE}  (SHA: {file_sha[:8]}...)")
     else:
         log(f"  {ULTRADATA_FILE} not found — creating new workbook")
         wb       = openpyxl.Workbook()
         file_sha = None
 
-    ws = wb.active
+    ws      = wb.active
+    HEADERS = ["stem", "category", "drive_id", "webp_cdn",
+               "width", "height", "date"]
 
-    # ── Detect or create headers ──────────────────────────────────
-    HEADERS = ["stem", "category", "drive_id", "preview_cdn", "width", "height", "date"]
-
+    # Ensure headers exist; add missing columns
     if ws.max_row == 0 or ws.cell(row=1, column=1).value is None:
         ws.append(HEADERS)
         log("  Headers written (new sheet)")
     else:
-        existing_headers = [ws.cell(row=1, column=c).value
-                            for c in range(1, ws.max_column + 1)]
-        log(f"  Existing headers: {existing_headers}")
-
-        # If existing headers differ, map what we have; use our standard order
-        # by appending new header columns if missing
+        existing = [ws.cell(row=1, column=c).value
+                    for c in range(1, ws.max_column + 1)]
         for col_name in HEADERS:
-            if col_name not in existing_headers:
-                next_col = ws.max_column + 1
-                ws.cell(row=1, column=next_col, value=col_name)
-                existing_headers.append(col_name)
-                log(f"  Added missing column: {col_name}")
-
-        # Re-read headers after possible additions
+            if col_name not in existing:
+                ws.cell(row=1, column=ws.max_column + 1, value=col_name)
+                existing.append(col_name)
+                log(f"  Added missing column: '{col_name}'")
         HEADERS = [ws.cell(row=1, column=c).value
                    for c in range(1, ws.max_column + 1)]
 
-    # ── Append one row per processed item ────────────────────────
     today = datetime.now().strftime("%Y-%m-%d")
     added = 0
     for item in items:
-        row_data = {
-            "stem":        item.get("stem", ""),
-            "category":    item.get("subfolder_name", ""),
-            "drive_id":    item.get("png_drive_id", ""),
-            "preview_cdn": item.get("preview_cdn_url", ""),
-            "width":       item.get("preview_w", ""),
-            "height":      item.get("preview_h", ""),
-            "date":        today,
+        row = {
+            "stem":     item.get("stem",            ""),
+            "category": item.get("subfolder_name",  ""),
+            "drive_id": item.get("png_drive_id",    ""),  # phase5
+            "webp_cdn": item.get("preview_cdn_url", ""),  # phase6 — jsDelivr URL
+            "width":    item.get("preview_w",       ""),  # phase4
+            "height":   item.get("preview_h",       ""),  # phase4
+            "date":     today,
         }
-        ws.append([row_data.get(h, "") for h in HEADERS])
+        ws.append([row.get(h, "") for h in HEADERS])
         added += 1
 
-    log(f"  Rows appended: {added}")
-
-    # ── Save xlsx to bytes ────────────────────────────────────────
     buf = io.BytesIO()
     wb.save(buf)
-    new_xlsx_bytes = buf.getvalue()
 
-    # ── Push back to ultrapng repo ────────────────────────────────
     body = {
         "message": f"ultradata: +{added} images [{today}]",
-        "content": base64.b64encode(new_xlsx_bytes).decode(),
+        "content": base64.b64encode(buf.getvalue()).decode(),
         "branch":  ULTRADATA_BRANCH,
     }
     if file_sha:
@@ -767,62 +776,56 @@ def phase8_update_ultradata(items):
                  headers={**_gh(GH_TOKEN), "Content-Type": "application/json"},
                  json=body, timeout=90)
     r2.raise_for_status()
-    log(f"  ✓ {ULTRADATA_FILE} updated in {GH_OWNER}/{ULTRADATA_REPO}")
+    log(f"  OK  {ULTRADATA_FILE} updated  (+{added} rows)")
 
 # ══════════════════════════════════════════════════════════════════
 # MAIN
 # ══════════════════════════════════════════════════════════════════
 def main():
-    log_section("Pending Drive Pipeline V3.0 — START")
-    log(f"  RUN_ITEMS_COUNT  : {RUN_ITEMS_COUNT}")
-    log(f"  REMBG_MODEL      : {REMBG_MODEL}  (rembg v2 / HuggingFace)")
-    log(f"  PREVIEW_MAX_BYTES: {PREVIEW_MAX_BYTES//1024} KB  WebP")
+    log_section("Pending Drive Pipeline V3.2 — START")
+    log(f"  RUN_ITEMS_COUNT  : {RUN_ITEMS_COUNT}  (env: RUN_ITEMS_COUNT)")
+    log(f"  REMBG_MODEL      : {REMBG_MODEL}  (BRIA — rembg v2 / HuggingFace)")
+    log(f"  WEBP PREVIEW     : <{WEBP_MAX_BYTES//1024} KB  max_side={WEBP_MAX_SIDE}px")
     log(f"  WATERMARK        : {WATERMARK_TEXT}")
     log(f"  PENDING FOLDER   : {PENDING_FOLDER_NAME}")
-    log(f"  PREVIEW_REPO     : {GH_OWNER}/{PREVIEW_REPO}/{PREVIEW_FOLDER}/")
-    log(f"  ULTRADATA        : {GH_OWNER}/{ULTRADATA_REPO}/{ULTRADATA_FILE}")
+    log(f"  PREVIEW -> GH    : {GH_OWNER}/{PREVIEW_REPO}/{PREVIEW_FOLDER}/")
+    log(f"  ULTRADATA -> GH  : {GH_OWNER}/{ULTRADATA_REPO}/{ULTRADATA_FILE}")
+    log(f"  BATCH_SIZE       : {BATCH_SIZE}")
     gpu_info()
 
     t0 = time.time()
 
-    # ── Phase 1: Discover ──────────────────────────────────────────
     items, pending_id = phase1_discovery()
     if not items:
-        log("No items found. Done.")
+        log("No items found in pending folder. Done.")
         return
 
-    # ── Phase 2: Download ─────────────────────────────────────────
     items = phase2_download(items)
     if not items:
-        log("Download failed for all items.")
+        log("Download failed for all items. Done.")
         return
 
-    # ── Phase 3: rembg 2 bg removal ──────────────────────────────
     items = phase3_remove_bg(items)
 
-    # ── Phase 4: PNG previews <80KB ──────────────────────────────
-    items = phase4_make_previews(items)
-
-    # ── Phase 5: Upload original PNG → Google Drive ───────────────
-    uploaded = phase5_drive_upload(items)
-
-    if not uploaded:
-        log("No items uploaded to Drive. Stopping.")
+    items = phase4_make_webp_previews(items)
+    if not items:
+        log("No items survived WebP preview generation. Done.")
         return
 
-    # ── Phase 6: Upload preview PNG → GitHub guruimageusha ────────
+    uploaded = phase5_drive_upload(items)
+    if not uploaded:
+        log("No items uploaded to Drive. Done.")
+        return
+
     uploaded = phase6_github_upload(uploaded)
-
-    # ── Phase 7: Move originals in Drive ─────────────────────────
     phase7_move_originals(uploaded, pending_id)
-
-    # ── Phase 8: Update ultradata.xlsx in ultrapng repo ──────────
     phase8_update_ultradata(uploaded)
 
     elapsed = time.time() - t0
     log_section("DONE")
     log(f"  Processed  : {len(uploaded)}/{len(items)} images")
-    log(f"  Time       : {elapsed/60:.1f} min  ({elapsed/max(len(uploaded),1):.0f} sec/image)")
+    log(f"  Time       : {elapsed/60:.1f} min  "
+        f"({elapsed/max(len(uploaded),1):.0f} sec/image)")
 
 
 if __name__ == "__main__":
