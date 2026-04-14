@@ -223,9 +223,9 @@ jobs:
             "$CONFIG_PATH" > "${CONFIG_PATH}.tmp"
           mv "${CONFIG_PATH}.tmp" "$CONFIG_PATH"
 
-      - name: Commit ultradata.xlsx + progress tracker
+      - name: Commit progress tracker
         if: steps.gate.outputs.should_run == 'true'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "ultradata: section2 update [mode=${{ steps.gate.outputs.run_mode }}]"
-          file_pattern: "ultradata.xlsx progress/s2_batch_tracker.txt progress/s2_scheduler.json"
+          commit_message: "progress: section2 update [mode=${{ steps.gate.outputs.run_mode }}]"
+          file_pattern: "progress/s2_batch_tracker.txt progress/s2_scheduler.json"
