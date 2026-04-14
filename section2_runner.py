@@ -706,7 +706,11 @@ def _commit_push_repo2(repo2_dir: Path, cfg: Repo2Config, added: int) -> None:
     subprocess.run(["git", "config", "user.email",
                     "github-actions[bot]@users.noreply.github.com"],
                    cwd=str(repo2_dir), check=True)
+    # Add JSON data dir + ultradata.xlsx (now lives in private ultrapng repo)
     subprocess.run(["git", "add", cfg.data_dir], cwd=str(repo2_dir), check=True)
+    xlsx_in_repo2 = repo2_dir / ULTRADATA_XLSX
+    if xlsx_in_repo2.exists():
+        subprocess.run(["git", "add", ULTRADATA_XLSX], cwd=str(repo2_dir), check=True)
     diff = subprocess.run(["git", "diff", "--staged", "--quiet"], cwd=str(repo2_dir))
     if diff.returncode == 0:
         print("  Repo2: nothing to commit — already up-to-date.")
@@ -727,9 +731,6 @@ def _commit_push_repo2(repo2_dir: Path, cfg: Repo2Config, added: int) -> None:
 
 def main() -> None:
     root = Path(__file__).resolve().parent
-    xlsx = root / ULTRADATA_XLSX
-    if not xlsx.exists():
-        raise SystemExit(f"Missing {ULTRADATA_XLSX} in repo root")
 
     repo2_token = os.environ.get("REPO2_TOKEN", "").strip()
     repo2_slug  = os.environ.get("REPO2_SLUG",  "").strip()
@@ -764,20 +765,33 @@ def main() -> None:
     print(f"  ModelScope     : {MS_MODELS[0]}  (sleep {MS_SLEEP_SEC}s)")
     print("=" * 62)
 
-    # ── STEP 1: Manual drop ──────────────────────────────────
-    print("\n[Step 1] Manual drop scan ...")
+    # ── STEP 1: Clone repo2 FIRST (ultradata.xlsx lives there — private repo) ──
+    print("\n[Step 1] Cloning Repo2 (private ultrapng repo) ...")
+    cfg       = Repo2Config(token=repo2_token, slug=repo2_slug)
+    repo2_dir = _clone_repo2(cfg, root / "_repo2_work")
+
+    # ultradata.xlsx now lives in the PRIVATE ultrapng repo (not source repo)
+    xlsx = repo2_dir / ULTRADATA_XLSX
+    if not xlsx.exists():
+        raise SystemExit(
+            f"Missing {ULTRADATA_XLSX} in private repo ({repo2_slug}).\n"
+            f"  ➜ Please move ultradata.xlsx from guruimageusha-main → {repo2_slug} manually (once)."
+        )
+
+    # ── STEP 2: Manual drop scan ─────────────────────────────
+    print("\n[Step 2] Manual drop scan ...")
     _process_manual_drop_and_update_ultradata(xlsx)
 
-    # ── STEP 2: Read ultradata rows ──────────────────────────
-    print("\n[Step 2] Reading ultradata.xlsx ...")
+    # ── STEP 3: Read ultradata rows ──────────────────────────
+    print("\n[Step 3] Reading ultradata.xlsx (from private repo) ...")
     all_rows = _read_ultradata_rows(xlsx)
     print(f"  Total rows in xlsx : {len(all_rows)}")
     if not all_rows:
         print("  No rows — nothing to do.")
         return
 
-    # ── STEP 3: PNG availability check ──────────────────────
-    print("\n[Step 3] Checking Drive png_library_images ...")
+    # ── STEP 4: PNG availability check ──────────────────────
+    print("\n[Step 4] Checking Drive png_library_images ...")
     drive_token   = _drive_token()
     library_names = _library_file_names(drive_token)
     print(f"  PNG files in Drive : {len(library_names)}")
@@ -798,11 +812,8 @@ def main() -> None:
         print("  No valid rows with PNG — nothing to process.")
         return
 
-    # ── STEP 4: Clone repo2 & find pending ──────────────────
-    print("\n[Step 4] Cloning Repo2 ...")
-    cfg       = Repo2Config(token=repo2_token, slug=repo2_slug)
-    repo2_dir = _clone_repo2(cfg, root / "_repo2_work")
-
+    # ── STEP 5: Load repo2 existing SEO entries ──────────────
+    print("\n[Step 5] Loading existing SEO entries from Repo2 ...")
     existing, files = _load_repo2_entries(repo2_dir, cfg.data_dir)
     missing = [r for r in rows_with_png if r["filename"] not in existing]
 
@@ -825,7 +836,7 @@ def main() -> None:
         print("\n  All entries have SEO — nothing to add.")
         return
 
-    # ── STEP 5: Decide how many to run ──────────────────────
+    # ── STEP 6: Decide how many to run ──────────────────────
     total_pending = len(missing)
     if run_mode == "instant":
         if instant_count_req is not None:
@@ -845,9 +856,9 @@ def main() -> None:
         else:
             print(f"\n▶  Scheduled mode: target {desired_added} SEO generations (all remaining).")
 
-    # ── STEP 6: Generate SEO ─────────────────────────────────
+    # ── STEP 7: Generate SEO ─────────────────────────────────
     est_min = max(1, desired_added) * MS_SLEEP_SEC / 60
-    print(f"\n[Step 6] Generating SEO — target: {desired_added} item(s) ...")
+    print(f"\n[Step 7] Generating SEO — target: {desired_added} item(s) ...")
     print(f"         Estimated time: ~{est_min:.1f} minutes\n")
 
     file_entries: Dict[Path, List[Dict[str, Any]]] = {}
@@ -902,7 +913,7 @@ def main() -> None:
             kw = len([k for k in seo["description"].split(",") if k.strip()])
             print(f"✓  title={len(seo['title'])}c  keywords={kw}")
 
-            # Checkpoint push every N items
+            # Checkpoint push every N items (saves JSON + ultradata.xlsx)
             if pending_since_last_push >= checkpoint_every:
                 print(f"\n  [Checkpoint] Saving & pushing {pending_since_last_push} entries ...")
                 _save_repo2_files(repo2_dir, cfg.data_dir, file_entries)
@@ -919,15 +930,15 @@ def main() -> None:
             if _ms_dynamic_sleep > MS_SLEEP_SEC:
                 _ms_dynamic_sleep = max(MS_SLEEP_SEC, _ms_dynamic_sleep * 0.85)
 
-    # ── STEP 7: Save & push remaining ───────────────────────
+    # ── STEP 8: Save & push remaining (JSON + ultradata.xlsx → private repo) ──
     if pending_since_last_push > 0:
-        print(f"\n[Step 7] Saving & pushing remaining {pending_since_last_push} entries ...")
+        print(f"\n[Step 8] Saving & pushing remaining {pending_since_last_push} entries ...")
         _save_repo2_files(repo2_dir, cfg.data_dir, file_entries)
         _commit_push_repo2(repo2_dir, cfg, pending_since_last_push)
     else:
         print("  Repo2: no remaining entries to push.")
 
-    # ── STEP 8: Update progress tracker ─────────────────────
+    # ── STEP 9: Update progress tracker (source repo only) ───
     prev_total = _read_s2_tracker(root)
     new_total  = prev_total + added
     _write_s2_tracker(root, new_total)
@@ -935,6 +946,7 @@ def main() -> None:
     print("\n" + "=" * 62)
     print(f"  Section 2 complete — added {added} SEO entries.")
     print(f"  Total SEO entries to date : {new_total}")
+    print(f"  ultradata.xlsx → saved in private repo ({repo2_slug}) ✅")
     if rows_missing_png:
         print(f"  ⚠  PNG-missing rows skipped : {len(rows_missing_png)}"
               f"  (auto-retried next run once PNG arrives in Drive)")
