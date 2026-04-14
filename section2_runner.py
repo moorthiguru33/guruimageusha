@@ -304,6 +304,7 @@ Return ONLY the JSON object. No markdown fences. No extra text."""
 # ══════════════════════════════════════════════════════════════
 
 def _read_ultradata_rows(xlsx_path: Path) -> List[Dict[str, str]]:
+    """Read ultradata.xlsx — returns only rows where seo_status != 'completed'."""
     import openpyxl
     wb = openpyxl.load_workbook(str(xlsx_path))
     ws = wb.active
@@ -315,15 +316,59 @@ def _read_ultradata_rows(xlsx_path: Path) -> List[Dict[str, str]]:
     for h in needed:
         if h not in idx:
             raise RuntimeError(f"ultradata.xlsx missing column: {h}")
-    optional = ["category", "subcategory"]
+    optional = ["category", "subcategory", "seo_status"]
     out = []
     for r in ws.iter_rows(min_row=2, values_only=True):
         row = {h: ("" if r[idx[h]] is None else str(r[idx[h]]).strip()) for h in needed}
         for h in optional:
             row[h] = ("" if h not in idx or r[idx[h]] is None else str(r[idx[h]]).strip())
-        if row["filename"] and row["subject_name"]:
-            out.append(row)
+        if not row["filename"] or not row["subject_name"]:
+            continue
+        # Skip rows already completed by Section 2
+        if row.get("seo_status", "").strip().lower() == "completed":
+            continue
+        out.append(row)
     return out
+
+
+def _update_ultradata_seo_status(xlsx_path: Path, completed_filenames: set) -> int:
+    """Mark seo_status='completed' for finished rows. Adds column if missing."""
+    import openpyxl
+    if not xlsx_path.exists() or not completed_filenames:
+        return 0
+    wb = openpyxl.load_workbook(str(xlsx_path))
+    ws = wb.active
+    if ws.max_row < 2:
+        return 0
+    headers = [str(c.value or "").strip() for c in ws[1]]
+
+    # Add seo_status column if not present
+    if "seo_status" not in headers:
+        seo_col = len(headers) + 1
+        ws.cell(row=1, column=seo_col, value="seo_status")
+        headers.append("seo_status")
+    else:
+        seo_col = headers.index("seo_status") + 1
+
+    filename_col = headers.index("filename") + 1 if "filename" in headers else None
+    if not filename_col:
+        return 0
+
+    updated = 0
+    for row in ws.iter_rows(min_row=2):
+        fn_cell = row[filename_col - 1]
+        fn = str(fn_cell.value or "").strip()
+        seo_cell = row[seo_col - 1]
+        if fn in completed_filenames:
+            if str(seo_cell.value or "").strip() != "completed":
+                seo_cell.value = "completed"
+                updated += 1
+        elif not seo_cell.value:
+            # Back-fill "pending" for old rows without status
+            seo_cell.value = "pending"
+
+    wb.save(str(xlsx_path))
+    return updated
 
 
 def _append_ultradata_rows(xlsx_path: Path, new_rows: List[Dict[str, str]]) -> int:
@@ -871,6 +916,7 @@ def main() -> None:
 
     added = 0
     pending_since_last_push = 0
+    completed_filenames: set = set()  # Track filenames that got SEO this run
 
     for i, r in enumerate(missing, 1):
         if added >= desired_added:
@@ -908,6 +954,7 @@ def main() -> None:
                 "word_count":        _word_count(seo["description"]),
                 "date_added":        r.get("date_added", _today()),
             })
+            completed_filenames.add(r["filename"])
             added += 1
             pending_since_last_push += 1
             kw = len([k for k in seo["description"].split(",") if k.strip()])
@@ -917,6 +964,8 @@ def main() -> None:
             if pending_since_last_push >= checkpoint_every:
                 print(f"\n  [Checkpoint] Saving & pushing {pending_since_last_push} entries ...")
                 _save_repo2_files(repo2_dir, cfg.data_dir, file_entries)
+                # Mark completed rows in ultradata.xlsx before pushing
+                _update_ultradata_seo_status(xlsx, completed_filenames)
                 _commit_push_repo2(repo2_dir, cfg, pending_since_last_push)
                 pending_since_last_push = 0
 
@@ -934,7 +983,16 @@ def main() -> None:
     if pending_since_last_push > 0:
         print(f"\n[Step 8] Saving & pushing remaining {pending_since_last_push} entries ...")
         _save_repo2_files(repo2_dir, cfg.data_dir, file_entries)
+        # Mark completed in ultradata.xlsx before final push
+        updated_rows = _update_ultradata_seo_status(xlsx, completed_filenames)
+        print(f"  ultradata.xlsx: {updated_rows} row(s) marked as completed")
         _commit_push_repo2(repo2_dir, cfg, pending_since_last_push)
+    elif completed_filenames:
+        # All were checkpoint-pushed, but update ultradata status if any pending
+        updated_rows = _update_ultradata_seo_status(xlsx, completed_filenames)
+        if updated_rows:
+            print(f"\n[Step 8] Updating ultradata.xlsx status ({updated_rows} rows) ...")
+            _commit_push_repo2(repo2_dir, cfg, 0)
     else:
         print("  Repo2: no remaining entries to push.")
 
