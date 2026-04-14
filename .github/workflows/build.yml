@@ -94,7 +94,7 @@ jobs:
             echo "✅ No changes to commit — site is already up to date"
           else
             POST_COUNT=$(find png/ -name "index.html" 2>/dev/null | wc -l)
-            git commit -m "🤖 AI Build: $(date '+%Y-%m-%d %H:%M IST') — ${POST_COUNT} posts"
+            git commit -m "🤖 AI Build: $(date '+%Y-%m-%d %H:%M IST') — ${POST_COUNT} posts [skip ci]"
             git push
             echo "✅ Successfully pushed to ultrapng repo"
           fi

@@ -1,6 +1,16 @@
 name: Section 2 - SEO JSON Builder
 
 on:
+  # Auto-trigger when ultradata.xlsx is updated (Kaggle pipeline finishes)
+  push:
+    branches: [main]
+    paths:
+      - 'ultradata.xlsx'
+
+  schedule:
+    # Daily 8:00 AM IST (02:30 UTC) — catches any missed ultradata updates
+    - cron: '30 2 * * *'
+
   workflow_dispatch:
     inputs:
       mode:
@@ -32,10 +42,9 @@ on:
           - start
           - stop
       daily_time_utc:
-        description: "Daily trigger time in UTC (HH:MM). Example: 02:10"
+        description: "Daily trigger time in UTC (HH:MM). Example: 02:30"
         required: false
-        default: "02:10"
-  # schedule removed — manual only (workflow_dispatch)
+        default: "02:30"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -63,7 +72,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
 
-      - name: Gate scheduler (manual set / minute tick)
+      - name: Gate scheduler (manual set / cron tick / push trigger)
         id: gate
         run: |
           set -euo pipefail
@@ -84,7 +93,16 @@ jobs:
           RUN_INSTANT_COUNT=""
           CONFIG_WRITTEN="false"
 
-          if [ "$EVENT" = "workflow_dispatch" ]; then
+          # Push trigger (ultradata.xlsx updated) — always run immediately
+          if [ "$EVENT" = "push" ]; then
+            SHOULD_RUN="true"
+            RUN_MODE="scheduled"
+            RUN_BATCH_SIZE="220"
+            RUN_SCHEDULED_DAYS="1"
+            RUN_INSTANT_COUNT=""
+            echo "Push trigger: ultradata.xlsx updated → running SEO batch"
+
+          elif [ "$EVENT" = "workflow_dispatch" ]; then
             IN_MODE="${{ github.event.inputs.mode }}"
             IN_BATCH="${{ github.event.inputs.batch_size }}"
             IN_DAYS="${{ github.event.inputs.scheduled_days }}"
@@ -95,7 +113,7 @@ jobs:
             [ -z "$IN_MODE" ]         && IN_MODE="scheduled"
             [ -z "$IN_BATCH" ]        && IN_BATCH="220"
             [ -z "$IN_DAYS" ]         && IN_DAYS="10"
-            [ -z "$IN_TIME" ]         && IN_TIME="02:10"
+            [ -z "$IN_TIME" ]         && IN_TIME="02:30"
             [ -z "$INSTANT_COUNT" ]   && INSTANT_COUNT=""
             [ -z "$SCHED_ACTION" ]    && SCHED_ACTION="start"
 
@@ -106,7 +124,6 @@ jobs:
               RUN_MODE="scheduled"
               RUN_BATCH_SIZE="$IN_BATCH"
               RUN_SCHEDULED_DAYS="0"
-              RUN_INSTANT_COUNT=""
               CONFIG_WRITTEN="true"
             else
               if [ "$IN_MODE" = "instant" ]; then
@@ -115,16 +132,13 @@ jobs:
                 RUN_BATCH_SIZE="$IN_BATCH"
                 RUN_SCHEDULED_DAYS="$IN_DAYS"
                 RUN_INSTANT_COUNT="$INSTANT_COUNT"
-                CONFIG_WRITTEN="false"
               else
                 printf '{\n  "enabled": true,\n  "daily_time_utc": "%s",\n  "remaining_days": %s,\n  "daily_batch_size": %s,\n  "last_run_date": ""\n}\n' \
                   "$IN_TIME" "$IN_DAYS" "$IN_BATCH" > "$CONFIG_PATH"
                 RUN_MODE="scheduled"
                 RUN_BATCH_SIZE="$IN_BATCH"
                 RUN_SCHEDULED_DAYS="$IN_DAYS"
-                RUN_INSTANT_COUNT=""
                 CONFIG_WRITTEN="true"
-                # FIX: manual trigger always runs immediately — no time-match needed
                 SHOULD_RUN="true"
               fi
             fi
@@ -132,38 +146,40 @@ jobs:
           else
             # cron tick
             if [ ! -f "$CONFIG_PATH" ]; then
-              SHOULD_RUN="false"
+              # No config — run with defaults anyway (catches any pending items)
+              SHOULD_RUN="true"
+              RUN_MODE="scheduled"
+              RUN_BATCH_SIZE="220"
+              RUN_SCHEDULED_DAYS="1"
             else
-              ENABLED="$(jq -r '.enabled // false' "$CONFIG_PATH" || echo 'false')"
-              REM="$(jq -r '.remaining_days // 0' "$CONFIG_PATH" || echo '0')"
-              TIME_UTC="$(jq -r '.daily_time_utc // "02:10"' "$CONFIG_PATH" || echo '02:10')"
+              ENABLED="$(jq -r '.enabled // true' "$CONFIG_PATH" || echo 'true')"
+              REM="$(jq -r '.remaining_days // 1' "$CONFIG_PATH" || echo '1')"
               LAST_RUN="$(jq -r '.last_run_date // ""' "$CONFIG_PATH" || echo '')"
               DAILY_BS="$(jq -r '.daily_batch_size // 220' "$CONFIG_PATH" || echo '220')"
 
-              if [ "$ENABLED" = "true" ] && [ "$REM" -gt 0 ] && [ "$NOW_HM" = "$TIME_UTC" ] && [ "$LAST_RUN" != "$TODAY" ]; then
+              if [ "$ENABLED" = "true" ] && [ "$LAST_RUN" != "$TODAY" ]; then
                 SHOULD_RUN="true"
                 RUN_MODE="scheduled"
                 RUN_BATCH_SIZE="$DAILY_BS"
                 RUN_SCHEDULED_DAYS="$REM"
-                RUN_INSTANT_COUNT=""
               fi
             fi
           fi
 
-          echo "should_run=$SHOULD_RUN"           >> $GITHUB_OUTPUT
-          echo "run_mode=$RUN_MODE"               >> $GITHUB_OUTPUT
-          echo "run_batch_size=$RUN_BATCH_SIZE"   >> $GITHUB_OUTPUT
+          echo "should_run=$SHOULD_RUN"                 >> $GITHUB_OUTPUT
+          echo "run_mode=$RUN_MODE"                     >> $GITHUB_OUTPUT
+          echo "run_batch_size=$RUN_BATCH_SIZE"         >> $GITHUB_OUTPUT
           echo "run_scheduled_days=$RUN_SCHEDULED_DAYS" >> $GITHUB_OUTPUT
           echo "run_instant_count=$RUN_INSTANT_COUNT"   >> $GITHUB_OUTPUT
-          echo "config_written=$CONFIG_WRITTEN"   >> $GITHUB_OUTPUT
+          echo "config_written=$CONFIG_WRITTEN"         >> $GITHUB_OUTPUT
 
-          echo "Gate: should_run=$SHOULD_RUN  mode=$RUN_MODE  batch=$RUN_BATCH_SIZE  days=$RUN_SCHEDULED_DAYS  config_written=$CONFIG_WRITTEN"
+          echo "Gate: should_run=$SHOULD_RUN  mode=$RUN_MODE  batch=$RUN_BATCH_SIZE  days=$RUN_SCHEDULED_DAYS"
 
       - name: Commit scheduler config (set)
         if: steps.gate.outputs.config_written == 'true'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "scheduler: set Section 2 SEO [daily_time_utc=${{ github.event.inputs.daily_time_utc }}]"
+          commit_message: "scheduler: set Section 2 SEO [skip ci]"
           file_pattern: "progress/s2_scheduler.json"
 
       - name: Setup Python (only if running)
@@ -204,22 +220,24 @@ jobs:
           set -euo pipefail
           CONFIG_PATH="progress/s2_scheduler.json"
           TODAY="$(date -u +%Y-%m-%d)"
+          mkdir -p progress
 
           if [ ! -f "$CONFIG_PATH" ]; then
-            echo "Scheduler config missing; skip decrement."
+            printf '{\n  "enabled": true,\n  "daily_time_utc": "02:30",\n  "remaining_days": 0,\n  "daily_batch_size": 220,\n  "last_run_date": "%s"\n}\n' "$TODAY" > "$CONFIG_PATH"
             exit 0
           fi
 
           REM="$(jq -r '.remaining_days // 0' "$CONFIG_PATH")"
           if [ "$REM" -le 0 ]; then
-            echo "remaining_days already 0; skip."
+            # Keep enabled=true so cron continues picking up pending items
+            jq ".last_run_date=\"$TODAY\"" "$CONFIG_PATH" > "${CONFIG_PATH}.tmp"
+            mv "${CONFIG_PATH}.tmp" "$CONFIG_PATH"
             exit 0
           fi
 
           NEW_REM=$((REM - 1))
-          if [ "$NEW_REM" -lt 0 ]; then NEW_REM=0; fi
-
-          jq ".remaining_days=$NEW_REM | .last_run_date=\"$TODAY\" | .enabled=($NEW_REM>0)" \
+          [ "$NEW_REM" -lt 0 ] && NEW_REM=0
+          jq ".remaining_days=$NEW_REM | .last_run_date=\"$TODAY\" | .enabled=true" \
             "$CONFIG_PATH" > "${CONFIG_PATH}.tmp"
           mv "${CONFIG_PATH}.tmp" "$CONFIG_PATH"
 
@@ -227,5 +245,5 @@ jobs:
         if: steps.gate.outputs.should_run == 'true'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "progress: section2 update [mode=${{ steps.gate.outputs.run_mode }}]"
+          commit_message: "progress: section2 update [skip ci] [mode=${{ steps.gate.outputs.run_mode }}]"
           file_pattern: "progress/s2_batch_tracker.txt progress/s2_scheduler.json"
