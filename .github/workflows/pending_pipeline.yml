@@ -19,77 +19,83 @@ on:
         description: "Images to process per run (e.g. 50)"
         required: false
         default: "50"
-      upscale_factor:
-        description: "Upscale factor: 2 or 4  (2 = faster, 4 = sharper)"
-        required: false
-        default: "2"
       rembg_model:
-        description: "rembg model name (isnet-general-use / u2net / u2net_human_seg)"
+        description: "rembg2 model (birefnet-general / isnet-general-use / u2net)"
         required: false
-        default: "isnet-general-use"
+        default: "birefnet-general"
 
 jobs:
   push-to-kaggle:
     name: Inject credentials & push notebook
     runs-on: ubuntu-latest
-    timeout-minutes: 10      # Just the push step, not Kaggle runtime
+    timeout-minutes: 10     # Just the push step, not Kaggle runtime
 
     steps:
-      # ── 1. Checkout ──────────────────────────────────────────
+      # ── 1. Checkout ──────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ── 2. Python ────────────────────────────────────────────
+      # ── 2. Python ────────────────────────────────────────────────
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      # ── 3. Kaggle CLI ────────────────────────────────────────
+      # ── 3. Kaggle CLI ────────────────────────────────────────────
       - name: Install Kaggle CLI
         run: pip install kaggle --quiet
 
-      # ── 4. Push notebook ─────────────────────────────────────
+      # ── 4. Push notebook ─────────────────────────────────────────
       - name: Inject credentials & push to Kaggle
         env:
-          # ── Required secrets (GitHub → Settings → Secrets) ──
+          # ── Required secrets (GitHub → Settings → Secrets) ────────
           GOOGLE_CLIENT_ID:      ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET:  ${{ secrets.GOOGLE_CLIENT_SECRET }}
           GOOGLE_REFRESH_TOKEN:  ${{ secrets.GOOGLE_REFRESH_TOKEN }}
           KAGGLE_USERNAME:       ${{ secrets.KAGGLE_USERNAME }}
           KAGGLE_KEY:            ${{ secrets.KAGGLE_KEY }}
 
-          # ── Tunable variables (GitHub → Settings → Variables) ─
+          # GitHub — preview upload + ultradata update
+          GH_TOKEN:              ${{ secrets.GH_TOKEN }}
+          GH_OWNER:              ${{ secrets.GH_OWNER }}
+
+          # ── Tunable variables (GitHub → Settings → Variables) ──────
           WATERMARK_TEXT:        ${{ vars.WATERMARK_TEXT || 'www.ultrapng.com' }}
           PENDING_FOLDER_NAME:   ${{ vars.PENDING_FOLDER_NAME || 'pending' }}
-          MAX_INPUT_SIZE:        ${{ vars.MAX_INPUT_SIZE || '1200' }}
           KAGGLE_NOTEBOOK_SLUG:  ${{ vars.KAGGLE_NOTEBOOK_SLUG || 'pending-drive-pipeline' }}
 
-          # ── Can be overridden by workflow_dispatch inputs ─────
+          # preview repo settings (can also be overridden via vars)
+          PREVIEW_REPO:          ${{ vars.PREVIEW_REPO || 'guruimageusha' }}
+          PREVIEW_BRANCH:        ${{ vars.PREVIEW_BRANCH || 'main' }}
+          PREVIEW_FOLDER:        ${{ vars.PREVIEW_FOLDER || 'preview_png' }}
+          ULTRADATA_REPO:        ${{ vars.ULTRADATA_REPO || 'ultrapng' }}
+          ULTRADATA_FILE:        ${{ vars.ULTRADATA_FILE || 'ultradata.xlsx' }}
+          ULTRADATA_BRANCH:      ${{ vars.ULTRADATA_BRANCH || 'main' }}
+
+          # ── Can be overridden by workflow_dispatch inputs ───────────
           RUN_ITEMS_COUNT: >-
             ${{ github.event.inputs.run_items_count
                 || vars.RUN_ITEMS_COUNT
                 || '50' }}
-          UPSCALE_FACTOR: >-
-            ${{ github.event.inputs.upscale_factor
-                || vars.UPSCALE_FACTOR
-                || '2' }}
           REMBG_MODEL: >-
             ${{ github.event.inputs.rembg_model
                 || vars.REMBG_MODEL
-                || 'isnet-general-use' }}
+                || 'birefnet-general' }}
 
         run: python inject_creds_pending.py
 
-      # ── 5. Summary ───────────────────────────────────────────
+      # ── 5. Summary ───────────────────────────────────────────────
       - name: Pipeline summary
         if: always()
         run: |
-          echo "### Pending Pipeline Push Summary" >> $GITHUB_STEP_SUMMARY
+          echo "### Pending Pipeline V3.0 — Push Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
           echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
           echo "| Run items | ${{ github.event.inputs.run_items_count || vars.RUN_ITEMS_COUNT || '50' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Upscale | ${{ github.event.inputs.upscale_factor || vars.UPSCALE_FACTOR || '2' }}× |" >> $GITHUB_STEP_SUMMARY
-          echo "| rembg model | ${{ github.event.inputs.rembg_model || vars.REMBG_MODEL || 'isnet-general-use' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| rembg model | ${{ github.event.inputs.rembg_model || vars.REMBG_MODEL || 'birefnet-general' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Preview repo | ${{ vars.PREVIEW_REPO || 'guruimageusha' }}/preview_png/ |" >> $GITHUB_STEP_SUMMARY
+          echo "| Preview CDN | jsdelivr.net/gh/\$GH_OWNER/guruimageusha@main/preview_png/ |" >> $GITHUB_STEP_SUMMARY
+          echo "| ultradata repo | ${{ vars.ULTRADATA_REPO || 'ultrapng' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Kaggle notebook | ${{ vars.KAGGLE_NOTEBOOK_SLUG || 'pending-drive-pipeline' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Triggered by | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
