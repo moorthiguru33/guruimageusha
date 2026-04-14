@@ -426,6 +426,14 @@ def _commit_push_repo2(repo2_dir: Path, cfg: Repo2Config, added: int) -> None:
         cwd=str(repo2_dir), check=True
     )
 
+    # Pull latest remote changes before pushing to avoid "fetch first" rejection
+    pull_result = subprocess.run(
+        ["git", "pull", "--rebase"],
+        cwd=str(repo2_dir), capture_output=True, text=True
+    )
+    if pull_result.returncode != 0:
+        print(f"  [WARN] git pull --rebase failed:\n{pull_result.stderr}")
+
     result = subprocess.run(["git", "push"], cwd=str(repo2_dir),
                              capture_output=True, text=True)
     if result.returncode != 0:
