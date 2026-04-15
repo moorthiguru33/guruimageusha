@@ -157,7 +157,12 @@
     "prompt": "luxury macro product photography of orange juice, single hero glass in tight close-up framing, extreme condensation droplet detail on cold glass surface, dual backlight rim glow creating luminous halo behind glass, solid grey background, wet dark marble surface beneath glass with perfect liquid reflection, ultra-sharp focus on fresh orange slices, orange zest curl, vibrant amber-orange hue, orange blossom, shallow depth of field with foreground ice cube softly blurred, Hasselblad medium-format aesthetic, cool 5500K studio color temperature, photorealistic 8K, hyper-detailed glass transparency, no harsh shadows",
     "filename": "orange-juice-01.png",
     "seed": 89254563,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/juice/orange-juice-01.png",
+    "done_at": "2026-04-15T07:09:16.844723",
+    "model_used": "z-image-turbo",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Orange Juice",
@@ -167,7 +172,12 @@
     "prompt": "editorial magazine-style wide product shot of orange juice, three tall glasses in diagonal receding arrangement on dark grey textured concrete surface, rich ingredient tableau overflow with fresh orange slices, orange zest curl, vibrant amber-orange hue, orange blossom artistically scattered around glasses, dual large softbox studio lighting with warm fill from below, deep focus throughout entire frame (f/5.6 look), Vogue Food editorial aesthetic, solid grey background, moody premium restaurant atmosphere, photorealistic 8K",
     "filename": "orange-juice-02.png",
     "seed": 66629388,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/juice/orange-juice-02.png",
+    "done_at": "2026-04-15T07:09:52.509509",
+    "model_used": "z-image-turbo",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Orange Juice",
@@ -177,7 +187,12 @@
     "prompt": "pure overhead flat lay photography of orange juice, perfect geometric top-down composition, four glasses arranged in diamond formation on dark grey stone slate surface, artfully scattered fresh orange slices, orange zest curl, vibrant amber-orange hue, orange blossom filling negative space between glasses, even diffused top lighting with zero harsh shadows, vibrant color-popping garnishes contrasting against solid grey background, architectural precision symmetry, premium food photography flat lay style, crisp 90-degree bird's-eye view, photorealistic 8K",
     "filename": "orange-juice-03.png",
     "seed": 14265799,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/juice/orange-juice-03.png",
+    "done_at": "2026-04-15T07:10:28.521866",
+    "model_used": "z-image-turbo",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Orange Juice",
@@ -187,7 +202,12 @@
     "prompt": "extreme low-angle cinematic photography of orange juice, worm's-eye perspective looking upward through transparent glass base, strong directional backlight creating god-ray light beams through colored juice, dramatic high-contrast rim lighting outlining glass silhouette, ice cube shadows casting geometric patterns upward, solid grey background with deep shadows, fresh orange slices, orange zest curl, vibrant amber-orange hue, orange blossom visible in elevated foreground silhouette, Blade Runner cinematic color grade, anamorphic lens flares at glass edges, photorealistic 8K",
     "filename": "orange-juice-04.png",
     "seed": 13999315,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/juice/orange-juice-04.png",
+    "done_at": "2026-04-15T07:11:04.028836",
+    "model_used": "z-image-turbo",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Orange Juice",
@@ -197,7 +217,12 @@
     "prompt": "perfectly symmetrical bilateral composition of orange juice, two identical glasses facing each other centered in frame, hero garnish (fresh orange slices, orange zest curl, vibrant amber-orange hue, orange blossom) placed precisely between glasses as focal point, split Rembrandt lighting from both left and right sides, minimal clean matte solid grey background, generous negative space left and right of composition, luxury brand identity photography aesthetic, tack-sharp focus across both glasses, high-end whisky or perfume ad visual language, photorealistic 8K",
     "filename": "orange-juice-05.png",
     "seed": 22575562,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/juice/orange-juice-05.png",
+    "done_at": "2026-04-15T07:11:39.315767",
+    "model_used": "z-image-turbo",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Orange Juice",
@@ -207,7 +232,12 @@
     "prompt": "45-degree side-profile cinematic shot of orange juice, single key backlight transmitting through colored juice creating stained-glass glow, subtle neon accent rim light (color matching drink) on right glass edge, low-lying cold mist swirling near glass base on dark surface, solid grey background, fresh orange slices, orange zest curl, vibrant amber-orange hue, orange blossom visible through glass in beautiful translucent layers, anamorphic widescreen crop ratio, fashion-forward premium beverage advertising aesthetic, moody cinematic color grade, photorealistic 8K",
     "filename": "orange-juice-06.png",
     "seed": 39345092,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/juice/orange-juice-06.png",
+    "done_at": "2026-04-15T07:12:14.440111",
+    "model_used": "z-image-turbo",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Orange Juice",
@@ -217,7 +247,12 @@
     "prompt": "extreme macro photography of orange juice, tack-sharp focus on fresh orange slices, orange zest curl, vibrant amber-orange hue, orange blossom cross-sections inside glass showing micro-detail, visible pulp texture, seed patterns and cellular fruit structure, selective focus technique with aggressive bokeh surroundings, single overhead pinpoint spotlight creating jewel-like sparkle, dark vignette solid grey background fading to near-black, iridescent color play in juice catching light, surreal organic beauty — almost abstract scientific texture study, macro lens shallow depth of field, photorealistic 8K",
     "filename": "orange-juice-07.png",
     "seed": 41227216,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/juice/orange-juice-07.png",
+    "done_at": "2026-04-15T07:12:49.843877",
+    "model_used": "z-image-turbo",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Orange Juice",
@@ -227,7 +262,12 @@
     "prompt": "high-speed frozen-action pour photography of orange juice, juice mid-pour from crystal glass pitcher caught suspended in time, dynamic liquid arc and splash frozen above waiting glass, ice cubes caught mid-drop in sharp detail, strong single overhead spotlight on solid grey background, fresh orange slices, orange zest curl, vibrant amber-orange hue, orange blossom flying mid-air around pour action, electrifying kinetic energy and movement, 1/8000s shutter speed look, commercial advertisement impact composition, photorealistic 8K",
     "filename": "orange-juice-08.png",
     "seed": 77827638,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/juice/orange-juice-08.png",
+    "done_at": "2026-04-15T07:13:25.359042",
+    "model_used": "z-image-turbo",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Orange Juice",
@@ -237,7 +277,12 @@
     "prompt": "lifestyle editorial perspective row of orange juice, five glasses in a receding row with compressed telephoto lens perspective, foreground hero glass ultra-sharp with creamy progressive bokeh on rear glasses, warm neutral diffused window-light from left, dark grey textured linen surface beneath glasses, organic scatter of fresh orange slices, orange zest curl, vibrant amber-orange hue, orange blossom and fresh herb sprigs in foreground, soft cinematic mood, premium café or restaurant table setting aesthetic, 85mm portrait lens compressed look, photorealistic 8K",
     "filename": "orange-juice-09.png",
     "seed": 90801586,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/juice/orange-juice-09.png",
+    "done_at": "2026-04-15T07:14:01.354296",
+    "model_used": "z-image-turbo",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Orange Juice",
@@ -247,7 +292,12 @@
     "prompt": "luxury high-end commercial advertisement photography of orange juice, hero glass perfectly centered with two flanking supporting glasses, gradient solid grey background, large octabox beauty-dish overhead lighting with perfect specular hotspot on glass, ultra-polished chrome-like reflections on glass curvature, fresh orange slices, orange zest curl, vibrant amber-orange hue, orange blossom styled with jeweler's precision around glasses, Perrier or Grey Goose advertisement visual quality, architectural product styling with invisible seamless reflective table surface, every detail obsessively perfect, photorealistic 8K",
     "filename": "orange-juice-10.png",
     "seed": 13561597,
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/juice/orange-juice-10.png",
+    "done_at": "2026-04-15T07:14:36.494790",
+    "model_used": "z-image-turbo",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Mango Juice",
