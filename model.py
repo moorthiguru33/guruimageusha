@@ -576,9 +576,8 @@ def generate_image_modelscope(prompt, seed, api_key, width, height,
     log.debug(f"ModelScope submit: model={model_id} size={width}x{height} "
               f"steps={steps} guidance={guidance}")
 
+    # ── STEP 1: Submit Task (rate-limited, with 429 retry) ──
     rate_limiter.wait_if_needed()
-
-    # ── STEP 1: Submit Task ──
     t0 = time.time()
     resp = requests.post(
         MODELSCOPE_SUBMIT_URL,
@@ -587,6 +586,20 @@ def generate_image_modelscope(prompt, seed, api_key, width, height,
         timeout=60,
     )
     log.debug(f"Submit HTTP {resp.status_code} in {time.time()-t0:.1f}s")
+
+    # ── 429 on submit: wait Retry-After then try once more ──
+    if resp.status_code == 429:
+        retry_after = int(resp.headers.get("Retry-After", 60))
+        log.warn(f"Submit 429 — waiting {retry_after}s before retry...")
+        time.sleep(retry_after)
+        rate_limiter.wait_if_needed()
+        resp = requests.post(
+            MODELSCOPE_SUBMIT_URL,
+            data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+            headers=submit_headers,
+            timeout=60,
+        )
+        log.debug(f"Submit retry HTTP {resp.status_code}")
 
     # ── Read quota headers from submit response ──
     if quota_tracker is not None:
@@ -600,20 +613,32 @@ def generate_image_modelscope(prompt, seed, api_key, width, height,
     if not task_id:
         raise ValueError(f"task_id missing in response: {json.dumps(submit_data)[:300]}")
 
-    log.info(f"Task submitted: {task_id} | Polling every {TASK_POLL_INTERVAL}s...")
+    log.info(f"Task submitted: {task_id} | Polling every {TASK_POLL_INTERVAL}s (rate-limited)...")
 
-    # ── STEP 2: Poll Task Status ──
+    # ── STEP 2: Poll Task Status (rate-limited, with 429 backoff) ──
+    # FIX: Every poll call now goes through rate_limiter — prevents poll flood.
     poll_url   = MODELSCOPE_TASK_URL.format(task_id=task_id)
     deadline   = time.time() + TASK_MAX_WAIT
     poll_count = 0
 
     while time.time() < deadline:
-        time.sleep(TASK_POLL_INTERVAL)
+        time.sleep(TASK_POLL_INTERVAL)   # minimum wait between polls
         poll_count += 1
-        poll_resp  = requests.get(poll_url, headers=poll_headers, timeout=30)
+
+        rate_limiter.wait_if_needed()    # FIX: rate-limit every poll call
+
+        poll_resp = requests.get(poll_url, headers=poll_headers, timeout=30)
         log.debug(f"Poll #{poll_count} HTTP {poll_resp.status_code}")
+
+        # FIX: 429 on poll — honour Retry-After, then continue loop (don't crash)
+        if poll_resp.status_code == 429:
+            retry_after = int(poll_resp.headers.get("Retry-After", 60))
+            log.warn(f"Poll #{poll_count} 429 — backing off {retry_after}s...")
+            time.sleep(retry_after)
+            continue
+
         if not poll_resp.ok:
-            log.warn(f"Poll failed: HTTP {poll_resp.status_code} — retrying...")
+            log.warn(f"Poll #{poll_count} failed: HTTP {poll_resp.status_code} — retrying...")
             continue
 
         task_data   = poll_resp.json()
@@ -634,7 +659,7 @@ def generate_image_modelscope(prompt, seed, api_key, width, height,
             raise ValueError(f"Task FAILED: {err}")
 
         elapsed = int(time.time() - t0)
-        log.info(f"  {task_status} ... {elapsed}s elapsed")
+        log.info(f"  {task_status} ... {elapsed}s elapsed (poll #{poll_count})")
 
     raise TimeoutError(f"Task {task_id} timed out after {TASK_MAX_WAIT}s")
 
@@ -889,14 +914,15 @@ def process_single_json(json_path, config, auth, quota_tracker):
             fail_count    += 1
             log.err(f"  FAILED: {fname} — {err_str}")
 
-            # If Task FAILED, this model might be quota-exhausted on AIGC side
-            # Force quota check on next iteration
+            # FIX: Do NOT mark model exhausted on every Task FAILED.
+            # Task FAILED = NSFW filter / bad prompt / temp error — NOT quota exhaustion.
+            # Real quota exhaustion is tracked via response headers in update_from_headers().
             if "Task FAILED" in err_str:
                 log.warn(
-                    f"Task FAILED detected on model '{active_model}'. "
-                    f"Marking as potentially exhausted and switching..."
+                    f"Task FAILED on model '{active_model}' — "
+                    f"likely NSFW/prompt rejection, NOT quota exhaustion. "
+                    f"Keeping model active (quota headers will switch if truly exhausted)."
                 )
-                quota_tracker.exhausted.add(active_model)
 
         # ── Progress ──
         processed = done_count + fail_count
