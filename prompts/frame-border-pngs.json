@@ -1507,7 +1507,12 @@
     "prompt": "delicate lace border frame, decorative frame border, empty center space, bright even lighting, transparent PNG, studio quality, sharp focus, vibrant colors, no background",
     "filename": "frame_lace-frame_00100.png",
     "seed": "3270790",
-    "status": "pending"
+    "status": "completed",
+    "output_path": "generated_images/frame-border-pngs/frame_lace-frame_00100.png",
+    "done_at": "2026-04-19T08:22:56.939625",
+    "model_used": "z-image-turbo",
+    "drive_uploaded": true,
+    "batch_num": 1
   },
   {
     "category": "Frame & Border PNGs",
