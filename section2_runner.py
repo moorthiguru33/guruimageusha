@@ -548,14 +548,14 @@ def process_drive_png_library(repo2_dir: Path, cfg: "Repo2Config") -> int:
         print("  Nothing new to add to UltraData.")
         return 0
 
-    # ── Append rows to xlsx + push ────────────────────────────────────────
-    added = _append_ultradata_rows(xlsx_path, new_rows)
-    print(f"  UltraData: +{added} new rows appended")
-
-    # Push updated xlsx via repo2 commit
-    _commit_push_repo2(repo2_dir, cfg, 0,
-                        commit_msg=f"ultradata: +{added} from Drive png_library [{today_str}]")
-    return added
+    # ── Push new rows to xlsx via GitHub API (conflict-free, no git) ─────
+    print(f"  Pushing {len(new_rows)} new rows to {ULTRADATA_XLSX} via GitHub API ...")
+    _push_xlsx_rows_via_api(
+        cfg,
+        new_rows,
+        commit_msg=f"ultradata: +{len(new_rows)} from Drive png_library [{today_str}]",
+    )
+    return len(new_rows)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -936,46 +936,182 @@ def _save_json_files(file_entries: Dict[Path, List]) -> None:
         tmp.replace(f)
 
 
-def _commit_push_repo2(repo2_dir: Path, cfg: "Repo2Config", added: int,
-                        commit_msg: Optional[str] = None) -> None:
+def _git_setup(repo2_dir: Path) -> None:
+    """Configure git user once."""
     subprocess.run(["git", "config", "user.name",  "github-actions[bot]"],
                    cwd=str(repo2_dir), check=True)
     subprocess.run(["git", "config", "user.email",
                     "github-actions[bot]@users.noreply.github.com"],
                    cwd=str(repo2_dir), check=True)
 
-    subprocess.run(["git", "add", cfg.data_dir], cwd=str(repo2_dir), check=True)
 
-    xlsx_in_repo2 = repo2_dir / ULTRADATA_XLSX
-    if xlsx_in_repo2.exists():
-        subprocess.run(["git", "add", ULTRADATA_XLSX], cwd=str(repo2_dir), check=True)
+def _commit_push_repo2(repo2_dir: Path, cfg: "Repo2Config", added: int,
+                        commit_msg: Optional[str] = None,
+                        file_entries: Optional[Dict] = None,
+                        max_retries: int = 3) -> None:
+    """
+    Commit + push with robust conflict recovery.
 
-    diff = subprocess.run(["git", "diff", "--staged", "--quiet"], cwd=str(repo2_dir))
-    if diff.returncode == 0:
-        print("  Repo2: nothing to commit — already up-to-date.")
-        return
-
+    On push rejection (concurrent push from another run):
+      1. Abort any in-progress rebase
+      2. git fetch + reset --hard to remote HEAD
+      3. Re-save in-memory file_entries (json files) onto the fresh tree
+      4. Re-stage + re-commit + push
+    Retries up to max_retries times before raising.
+    """
+    _git_setup(repo2_dir)
     msg = commit_msg or f"seo: add {added} entries [section2]"
-    subprocess.run(
-        ["git", "commit", "-m", msg],
-        cwd=str(repo2_dir), check=True
-    )
 
-    # Pull latest remote changes before pushing to avoid "fetch first" rejection
-    pull_result = subprocess.run(
-        ["git", "pull", "--rebase"],
-        cwd=str(repo2_dir), capture_output=True, text=True
-    )
-    if pull_result.returncode != 0:
-        print(f"  [WARN] git pull --rebase failed:\n{pull_result.stderr}")
+    for attempt in range(1, max_retries + 1):
+        # Stage all changes
+        subprocess.run(["git", "add", cfg.data_dir],
+                        cwd=str(repo2_dir), check=True)
+        xlsx_in_repo2 = repo2_dir / ULTRADATA_XLSX
+        if xlsx_in_repo2.exists():
+            subprocess.run(["git", "add", ULTRADATA_XLSX],
+                            cwd=str(repo2_dir), check=True)
 
-    result = subprocess.run(["git", "push"], cwd=str(repo2_dir),
-                             capture_output=True, text=True)
-    if result.returncode != 0:
-        print(f"  [ERROR] git push failed:\n{result.stderr}")
-        raise RuntimeError("Repo2 push failed — check REPO2_TOKEN permissions.")
+        diff = subprocess.run(["git", "diff", "--staged", "--quiet"],
+                               cwd=str(repo2_dir))
+        if diff.returncode == 0:
+            print("  Repo2: nothing to commit — already up-to-date.")
+            return
 
-    print(f"  Repo2: pushed {added} SEO entries ✓")
+        subprocess.run(["git", "commit", "-m", msg],
+                        cwd=str(repo2_dir), check=True)
+
+        # Fetch latest remote state
+        subprocess.run(["git", "fetch", "origin", "main"],
+                        cwd=str(repo2_dir), capture_output=True)
+
+        # Try to rebase on top of remote
+        rebase = subprocess.run(
+            ["git", "rebase", "origin/main"],
+            cwd=str(repo2_dir), capture_output=True, text=True
+        )
+
+        if rebase.returncode != 0:
+            print(f"  [WARN] Rebase conflict (attempt {attempt}/{max_retries}) — recovering ...")
+            # Abort the rebase cleanly
+            subprocess.run(["git", "rebase", "--abort"],
+                            cwd=str(repo2_dir), capture_output=True)
+            if attempt >= max_retries:
+                raise RuntimeError(
+                    f"Repo2 push failed after {max_retries} retries — rebase conflict.\n"
+                    f"Rebase stderr:\n{rebase.stderr}"
+                )
+            # Reset to fresh remote state
+            subprocess.run(["git", "reset", "--hard", "origin/main"],
+                            cwd=str(repo2_dir), check=True)
+            # Re-save our in-memory SEO json files onto the fresh tree
+            if file_entries:
+                _save_json_files(file_entries)
+            time.sleep(3 * attempt)
+            continue  # retry commit+push
+
+        # Push
+        result = subprocess.run(["git", "push"],
+                                  cwd=str(repo2_dir),
+                                  capture_output=True, text=True)
+        if result.returncode == 0:
+            print(f"  Repo2: pushed {added} SEO entries ✓")
+            return
+
+        print(f"  [WARN] git push failed (attempt {attempt}/{max_retries}):\n{result.stderr}")
+        if attempt >= max_retries:
+            raise RuntimeError("Repo2 push failed — check REPO2_TOKEN permissions.")
+
+        # Reset to remote and retry
+        subprocess.run(["git", "reset", "--hard", "origin/main"],
+                        cwd=str(repo2_dir), check=True)
+        if file_entries:
+            _save_json_files(file_entries)
+        time.sleep(3 * attempt)
+
+
+def _push_xlsx_rows_via_api(cfg: "Repo2Config", new_rows: List[Dict],
+                              commit_msg: str, max_retries: int = 3) -> None:
+    """
+    Push new xlsx rows directly via GitHub API — zero git operations, zero conflicts.
+
+    Uses read-SHA → append → PUT pattern.
+    On 409 conflict (concurrent push), re-fetches latest SHA + content and retries.
+    """
+    import requests
+    import openpyxl
+
+    token   = cfg.token
+    slug    = cfg.slug          # e.g. "owner/ultrapng"
+    branch  = "main"
+    path    = ULTRADATA_XLSX
+    api_url = f"https://api.github.com/repos/{slug}/contents/{path}"
+    headers = {
+        "Authorization": f"token {token}",
+        "Accept":        "application/vnd.github.v3+json",
+        "Content-Type":  "application/json",
+    }
+
+    HEADERS = [
+        "date_added", "subject_name", "category", "subcategory",
+        "filename", "png_file_id", "webp_file_id",
+        "download_url", "preview_url", "seo_status",
+    ]
+
+    def _fetch_wb() -> Tuple[openpyxl.Workbook, str]:
+        """Fetch current xlsx from GitHub, return (workbook, sha)."""
+        r = requests.get(api_url, headers=headers,
+                          params={"ref": branch}, timeout=30)
+        r.raise_for_status()
+        d     = r.json()
+        sha   = d["sha"]
+        raw   = base64.b64decode(d["content"].replace("\n", ""))
+        wb_   = openpyxl.load_workbook(io.BytesIO(raw))
+        return wb_, sha
+
+    def _append_and_encode(wb_: openpyxl.Workbook) -> str:
+        ws_ = wb_.active
+        # Ensure header
+        hdr = [ws_.cell(row=1, column=c).value
+               for c in range(1, ws_.max_column + 1)]
+        if not hdr or hdr[0] is None:
+            ws_.append(HEADERS)
+            hdr = HEADERS
+        for col_name in HEADERS:
+            if col_name not in hdr:
+                ws_.cell(row=1, column=ws_.max_column + 1, value=col_name)
+                hdr.append(col_name)
+        hdr = [ws_.cell(row=1, column=c).value
+               for c in range(1, ws_.max_column + 1)]
+        for row in new_rows:
+            ws_.append([row.get(h, "") for h in hdr])
+        buf = io.BytesIO()
+        wb_.save(buf)
+        return base64.b64encode(buf.getvalue()).decode()
+
+    wb, sha = _fetch_wb()
+
+    for attempt in range(1, max_retries + 1):
+        encoded = _append_and_encode(wb)
+        body = {
+            "message": commit_msg,
+            "content": encoded,
+            "sha":     sha,
+            "branch":  branch,
+        }
+        r = requests.put(api_url, headers=headers, json=body, timeout=90)
+
+        if r.ok:
+            print(f"  xlsx pushed via API (+{len(new_rows)} rows) ✓")
+            return
+
+        if r.status_code == 409 and attempt < max_retries:
+            # Concurrent push — re-fetch latest and retry
+            print(f"  [WARN] xlsx API 409 conflict (attempt {attempt}) — re-fetching ...")
+            time.sleep(3 * attempt)
+            wb, sha = _fetch_wb()
+            continue
+
+        r.raise_for_status()
 
 
 # ══════════════════════════════════════════════════════════════
@@ -1154,7 +1290,8 @@ def main() -> None:
             print(f"\n  [Checkpoint] Saving {pending_push} entries to repo ...")
             _save_json_files(file_entries)
             _mark_completed(xlsx, completed_filenames)
-            _commit_push_repo2(repo2_dir, cfg, pending_push)
+            _commit_push_repo2(repo2_dir, cfg, pending_push,
+                                file_entries=file_entries)
             pending_push = 0
             print()
 
@@ -1171,7 +1308,8 @@ def main() -> None:
         _save_json_files(file_entries)
         updated = _mark_completed(xlsx, completed_filenames)
         print(f"  ultradata.xlsx: {updated} row(s) marked completed")
-        _commit_push_repo2(repo2_dir, cfg, pending_push)
+        _commit_push_repo2(repo2_dir, cfg, pending_push,
+                            file_entries=file_entries)
 
     # ── Summary ──────────────────────────────────────────────
     print("\n" + "=" * 60)
