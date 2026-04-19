@@ -1,5 +1,10 @@
 name: Run Pending Drive Pipeline
 
+# ─────────────────────────────────────────────────────────────────────────────
+# V3.3  — BFS recursive folder discovery (all nested subfolders)
+# Triggers: push to main when pipeline files change, or manual dispatch.
+# ─────────────────────────────────────────────────────────────────────────────
+
 on:
   push:
     branches: [main]
@@ -26,19 +31,24 @@ jobs:
     timeout-minutes: 10
 
     steps:
+      # ── 1. Checkout ────────────────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # ── 2. Python ─────────────────────────────────────────────────────────
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
+      # ── 3. Kaggle CLI ──────────────────────────────────────────────────────
       - name: Install Kaggle CLI
         run: pip install kaggle --quiet
 
+      # ── 4. Inject creds & push to Kaggle ──────────────────────────────────
       - name: Inject credentials & push to Kaggle
         env:
+          # ── Required secrets (GitHub → Settings → Secrets) ─────────────
           GOOGLE_CLIENT_ID:      ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET:  ${{ secrets.GOOGLE_CLIENT_SECRET }}
           GOOGLE_REFRESH_TOKEN:  ${{ secrets.GOOGLE_REFRESH_TOKEN }}
@@ -47,20 +57,34 @@ jobs:
           GH_TOKEN:              ${{ secrets.GH_TOKEN }}
           GH_OWNER:              ${{ secrets.GH_OWNER }}
 
+          # ── Optional variables (GitHub → Settings → Variables) ─────────
+          # WATERMARK_TEXT        – text stamped on preview images
           WATERMARK_TEXT:        ${{ vars.WATERMARK_TEXT        || 'www.ultrapng.com' }}
+
+          # PENDING_FOLDER_NAME   – root folder name inside Google Drive
           PENDING_FOLDER_NAME:   ${{ vars.PENDING_FOLDER_NAME   || 'pending' }}
+
+          # KAGGLE_NOTEBOOK_SLUG  – slug of your Kaggle kernel
           KAGGLE_NOTEBOOK_SLUG:  ${{ vars.KAGGLE_NOTEBOOK_SLUG  || 'pending-drive-pipeline' }}
+
+          # PREVIEW_REPO          – GitHub repo that receives WebP previews
           PREVIEW_REPO:          ${{ vars.PREVIEW_REPO          || 'guruimageusha' }}
           PREVIEW_BRANCH:        ${{ vars.PREVIEW_BRANCH        || 'main' }}
           PREVIEW_FOLDER:        ${{ vars.PREVIEW_FOLDER        || 'preview_webp' }}
+
+          # ULTRADATA_REPO        – private repo that holds ultradata.xlsx
           ULTRADATA_REPO:        ${{ vars.ULTRADATA_REPO        || 'ultrapng' }}
           ULTRADATA_FILE:        ${{ vars.ULTRADATA_FILE        || 'ultradata.xlsx' }}
           ULTRADATA_BRANCH:      ${{ vars.ULTRADATA_BRANCH      || 'main' }}
 
+          # RUN_ITEMS_COUNT – how many images to pick from pending this run
+          # Priority: manual dispatch → repo variable → default 50
           RUN_ITEMS_COUNT: >-
             ${{ github.event.inputs.run_items_count
                 || vars.RUN_ITEMS_COUNT
                 || '50' }}
+
+          # REMBG_MODEL – background removal model
           REMBG_MODEL: >-
             ${{ github.event.inputs.rembg_model
                 || vars.REMBG_MODEL
@@ -68,17 +92,20 @@ jobs:
 
         run: python inject_creds_pending.py
 
+      # ── 5. Summary ─────────────────────────────────────────────────────────
       - name: Pipeline summary
         if: always()
         run: |
-          echo "### Pending Pipeline V3.2 — Push Summary" >> $GITHUB_STEP_SUMMARY
+          echo "### Pending Pipeline V3.3 — Push Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
           echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
+          echo "| Discovery mode | BFS recursive (all nested subfolders) |" >> $GITHUB_STEP_SUMMARY
           echo "| Run items | ${{ github.event.inputs.run_items_count || vars.RUN_ITEMS_COUNT || '50' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| rembg model | ${{ github.event.inputs.rembg_model || vars.REMBG_MODEL || 'birefnet-general' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Pending folder | ${{ vars.PENDING_FOLDER_NAME || 'pending' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Preview folder | ${{ vars.PREVIEW_FOLDER || 'preview_webp' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| CDN base | cdn.jsdelivr.net/gh/OWNER/guruimageusha@main/preview_webp/ |" >> $GITHUB_STEP_SUMMARY
+          echo "| CDN base | cdn.jsdelivr.net/gh/OWNER/${{ vars.PREVIEW_REPO || 'guruimageusha' }}@main/${{ vars.PREVIEW_FOLDER || 'preview_webp' }}/ |" >> $GITHUB_STEP_SUMMARY
           echo "| ultradata repo | ${{ vars.ULTRADATA_REPO || 'ultrapng' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Kaggle notebook | ${{ vars.KAGGLE_NOTEBOOK_SLUG || 'pending-drive-pipeline' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Triggered by | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY

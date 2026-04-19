@@ -1,12 +1,24 @@
 name: Section 2 - SEO JSON Builder
 
+# ─────────────────────────────────────────────────────────────────────────────
+# V2.0 — Adds Drive png_library_images scan:
+#   • Checks png_library_images folder (+ subfolders) in Google Drive
+#   • For each PNG with no UltraData entry → WEBP + watermark → GitHub upload
+#     → jsDelivr CDN URL → SEO generation → UltraData entry created
+#   • Then runs normal SEO generation for all remaining pending rows
+# ─────────────────────────────────────────────────────────────────────────────
+
 on:
   workflow_dispatch:
     inputs:
       count:
-        description: "Number of pending items to process (leave empty = ALL pending)"
+        description: "Number of pending items to process for SEO (empty = ALL)"
         required: false
         default: ""
+      scan_drive:
+        description: "Scan Drive png_library_images for unmatched PNGs (true/false)"
+        required: false
+        default: "true"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -20,28 +32,75 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # ── 1. Checkout ────────────────────────────────────────────────────────
       - name: Checkout
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
 
+      # ── 2. Python ─────────────────────────────────────────────────────────
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
+      # ── 3. Dependencies ────────────────────────────────────────────────────
       - name: Install dependencies
         run: pip install openpyxl requests pillow
 
+      # ── 4. Run Section 2 (with Drive PNG library scan) ────────────────────
       - name: Run Section 2
         env:
+          # ── SEO API ────────────────────────────────────────────────────────
           SCOPE:                ${{ secrets.SCOPE }}
+
+          # ── Private UltraPNG repo (ultradata.xlsx + SEO JSONs) ────────────
           REPO2_TOKEN:          ${{ secrets.REPO_2_TOKEN }}
           REPO2_SLUG:           ${{ secrets.REPO_2 }}
           REPO2_MAX_PER_JSON:   "200"
+
+          # ── Google Drive credentials (for png_library_images scan) ─────────
           GOOGLE_CLIENT_ID:     ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+
+          # ── GitHub credentials (for WEBP upload to preview repo) ───────────
+          GH_TOKEN:             ${{ secrets.GH_TOKEN }}
+          GH_OWNER:             ${{ secrets.GH_OWNER }}
+
+          # ── Preview repo settings ──────────────────────────────────────────
+          # PREVIEW_REPO    – repo that holds WebP preview images
+          PREVIEW_REPO:         ${{ vars.PREVIEW_REPO    || 'guruimageusha' }}
+          PREVIEW_BRANCH:       ${{ vars.PREVIEW_BRANCH  || 'main' }}
+          PREVIEW_FOLDER:       ${{ vars.PREVIEW_FOLDER  || 'preview_webp' }}
+
+          # ── Drive PNG library settings ─────────────────────────────────────
+          # PNG_LIBRARY_FOLDER  – Google Drive folder to scan for source PNGs
+          PNG_LIBRARY_FOLDER:   ${{ vars.PNG_LIBRARY_FOLDER || 'png_library_images' }}
+
+          # WATERMARK_TEXT  – text stamped on generated WEBP previews
+          WATERMARK_TEXT:       ${{ vars.WATERMARK_TEXT  || 'www.ultrapng.com' }}
+
+          # ── Run controls ───────────────────────────────────────────────────
+          # S2_COUNT  – SEO items to generate (empty = ALL pending)
           S2_COUNT:             ${{ github.event.inputs.count }}
+
+          # SCAN_DRIVE  – whether to run the Drive PNG library scan step
+          SCAN_DRIVE:           ${{ github.event.inputs.scan_drive || 'true' }}
+
         run: python section2_runner.py
+
+      # ── 5. Summary ─────────────────────────────────────────────────────────
+      - name: Job summary
+        if: always()
+        run: |
+          echo "### Section 2 SEO Builder — Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
+          echo "| SEO count | ${{ github.event.inputs.count || 'ALL pending' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Scan Drive PNG library | ${{ github.event.inputs.scan_drive || 'true' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Drive folder | ${{ vars.PNG_LIBRARY_FOLDER || 'png_library_images' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Preview repo | ${{ vars.PREVIEW_REPO || 'guruimageusha' }}/${{ vars.PREVIEW_FOLDER || 'preview_webp' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Triggered by | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
