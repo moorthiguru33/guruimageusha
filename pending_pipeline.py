@@ -1,8 +1,8 @@
 """
 ╔══════════════════════════════════════════════════════════════════╗
-║   Pending Drive Pipeline  V3.2                                   ║
+║   Pending Drive Pipeline  V3.3                                   ║
 ╠══════════════════════════════════════════════════════════════════╣
-║  PHASE 1 → Discovery     List pending folder + subfolders        ║
+║  PHASE 1 → Discovery     BFS recursive — ALL nested subfolders   ║
 ║  PHASE 2 → Download      Batch download JPG/PNG from Drive       ║
 ║  PHASE 3 → rembg 2       BRIA birefnet-general bg removal (HF)  ║
 ║  PHASE 4 → WebP Preview  <80 KB + checkered BG + watermark      ║
@@ -460,35 +460,98 @@ def make_webp_preview(img_rgba):
 # PHASE 1: DISCOVERY
 # ══════════════════════════════════════════════════════════════════
 def phase1_discovery():
-    log_section("PHASE 1: Discovery")
+    """
+    BFS recursive discovery — finds ALL images in every nested subfolder
+    under the pending folder (excluding 'finished' at any depth).
+
+    Each item gets:
+      fid              – Drive file ID of the image
+      name             – original filename
+      stem             – filename without extension
+      subfolder_id     – immediate parent folder ID  (used for move in phase7)
+      subfolder_name   – immediate parent folder name (used as subcategory)
+      top_category     – first-level subfolder name  (used as category in UltraData)
+      folder_path      – full relative path e.g. "fruits/tropical"  (logging only)
+    """
+    log_section("PHASE 1: Discovery  [recursive — all nested subfolders]")
     token      = get_drive_token()
     pending_id = drive_folder_get_or_create(token, PENDING_FOLDER_NAME)
     log(f"  '{PENDING_FOLDER_NAME}' folder ID: {pending_id}")
 
-    subfolders = drive_list(token, pending_id,
-                            mime_filter="application/vnd.google-apps.folder")
-    subfolders = [sf for sf in subfolders if sf["name"].lower() != "finished"]
-    log(f"  Subfolders found: {len(subfolders)}")
+    # ------------------------------------------------------------------
+    # BFS queue entries: (folder_id, folder_name, top_category, path_str)
+    # ------------------------------------------------------------------
+    queue = []
 
-    all_items = []
-    for sf in subfolders:
-        if len(all_items) >= RUN_ITEMS_COUNT:
-            break
-        images = drive_list_images(token, sf["id"])
-        log(f"  -- '{sf['name']}': {len(images)} image(s)")
+    # Seed with first-level subfolders (skip 'finished')
+    top_subs = drive_list(token, pending_id,
+                          mime_filter="application/vnd.google-apps.folder")
+    top_subs = [sf for sf in top_subs if sf["name"].lower() != "finished"]
+    log(f"  Top-level subfolders: {len(top_subs)}")
+
+    for sf in top_subs:
+        queue.append((sf["id"], sf["name"], sf["name"], sf["name"]))
+
+    # Also check for images sitting directly in the pending root
+    root_images = drive_list_images(token, pending_id)
+    if root_images:
+        log(f"  Images in pending root (no subfolder): {len(root_images)}")
+    _root_items = []
+    for img in root_images:
+        _root_items.append({
+            "fid":            img["id"],
+            "name":           img["name"],
+            "stem":           Path(img["name"]).stem,
+            "subfolder_id":   pending_id,
+            "subfolder_name": "uncategorised",
+            "top_category":   "uncategorised",
+            "folder_path":    "",
+        })
+
+    # BFS traversal
+    visited    = set()
+    all_items  = list(_root_items)   # root-level images first
+
+    while queue:
+        folder_id, folder_name, top_cat, path_str = queue.pop(0)
+
+        if folder_id in visited:
+            continue
+        visited.add(folder_id)
+
+        # Images directly in this folder
+        token  = get_drive_token()   # refresh before each API burst
+        images = drive_list_images(token, folder_id)
+        log(f"  [{path_str}]: {len(images)} image(s)")
+
         for img in images:
             all_items.append({
                 "fid":            img["id"],
                 "name":           img["name"],
                 "stem":           Path(img["name"]).stem,
-                "subfolder_id":   sf["id"],
-                "subfolder_name": sf["name"],
+                "subfolder_id":   folder_id,
+                "subfolder_name": folder_name,
+                "top_category":   top_cat,
+                "folder_path":    path_str,
             })
-            if len(all_items) >= RUN_ITEMS_COUNT:
-                break
 
-    log(f"  Items selected: {len(all_items)}/{RUN_ITEMS_COUNT}")
-    return all_items, pending_id
+        # Enqueue nested subfolders (skip 'finished' at every level)
+        nested = drive_list(token, folder_id,
+                            mime_filter="application/vnd.google-apps.folder")
+        for sf in nested:
+            if sf["name"].lower() == "finished":
+                continue
+            if sf["id"] in visited:
+                continue
+            child_path = f"{path_str}/{sf['name']}"
+            queue.append((sf["id"], sf["name"], top_cat, child_path))
+
+    log(f"  Total images found   : {len(all_items)}")
+
+    # Slice AFTER full discovery — no folders are skipped
+    selected = all_items[:RUN_ITEMS_COUNT]
+    log(f"  Items selected       : {len(selected)} / {RUN_ITEMS_COUNT}")
+    return selected, pending_id
 
 # ══════════════════════════════════════════════════════════════════
 # PHASE 2: DOWNLOAD
@@ -767,25 +830,29 @@ def phase8_update_ultradata(items):
     today = datetime.now().strftime("%Y-%m-%d")
     added = 0
     for item in items:
-        stem     = item.get("stem", "")
-        category = item.get("subfolder_name", "")
+        stem = item.get("stem", "")
 
-        # subcategory: split "category/sub" on "/" if present, else blank
-        parts       = category.split("/", 1)
-        cat_clean   = parts[0].strip()
-        subcat      = parts[1].strip() if len(parts) > 1 else ""
+        # top_category  = first-level subfolder (e.g. "fruits")
+        # subfolder_name = immediate parent     (e.g. "tropical" for nested)
+        # Falls back gracefully if keys missing (older items without BFS metadata)
+        top_cat = item.get("top_category", item.get("subfolder_name", ""))
+        sub_cat = item.get("subfolder_name", "")
+
+        # If top_cat == sub_cat the item is in a top-level folder (no nesting)
+        if top_cat == sub_cat:
+            sub_cat = ""
 
         row = {
             "date_added":   today,
             "subject_name": stem,                               # e.g. red_apple_01
-            "category":     cat_clean,                         # Drive subfolder
-            "subcategory":  subcat,                            # blank unless "/" in name
+            "category":     top_cat,                           # top-level Drive folder
+            "subcategory":  sub_cat,                           # nested folder name
             "filename":     f"{stem}.png",                     # original PNG filename
             "png_file_id":  item.get("png_drive_id",     ""),  # Drive file ID  (phase5)
             "webp_file_id": item.get("webp_file_id",     ""),  # GH path        (phase6)
             "download_url": item.get("png_download_url", ""),  # Drive dl URL   (phase5)
             "preview_url":  item.get("preview_cdn_url",  ""),  # jsDelivr URL   (phase6)
-            "seo_status":   "pending",                         # fill manually when done
+            "seo_status":   "pending",                         # section2_seo fills this
         }
         ws.append([row.get(h, "") for h in HEADERS])
         added += 1
@@ -811,7 +878,7 @@ def phase8_update_ultradata(items):
 # MAIN
 # ══════════════════════════════════════════════════════════════════
 def main():
-    log_section("Pending Drive Pipeline V3.2 — START")
+    log_section("Pending Drive Pipeline V3.3 — START")
     log(f"  RUN_ITEMS_COUNT  : {RUN_ITEMS_COUNT}  (env: RUN_ITEMS_COUNT)")
     log(f"  REMBG_MODEL      : {REMBG_MODEL}  (BRIA — rembg v2 / HuggingFace)")
     log(f"  WEBP PREVIEW     : <{WEBP_MAX_BYTES//1024} KB  max_side={WEBP_MAX_SIDE}px")

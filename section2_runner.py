@@ -1,12 +1,15 @@
+import base64
+import io
 import json
 import os
 import re
 import subprocess
+import tempfile
 import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 
 ULTRADATA_XLSX  = "ultradata.xlsx"
@@ -23,6 +26,536 @@ MS_MODELS     = [
     "Qwen/Qwen2.5-7B-Instruct",
 ]
 _ms_dynamic_sleep = 2.0
+
+
+# ══════════════════════════════════════════════════════════════
+# GOOGLE DRIVE  — OAuth token + file/folder helpers
+# ══════════════════════════════════════════════════════════════
+
+_drive_token_cache: Dict[str, Any] = {"value": None, "expires": 0}
+
+
+def _drive_token() -> str:
+    """Return a valid Google Drive access token (auto-refreshes)."""
+    import requests
+    if _drive_token_cache["value"] and time.time() < _drive_token_cache["expires"]:
+        return _drive_token_cache["value"]
+    r = requests.post("https://oauth2.googleapis.com/token", data={
+        "client_id":     os.environ.get("GOOGLE_CLIENT_ID", ""),
+        "client_secret": os.environ.get("GOOGLE_CLIENT_SECRET", ""),
+        "refresh_token": os.environ.get("GOOGLE_REFRESH_TOKEN", ""),
+        "grant_type":    "refresh_token",
+    }, timeout=30)
+    d = r.json()
+    if "access_token" not in d:
+        raise RuntimeError(f"Drive token error: {d}")
+    _drive_token_cache.update({"value": d["access_token"],
+                                "expires": time.time() + 3200})
+    return _drive_token_cache["value"]
+
+
+def _dh(token: str) -> Dict[str, str]:
+    return {"Authorization": f"Bearer {token}"}
+
+
+_drive_folder_cache: Dict[str, str] = {}
+
+
+def _drive_folder_id(token: str, name: str, parent_id: Optional[str] = None) -> str:
+    """Find or create a Drive folder by name under parent (cached)."""
+    import requests
+    cache_key = f"{parent_id or 'root'}::{name}"
+    if cache_key in _drive_folder_cache:
+        return _drive_folder_cache[cache_key]
+    q = (f"name='{name}' and mimeType='application/vnd.google-apps.folder'"
+         f" and trashed=false")
+    if parent_id:
+        q += f" and '{parent_id}' in parents"
+    r = requests.get("https://www.googleapis.com/drive/v3/files",
+                     headers=_dh(token),
+                     params={"q": q, "fields": "files(id,name)", "pageSize": 1},
+                     timeout=30)
+    r.raise_for_status()
+    files = r.json().get("files", [])
+    if files:
+        fid = files[0]["id"]
+    else:
+        body: Dict[str, Any] = {"name": name,
+                                 "mimeType": "application/vnd.google-apps.folder"}
+        if parent_id:
+            body["parents"] = [parent_id]
+        r2 = requests.post("https://www.googleapis.com/drive/v3/files",
+                            headers={**_dh(token), "Content-Type": "application/json"},
+                            json=body, timeout=30)
+        r2.raise_for_status()
+        fid = r2.json()["id"]
+    _drive_folder_cache[cache_key] = fid
+    return fid
+
+
+def _drive_list_folder(token: str, folder_id: str,
+                       mime_filter: Optional[str] = None) -> List[Dict]:
+    """List all files in a Drive folder (paginates automatically)."""
+    import requests
+    q = f"'{folder_id}' in parents and trashed=false"
+    if mime_filter:
+        q += f" and mimeType='{mime_filter}'"
+    results, page_token = [], None
+    while True:
+        params: Dict[str, Any] = {
+            "q": q, "pageSize": 1000,
+            "fields": "nextPageToken,files(id,name,mimeType,size)",
+        }
+        if page_token:
+            params["pageToken"] = page_token
+        r = requests.get("https://www.googleapis.com/drive/v3/files",
+                          headers=_dh(token), params=params, timeout=30)
+        r.raise_for_status()
+        data = r.json()
+        results.extend(data.get("files", []))
+        page_token = data.get("nextPageToken")
+        if not page_token:
+            break
+    return results
+
+
+def _drive_list_pngs(token: str, folder_id: str) -> List[Dict]:
+    """Return all PNG files directly inside a folder."""
+    import requests
+    q = (f"'{folder_id}' in parents and trashed=false and "
+         "(mimeType='image/png' or name contains '.png')")
+    results, page_token = [], None
+    while True:
+        params: Dict[str, Any] = {
+            "q": q, "pageSize": 1000,
+            "fields": "nextPageToken,files(id,name,mimeType)",
+        }
+        if page_token:
+            params["pageToken"] = page_token
+        r = requests.get("https://www.googleapis.com/drive/v3/files",
+                          headers=_dh(token), params=params, timeout=30)
+        r.raise_for_status()
+        data = r.json()
+        results.extend(data.get("files", []))
+        page_token = data.get("nextPageToken")
+        if not page_token:
+            break
+    return results
+
+
+def _drive_download(token: str, fid: str) -> bytes:
+    import requests
+    r = requests.get(f"https://www.googleapis.com/drive/v3/files/{fid}",
+                     headers=_dh(token), params={"alt": "media"}, timeout=180)
+    r.raise_for_status()
+    return r.content
+
+
+# ══════════════════════════════════════════════════════════════
+# GITHUB API — upload + jsDelivr URL
+# ══════════════════════════════════════════════════════════════
+
+def _gh_headers(token: str) -> Dict[str, str]:
+    return {"Authorization": f"token {token}",
+            "Accept": "application/vnd.github.v3+json"}
+
+
+def _gh_get_sha(token: str, owner: str, repo: str,
+                path: str, branch: str = "main") -> Optional[str]:
+    import requests
+    url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
+    r = requests.get(url, headers=_gh_headers(token),
+                     params={"ref": branch}, timeout=30)
+    if r.status_code == 200:
+        return r.json().get("sha")
+    return None
+
+
+def _gh_upload_file(token: str, owner: str, repo: str,
+                    path: str, content_bytes: bytes,
+                    message: str, branch: str = "main") -> Dict:
+    """Create or update a file in GitHub (handles SHA automatically)."""
+    import requests
+    url  = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
+    sha  = _gh_get_sha(token, owner, repo, path, branch)
+    body: Dict[str, Any] = {
+        "message": message,
+        "content": base64.b64encode(content_bytes).decode(),
+        "branch":  branch,
+    }
+    if sha:
+        body["sha"] = sha
+    for attempt in range(1, 4):
+        r = requests.put(url, headers={**_gh_headers(token),
+                                        "Content-Type": "application/json"},
+                          json=body, timeout=90)
+        if r.ok:
+            return r.json()
+        if attempt < 3:
+            time.sleep(5 * attempt)
+        else:
+            r.raise_for_status()
+    return {}
+
+
+def _jsdelivr_url(owner: str, repo: str,
+                   branch: str, path: str) -> str:
+    return f"https://cdn.jsdelivr.net/gh/{owner}/{repo}@{branch}/{path}"
+
+
+# ══════════════════════════════════════════════════════════════
+# WEBP PREVIEW GENERATOR  — PNG → WEBP with watermark + footer
+# ══════════════════════════════════════════════════════════════
+
+WEBP_MAX_SIDE  = 800
+WEBP_MAX_BYTES = 80 * 1024   # 80 KB
+
+
+def _make_webp_preview(png_bytes: bytes, watermark: str) -> bytes:
+    """
+    Convert a PNG (with or without alpha) to a WEBP preview ≤80 KB:
+      • Checkered grey background (transparent areas)
+      • Diagonal repeating watermark text
+      • Bottom footer bar with watermark text
+    Returns raw WEBP bytes.
+    """
+    from PIL import Image, ImageDraw, ImageFont
+
+    def _font(size: int):
+        for fp in [
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+            "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
+        ]:
+            try:
+                return ImageFont.truetype(fp, size)
+            except Exception:
+                pass
+        return ImageFont.load_default()
+
+    img = Image.open(io.BytesIO(png_bytes)).convert("RGBA")
+
+    # Resize if large
+    w, h = img.size
+    if max(w, h) > WEBP_MAX_SIDE:
+        scale = WEBP_MAX_SIDE / max(w, h)
+        img   = img.resize((int(w * scale), int(h * scale)), Image.LANCZOS)
+    w, h = img.size
+
+    # Checkered background
+    CELL = 16
+    bg   = Image.new("RGB", (w, h), (255, 255, 255))
+    draw = ImageDraw.Draw(bg)
+    for gy in range(0, h, CELL):
+        for gx in range(0, w, CELL):
+            if (gx // CELL + gy // CELL) % 2 == 0:
+                draw.rectangle([gx, gy, gx + CELL - 1, gy + CELL - 1],
+                                fill=(204, 204, 204))
+
+    # Paste RGBA image over checkered BG
+    bg.paste(img, mask=img.split()[3])
+
+    # Diagonal watermark overlay
+    wm_layer = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    wm_draw  = ImageDraw.Draw(wm_layer)
+    wm_font  = _font(max(11, w // 30))
+    step_x, step_y = max(80, w // 4), max(40, h // 5)
+    for oy in range(-h, h * 2, step_y):
+        for ox in range(-w, w * 2, step_x):
+            wm_draw.text((ox, oy), watermark, font=wm_font,
+                          fill=(200, 200, 200, 80))
+    bg = bg.convert("RGBA")
+    bg.alpha_composite(wm_layer)
+    bg = bg.convert("RGB")
+
+    # Footer bar
+    FOOTER_H = max(18, h // 18)
+    canvas   = Image.new("RGB", (w, h + FOOTER_H), (40, 40, 40))
+    canvas.paste(bg, (0, 0))
+    ft_draw  = ImageDraw.Draw(canvas)
+    ft_font  = _font(max(9, FOOTER_H - 4))
+    ft_draw.rectangle([0, h, w, h + FOOTER_H], fill=(40, 40, 40))
+    ft_draw.text((4, h + 2), watermark, font=ft_font, fill=(220, 220, 220))
+
+    # Encode to WEBP ≤ 80 KB
+    buf = io.BytesIO()
+    for quality in [85, 70, 55, 40, 25, 10]:
+        buf.seek(0); buf.truncate()
+        canvas.save(buf, "WEBP", quality=quality, method=6)
+        if buf.tell() <= WEBP_MAX_BYTES:
+            break
+    return buf.getvalue()
+
+
+# ══════════════════════════════════════════════════════════════
+# ULTRADATA  — append new rows to xlsx in repo2
+# ══════════════════════════════════════════════════════════════
+
+def _append_ultradata_rows(xlsx_path: Path, rows: List[Dict]) -> int:
+    """
+    Append new rows to ultradata.xlsx.
+    Returns number of rows added.
+    """
+    import openpyxl
+    if not rows:
+        return 0
+
+    wb = openpyxl.load_workbook(str(xlsx_path))
+    ws = wb.active
+
+    HEADERS = [
+        "date_added", "subject_name", "category", "subcategory",
+        "filename", "png_file_id", "webp_file_id",
+        "download_url", "preview_url", "seo_status",
+    ]
+
+    # Ensure header row
+    if ws.max_row == 0 or ws.cell(row=1, column=1).value is None:
+        ws.append(HEADERS)
+    else:
+        existing_hdr = [ws.cell(row=1, column=c).value
+                        for c in range(1, ws.max_column + 1)]
+        for col_name in HEADERS:
+            if col_name not in existing_hdr:
+                ws.cell(row=1, column=ws.max_column + 1, value=col_name)
+                existing_hdr.append(col_name)
+        HEADERS = [ws.cell(row=1, column=c).value
+                   for c in range(1, ws.max_column + 1)]
+
+    added = 0
+    for row in rows:
+        ws.append([row.get(h, "") for h in HEADERS])
+        added += 1
+
+    wb.save(str(xlsx_path))
+    return added
+
+
+# ══════════════════════════════════════════════════════════════
+# DRIVE PNG LIBRARY SCANNER
+# ══════════════════════════════════════════════════════════════
+
+def _collect_all_pngs_from_drive(folder_name: str) -> List[Dict]:
+    """
+    BFS-recursively find every PNG inside `folder_name` on Google Drive
+    (and all its nested subfolders).
+
+    Returns list of dicts:
+        fid, name, stem, subfolder_name, top_category, folder_path
+    """
+    print(f"  Scanning Drive folder '{folder_name}' for PNGs ...")
+    token = _drive_token()
+
+    root_id = _drive_folder_id(token, folder_name)
+    print(f"  Root folder ID: {root_id}")
+
+    all_pngs: List[Dict] = []
+    # BFS: (folder_id, folder_name, top_category, path_str)
+    queue: List[Tuple] = []
+
+    top_subs = _drive_list_folder(
+        token, root_id, mime_filter="application/vnd.google-apps.folder")
+    print(f"  Top-level subfolders: {len(top_subs)}")
+
+    for sf in top_subs:
+        queue.append((sf["id"], sf["name"], sf["name"], sf["name"]))
+
+    # PNGs directly in root
+    for f in _drive_list_pngs(token, root_id):
+        all_pngs.append({
+            "fid":            f["id"],
+            "name":           f["name"],
+            "stem":           Path(f["name"]).stem,
+            "subfolder_name": "uncategorised",
+            "top_category":   "uncategorised",
+            "folder_path":    "",
+        })
+
+    visited: set = set()
+    while queue:
+        folder_id, folder_name_, top_cat, path_str = queue.pop(0)
+        if folder_id in visited:
+            continue
+        visited.add(folder_id)
+
+        token = _drive_token()
+        pngs  = _drive_list_pngs(token, folder_id)
+        if pngs:
+            print(f"    [{path_str}]: {len(pngs)} PNG(s)")
+        for f in pngs:
+            all_pngs.append({
+                "fid":            f["id"],
+                "name":           f["name"],
+                "stem":           Path(f["name"]).stem,
+                "subfolder_name": folder_name_,
+                "top_category":   top_cat,
+                "folder_path":    path_str,
+            })
+
+        nested = _drive_list_folder(
+            token, folder_id, mime_filter="application/vnd.google-apps.folder")
+        for sf in nested:
+            if sf["id"] not in visited:
+                queue.append((sf["id"], sf["name"], top_cat,
+                               f"{path_str}/{sf['name']}"))
+
+    print(f"  Total PNGs found in Drive: {len(all_pngs)}")
+    return all_pngs
+
+
+def process_drive_png_library(repo2_dir: Path, cfg: "Repo2Config") -> int:
+    """
+    Step 0 (new):
+      1. Scan Drive png_library_images (+ all subfolders) for PNGs
+      2. Load existing UltraData filenames
+      3. For each PNG with no UltraData entry:
+         a. Download PNG from Drive
+         b. Generate WEBP preview with watermark
+         c. Upload WEBP to GitHub preview repo
+         d. Build jsDelivr CDN URL
+         e. Add UltraData row (seo_status = "pending")
+      4. Save xlsx + push to repo2
+
+    Returns number of new entries added.
+    """
+    # Check required env vars are set
+    needed = ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET",
+              "GOOGLE_REFRESH_TOKEN", "GH_TOKEN", "GH_OWNER"]
+    missing = [k for k in needed if not os.environ.get(k, "").strip()]
+    if missing:
+        print(f"  ⚠  Skipping Drive scan — missing env vars: {', '.join(missing)}")
+        return 0
+
+    scan_flag = os.environ.get("SCAN_DRIVE", "true").lower()
+    if scan_flag not in ("true", "1", "yes"):
+        print("  SCAN_DRIVE=false — skipping Drive PNG library scan")
+        return 0
+
+    folder_name = os.environ.get("PNG_LIBRARY_FOLDER", "png_library_images").strip()
+    gh_token    = os.environ.get("GH_TOKEN", "").strip()
+    gh_owner    = os.environ.get("GH_OWNER", "").strip()
+    prev_repo   = os.environ.get("PREVIEW_REPO",   "guruimageusha").strip()
+    prev_branch = os.environ.get("PREVIEW_BRANCH", "main").strip()
+    prev_folder = os.environ.get("PREVIEW_FOLDER", "preview_webp").strip()
+    watermark   = os.environ.get("WATERMARK_TEXT", "www.ultrapng.com").strip()
+    today_str   = datetime.utcnow().strftime("%Y-%m-%d")
+
+    # ── Load existing UltraData filenames (avoid duplicates) ────────────
+    xlsx_path = repo2_dir / ULTRADATA_XLSX
+    if not xlsx_path.exists():
+        print(f"  ⚠  {ULTRADATA_XLSX} not found — skipping Drive scan")
+        return 0
+
+    import openpyxl
+    wb_check = openpyxl.load_workbook(str(xlsx_path), read_only=True)
+    ws_check = wb_check.active
+    header_row = [ws_check.cell(row=1, column=c).value
+                  for c in range(1, ws_check.max_column + 1)]
+    try:
+        fn_col = header_row.index("filename") + 1
+    except ValueError:
+        print("  ⚠  'filename' column not found in ultradata.xlsx — skipping")
+        return 0
+
+    existing_filenames: set = set()
+    for row in ws_check.iter_rows(min_row=2, values_only=True):
+        val = row[fn_col - 1]
+        if val:
+            existing_filenames.add(str(val).strip())
+    wb_check.close()
+    print(f"  Existing UltraData entries: {len(existing_filenames)}")
+
+    # ── Scan Drive ───────────────────────────────────────────────────────
+    try:
+        all_pngs = _collect_all_pngs_from_drive(folder_name)
+    except Exception as e:
+        print(f"  ⚠  Drive scan failed: {e}")
+        return 0
+
+    # Filter: only PNGs not already in UltraData
+    unmatched = [p for p in all_pngs
+                 if f"{p['stem']}.png" not in existing_filenames]
+    print(f"  Unmatched PNGs (not in UltraData): {len(unmatched)}")
+
+    if not unmatched:
+        print("  ✅  All Drive PNGs already have UltraData entries.")
+        return 0
+
+    # ── Process each unmatched PNG ────────────────────────────────────────
+    new_rows: List[Dict] = []
+
+    for i, item in enumerate(unmatched, 1):
+        stem   = item["stem"]
+        fn_png = f"{stem}.png"
+        fn_webp = f"{stem}.webp"
+        gh_path = f"{prev_folder}/{fn_webp}"
+
+        print(f"  [{i}/{len(unmatched)}] {fn_png}", end=" ... ", flush=True)
+
+        try:
+            # a. Download PNG from Drive
+            token    = _drive_token()
+            png_data = _drive_download(token, item["fid"])
+
+            # b. Generate WEBP with watermark
+            webp_data = _make_webp_preview(png_data, watermark)
+
+            # c. Upload WEBP to GitHub
+            _gh_upload_file(
+                token=gh_token,
+                owner=gh_owner,
+                repo=prev_repo,
+                path=gh_path,
+                content_bytes=webp_data,
+                message=f"preview: add {fn_webp} [section2 drive scan]",
+                branch=prev_branch,
+            )
+
+            # d. jsDelivr CDN URL
+            cdn_url = _jsdelivr_url(gh_owner, prev_repo, prev_branch, gh_path)
+
+            # e. Drive permanent download link for the original PNG
+            png_dl  = f"https://drive.google.com/uc?export=download&id={item['fid']}"
+
+            top_cat = item.get("top_category", "")
+            sub_cat = item.get("subfolder_name", "")
+            if top_cat == sub_cat:
+                sub_cat = ""
+
+            new_rows.append({
+                "date_added":   today_str,
+                "subject_name": stem,
+                "category":     top_cat,
+                "subcategory":  sub_cat,
+                "filename":     fn_png,
+                "png_file_id":  item["fid"],
+                "webp_file_id": gh_path,
+                "download_url": png_dl,
+                "preview_url":  cdn_url,
+                "seo_status":   "pending",
+            })
+            print("✓")
+
+        except Exception as exc:
+            print(f"✗ SKIP ({exc})")
+            continue
+
+        # Be polite to Drive/GitHub APIs
+        if i < len(unmatched):
+            time.sleep(0.5)
+
+    if not new_rows:
+        print("  Nothing new to add to UltraData.")
+        return 0
+
+    # ── Append rows to xlsx + push ────────────────────────────────────────
+    added = _append_ultradata_rows(xlsx_path, new_rows)
+    print(f"  UltraData: +{added} new rows appended")
+
+    # Push updated xlsx via repo2 commit
+    _commit_push_repo2(repo2_dir, cfg, 0,
+                        commit_msg=f"ultradata: +{added} from Drive png_library [{today_str}]")
+    return added
 
 
 # ══════════════════════════════════════════════════════════════
@@ -403,7 +936,8 @@ def _save_json_files(file_entries: Dict[Path, List]) -> None:
         tmp.replace(f)
 
 
-def _commit_push_repo2(repo2_dir: Path, cfg: Repo2Config, added: int) -> None:
+def _commit_push_repo2(repo2_dir: Path, cfg: "Repo2Config", added: int,
+                        commit_msg: Optional[str] = None) -> None:
     subprocess.run(["git", "config", "user.name",  "github-actions[bot]"],
                    cwd=str(repo2_dir), check=True)
     subprocess.run(["git", "config", "user.email",
@@ -421,8 +955,9 @@ def _commit_push_repo2(repo2_dir: Path, cfg: Repo2Config, added: int) -> None:
         print("  Repo2: nothing to commit — already up-to-date.")
         return
 
+    msg = commit_msg or f"seo: add {added} entries [section2]"
     subprocess.run(
-        ["git", "commit", "-m", f"seo: add {added} entries [section2]"],
+        ["git", "commit", "-m", msg],
         cwd=str(repo2_dir), check=True
     )
 
@@ -470,11 +1005,12 @@ def main() -> None:
             pass
 
     print("=" * 60)
-    print("  Section 2 — SEO JSON Builder")
+    print("  Section 2 — SEO JSON Builder  (V2.0)")
     print(f"  Requested count : {requested if requested else 'ALL pending'}")
     print(f"  Safety cap      : {INSTANT_CAP}")
     print(f"  Max per JSON    : {max_per_file}")
     print(f"  Model           : {MS_MODELS[0]}")
+    print(f"  Drive PNG scan  : {os.environ.get('SCAN_DRIVE', 'true')}")
     print("=" * 60)
 
     # ── STEP 1: Clone private ultrapng repo ──────────────────
@@ -490,8 +1026,20 @@ def main() -> None:
             f"    Please push ultradata.xlsx to the root of that repo."
         )
 
-    # ── STEP 2: Read pending rows ────────────────────────────
-    print("\n[Step 2] Reading pending rows from ultradata.xlsx ...")
+    # ── STEP 2 (NEW): Scan Drive png_library_images ──────────
+    print("\n[Step 2] Scanning Drive png_library_images for unmatched PNGs ...")
+    new_from_drive = process_drive_png_library(repo2_dir, cfg)
+    if new_from_drive > 0:
+        print(f"  ✅  {new_from_drive} new entries added from Drive scan")
+        # Re-clone so we have the freshly pushed xlsx
+        print("  Re-cloning repo to pick up updated ultradata.xlsx ...")
+        import shutil
+        shutil.rmtree(str(repo2_dir), ignore_errors=True)
+        repo2_dir = _clone_repo2(cfg, root / "_repo2_work")
+        xlsx = repo2_dir / ULTRADATA_XLSX
+
+    # ── STEP 3: Read pending rows ────────────────────────────
+    print("\n[Step 3] Reading pending rows from ultradata.xlsx ...")
     pending = _read_pending_rows(xlsx)
     print(f"  Pending rows : {len(pending)}")
 
@@ -510,7 +1058,7 @@ def main() -> None:
     pending = deduped
 
     # ── STEP 3: Load existing SEO from repo2 ────────────────
-    print("\n[Step 3] Loading existing SEO entries from repo2 ...")
+    print("\n[Step 4] Loading existing SEO entries from repo2 ...")
     existing, files = _load_existing_entries(repo2_dir, cfg.data_dir)
     print(f"  Existing SEO entries : {len(existing)}")
 
@@ -527,7 +1075,7 @@ def main() -> None:
     print(f"\n  ▶  Will generate SEO for {target} item(s) ...")
 
     # ── STEP 5: Generate SEO ─────────────────────────────────
-    print(f"\n[Step 4] Generating SEO ...\n")
+    print(f"\n[Step 5] Generating SEO ...\n")
 
     # Pre-load file_entries from disk
     file_entries: Dict[Path, List] = {}
@@ -619,7 +1167,7 @@ def main() -> None:
 
     # ── STEP 6: Final save + push ────────────────────────────
     if pending_push > 0 or completed_filenames:
-        print(f"\n[Step 5] Final save & push ({pending_push} remaining) ...")
+        print(f"\n[Step 6] Final save & push ({pending_push} remaining) ...")
         _save_json_files(file_entries)
         updated = _mark_completed(xlsx, completed_filenames)
         print(f"  ultradata.xlsx: {updated} row(s) marked completed")
