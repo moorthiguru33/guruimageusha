@@ -53,6 +53,7 @@ jobs:
           KAGGLE_KEY:            ${{ secrets.KAGGLE_KEY }}
           GH_TOKEN:              ${{ secrets.GH_TOKEN }}
           GH_OWNER:              ${{ secrets.GH_OWNER }}
+          HF_TOKEN:              ${{ secrets.HF_TOKEN }}
 
           # ── Optional variables (GitHub → Settings → Variables) ─────────
           # WATERMARK_TEXT        – text stamped on preview images
