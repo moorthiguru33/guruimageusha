@@ -588,10 +588,28 @@ def phase2_download(items):
 #   • Official briaai/RMBG-2.0 pipeline with trust_remote_code
 #   • Cleaner alpha mask — better hair, fur, fine-detail edges
 # ══════════════════════════════════════════════════════════════════
+def _bria_select_device():
+    """
+    Pick inference device.
+    PyTorch 2.3+ dropped compiled CUDA kernels for sm_60 (Pascal / P100).
+    Anything below compute capability 7.0 (Volta) must fall back to CPU.
+    """
+    if not torch.cuda.is_available():
+        log("  Device: CPU (no CUDA)")
+        return "cpu"
+    cap = torch.cuda.get_device_capability(0)
+    name = torch.cuda.get_device_name(0)
+    if cap[0] < 7:
+        log(f"  GPU {name} is sm_{cap[0]}{cap[1]} (Pascal/older) — "
+            f"PyTorch 2.3+ has no CUDA kernels for sm_<70. Using CPU.")
+        return "cpu"
+    log(f"  Device: CUDA ({name}, sm_{cap[0]}{cap[1]})")
+    return "cuda"
+
+
 def _bria_load_model():
     """Load briaai/RMBG-2.0 from HuggingFace once and return (model, device)."""
     from transformers import AutoModelForImageSegmentation
-    import torchvision.transforms as T
 
     # briaai/RMBG-2.0 is a gated repo — authenticate before downloading
     if HF_TOKEN:
@@ -604,7 +622,7 @@ def _bria_load_model():
     else:
         log("  WARNING: HF_TOKEN not set — gated repo access may fail")
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = _bria_select_device()
     log(f"  Loading BRIA RMBG-2.0 on {device.upper()} ...")
     model = AutoModelForImageSegmentation.from_pretrained(
         "briaai/RMBG-2.0",
