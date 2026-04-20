@@ -5,7 +5,8 @@ inject_creds_pending.py
 Reads pending_pipeline.py, prepends os.environ credential lines,
 and pushes the assembled notebook to Kaggle for GPU execution.
 
-Updated on 14-Apr-2026 — GH_TOKEN & GH_OWNER now properly injected.
+Updated on 20-Apr-2026 — REMBG_MODEL removed (BRIA RMBG-2.0 SOTA is now
+hardcoded in pipeline); PREVIEW_* and ULTRADATA_* vars added to match YML.
 """
 
 import os
@@ -28,19 +29,28 @@ def _require(key):
 GOOGLE_CLIENT_ID     = _require("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = _require("GOOGLE_CLIENT_SECRET")
 GOOGLE_REFRESH_TOKEN = _require("GOOGLE_REFRESH_TOKEN")
-GH_TOKEN             = _require("GH_TOKEN")          # ← NEW
-GH_OWNER             = _require("GH_OWNER")          # ← NEW
+GH_TOKEN             = _require("GH_TOKEN")
+GH_OWNER             = _require("GH_OWNER")
 KAGGLE_USERNAME      = _require("KAGGLE_USERNAME")
 KAGGLE_KEY           = _require("KAGGLE_KEY")
 
 # ── Optional vars (set in GitHub → Settings → Variables) ──────
 RUN_ITEMS_COUNT     = os.environ.get("RUN_ITEMS_COUNT",     "50")
 WATERMARK_TEXT      = os.environ.get("WATERMARK_TEXT",      "www.ultrapng.com")
-UPSCALE_FACTOR      = os.environ.get("UPSCALE_FACTOR",      "2")
 PENDING_FOLDER_NAME = os.environ.get("PENDING_FOLDER_NAME", "pending")
-MAX_INPUT_SIZE      = os.environ.get("MAX_INPUT_SIZE",      "1200")
-REMBG_MODEL         = os.environ.get("REMBG_MODEL",         "birefnet-general")
 NOTEBOOK_SLUG       = os.environ.get("KAGGLE_NOTEBOOK_SLUG","pending-drive-pipeline")
+
+# Preview repo vars
+PREVIEW_REPO        = os.environ.get("PREVIEW_REPO",        "guruimageusha")
+PREVIEW_BRANCH      = os.environ.get("PREVIEW_BRANCH",      "main")
+PREVIEW_FOLDER      = os.environ.get("PREVIEW_FOLDER",      "preview_webp")
+
+# Ultradata repo vars
+ULTRADATA_REPO      = os.environ.get("ULTRADATA_REPO",      "ultrapng")
+ULTRADATA_FILE      = os.environ.get("ULTRADATA_FILE",      "ultradata.xlsx")
+ULTRADATA_BRANCH    = os.environ.get("ULTRADATA_BRANCH",    "main")
+
+# NOTE: REMBG_MODEL removed — BRIA RMBG-2.0 SOTA is hardcoded in pipeline
 
 # ══════════════════════════════════════════════════════════════════
 # 1. Read pipeline source
@@ -65,10 +75,14 @@ os.environ["GH_TOKEN"]             = {json.dumps(GH_TOKEN)}
 os.environ["GH_OWNER"]             = {json.dumps(GH_OWNER)}
 os.environ["RUN_ITEMS_COUNT"]      = {json.dumps(RUN_ITEMS_COUNT)}
 os.environ["WATERMARK_TEXT"]       = {json.dumps(WATERMARK_TEXT)}
-os.environ["UPSCALE_FACTOR"]       = {json.dumps(UPSCALE_FACTOR)}
 os.environ["PENDING_FOLDER_NAME"]  = {json.dumps(PENDING_FOLDER_NAME)}
-os.environ["MAX_INPUT_SIZE"]       = {json.dumps(MAX_INPUT_SIZE)}
-os.environ["REMBG_MODEL"]          = {json.dumps(REMBG_MODEL)}
+os.environ["PREVIEW_REPO"]         = {json.dumps(PREVIEW_REPO)}
+os.environ["PREVIEW_BRANCH"]       = {json.dumps(PREVIEW_BRANCH)}
+os.environ["PREVIEW_FOLDER"]       = {json.dumps(PREVIEW_FOLDER)}
+os.environ["ULTRADATA_REPO"]       = {json.dumps(ULTRADATA_REPO)}
+os.environ["ULTRADATA_FILE"]       = {json.dumps(ULTRADATA_FILE)}
+os.environ["ULTRADATA_BRANCH"]     = {json.dumps(ULTRADATA_BRANCH)}
+# NOTE: BG removal uses BRIA RMBG-2.0 SOTA (hardcoded in pipeline)
 # ─────────────────────────────────────────────────────────────────
 """
 
