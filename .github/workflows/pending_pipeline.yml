@@ -19,10 +19,7 @@ on:
         description: "How many images to process (e.g. 10, 50, 100, 200)"
         required: false
         default: "50"
-      rembg_model:
-        description: "rembg2 model (birefnet-general / isnet-general-use / u2net)"
-        required: false
-        default: "birefnet-general"
+      # rembg_model removed — pipeline now uses BRIA RMBG-2.0 SOTA (fixed)
 
 jobs:
   push-to-kaggle:
@@ -84,11 +81,7 @@ jobs:
                 || vars.RUN_ITEMS_COUNT
                 || '50' }}
 
-          # REMBG_MODEL – background removal model
-          REMBG_MODEL: >-
-            ${{ github.event.inputs.rembg_model
-                || vars.REMBG_MODEL
-                || 'birefnet-general' }}
+          # REMBG_MODEL removed — BRIA RMBG-2.0 SOTA is now hardcoded in pipeline
 
         run: python inject_creds_pending.py
 
@@ -96,13 +89,13 @@ jobs:
       - name: Pipeline summary
         if: always()
         run: |
-          echo "### Pending Pipeline V3.3 — Push Summary" >> $GITHUB_STEP_SUMMARY
+          echo "### Pending Pipeline V3.4 — Push Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
           echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
           echo "| Discovery mode | BFS recursive (all nested subfolders) |" >> $GITHUB_STEP_SUMMARY
           echo "| Run items | ${{ github.event.inputs.run_items_count || vars.RUN_ITEMS_COUNT || '50' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| rembg model | ${{ github.event.inputs.rembg_model || vars.REMBG_MODEL || 'birefnet-general' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| BG model | BRIA RMBG-2.0 SOTA (briaai/RMBG-2.0, 1024px, direct HF) |" >> $GITHUB_STEP_SUMMARY
           echo "| Pending folder | ${{ vars.PENDING_FOLDER_NAME || 'pending' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Preview folder | ${{ vars.PREVIEW_FOLDER || 'preview_webp' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| CDN base | cdn.jsdelivr.net/gh/OWNER/${{ vars.PREVIEW_REPO || 'guruimageusha' }}@main/${{ vars.PREVIEW_FOLDER || 'preview_webp' }}/ |" >> $GITHUB_STEP_SUMMARY
