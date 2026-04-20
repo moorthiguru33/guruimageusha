@@ -69,6 +69,7 @@ GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 GOOGLE_REFRESH_TOKEN = os.environ.get("GOOGLE_REFRESH_TOKEN", "")
 GH_TOKEN             = os.environ.get("GH_TOKEN",             "")
 GH_OWNER             = os.environ.get("GH_OWNER",             "")
+HF_TOKEN             = os.environ.get("HF_TOKEN",             "")   # needed for gated briaai/RMBG-2.0
 
 # Working directories
 WORKING_DIR     = Path("/kaggle/working")
@@ -592,11 +593,23 @@ def _bria_load_model():
     from transformers import AutoModelForImageSegmentation
     import torchvision.transforms as T
 
+    # briaai/RMBG-2.0 is a gated repo — authenticate before downloading
+    if HF_TOKEN:
+        try:
+            from huggingface_hub import login as hf_login
+            hf_login(token=HF_TOKEN, add_to_git_credential=False)
+            log("  HuggingFace login OK ✓")
+        except Exception as hf_e:
+            log(f"  HuggingFace login warning: {hf_e}")
+    else:
+        log("  WARNING: HF_TOKEN not set — gated repo access may fail")
+
     device = "cuda" if torch.cuda.is_available() else "cpu"
     log(f"  Loading BRIA RMBG-2.0 on {device.upper()} ...")
     model = AutoModelForImageSegmentation.from_pretrained(
         "briaai/RMBG-2.0",
         trust_remote_code=True,
+        token=HF_TOKEN or None,
     )
     model.eval()
     model.to(device)

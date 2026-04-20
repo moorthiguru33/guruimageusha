@@ -31,6 +31,7 @@ GOOGLE_CLIENT_SECRET = _require("GOOGLE_CLIENT_SECRET")
 GOOGLE_REFRESH_TOKEN = _require("GOOGLE_REFRESH_TOKEN")
 GH_TOKEN             = _require("GH_TOKEN")
 GH_OWNER             = _require("GH_OWNER")
+HF_TOKEN             = _require("HF_TOKEN")          # HuggingFace token — needed for gated briaai/RMBG-2.0
 KAGGLE_USERNAME      = _require("KAGGLE_USERNAME")
 KAGGLE_KEY           = _require("KAGGLE_KEY")
 
@@ -73,6 +74,7 @@ os.environ["GOOGLE_CLIENT_SECRET"] = {json.dumps(GOOGLE_CLIENT_SECRET)}
 os.environ["GOOGLE_REFRESH_TOKEN"] = {json.dumps(GOOGLE_REFRESH_TOKEN)}
 os.environ["GH_TOKEN"]             = {json.dumps(GH_TOKEN)}
 os.environ["GH_OWNER"]             = {json.dumps(GH_OWNER)}
+os.environ["HF_TOKEN"]             = {json.dumps(HF_TOKEN)}
 os.environ["RUN_ITEMS_COUNT"]      = {json.dumps(RUN_ITEMS_COUNT)}
 os.environ["WATERMARK_TEXT"]       = {json.dumps(WATERMARK_TEXT)}
 os.environ["PENDING_FOLDER_NAME"]  = {json.dumps(PENDING_FOLDER_NAME)}
