@@ -1,10 +1,10 @@
 """
 ╔══════════════════════════════════════════════════════════════════╗
-║   Pending Drive Pipeline  V3.3                                   ║
+║   Pending Drive Pipeline  V3.4                                   ║
 ╠══════════════════════════════════════════════════════════════════╣
 ║  PHASE 1 → Discovery     BFS recursive — ALL nested subfolders   ║
 ║  PHASE 2 → Download      Batch download JPG/PNG from Drive       ║
-║  PHASE 3 → rembg 2       BRIA birefnet-general bg removal (HF)  ║
+║  PHASE 3 → BRIA RMBG-2.0 SOTA bg removal (HF / direct PyTorch) ║
 ║  PHASE 4 → WebP Preview  <80 KB + checkered BG + watermark      ║
 ║  PHASE 5 → Drive Upload  Original transparent PNG → Drive        ║
 ║  PHASE 6 → GitHub Upload WebP preview → guruimageusha/preview_webp║
@@ -15,7 +15,7 @@
 inject_creds_pending.py prepends env vars before this file runs.
 Required secrets  : GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
                     GOOGLE_REFRESH_TOKEN, GH_TOKEN, GH_OWNER
-Tunable variables : RUN_ITEMS_COUNT, REMBG_MODEL,
+Tunable variables : RUN_ITEMS_COUNT,
                     WATERMARK_TEXT, PENDING_FOLDER_NAME
 """
 
@@ -48,7 +48,8 @@ def _env_int(key, default):
 RUN_ITEMS_COUNT     = _env_int("RUN_ITEMS_COUNT", 50)   # selectable per run
 WATERMARK_TEXT      = os.environ.get("WATERMARK_TEXT",      "www.ultrapng.com")
 PENDING_FOLDER_NAME = os.environ.get("PENDING_FOLDER_NAME", "pending")
-REMBG_MODEL         = os.environ.get("REMBG_MODEL",         "birefnet-general")
+REMBG_MODEL         = "briaai/RMBG-2.0"                 # SOTA — fixed, no longer configurable
+BRIA_INPUT_SIZE     = 1024                               # model expects 1024×1024
 BATCH_SIZE          = min(RUN_ITEMS_COUNT, 50)           # Drive upload sub-batch
 
 WEBP_MAX_SIDE  = 800
@@ -90,7 +91,8 @@ for _pkg in [
     "numpy",
     "requests",
     "openpyxl",
-    "rembg[gpu]>=2.0.0",    # rembg v2 — loads birefnet-general from HuggingFace
+    "transformers>=4.40.0",   # BRIA RMBG-2.0 — direct HuggingFace load
+    "torchvision",             # image transforms for RMBG-2.0 preprocessing
 ]:
     _r = subprocess.run(
         [sys.executable, "-m", "pip", "install", "-q",
@@ -577,30 +579,88 @@ def phase2_download(items):
     return downloaded
 
 # ══════════════════════════════════════════════════════════════════
-# PHASE 3: BRIA rembg 2  (birefnet-general — HuggingFace / PyTorch)
+# PHASE 3: BRIA RMBG-2.0 SOTA  (direct HuggingFace / pure PyTorch)
+#
+#  Why direct instead of rembg wrapper?
+#   • Full 1024×1024 inference — rembg defaults to 512px
+#   • No intermediate library overhead / version drift
+#   • Official briaai/RMBG-2.0 pipeline with trust_remote_code
+#   • Cleaner alpha mask — better hair, fur, fine-detail edges
 # ══════════════════════════════════════════════════════════════════
+def _bria_load_model():
+    """Load briaai/RMBG-2.0 from HuggingFace once and return (model, device)."""
+    from transformers import AutoModelForImageSegmentation
+    import torchvision.transforms as T
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    log(f"  Loading BRIA RMBG-2.0 on {device.upper()} ...")
+    model = AutoModelForImageSegmentation.from_pretrained(
+        "briaai/RMBG-2.0",
+        trust_remote_code=True,
+    )
+    model.eval()
+    model.to(device)
+    log("  BRIA RMBG-2.0 ready ✓")
+    return model, device
+
+
+def _bria_remove_bg(model, device, img_path: str) -> bytes:
+    """
+    Run BRIA RMBG-2.0 on a single image file.
+    Returns transparent PNG bytes (RGBA).
+    """
+    import torchvision.transforms as T
+
+    transform = T.Compose([
+        T.Resize((BRIA_INPUT_SIZE, BRIA_INPUT_SIZE)),
+        T.ToTensor(),
+        T.Normalize(mean=[0.485, 0.456, 0.406],
+                    std=[0.229, 0.224, 0.225]),
+    ])
+
+    # ── Load & convert ────────────────────────────────────────────
+    orig = Image.open(img_path).convert("RGB")
+    orig_w, orig_h = orig.size
+
+    inp = transform(orig).unsqueeze(0).to(device)
+
+    # ── Inference ─────────────────────────────────────────────────
+    with torch.no_grad():
+        preds = model(inp)
+        # model returns list; last element is the finest-grained mask
+        pred_tensor = preds[-1].sigmoid().squeeze().cpu()
+
+    # ── Build alpha mask at original resolution ───────────────────
+    mask_pil = T.ToPILImage()(pred_tensor).resize(
+        (orig_w, orig_h), Image.LANCZOS
+    )
+
+    # ── Composite: paste subject onto transparent canvas ──────────
+    orig_rgba = orig.convert("RGBA")
+    orig_rgba.putalpha(mask_pil)
+
+    buf = io.BytesIO()
+    orig_rgba.save(buf, "PNG")
+    return buf.getvalue()
+
+
 def phase3_remove_bg(items):
-    log_section(f"PHASE 3: BRIA rembg 2  [{REMBG_MODEL}]  (HuggingFace)")
+    log_section(f"PHASE 3: BRIA RMBG-2.0 SOTA  [{REMBG_MODEL}]  (direct HuggingFace)")
     gpu_info()
 
     try:
-        from rembg import remove, new_session
-    except ImportError as e:
-        log(f"  rembg import error: {e}  — skipping bg removal")
+        model, device = _bria_load_model()
+    except Exception as e:
+        log(f"  BRIA load error: {e}  — falling back to original image (no bg removal)")
         for item in items:
             item["transparent_path"] = item["local_path"]
         return items
-
-    log(f"  Loading BRIA session: {REMBG_MODEL} ...")
-    session = new_session(REMBG_MODEL)
-    log("  Session ready")
 
     result = []
     for i, item in enumerate(items):
         try:
             log(f"  [{i+1:>3}/{len(items)}] {item['name']}")
-            out_bytes = remove(Path(item["local_path"]).read_bytes(),
-                               session=session)
+            out_bytes = _bria_remove_bg(model, device, item["local_path"])
             dst = TRANSPARENT_DIR / f"{item['stem']}.png"
             dst.write_bytes(out_bytes)
             item["transparent_path"] = str(dst)    # -> phase4
@@ -610,11 +670,11 @@ def phase3_remove_bg(items):
             log(f"    -> {w}x{h}  {len(out_bytes)//1024} KB  (transparent PNG)")
             result.append(item)
         except Exception as e:
-            log(f"  FAIL rembg [{item['name']}]: {e}")
+            log(f"  FAIL BRIA [{item['name']}]: {e}")
             item["transparent_path"] = item["local_path"]  # fallback: original
             result.append(item)
 
-    del session
+    del model
     free_memory()
     log(f"  Done: {len(result)}/{len(items)}")
     return result
@@ -878,9 +938,9 @@ def phase8_update_ultradata(items):
 # MAIN
 # ══════════════════════════════════════════════════════════════════
 def main():
-    log_section("Pending Drive Pipeline V3.3 — START")
+    log_section("Pending Drive Pipeline V3.4 — START")
     log(f"  RUN_ITEMS_COUNT  : {RUN_ITEMS_COUNT}  (env: RUN_ITEMS_COUNT)")
-    log(f"  REMBG_MODEL      : {REMBG_MODEL}  (BRIA — rembg v2 / HuggingFace)")
+    log(f"  BG MODEL         : {REMBG_MODEL}  (SOTA — direct HuggingFace / 1024px)")
     log(f"  WEBP PREVIEW     : <{WEBP_MAX_BYTES//1024} KB  max_side={WEBP_MAX_SIDE}px")
     log(f"  WATERMARK        : {WATERMARK_TEXT}")
     log(f"  PENDING FOLDER   : {PENDING_FOLDER_NAME}")
