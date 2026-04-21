@@ -16,16 +16,9 @@ ULTRADATA_XLSX  = "ultradata.xlsx"
 WATERMARK_TEXT  = "www.ultrapng.com"
 INSTANT_CAP     = 2000   # safety cap — prevents accidental runaway
 
-# ── MODELSCOPE SETTINGS ────────────────────────────────────────
-MS_SLEEP_SEC  = 2.0
-MS_RETRY_WAIT = 10.0
-MS_ENDPOINT   = "https://api-inference.modelscope.ai/v1/chat/completions"
-MS_MODELS     = [
-    "Qwen/Qwen2.5-72B-Instruct",
-    "Qwen/Qwen2.5-32B-Instruct",
-    "Qwen/Qwen2.5-7B-Instruct",
-]
-_ms_dynamic_sleep = 2.0
+# ── LOCAL MODEL SETTINGS ────────────────────────────────────────
+LOCAL_MODEL_ID = "Qwen/Qwen2.5-0.5B-Instruct"
+_local_pipe    = None   # module-level singleton — loaded once
 
 
 # ══════════════════════════════════════════════════════════════
@@ -612,167 +605,188 @@ def _repair_truncated_json(raw: str) -> str:
 
 
 # ══════════════════════════════════════════════════════════════
-# MODELSCOPE SEO
+# LOCAL SEO  — Qwen2.5-0.5B-Instruct (free, CPU, no API key)
 # ══════════════════════════════════════════════════════════════
 
-def _modelscope_seo(subject_name: str, retries: int = 3) -> Dict[str, str]:
-    import requests
-    global _ms_dynamic_sleep
+def _load_local_model():
+    """Load Qwen2.5-0.5B-Instruct once into module-level singleton."""
+    global _local_pipe
+    if _local_pipe is not None:
+        return _local_pipe
+    from transformers import pipeline
+    import torch
+    print(f"\n  [MODEL] Loading {LOCAL_MODEL_ID} ...", flush=True)
+    _local_pipe = pipeline(
+        "text-generation",
+        model=LOCAL_MODEL_ID,
+        device="cpu",
+        torch_dtype=torch.float32,
+        max_new_tokens=1200,
+    )
+    print("  [MODEL] Loaded ✓\n", flush=True)
+    return _local_pipe
 
-    key     = os.environ.get("SCOPE", "").strip()
+
+def _template_seo(subject: str) -> Dict[str, str]:
+    """
+    100%-reliable template fallback — used when LLM output cannot be parsed.
+    Always returns well-formed SEO fields.
+    """
+    s  = subject.strip()
+    sl = s.lower()
+    title     = f"{s} PNG Transparent Background — HD Image Free Download"
+    title     = title[:60]
+    h1        = f"{s} PNG on Transparent Background HD Quality Image"
+    meta_desc = (
+        f"Download high-quality {s} PNG with transparent background. "
+        f"Ideal for design, presentations and creative projects. HD, free."
+    )[:155]
+    alt_text  = f"{s} on transparent background high quality PNG"
+    tags      = (
+        f"{sl} png, {sl} transparent, {sl} hd, {sl} clipart, "
+        f"{sl} download, {sl} png free, {sl} background, {sl} image"
+    )
+    kws = [
+        f"{sl} png", f"{sl} transparent background", f"{sl} hd image",
+        f"{sl} photography", f"{sl} clipart", f"{sl} png download",
+        f"{sl} cutout", f"{sl} free download", f"{sl} high quality png",
+        f"{sl} vector", f"{sl} illustration", f"{sl} white background",
+        f"{sl} transparent png", f"free {sl} png", f"{sl} image",
+        f"{sl} photo", f"{sl} graphic", f"{sl} design", f"{sl} isolated png",
+        f"{sl} png clipart", f"{sl} hd photo", f"{sl} background free",
+        f"{sl} png image", f"{sl} png hd", f"{sl} stock photo",
+        f"{sl} digital art", f"{sl} png transparent", f"{sl} high resolution",
+        f"{sl} png file", f"{sl} creative design",
+    ]
+    return {
+        "title":       title,
+        "h1":          h1,
+        "meta_desc":   meta_desc,
+        "alt_text":    alt_text,
+        "tags":        tags,
+        "description": ", ".join(kws[:30]),
+    }
+
+
+def _parse_seo_output(content: str, subject: str) -> Dict[str, str]:
+    """Extract and validate a SEO JSON dict from raw model output."""
+    j0 = content.find("{")
+    j1 = content.rfind("}") + 1
+    if j0 == -1 or j1 == 0:
+        raise ValueError(f"No JSON object found in output: {content[:200]!r}")
+
+    raw = _clean_json_str(content[j0:j1])
+    try:
+        data = json.loads(raw, strict=False)
+    except json.JSONDecodeError as e:
+        repaired = _repair_truncated_json(raw)
+        try:
+            data = json.loads(repaired, strict=False)
+        except json.JSONDecodeError:
+            raise ValueError(f"JSON parse failed: {e}") from e
+
+    def _str(val, fallback="") -> str:
+        if val is None:
+            return fallback
+        if isinstance(val, list):
+            return ", ".join(str(v).strip() for v in val if v)
+        return str(val).strip()
+
+    title     = _str(data.get("title"))
+    desc      = _str(data.get("description"))
+    h1        = _str(data.get("h1")) or title
+    meta_desc = _str(data.get("meta_desc"))
+    alt_text  = _str(data.get("alt_text")) or title
+    tags      = _str(data.get("tags"))
+
+    if not title or not desc:
+        raise ValueError("title or description is empty after parsing")
+
+    if len(meta_desc) > 155:
+        meta_desc = meta_desc[:152] + "..."
+
+    kw_count = len([k for k in desc.split(",") if k.strip()])
+    if kw_count < 20:
+        # Too few keywords — patch with template description
+        tmpl = _template_seo(subject)
+        desc = tmpl["description"]
+        print(f"\n    [WARN] Only {kw_count} keywords — patched with template", flush=True)
+
+    return {
+        "title":       title,
+        "h1":          h1,
+        "meta_desc":   meta_desc,
+        "alt_text":    alt_text,
+        "tags":        tags,
+        "description": desc,
+    }
+
+
+def _local_seo(subject_name: str, retries: int = 2) -> Dict[str, str]:
+    """
+    Generate SEO JSON using local Qwen2.5-0.5B-Instruct (CPU, no API key).
+    Falls back to _template_seo() if the model output cannot be parsed.
+    """
     subject = (subject_name or "").strip()
-    if not key:
-        raise RuntimeError("Missing SCOPE API key")
     if not subject:
         raise RuntimeError("Missing subject_name")
 
-    seo_prompt = f"""You are an expert SEO writer for an image download website called UltraPNG.
+    pipe = _load_local_model()
 
-Subject: {subject}
+    seo_prompt = f"""You are an SEO expert for UltraPNG, an image download website.
+Generate SEO content for a PNG image. Subject: "{subject}"
 
-Write SEO content for a PNG image of "{subject}".
+Return ONLY a valid JSON object with EXACTLY these keys (no markdown, no extra text):
 
-OUTPUT: One valid JSON object with EXACTLY these keys:
+{{
+  "title": "50-60 chars — include \\"{subject} PNG\\" and \\"transparent background\\" or \\"HD\\"",
+  "h1": "8-14 word descriptive heading",
+  "meta_desc": "under 155 chars — describe image + benefit. No \\"click here\\".",
+  "alt_text": "screen-reader description mentioning transparent background",
+  "tags": "8-10 comma-separated keywords",
+  "description": "exactly 30 comma-separated SEO keywords — all about \\"{subject}\\" with variations: png, transparent background, hd image, clipart, free download, vector, illustration, cutout, white background, high quality, hd photo, stock image, graphic, digital art, isolated"
+}}"""
 
-"title":
-  50–60 characters total (count carefully).
-  Format: "[Subject] PNG [key feature] — [short use case]"
-  Start with the subject name. Include "PNG" and "transparent background" or "HD".
-  Example: "Mosambi PNG Transparent Background — HD Fruit Image Download"
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "You are an SEO expert. Always respond with a single valid JSON object. "
+                "No markdown fences. No preamble. No explanation. JSON only."
+            ),
+        },
+        {"role": "user", "content": seo_prompt},
+    ]
 
-"h1":
-  8–14 words. Descriptive page heading for the image.
-  Example: "Fresh Mosambi Fruit PNG on Transparent Background HD Quality"
-
-"meta_desc":
-  Under 155 characters. Describe the image + one reason to use it.
-  Do NOT use "click here", "visit", "check out".
-
-"alt_text":
-  Screen-reader description.
-  Format: "[color/style] {subject} on transparent background [one detail]"
-
-"tags":
-  8–10 comma-separated keywords.
-  Mix: subject+png, subject+transparent, subject+hd, subject+clipart, subject+download, etc.
-
-"description":
-  EXACTLY 30 SEO keywords, comma-separated.
-  ALL keywords must be about "{subject}".
-  Pattern: variations of subject + png, hd image, transparent background, photography,
-  clipart, free download, vector, illustration, cutout, white background, high quality,
-  hd photo, stock image, graphic, digital art, isolated, background free, etc.
-  Example for "mosambi":
-  "mosambi png, mosambi transparent background, mosambi hd image, mosambi photography,
-  mosambi clipart, mosambi fruit png, mosambi cutout, mosambi free download,
-  mosambi high quality png, mosambi vector, mosambi illustration, mosambi white background,
-  mosambi transparent png download, fresh mosambi png, mosambi fruit image,
-  mosambi photo, mosambi graphic, mosambi design, mosambi isolated png,
-  mosambi fruit clipart, mosambi hd photo, mosambi background free,
-  mosambi fruit vector, mosambi png download, mosambi fruit photography,
-  mosambi fruit transparent, mosambi juice png, mosambi fruit hd,
-  mosambi stock photo, mosambi digital art"
-  COUNT: must be exactly 30 items separated by commas.
-  NO sentences. NO "perfect for". NO descriptions. ONLY keywords.
-
-Return ONLY the JSON object. No markdown fences. No extra text."""
-
-    def _parse_seo(content: str) -> Dict[str, str]:
-        j0 = content.find("{")
-        j1 = content.rfind("}") + 1
-        if j0 == -1 or j1 == 0:
-            raise ValueError(f"No JSON in response: {content[:200]!r}")
-        raw = _clean_json_str(content[j0:j1])
+    for attempt in range(1, retries + 1):
         try:
-            data = json.loads(raw, strict=False)
-        except json.JSONDecodeError as e:
-            repaired = _repair_truncated_json(raw)
-            try:
-                data = json.loads(repaired, strict=False)
-            except json.JSONDecodeError:
-                raise ValueError(f"JSON parse failed: {e}") from e
+            output  = pipe(
+                messages,
+                max_new_tokens=1200,
+                temperature=0.3,
+                do_sample=True,
+                pad_token_id=pipe.tokenizer.eos_token_id,
+            )
+            # Qwen pipeline returns list-of-dicts; last entry is assistant reply
+            raw_out = output[0]["generated_text"]
+            content = (
+                raw_out[-1]["content"]
+                if isinstance(raw_out, list) and isinstance(raw_out[-1], dict)
+                else str(raw_out)
+            ).strip()
 
-        def _str(val, fallback="") -> str:
-            if val is None:
-                return fallback
-            if isinstance(val, list):
-                return ", ".join(str(v).strip() for v in val if v)
-            return str(val).strip()
+            return _parse_seo_output(content, subject)
 
-        title     = _str(data.get("title"))
-        desc      = _str(data.get("description"))
-        h1        = _str(data.get("h1")) or title
-        meta_desc = _str(data.get("meta_desc"))
-        alt_text  = _str(data.get("alt_text")) or title
-        tags      = _str(data.get("tags"))
+        except Exception as e:
+            print(f"\n    [LOCAL] attempt {attempt}/{retries} failed: {e}", flush=True)
+            if attempt >= retries:
+                print(f"    [LOCAL] All attempts failed — using template for '{subject}'",
+                      flush=True)
+                return _template_seo(subject)
+            time.sleep(1)
 
-        if len(meta_desc) > 155:
-            meta_desc = meta_desc[:152] + "..."
-
-        kw_count = len([k for k in desc.split(",") if k.strip()])
-        if kw_count < 28:
-            print(f"\n    [WARN] description has {kw_count} keywords (target 30) — accepted",
-                  flush=True)
-
-        return {
-            "title":       title,
-            "h1":          h1,
-            "meta_desc":   meta_desc,
-            "alt_text":    alt_text,
-            "tags":        tags,
-            "description": desc,
-        }
-
-    messages = [{"role": "user", "content": seo_prompt}]
-
-    for model_idx, model in enumerate(MS_MODELS):
-        last_err = None
-        for attempt in range(1, retries + 1):
-            try:
-                r = requests.post(
-                    MS_ENDPOINT,
-                    headers={
-                        "Authorization": f"Bearer {key}",
-                        "Content-Type":  "application/json",
-                    },
-                    json={
-                        "model":       model,
-                        "temperature": 0.4,
-                        "max_tokens":  1200,
-                        "messages":    messages,
-                    },
-                    timeout=120,
-                )
-                if r.status_code == 429:
-                    retry_after = float(r.headers.get("retry-after", "30"))
-                    _ms_dynamic_sleep = min(max(retry_after, 5), 60)
-                    print(f"\n    [429] {model} — waiting {retry_after:.0f}s ...", flush=True)
-                    time.sleep(retry_after + 1)
-                    continue
-                if r.status_code == 400:
-                    try:
-                        err_body = r.json()
-                    except Exception:
-                        err_body = r.text[:300]
-                    raise RuntimeError(f"400 Bad Request: {err_body}")
-                r.raise_for_status()
-                content_str = r.json()["choices"][0]["message"]["content"].strip()
-                result = _parse_seo(content_str)
-                if model_idx > 0:
-                    print(f"    [MS] fallback model used: {model}", flush=True)
-                return result
-
-            except Exception as e:
-                last_err = e
-                if attempt < retries:
-                    wait = MS_RETRY_WAIT * attempt
-                    print(f"\n    [MS] attempt {attempt}/{retries} failed: {e} — retry in {wait:.0f}s",
-                          flush=True)
-                    time.sleep(wait)
-
-        print(f"\n    [MS] {model} exhausted: {last_err}", flush=True)
-
-    raise RuntimeError(f"All ModelScope models failed. Last: {last_err}")
+    # Should never reach here, but satisfy type-checker
+    return _template_seo(subject)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -1145,7 +1159,7 @@ def main() -> None:
     print(f"  Requested count : {requested if requested else 'ALL pending'}")
     print(f"  Safety cap      : {INSTANT_CAP}")
     print(f"  Max per JSON    : {max_per_file}")
-    print(f"  Model           : {MS_MODELS[0]}")
+    print(f"  Model           : {LOCAL_MODEL_ID} (local, CPU, no API key)")
     print(f"  Drive PNG scan  : {os.environ.get('SCAN_DRIVE', 'true')}")
     print("=" * 60)
 
@@ -1210,8 +1224,12 @@ def main() -> None:
     target = min(requested, len(todo)) if requested else len(todo)
     print(f"\n  ▶  Will generate SEO for {target} item(s) ...")
 
-    # ── STEP 5: Generate SEO ─────────────────────────────────
-    print(f"\n[Step 5] Generating SEO ...\n")
+    # ── STEP 5: Preload local model ──────────────────────────
+    print("\n[Step 5] Preloading local SEO model ...")
+    _load_local_model()
+
+    # ── STEP 6: Generate SEO ─────────────────────────────────
+    print(f"\n[Step 6] Generating SEO ...\n")
 
     # Pre-load file_entries from disk
     file_entries: Dict[Path, List] = {}
@@ -1236,7 +1254,7 @@ def main() -> None:
         print(f"  [{i}/{target}] {subject} ({filename}) ...", end=" ", flush=True)
 
         try:
-            seo = _modelscope_seo(subject)
+            seo = _local_seo(subject)
         except Exception as e:
             print(f"✗ SKIP ({e})")
             continue
@@ -1295,16 +1313,13 @@ def main() -> None:
             pending_push = 0
             print()
 
-        # Sleep between API calls
+        # Small pause between items to avoid CPU thermal throttling
         if added < target:
-            global _ms_dynamic_sleep
-            time.sleep(_ms_dynamic_sleep)
-            if _ms_dynamic_sleep > MS_SLEEP_SEC:
-                _ms_dynamic_sleep = max(MS_SLEEP_SEC, _ms_dynamic_sleep * 0.85)
+            time.sleep(0.5)
 
     # ── STEP 6: Final save + push ────────────────────────────
     if pending_push > 0 or completed_filenames:
-        print(f"\n[Step 6] Final save & push ({pending_push} remaining) ...")
+        print(f"\n[Step 7] Final save & push ({pending_push} remaining) ...")
         _save_json_files(file_entries)
         updated = _mark_completed(xlsx, completed_filenames)
         print(f"  ultradata.xlsx: {updated} row(s) marked completed")
