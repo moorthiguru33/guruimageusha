@@ -1,11 +1,11 @@
 name: Section 2 - SEO JSON Builder
 
 # ─────────────────────────────────────────────────────────────────────────────
-# V2.0 — Adds Drive png_library_images scan:
-#   • Checks png_library_images folder (+ subfolders) in Google Drive
-#   • For each PNG with no UltraData entry → WEBP + watermark → GitHub upload
-#     → jsDelivr CDN URL → SEO generation → UltraData entry created
-#   • Then runs normal SEO generation for all remaining pending rows
+# V3.0 — Local model (Qwen2.5-0.5B-Instruct via HuggingFace Transformers)
+#   • NO external API key needed (SCOPE removed)
+#   • Runs 100% on ubuntu-latest CPU — free forever
+#   • Model cached after first run via actions/cache → fast subsequent runs
+#   • Template fallback guarantees every item always gets SEO content
 # ─────────────────────────────────────────────────────────────────────────────
 
 on:
@@ -47,14 +47,37 @@ jobs:
 
       # ── 3. Dependencies ────────────────────────────────────────────────────
       - name: Install dependencies
-        run: pip install openpyxl requests pillow
+        run: |
+          pip install --upgrade pip
+          pip install \
+            openpyxl \
+            requests \
+            pillow \
+            "transformers>=4.40.0" \
+            accelerate
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
 
-      # ── 4. Run Section 2 (with Drive PNG library scan) ────────────────────
+      # ── 4. Restore HuggingFace model cache ────────────────────────────────
+      #    First run  → cache MISS  → model downloaded once (~1 GB) → cached
+      #    Later runs → cache HIT   → loaded from disk instantly (no download)
+      - name: Restore HuggingFace model cache
+        id: hf-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-qwen2.5-0.5b-instruct-v1
+
+      - name: Show cache status
+        run: |
+          if [ "${{ steps.hf-cache.outputs.cache-hit }}" = "true" ]; then
+            echo "✅  HuggingFace model cache HIT — no download needed"
+          else
+            echo "⬇️   HuggingFace model cache MISS — downloading model (~1 GB)..."
+          fi
+
+      # ── 5. Run Section 2 ──────────────────────────────────────────────────
       - name: Run Section 2
         env:
-          # ── SEO API ────────────────────────────────────────────────────────
-          SCOPE:                ${{ secrets.SCOPE }}
-
           # ── Private UltraPNG repo (ultradata.xlsx + SEO JSONs) ────────────
           REPO2_TOKEN:          ${{ secrets.REPO_2_TOKEN }}
           REPO2_SLUG:           ${{ secrets.REPO_2 }}
@@ -70,28 +93,33 @@ jobs:
           GH_OWNER:             ${{ secrets.GH_OWNER }}
 
           # ── Preview repo settings ──────────────────────────────────────────
-          # PREVIEW_REPO    – repo that holds WebP preview images
           PREVIEW_REPO:         ${{ vars.PREVIEW_REPO    || 'guruimageusha' }}
           PREVIEW_BRANCH:       ${{ vars.PREVIEW_BRANCH  || 'main' }}
           PREVIEW_FOLDER:       ${{ vars.PREVIEW_FOLDER  || 'preview_webp' }}
 
           # ── Drive PNG library settings ─────────────────────────────────────
-          # PNG_LIBRARY_FOLDER  – Google Drive folder to scan for source PNGs
           PNG_LIBRARY_FOLDER:   ${{ vars.PNG_LIBRARY_FOLDER || 'png_library_images' }}
-
-          # WATERMARK_TEXT  – text stamped on generated WEBP previews
           WATERMARK_TEXT:       ${{ vars.WATERMARK_TEXT  || 'www.ultrapng.com' }}
 
           # ── Run controls ───────────────────────────────────────────────────
-          # S2_COUNT  – SEO items to generate (empty = ALL pending)
           S2_COUNT:             ${{ github.event.inputs.count }}
-
-          # SCAN_DRIVE  – whether to run the Drive PNG library scan step
           SCAN_DRIVE:           ${{ github.event.inputs.scan_drive || 'true' }}
+
+          # ── HuggingFace settings ───────────────────────────────────────────
+          HF_HUB_DISABLE_PROGRESS_BARS: "1"
+          TOKENIZERS_PARALLELISM:       "false"
 
         run: python section2_runner.py
 
-      # ── 5. Summary ─────────────────────────────────────────────────────────
+      # ── 6. Save HuggingFace model cache (always, even on failure) ─────────
+      - name: Save HuggingFace model cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-qwen2.5-0.5b-instruct-v1
+
+      # ── 7. Summary ─────────────────────────────────────────────────────────
       - name: Job summary
         if: always()
         run: |
@@ -99,8 +127,10 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
           echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
+          echo "| Model | Qwen/Qwen2.5-0.5B-Instruct (local CPU, no API key) |" >> $GITHUB_STEP_SUMMARY
           echo "| SEO count | ${{ github.event.inputs.count || 'ALL pending' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Scan Drive PNG library | ${{ github.event.inputs.scan_drive || 'true' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Drive folder | ${{ vars.PNG_LIBRARY_FOLDER || 'png_library_images' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Preview repo | ${{ vars.PREVIEW_REPO || 'guruimageusha' }}/${{ vars.PREVIEW_FOLDER || 'preview_webp' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Model cache | ${{ steps.hf-cache.outputs.cache-hit == 'true' && 'HIT ✅' || 'MISS — downloaded this run' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Triggered by | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
