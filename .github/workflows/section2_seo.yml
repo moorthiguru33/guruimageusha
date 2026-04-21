@@ -1,18 +1,21 @@
 name: Section 2 - SEO JSON Builder
 
 # ─────────────────────────────────────────────────────────────────────────────
-# V3.0 — Local model (Qwen2.5-0.5B-Instruct via HuggingFace Transformers)
-#   • NO external API key needed (SCOPE removed)
-#   • Runs 100% on ubuntu-latest CPU — free forever
-#   • Model cached after first run via actions/cache → fast subsequent runs
-#   • Template fallback guarantees every item always gets SEO content
+# V4.0 — Moondream2 Vision Model (free, MIT, CPU, no API key)
+#   • Sees each PNG image visually → world-class SEO titles + keywords
+#   • Titles like: "Bright Yellow Lemon PNG Transparent Background Free Download"
+#     (NOT: "Lemon_03 PNG HD TRANSPARENT PNG DOWNLOAD")
+#   • Runs 100 % free on ubuntu-latest CPU
+#   • Model cached after first run → fast subsequent runs
+#   • 5-hour job timeout → auto-restarts every run until all items done
+#   • Checkpoints every 25 items → zero data loss on failure
 # ─────────────────────────────────────────────────────────────────────────────
 
 on:
   workflow_dispatch:
     inputs:
       count:
-        description: "Number of pending items to process for SEO (empty = ALL)"
+        description: "Number of pending items to process (empty = ALL)"
         required: false
         default: ""
       scan_drive:
@@ -20,16 +23,22 @@ on:
         required: false
         default: "true"
 
+  # ── Auto-restart: uncomment to poll every 10 min until all items done ─────
+  # schedule:
+  #   - cron: "*/10 * * * *"
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: false   # never cancel a running SEO job
 
 permissions:
   contents: write
+  actions:  write   # needed so the script can dispatch new workflow runs
 
 jobs:
   build-seo:
     runs-on: ubuntu-latest
+    timeout-minutes: 300   # 5-hour hard limit — script exits at 4h50m and auto-restarts
 
     steps:
       # ── 1. Checkout ────────────────────────────────────────────────────────
@@ -54,25 +63,27 @@ jobs:
             requests \
             pillow \
             "transformers>=4.40.0" \
+            "timm>=0.9.0" \
+            einops \
             accelerate
           pip install torch --index-url https://download.pytorch.org/whl/cpu
 
-      # ── 4. Restore HuggingFace model cache ────────────────────────────────
-      #    First run  → cache MISS  → model downloaded once (~1 GB) → cached
-      #    Later runs → cache HIT   → loaded from disk instantly (no download)
-      - name: Restore HuggingFace model cache
+      # ── 4. Restore Moondream2 model cache ──────────────────────────────────
+      #    First run  → cache MISS → downloads ~1.9 GB once → cached
+      #    Later runs → cache HIT  → loaded from disk instantly
+      - name: Restore Moondream2 model cache
         id: hf-cache
         uses: actions/cache@v4
         with:
           path: ~/.cache/huggingface
-          key: hf-qwen2.5-0.5b-instruct-v1
+          key: hf-moondream2-2025-01-09-v1
 
       - name: Show cache status
         run: |
           if [ "${{ steps.hf-cache.outputs.cache-hit }}" = "true" ]; then
-            echo "✅  HuggingFace model cache HIT — no download needed"
+            echo "✅  Moondream2 cache HIT — no download needed"
           else
-            echo "⬇️   HuggingFace model cache MISS — downloading model (~1 GB)..."
+            echo "⬇️   Moondream2 cache MISS — downloading model (~1.9 GB)..."
           fi
 
       # ── 5. Run Section 2 ──────────────────────────────────────────────────
@@ -83,12 +94,12 @@ jobs:
           REPO2_SLUG:           ${{ secrets.REPO_2 }}
           REPO2_MAX_PER_JSON:   "200"
 
-          # ── Google Drive credentials (for png_library_images scan) ─────────
+          # ── Google Drive credentials (for png_library_images scan) ────────
           GOOGLE_CLIENT_ID:     ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
 
-          # ── GitHub credentials (for WEBP upload to preview repo) ───────────
+          # ── GitHub credentials (WEBP upload + auto-restart dispatch) ───────
           GH_TOKEN:             ${{ secrets.GH_TOKEN }}
           GH_OWNER:             ${{ secrets.GH_OWNER }}
 
@@ -97,7 +108,7 @@ jobs:
           PREVIEW_BRANCH:       ${{ vars.PREVIEW_BRANCH  || 'main' }}
           PREVIEW_FOLDER:       ${{ vars.PREVIEW_FOLDER  || 'preview_webp' }}
 
-          # ── Drive PNG library settings ─────────────────────────────────────
+          # ── Drive PNG library ──────────────────────────────────────────────
           PNG_LIBRARY_FOLDER:   ${{ vars.PNG_LIBRARY_FOLDER || 'png_library_images' }}
           WATERMARK_TEXT:       ${{ vars.WATERMARK_TEXT  || 'www.ultrapng.com' }}
 
@@ -109,15 +120,19 @@ jobs:
           HF_HUB_DISABLE_PROGRESS_BARS: "1"
           TOKENIZERS_PARALLELISM:       "false"
 
+          # ── Auto-restart context (script uses these to dispatch itself) ────
+          GITHUB_REPOSITORY:    ${{ github.repository }}
+          GITHUB_REF_NAME:      ${{ github.ref_name }}
+
         run: python section2_runner.py
 
-      # ── 6. Save HuggingFace model cache (always, even on failure) ─────────
-      - name: Save HuggingFace model cache
+      # ── 6. Save Moondream2 model cache (always, even on failure) ──────────
+      - name: Save Moondream2 model cache
         if: always()
         uses: actions/cache/save@v4
         with:
           path: ~/.cache/huggingface
-          key: hf-qwen2.5-0.5b-instruct-v1
+          key: hf-moondream2-2025-01-09-v1
 
       # ── 7. Summary ─────────────────────────────────────────────────────────
       - name: Job summary
@@ -127,10 +142,12 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
           echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
-          echo "| Model | Qwen/Qwen2.5-0.5B-Instruct (local CPU, no API key) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Vision model | Moondream2 (vikhyatk/moondream2@2025-01-09) |" >> $GITHUB_STEP_SUMMARY
+          echo "| SEO strategy | Visual analysis → unique title + 30 keywords |" >> $GITHUB_STEP_SUMMARY
           echo "| SEO count | ${{ github.event.inputs.count || 'ALL pending' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Scan Drive PNG library | ${{ github.event.inputs.scan_drive || 'true' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Scan Drive | ${{ github.event.inputs.scan_drive || 'true' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Drive folder | ${{ vars.PNG_LIBRARY_FOLDER || 'png_library_images' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Preview repo | ${{ vars.PREVIEW_REPO || 'guruimageusha' }}/${{ vars.PREVIEW_FOLDER || 'preview_webp' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Model cache | ${{ steps.hf-cache.outputs.cache-hit == 'true' && 'HIT ✅' || 'MISS — downloaded this run' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Job timeout | 5 hours (auto-restarts if still pending) |" >> $GITHUB_STEP_SUMMARY
           echo "| Triggered by | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
