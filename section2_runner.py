@@ -18,7 +18,7 @@ INSTANT_CAP     = 2000   # safety cap — prevents accidental runaway
 
 # ── VISION MODEL SETTINGS (Moondream2 — free, CPU, MIT licence) ──
 MOONDREAM_MODEL_ID  = "vikhyatk/moondream2"
-MOONDREAM_REVISION  = "2025-06-21"   # <-- UPDATED: compatible with transformers>=5.0
+MOONDREAM_REVISION  = "2025-01-09"   # Restored to a revision known to work with transformers<5.0.0
 _moondream_model    = None   # singleton — loaded once
 _moondream_tokenizer= None
 
@@ -705,6 +705,19 @@ def _load_moondream():
     if _moondream_model is not None:
         return _moondream_model, _moondream_tokenizer
 
+    # Ensure transformers version is compatible
+    import importlib
+    try:
+        import transformers
+        if transformers.__version__ >= "5.0.0":
+            print("  [VISION] Downgrading transformers to 4.38.2 for Moondream2 compatibility...")
+            subprocess.run(["pip", "install", "transformers==4.38.2", "--quiet"], check=True)
+            # Restart the script to apply the downgrade
+            os.execv(sys.executable, ['python'] + sys.argv)
+    except ImportError:
+        subprocess.run(["pip", "install", "transformers==4.38.2", "--quiet"], check=True)
+        os.execv(sys.executable, ['python'] + sys.argv)
+
     from transformers import AutoModelForCausalLM, AutoTokenizer
     import torch
 
@@ -716,12 +729,11 @@ def _load_moondream():
         revision=MOONDREAM_REVISION,
         trust_remote_code=True,
     )
-    # UPDATED: use 'dtype' instead of 'torch_dtype' for transformers>=5.0
     _moondream_model = AutoModelForCausalLM.from_pretrained(
         MOONDREAM_MODEL_ID,
         revision=MOONDREAM_REVISION,
         trust_remote_code=True,
-        dtype=torch.float32,          # <-- FIX: torch_dtype → dtype
+        torch_dtype=torch.float32,
         low_cpu_mem_usage=True,
     )
     _moondream_model.eval()
@@ -739,26 +751,26 @@ def _moondream_describe(img_bytes: bytes, subject: str) -> str:
         model, tokenizer = _load_moondream()
         image = PILImage.open(io.BytesIO(img_bytes)).convert("RGB")
 
-        # UPDATED API: use caption + query for better descriptions
+        question = (
+            f"This is a PNG image of '{subject}'. "
+            "Describe it in detail: specific colors, visual style "
+            "(realistic / cartoon / vector / clipart / 3D), "
+            "exact type or variety, and any distinctive features visible."
+        )
+
+        # Support both new (2025) and old Moondream API
+        desc = ""
         try:
-            # Short caption first (gives core subject)
-            short_cap = model.caption(image, length="short")["caption"]
-            # Detailed description
-            full_desc = model.query(
-                image,
-                f"This is a PNG image of '{subject}'. Describe it in detail: specific colors, visual style (realistic / cartoon / vector / clipart / 3D), exact type or variety, and any distinctive features visible."
-            )["answer"]
-            desc = f"{short_cap}. {full_desc}"
-            return desc.strip()
+            # New API: model.query(image, question)["answer"]
+            result = model.query(image, question)
+            desc   = (result.get("answer", "") if isinstance(result, dict)
+                      else str(result)).strip()
         except (AttributeError, TypeError):
-            # Fallback for older Moondream API
-            enc = model.encode_image(image)
-            desc = model.answer_question(
-                enc,
-                f"Describe this image of {subject} in detail. Mention colors, style, type, and distinctive features.",
-                tokenizer
-            ).strip()
-            return desc
+            # Old API: encode_image + answer_question
+            enc  = model.encode_image(image)
+            desc = model.answer_question(enc, question, tokenizer).strip()
+
+        return desc
 
     except Exception as exc:
         print(f"    [VISION] describe error: {exc}", flush=True)
@@ -1453,7 +1465,7 @@ def main() -> None:
         print("  ✅  All pending rows already have SEO in repo2.")
         return
 
-    # ── STEP 4.5: Auto-install pyvips ──────────────────────────
+    # ── STEP 4.5: Auto-install pyvips (THIS FIXES YOUR ERROR) ─────
     print("\n[Step 4.5] Ensuring pyvips dependency for Moondream2 ...")
     _install_pyvips_if_needed()
 
