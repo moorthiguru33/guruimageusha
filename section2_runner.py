@@ -29,6 +29,43 @@ MAX_RUN_SECONDS = 17_400   # 4 h 50 min  (job timeout = 5 h)
 _RUN_START      = time.time()   # set once at import time
 
 
+def _install_pyvips_if_needed():
+    """Auto-install pyvips + libvips on GitHub Actions / Ubuntu runners.
+    This fixes the exact ImportError you saw: 'pyvips' package missing."""
+    try:
+        import pyvips
+        print("  [DEPENDENCY] pyvips already available ✓")
+        return
+    except ImportError:
+        pass
+
+    print("  [DEPENDENCY] pyvips not found → Installing automatically for Moondream2...")
+
+    try:
+        # Update package list quietly
+        subprocess.run(["sudo", "apt-get", "update", "-qq"],
+                       check=True, capture_output=True)
+
+        # Install system library libvips (required by pyvips)
+        subprocess.run(["sudo", "apt-get", "install", "-y", "-qq",
+                        "libvips42", "libvips-dev", "python3-dev"],
+                       check=True, capture_output=True)
+
+        # Install Python binding
+        subprocess.run(["pip", "install", "pyvips", "--quiet"],
+                       check=True)
+
+        print("  [DEPENDENCY] ✅ pyvips + libvips installed successfully!")
+        # Small delay so the package is fully registered
+        time.sleep(2)
+    except Exception as e:
+        print(f"  [WARNING] Could not auto-install pyvips: {e}")
+        print("            Falling back to manual mode. Moondream2 may still fail.")
+        print("            Run these commands manually:")
+        print("            sudo apt-get install -y libvips-dev")
+        print("            pip install pyvips")
+
+
 # ══════════════════════════════════════════════════════════════
 # GOOGLE DRIVE  — OAuth token + file/folder helpers
 # ══════════════════════════════════════════════════════════════
@@ -1414,6 +1451,10 @@ def main() -> None:
     if not todo:
         print("  ✅  All pending rows already have SEO in repo2.")
         return
+
+    # ── STEP 4.5: Auto-install pyvips (THIS FIXES YOUR ERROR) ─────
+    print("\n[Step 4.5] Ensuring pyvips dependency for Moondream2 ...")
+    _install_pyvips_if_needed()
 
     # ── STEP 5: Decide count ─────────────────────────────────
     target = min(requested, len(todo)) if requested else len(todo)
