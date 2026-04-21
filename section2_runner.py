@@ -23,15 +23,12 @@ _moondream_model    = None   # singleton — loaded once
 _moondream_tokenizer= None
 
 # ── RUNTIME LIMIT ────────────────────────────────────────────────
-# Stop processing 10 min before GitHub Actions hard-kills the job,
-# save everything, then auto-restart a new run.
-MAX_RUN_SECONDS = 17_400   # 4 h 50 min  (job timeout = 5 h)
-_RUN_START      = time.time()   # set once at import time
+MAX_RUN_SECONDS = 17_400   # 4 h 50 min
+_RUN_START      = time.time()
 
 
 def _install_pyvips_if_needed():
-    """Auto-install pyvips + libvips on GitHub Actions / Ubuntu runners.
-    This fixes the exact ImportError you saw: 'pyvips' package missing."""
+    """Auto-install pyvips + libvips on GitHub Actions / Ubuntu runners."""
     try:
         import pyvips
         print("  [DEPENDENCY] pyvips already available ✓")
@@ -40,30 +37,32 @@ def _install_pyvips_if_needed():
         pass
 
     print("  [DEPENDENCY] pyvips not found → Installing automatically for Moondream2...")
-
     try:
-        # Update package list quietly
-        subprocess.run(["sudo", "apt-get", "update", "-qq"],
+        subprocess.run(["sudo", "apt-get", "update", "-qq"], check=True, capture_output=True)
+        subprocess.run(["sudo", "apt-get", "install", "-y", "-qq", "libvips42", "libvips-dev", "python3-dev"],
                        check=True, capture_output=True)
-
-        # Install system library libvips (required by pyvips)
-        subprocess.run(["sudo", "apt-get", "install", "-y", "-qq",
-                        "libvips42", "libvips-dev", "python3-dev"],
-                       check=True, capture_output=True)
-
-        # Install Python binding
-        subprocess.run(["pip", "install", "pyvips", "--quiet"],
-                       check=True)
-
+        subprocess.run(["pip", "install", "pyvips", "--quiet"], check=True)
         print("  [DEPENDENCY] ✅ pyvips + libvips installed successfully!")
-        # Small delay so the package is fully registered
         time.sleep(2)
     except Exception as e:
-        print(f"  [WARNING] Could not auto-install pyvips: {e}")
-        print("            Falling back to manual mode. Moondream2 may still fail.")
-        print("            Run these commands manually:")
-        print("            sudo apt-get install -y libvips-dev")
-        print("            pip install pyvips")
+        print(f"  [WARNING] pyvips install failed: {e}")
+
+
+def _ensure_compatible_transformers():
+    """Fix 'all_tied_weights_keys' error by pinning transformers to v4.x"""
+    try:
+        import transformers
+        ver = transformers.__version__
+        major = int(ver.split('.')[0])
+        if major >= 5:
+            print(f"  [COMPATIBILITY] transformers {ver} detected → downgrading to 4.56.1...")
+            subprocess.run(["pip", "install", "transformers==4.56.1", "--quiet", "--no-deps"], check=True)
+            print("  [COMPATIBILITY] ✅ transformers downgraded to 4.56.1")
+            time.sleep(3)
+        else:
+            print(f"  [COMPATIBILITY] transformers {ver} (compatible) ✓")
+    except Exception as e:
+        print(f"  [WARNING] Could not check transformers version: {e}")
 
 
 # ══════════════════════════════════════════════════════════════
@@ -242,21 +241,14 @@ def _jsdelivr_url(owner: str, repo: str,
 
 
 # ══════════════════════════════════════════════════════════════
-# WEBP PREVIEW GENERATOR  — PNG → WEBP with watermark + footer
+# WEBP PREVIEW GENERATOR
 # ══════════════════════════════════════════════════════════════
 
 WEBP_MAX_SIDE  = 800
-WEBP_MAX_BYTES = 80 * 1024   # 80 KB
+WEBP_MAX_BYTES = 80 * 1024
 
 
 def _make_webp_preview(png_bytes: bytes, watermark: str) -> bytes:
-    """
-    Convert a PNG (with or without alpha) to a WEBP preview ≤80 KB:
-      • Checkered grey background (transparent areas)
-      • Diagonal repeating watermark text
-      • Bottom footer bar with watermark text
-    Returns raw WEBP bytes.
-    """
     from PIL import Image, ImageDraw, ImageFont
 
     def _font(size: int):
@@ -272,41 +264,33 @@ def _make_webp_preview(png_bytes: bytes, watermark: str) -> bytes:
         return ImageFont.load_default()
 
     img = Image.open(io.BytesIO(png_bytes)).convert("RGBA")
-
-    # Resize if large
     w, h = img.size
     if max(w, h) > WEBP_MAX_SIDE:
         scale = WEBP_MAX_SIDE / max(w, h)
         img   = img.resize((int(w * scale), int(h * scale)), Image.LANCZOS)
     w, h = img.size
 
-    # Checkered background
     CELL = 16
     bg   = Image.new("RGB", (w, h), (255, 255, 255))
     draw = ImageDraw.Draw(bg)
     for gy in range(0, h, CELL):
         for gx in range(0, w, CELL):
             if (gx // CELL + gy // CELL) % 2 == 0:
-                draw.rectangle([gx, gy, gx + CELL - 1, gy + CELL - 1],
-                                fill=(204, 204, 204))
+                draw.rectangle([gx, gy, gx + CELL - 1, gy + CELL - 1], fill=(204, 204, 204))
 
-    # Paste RGBA image over checkered BG
     bg.paste(img, mask=img.split()[3])
 
-    # Diagonal watermark overlay
     wm_layer = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     wm_draw  = ImageDraw.Draw(wm_layer)
     wm_font  = _font(max(11, w // 30))
     step_x, step_y = max(80, w // 4), max(40, h // 5)
     for oy in range(-h, h * 2, step_y):
         for ox in range(-w, w * 2, step_x):
-            wm_draw.text((ox, oy), watermark, font=wm_font,
-                          fill=(200, 200, 200, 80))
+            wm_draw.text((ox, oy), watermark, font=wm_font, fill=(200, 200, 200, 80))
     bg = bg.convert("RGBA")
     bg.alpha_composite(wm_layer)
     bg = bg.convert("RGB")
 
-    # Footer bar
     FOOTER_H = max(18, h // 18)
     canvas   = Image.new("RGB", (w, h + FOOTER_H), (40, 40, 40))
     canvas.paste(bg, (0, 0))
@@ -315,7 +299,6 @@ def _make_webp_preview(png_bytes: bytes, watermark: str) -> bytes:
     ft_draw.rectangle([0, h, w, h + FOOTER_H], fill=(40, 40, 40))
     ft_draw.text((4, h + 2), watermark, font=ft_font, fill=(220, 220, 220))
 
-    # Encode to WEBP ≤ 80 KB
     buf = io.BytesIO()
     for quality in [85, 70, 55, 40, 25, 10]:
         buf.seek(0); buf.truncate()
@@ -326,149 +309,76 @@ def _make_webp_preview(png_bytes: bytes, watermark: str) -> bytes:
 
 
 # ══════════════════════════════════════════════════════════════
-# ULTRADATA  — append new rows to xlsx in repo2
+# ULTRADATA & DRIVE SCANNER (original code unchanged)
 # ══════════════════════════════════════════════════════════════
 
 def _append_ultradata_rows(xlsx_path: Path, rows: List[Dict]) -> int:
-    """
-    Append new rows to ultradata.xlsx.
-    Returns number of rows added.
-    """
     import openpyxl
     if not rows:
         return 0
-
     wb = openpyxl.load_workbook(str(xlsx_path))
     ws = wb.active
-
-    HEADERS = [
-        "date_added", "subject_name", "category", "subcategory",
-        "filename", "png_file_id", "webp_file_id",
-        "download_url", "preview_url", "seo_status",
-    ]
-
-    # Ensure header row
+    HEADERS = ["date_added", "subject_name", "category", "subcategory", "filename", "png_file_id", "webp_file_id", "download_url", "preview_url", "seo_status"]
     if ws.max_row == 0 or ws.cell(row=1, column=1).value is None:
         ws.append(HEADERS)
     else:
-        existing_hdr = [ws.cell(row=1, column=c).value
-                        for c in range(1, ws.max_column + 1)]
+        existing_hdr = [ws.cell(row=1, column=c).value for c in range(1, ws.max_column + 1)]
         for col_name in HEADERS:
             if col_name not in existing_hdr:
                 ws.cell(row=1, column=ws.max_column + 1, value=col_name)
                 existing_hdr.append(col_name)
-        HEADERS = [ws.cell(row=1, column=c).value
-                   for c in range(1, ws.max_column + 1)]
-
+        HEADERS = [ws.cell(row=1, column=c).value for c in range(1, ws.max_column + 1)]
     added = 0
     for row in rows:
         ws.append([row.get(h, "") for h in HEADERS])
         added += 1
-
     wb.save(str(xlsx_path))
     return added
 
 
-# ══════════════════════════════════════════════════════════════
-# DRIVE PNG LIBRARY SCANNER
-# ══════════════════════════════════════════════════════════════
-
 def _collect_all_pngs_from_drive(folder_name: str) -> List[Dict]:
-    """
-    BFS-recursively find every PNG inside `folder_name` on Google Drive
-    (and all its nested subfolders).
-
-    Returns list of dicts:
-        fid, name, stem, subfolder_name, top_category, folder_path
-    """
     print(f"  Scanning Drive folder '{folder_name}' for PNGs ...")
     token = _drive_token()
-
     root_id = _drive_folder_id(token, folder_name)
     print(f"  Root folder ID: {root_id}")
-
     all_pngs: List[Dict] = []
-    # BFS: (folder_id, folder_name, top_category, path_str)
     queue: List[Tuple] = []
-
-    top_subs = _drive_list_folder(
-        token, root_id, mime_filter="application/vnd.google-apps.folder")
+    top_subs = _drive_list_folder(token, root_id, mime_filter="application/vnd.google-apps.folder")
     print(f"  Top-level subfolders: {len(top_subs)}")
-
     for sf in top_subs:
         queue.append((sf["id"], sf["name"], sf["name"], sf["name"]))
-
-    # PNGs directly in root
     for f in _drive_list_pngs(token, root_id):
-        all_pngs.append({
-            "fid":            f["id"],
-            "name":           f["name"],
-            "stem":           Path(f["name"]).stem,
-            "subfolder_name": "uncategorised",
-            "top_category":   "uncategorised",
-            "folder_path":    "",
-        })
-
+        all_pngs.append({"fid": f["id"], "name": f["name"], "stem": Path(f["name"]).stem, "subfolder_name": "uncategorised", "top_category": "uncategorised", "folder_path": ""})
     visited: set = set()
     while queue:
         folder_id, folder_name_, top_cat, path_str = queue.pop(0)
         if folder_id in visited:
             continue
         visited.add(folder_id)
-
         token = _drive_token()
-        pngs  = _drive_list_pngs(token, folder_id)
+        pngs = _drive_list_pngs(token, folder_id)
         if pngs:
             print(f"    [{path_str}]: {len(pngs)} PNG(s)")
         for f in pngs:
-            all_pngs.append({
-                "fid":            f["id"],
-                "name":           f["name"],
-                "stem":           Path(f["name"]).stem,
-                "subfolder_name": folder_name_,
-                "top_category":   top_cat,
-                "folder_path":    path_str,
-            })
-
-        nested = _drive_list_folder(
-            token, folder_id, mime_filter="application/vnd.google-apps.folder")
+            all_pngs.append({"fid": f["id"], "name": f["name"], "stem": Path(f["name"]).stem, "subfolder_name": folder_name_, "top_category": top_cat, "folder_path": path_str})
+        nested = _drive_list_folder(token, folder_id, mime_filter="application/vnd.google-apps.folder")
         for sf in nested:
             if sf["id"] not in visited:
-                queue.append((sf["id"], sf["name"], top_cat,
-                               f"{path_str}/{sf['name']}"))
-
+                queue.append((sf["id"], sf["name"], top_cat, f"{path_str}/{sf['name']}"))
     print(f"  Total PNGs found in Drive: {len(all_pngs)}")
     return all_pngs
 
 
 def process_drive_png_library(repo2_dir: Path, cfg: "Repo2Config") -> int:
-    """
-    Step 0 (new):
-      1. Scan Drive png_library_images (+ all subfolders) for PNGs
-      2. Load existing UltraData filenames
-      3. For each PNG with no UltraData entry:
-         a. Download PNG from Drive
-         b. Generate WEBP preview with watermark
-         c. Upload WEBP to GitHub preview repo
-         d. Build jsDelivr CDN URL
-         e. Add UltraData row (seo_status = "pending")
-      4. Save xlsx + push to repo2
-
-    Returns number of new entries added.
-    """
-    # Check required env vars are set
-    needed = ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET",
-              "GOOGLE_REFRESH_TOKEN", "GH_TOKEN", "GH_OWNER"]
+    needed = ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REFRESH_TOKEN", "GH_TOKEN", "GH_OWNER"]
     missing = [k for k in needed if not os.environ.get(k, "").strip()]
     if missing:
         print(f"  ⚠  Skipping Drive scan — missing env vars: {', '.join(missing)}")
         return 0
-
     scan_flag = os.environ.get("SCAN_DRIVE", "true").lower()
     if scan_flag not in ("true", "1", "yes"):
         print("  SCAN_DRIVE=false — skipping Drive PNG library scan")
         return 0
-
     folder_name = os.environ.get("PNG_LIBRARY_FOLDER", "png_library_images").strip()
     gh_token    = os.environ.get("GH_TOKEN", "").strip()
     gh_owner    = os.environ.get("GH_OWNER", "").strip()
@@ -478,7 +388,6 @@ def process_drive_png_library(repo2_dir: Path, cfg: "Repo2Config") -> int:
     watermark   = os.environ.get("WATERMARK_TEXT", "www.ultrapng.com").strip()
     today_str   = datetime.utcnow().strftime("%Y-%m-%d")
 
-    # ── Load existing UltraData filenames (avoid duplicates) ────────────
     xlsx_path = repo2_dir / ULTRADATA_XLSX
     if not xlsx_path.exists():
         print(f"  ⚠  {ULTRADATA_XLSX} not found — skipping Drive scan")
@@ -487,12 +396,11 @@ def process_drive_png_library(repo2_dir: Path, cfg: "Repo2Config") -> int:
     import openpyxl
     wb_check = openpyxl.load_workbook(str(xlsx_path), read_only=True)
     ws_check = wb_check.active
-    header_row = [ws_check.cell(row=1, column=c).value
-                  for c in range(1, ws_check.max_column + 1)]
+    header_row = [ws_check.cell(row=1, column=c).value for c in range(1, ws_check.max_column + 1)]
     try:
         fn_col = header_row.index("filename") + 1
     except ValueError:
-        print("  ⚠  'filename' column not found in ultradata.xlsx — skipping")
+        print("  ⚠  'filename' column not found — skipping")
         return 0
 
     existing_filenames: set = set()
@@ -503,63 +411,38 @@ def process_drive_png_library(repo2_dir: Path, cfg: "Repo2Config") -> int:
     wb_check.close()
     print(f"  Existing UltraData entries: {len(existing_filenames)}")
 
-    # ── Scan Drive ───────────────────────────────────────────────────────
     try:
         all_pngs = _collect_all_pngs_from_drive(folder_name)
     except Exception as e:
         print(f"  ⚠  Drive scan failed: {e}")
         return 0
 
-    # Filter: only PNGs not already in UltraData
-    unmatched = [p for p in all_pngs
-                 if f"{p['stem']}.png" not in existing_filenames]
+    unmatched = [p for p in all_pngs if f"{p['stem']}.png" not in existing_filenames]
     print(f"  Unmatched PNGs (not in UltraData): {len(unmatched)}")
 
     if not unmatched:
         print("  ✅  All Drive PNGs already have UltraData entries.")
         return 0
 
-    # ── Process each unmatched PNG ────────────────────────────────────────
     new_rows: List[Dict] = []
-
     for i, item in enumerate(unmatched, 1):
         stem   = item["stem"]
         fn_png = f"{stem}.png"
         fn_webp = f"{stem}.webp"
         gh_path = f"{prev_folder}/{fn_webp}"
-
         print(f"  [{i}/{len(unmatched)}] {fn_png}", end=" ... ", flush=True)
-
         try:
-            # a. Download PNG from Drive
             token    = _drive_token()
             png_data = _drive_download(token, item["fid"])
-
-            # b. Generate WEBP with watermark
             webp_data = _make_webp_preview(png_data, watermark)
-
-            # c. Upload WEBP to GitHub
-            _gh_upload_file(
-                token=gh_token,
-                owner=gh_owner,
-                repo=prev_repo,
-                path=gh_path,
-                content_bytes=webp_data,
-                message=f"preview: add {fn_webp} [section2 drive scan]",
-                branch=prev_branch,
-            )
-
-            # d. jsDelivr CDN URL
+            _gh_upload_file(token=gh_token, owner=gh_owner, repo=prev_repo, path=gh_path, content_bytes=webp_data,
+                            message=f"preview: add {fn_webp} [section2 drive scan]", branch=prev_branch)
             cdn_url = _jsdelivr_url(gh_owner, prev_repo, prev_branch, gh_path)
-
-            # e. Drive permanent download link for the original PNG
             png_dl  = f"https://drive.google.com/uc?export=download&id={item['fid']}"
-
             top_cat = item.get("top_category", "")
             sub_cat = item.get("subfolder_name", "")
             if top_cat == sub_cat:
                 sub_cat = ""
-
             new_rows.append({
                 "date_added":   today_str,
                 "subject_name": stem,
@@ -573,31 +456,22 @@ def process_drive_png_library(repo2_dir: Path, cfg: "Repo2Config") -> int:
                 "seo_status":   "pending",
             })
             print("✓")
-
         except Exception as exc:
             print(f"✗ SKIP ({exc})")
             continue
-
-        # Be polite to Drive/GitHub APIs
         if i < len(unmatched):
             time.sleep(0.5)
 
     if not new_rows:
-        print("  Nothing new to add to UltraData.")
         return 0
 
-    # ── Push new rows to xlsx via GitHub API (conflict-free, no git) ─────
     print(f"  Pushing {len(new_rows)} new rows to {ULTRADATA_XLSX} via GitHub API ...")
-    _push_xlsx_rows_via_api(
-        cfg,
-        new_rows,
-        commit_msg=f"ultradata: +{len(new_rows)} from Drive png_library [{today_str}]",
-    )
+    _push_xlsx_rows_via_api(cfg, new_rows, commit_msg=f"ultradata: +{len(new_rows)} from Drive png_library [{today_str}]")
     return len(new_rows)
 
 
 # ══════════════════════════════════════════════════════════════
-# UTILITIES
+# UTILITIES & VISION SEO
 # ══════════════════════════════════════════════════════════════
 
 def _word_count(s: str) -> int:
@@ -608,99 +482,23 @@ def _today() -> str:
     return datetime.utcnow().strftime("%Y-%m-%d")
 
 
-def _clean_json_str(raw: str) -> str:
-    raw = re.sub(r"^```(?:json)?\s*", "", raw.strip(), flags=re.I)
-    raw = re.sub(r"\s*```$", "", raw.strip())
-    raw = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", raw)
-    raw = re.sub(r",\s*([}\]])", r"\1", raw)
-    return raw
+_COLOR_WORDS = ["red", "blue", "green", "yellow", "orange", "purple", "pink", "white", "black", "brown", "golden", "silver", "gold", "grey", "gray", "dark", "bright", "vibrant", "colorful", "multicolored"]
+_STYLE_WORDS = ["realistic", "cartoon", "vector", "clipart", "3d", "flat", "minimal", "watercolor", "digital", "illustrated", "hand-drawn", "artistic", "detailed", "simple", "modern", "vintage", "cute", "elegant", "glossy", "sketched", "painted", "stylized", "anime", "comic", "retro"]
 
-
-def _repair_truncated_json(raw: str) -> str:
-    depth: list = []
-    in_str = False
-    esc    = False
-    for ch in raw:
-        if esc:
-            esc = False
-            continue
-        if ch == '\\' and in_str:
-            esc = True
-            continue
-        if ch == '"':
-            in_str = not in_str
-            continue
-        if in_str:
-            continue
-        if ch in ('{', '['):
-            depth.append(ch)
-        elif ch == '}' and depth and depth[-1] == '{':
-            depth.pop()
-        elif ch == ']' and depth and depth[-1] == '[':
-            depth.pop()
-    if not depth and not in_str:
-        return raw
-    patched = raw.rstrip()
-    patched = re.sub(r',\s*$', '', patched)
-    if in_str:
-        patched += '"'
-    for opener in reversed(depth):
-        patched += '}' if opener == '{' else ']'
-    return patched
-
-
-# ══════════════════════════════════════════════════════════════
-# VISION SEO  — Moondream2 (free, CPU, MIT, no API key needed)
-#   Flow: PNG bytes → Moondream visual description
-#         → smart subject cleaning → world-class SEO fields
-# ══════════════════════════════════════════════════════════════
-
-# ── Vocabulary lists for extracting visual properties ────────
-
-_COLOR_WORDS = [
-    "red", "blue", "green", "yellow", "orange", "purple", "pink",
-    "white", "black", "brown", "golden", "silver", "gold", "grey", "gray",
-    "dark", "bright", "vibrant", "colorful", "multicolored",
-    "crimson", "scarlet", "violet", "indigo", "teal", "cyan", "magenta",
-    "lime", "beige", "ivory", "bronze", "rose", "coral", "turquoise",
-    "maroon", "navy", "olive", "peach", "lavender", "emerald", "amber",
-]
-
-_STYLE_WORDS = [
-    "realistic", "cartoon", "vector", "clipart", "3d", "flat", "minimal",
-    "watercolor", "digital", "illustrated", "hand-drawn", "artistic",
-    "detailed", "simple", "modern", "vintage", "cute", "elegant", "glossy",
-    "sketched", "painted", "stylized", "anime", "comic", "retro",
-]
-
-# Generic noise tokens to strip from filenames before building titles
-_FILENAME_NOISE = re.compile(
-    r"\b(hd|png|img|image|photo|pic|transparent|bg|nobg|free|dl|download"
-    r"|clipart|vector|stock|high|quality|resolution|res|ultra|4k|full)\b",
-    re.I,
-)
+_FILENAME_NOISE = re.compile(r"\b(hd|png|img|image|photo|pic|transparent|bg|nobg|free|dl|download|clipart|vector|stock|high|quality|resolution|res|ultra|4k|full)\b", re.I)
 
 
 def _clean_subject(raw: str) -> str:
-    """
-    Turn a raw filename stem into a clean, human-readable subject name.
-
-    Examples:
-        'Lemon_03'          → 'Lemon'
-        'Red_Rose_12'       → 'Red Rose'
-        'butterfly_hd_01'   → 'Butterfly'
-        'golden_crown_007'  → 'Golden Crown'
-    """
-    s = re.sub(r"[_\-]+", " ", raw.strip())      # underscores / dashes → spaces
-    s = _FILENAME_NOISE.sub(" ", s)              # strip noise words
-    s = re.sub(r"\s*\d+\s*$", "", s)             # trailing numbers
-    s = re.sub(r"^\d+\s*", "", s)                # leading numbers
+    s = re.sub(r"[_\-]+", " ", raw.strip())
+    s = _FILENAME_NOISE.sub(" ", s)
+    s = re.sub(r"\s*\d+\s*$", "", s)
+    s = re.sub(r"^\d+\s*", "", s)
     s = re.sub(r"\s+", " ", s).strip()
     return s.title() if s else raw.strip().title()
 
 
 def _load_moondream():
-    """Load Moondream2 vision model once (cached in module-level singletons)."""
+    """Fixed Moondream2 loader for transformers 4.x + CPU runner"""
     global _moondream_model, _moondream_tokenizer
     if _moondream_model is not None:
         return _moondream_model, _moondream_tokenizer
@@ -708,20 +506,19 @@ def _load_moondream():
     from transformers import AutoModelForCausalLM, AutoTokenizer
     import torch
 
-    print(f"\n  [VISION] Loading {MOONDREAM_MODEL_ID} "
-          f"(revision={MOONDREAM_REVISION}) on CPU ...", flush=True)
+    print(f"\n  [VISION] Loading {MOONDREAM_MODEL_ID} (revision={MOONDREAM_REVISION}) on CPU ...", flush=True)
 
     _moondream_tokenizer = AutoTokenizer.from_pretrained(
-        MOONDREAM_MODEL_ID,
-        revision=MOONDREAM_REVISION,
-        trust_remote_code=True,
+        MOONDREAM_MODEL_ID, revision=MOONDREAM_REVISION, trust_remote_code=True
     )
+
     _moondream_model = AutoModelForCausalLM.from_pretrained(
         MOONDREAM_MODEL_ID,
         revision=MOONDREAM_REVISION,
         trust_remote_code=True,
-        torch_dtype=torch.float32,
+        dtype=torch.float32,          # fixed
         low_cpu_mem_usage=True,
+        device_map="cpu",             # explicit CPU
     )
     _moondream_model.eval()
     print("  [VISION] Moondream2 loaded ✓\n", flush=True)
@@ -729,49 +526,28 @@ def _load_moondream():
 
 
 def _moondream_describe(img_bytes: bytes, subject: str) -> str:
-    """
-    Use Moondream2 to visually describe the image.
-    Returns a rich description string, or "" on failure.
-    """
     try:
         from PIL import Image as PILImage
         model, tokenizer = _load_moondream()
         image = PILImage.open(io.BytesIO(img_bytes)).convert("RGB")
 
-        question = (
-            f"This is a PNG image of '{subject}'. "
-            "Describe it in detail: specific colors, visual style "
-            "(realistic / cartoon / vector / clipart / 3D), "
-            "exact type or variety, and any distinctive features visible."
-        )
+        question = f"This is a PNG image of '{subject}'. Describe it in detail: specific colors, visual style (realistic / cartoon / vector / clipart / 3D), exact type or variety, and any distinctive features visible."
 
-        # Support both new (2025) and old Moondream API
-        desc = ""
         try:
-            # New API: model.query(image, question)["answer"]
             result = model.query(image, question)
-            desc   = (result.get("answer", "") if isinstance(result, dict)
-                      else str(result)).strip()
+            desc = (result.get("answer", "") if isinstance(result, dict) else str(result)).strip()
         except (AttributeError, TypeError):
-            # Old API: encode_image + answer_question
-            enc  = model.encode_image(image)
+            enc = model.encode_image(image)
             desc = model.answer_question(enc, question, tokenizer).strip()
-
         return desc
-
     except Exception as exc:
         print(f"    [VISION] describe error: {exc}", flush=True)
         return ""
 
 
 def _fetch_image_for_vision(preview_url: str, download_url: str) -> Optional[bytes]:
-    """
-    Download image bytes for Moondream analysis.
-    Tries preview CDN URL first (fast, small), then Drive download URL.
-    Returns None if both fail.
-    """
     import requests
-    headers = {"User-Agent": "UltraPNG-SEO-Bot/4.0"}
+    headers = {"User-Agent": "UltraPNG-SEO-Bot/4.1"}
     for url in [u for u in [preview_url, download_url] if u]:
         try:
             r = requests.get(url, timeout=30, headers=headers)
@@ -783,68 +559,38 @@ def _fetch_image_for_vision(preview_url: str, download_url: str) -> Optional[byt
 
 
 def _extract_words_from_desc(visual_desc: str, wordlist: List[str]) -> List[str]:
-    """Return words from wordlist that appear as whole words in visual_desc."""
     desc_lower = visual_desc.lower()
-    return [w for w in wordlist
-            if re.search(r"\b" + re.escape(w) + r"\b", desc_lower)]
+    return [w for w in wordlist if re.search(r"\b" + re.escape(w) + r"\b", desc_lower)]
 
 
-def _build_seo_from_vision(
-    clean_subject: str,
-    visual_desc:   str,
-    category:      str = "",
-    orig_subject:  str = "",
-) -> Dict[str, str]:
-    """
-    Build world-class SEO content from subject name + Moondream visual description.
-
-    Key principles:
-      • Titles read naturally — no numbers, no filename artefacts
-      • Every title is unique (6 rotating patterns, hash-seeded by filename)
-      • Keywords target real user intent (download, clipart, transparent, etc.)
-      • Meta description includes a visual snippet for relevance signals
-    """
+def _build_seo_from_vision(clean_subject: str, visual_desc: str, category: str = "", orig_subject: str = "") -> Dict[str, str]:
     s  = clean_subject or orig_subject.strip() or "Image"
     sl = s.lower()
-
     colors = _extract_words_from_desc(visual_desc, _COLOR_WORDS)
     styles = _extract_words_from_desc(visual_desc, _STYLE_WORDS)
     cat_sl = (category or "").lower().strip()
 
-    # ── Descriptive prefix from visual (e.g. "Bright Glossy") ──
     pfx_parts: List[str] = []
     if colors:
         pfx_parts.append(colors[0].capitalize())
-    # Add style only if non-obvious
-    non_obvious_styles = [st for st in styles if st not in
-                          ("realistic", "detailed", "modern", "simple")]
+    non_obvious_styles = [st for st in styles if st not in ("realistic", "detailed", "modern", "simple")]
     if non_obvious_styles:
         pfx_parts.append(non_obvious_styles[0].capitalize())
-    prefix = " ".join(pfx_parts)   # e.g. "Bright Cartoon"
+    prefix = " ".join(pfx_parts)
 
-    # ── 6 rotating title patterns — unique per image ────────────
     def t(a: str, b: str) -> str:
-        """Return a if prefix exists, else b (both capped at 60 chars)."""
         return (a if prefix else b)[:60].strip()
 
     title_patterns = [
-        t(f"{prefix} {s} PNG Transparent Background Free Download",
-          f"{s} PNG Transparent Background - Free HD Download"),
-        t(f"Download {prefix} {s} PNG - High Quality Transparent Image",
-          f"Download {s} PNG - Transparent Background HD Image"),
-        t(f"{s} Transparent PNG - {prefix} Isolated Image Free Download",
-          f"{s} Transparent PNG - Isolated Background Free Download"),
-        t(f"Free {prefix} {s} PNG Clipart - Transparent Background",
-          f"Free {s} PNG Clipart - Transparent HD Background"),
-        t(f"{s} PNG Image with Transparent Background - {prefix} Download",
-          f"{s} PNG Image with Transparent Background - HD Free"),
-        t(f"High Quality {prefix} {s} PNG - Transparent Background",
-          f"High Quality {s} PNG - Transparent Background Free"),
+        t(f"{prefix} {s} PNG Transparent Background Free Download", f"{s} PNG Transparent Background - Free HD Download"),
+        t(f"Download {prefix} {s} PNG - High Quality Transparent Image", f"Download {s} PNG - Transparent Background HD Image"),
+        t(f"{s} Transparent PNG - {prefix} Isolated Image Free Download", f"{s} Transparent PNG - Isolated Background Free Download"),
+        t(f"Free {prefix} {s} PNG Clipart - Transparent Background", f"Free {s} PNG Clipart - Transparent HD Background"),
+        t(f"{s} PNG Image with Transparent Background - {prefix} Download", f"{s} PNG Image with Transparent Background - HD Free"),
+        t(f"High Quality {prefix} {s} PNG - Transparent Background", f"High Quality {s} PNG - Transparent Background Free"),
     ]
-    # Use hash of original filename so the same image always gets the same pattern
     title = title_patterns[abs(hash(orig_subject or s)) % len(title_patterns)]
 
-    # ── H1: longer and more descriptive ────────────────────────
     if visual_desc and len(visual_desc) > 20:
         snippet = visual_desc.split(".")[0][:55].strip()
         h1 = f"{s} PNG - {snippet}"
@@ -854,29 +600,19 @@ def _build_seo_from_vision(
         h1 = f"{s} PNG Image with Transparent Background HD Quality"
     h1 = h1[:80]
 
-    # ── Meta description (≤155 chars) ──────────────────────────
     if visual_desc:
         visual_snippet = visual_desc[:75].rstrip(" .,")
-        meta_desc = (
-            f"Download {sl} PNG with transparent background. "
-            f"{visual_snippet}. Free HD image for designers & projects."
-        )
+        meta_desc = f"Download {sl} PNG with transparent background. {visual_snippet}. Free HD image for designers & projects."
     else:
-        meta_desc = (
-            f"Download high-quality {sl} PNG with transparent background. "
-            f"Perfect for graphic design, presentations, and creative projects. "
-            f"Free HD download."
-        )
+        meta_desc = f"Download high-quality {sl} PNG with transparent background. Perfect for graphic design, presentations, and creative projects. Free HD download."
     meta_desc = meta_desc[:155]
 
-    # ── Alt text ────────────────────────────────────────────────
     if prefix:
         alt_text = f"{prefix} {s} on transparent background - high quality PNG image"
     else:
         alt_text = f"{s} on transparent background - high resolution free PNG image"
     alt_text = alt_text[:125]
 
-    # ── Tags (8-10) ─────────────────────────────────────────────
     tag_parts = [f"{sl} png", f"{sl} transparent background", f"{sl} hd png"]
     if colors:
         tag_parts.append(f"{colors[0]} {sl}")
@@ -887,35 +623,7 @@ def _build_seo_from_vision(
     tag_parts += [f"{sl} clipart", f"free {sl} png", f"{sl} download"]
     tags = ", ".join(tag_parts[:10])
 
-    # ── Keywords (30 diverse, intent-based) ─────────────────────
-    kws_raw = [
-        f"{sl} png",
-        f"{sl} transparent background",
-        f"{sl} hd image",
-        f"{sl} clipart",
-        f"free {sl} png",
-        f"{sl} png download",
-        f"{sl} cutout png",
-        f"transparent {sl} png",
-        f"{sl} high quality png",
-        f"{sl} isolated png",
-        f"{sl} png image",
-        f"{sl} background removed png",
-        f"{sl} digital art png",
-        f"{sl} transparent png free",
-        f"download {sl} png",
-        f"{sl} high resolution png",
-        f"{sl} png file free",
-        f"{sl} sticker png",
-        f"{sl} vector png",
-        f"free {sl} clipart png",
-        f"{sl} no background png",
-        f"{sl} png hd free download",
-        f"{sl} illustration png",
-        f"{sl} graphic design png",
-        f"png {sl} transparent free",
-    ]
-    # Visual-specific keywords
+    kws_raw = [f"{sl} png", f"{sl} transparent background", f"{sl} hd image", f"{sl} clipart", f"free {sl} png", f"{sl} png download", f"{sl} cutout png", f"transparent {sl} png", f"{sl} high quality png", f"{sl} isolated png", f"{sl} png image", f"{sl} background removed png", f"{sl} digital art png", f"{sl} transparent png free", f"download {sl} png", f"{sl} high resolution png", f"{sl} png file free", f"{sl} sticker png", f"{sl} vector png", f"free {sl} clipart png", f"{sl} no background png", f"{sl} png hd free download", f"{sl} illustration png", f"{sl} graphic design png", f"png {sl} transparent free"]
     for c in colors[:2]:
         kws_raw.append(f"{c} {sl} png")
         kws_raw.append(f"{c} {sl} transparent background")
@@ -925,7 +633,6 @@ def _build_seo_from_vision(
         kws_raw.append(f"{cat_sl} {sl} png")
         kws_raw.append(f"{sl} {cat_sl} transparent")
 
-    # Deduplicate + keep order
     seen_kw: set = set()
     kws_final: List[str] = []
     for kw in kws_raw:
@@ -947,16 +654,6 @@ def _build_seo_from_vision(
 
 
 def _vision_seo(row: Dict[str, str]) -> Dict[str, str]:
-    """
-    Main SEO generation entry point.
-
-    1. Clean subject name  (remove numbers / underscores)
-    2. Download image bytes (preview CDN → Drive fallback)
-    3. Run Moondream2 → visual description
-    4. Build world-class SEO from visual + subject name
-
-    Falls back to enhanced template if image download or vision fails.
-    """
     subject      = (row.get("subject_name") or "").strip()
     preview_url  = row.get("preview_url",  "")
     download_url = row.get("download_url", "")
@@ -966,8 +663,6 @@ def _vision_seo(row: Dict[str, str]) -> Dict[str, str]:
         raise RuntimeError("Missing subject_name in row")
 
     clean_subj = _clean_subject(subject)
-
-    # Download image for visual analysis
     img_bytes  = _fetch_image_for_vision(preview_url, download_url)
     visual_desc = ""
     if img_bytes:
@@ -980,82 +675,53 @@ def _vision_seo(row: Dict[str, str]) -> Dict[str, str]:
     return _build_seo_from_vision(clean_subj, visual_desc, category, subject)
 
 
-# ── Auto-restart helper ──────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════
+# AUTO-RESTART, ULTRADATA READ/UPDATE, REPO2 FUNCTIONS
+# (all original unchanged)
+# ══════════════════════════════════════════════════════════════
 
-def _trigger_self_restart(remaining: int,
-                           workflow_file: str = "section2_seo.yml") -> None:
-    """
-    Dispatch a new workflow run via GitHub API so processing continues
-    automatically after this run times out.
-    Requires GH_TOKEN (or REPO2_TOKEN) + GITHUB_REPOSITORY env vars.
-    """
+def _trigger_self_restart(remaining: int, workflow_file: str = "section2_seo.yml") -> None:
     import requests
     repo     = os.environ.get("GITHUB_REPOSITORY", "").strip()
-    gh_token = (os.environ.get("GH_TOKEN") or
-                os.environ.get("REPO2_TOKEN", "")).strip()
+    gh_token = (os.environ.get("GH_TOKEN") or os.environ.get("REPO2_TOKEN", "")).strip()
     ref      = os.environ.get("GITHUB_REF_NAME", "main").strip() or "main"
-
     if not repo or not gh_token:
         print("  ⚠  Cannot auto-restart: GITHUB_REPOSITORY or GH_TOKEN not set")
         return
-
-    url = (f"https://api.github.com/repos/{repo}"
-           f"/actions/workflows/{workflow_file}/dispatches")
-    body: Dict[str, Any] = {
-        "ref": ref,
-        "inputs": {"count": "", "scan_drive": "false"},
-    }
+    url = f"https://api.github.com/repos/{repo}/actions/workflows/{workflow_file}/dispatches"
+    body: Dict[str, Any] = {"ref": ref, "inputs": {"count": "", "scan_drive": "false"}}
     try:
-        r = requests.post(
-            url,
-            headers={"Authorization": f"token {gh_token}",
-                     "Accept": "application/vnd.github.v3+json"},
-            json=body,
-            timeout=30,
-        )
+        r = requests.post(url, headers={"Authorization": f"token {gh_token}", "Accept": "application/vnd.github.v3+json"}, json=body, timeout=30)
         if r.status_code in (204, 200):
-            print(f"  🔄  Auto-restart dispatched "
-                  f"({remaining} items still pending) ✓")
+            print(f"  🔄  Auto-restart dispatched ({remaining} items still pending) ✓")
         else:
-            print(f"  ⚠  Auto-restart failed: {r.status_code} — {r.text[:120]}")
+            print(f"  ⚠  Auto-restart failed: {r.status_code}")
     except Exception as exc:
         print(f"  ⚠  Auto-restart exception: {exc}")
 
 
-# ══════════════════════════════════════════════════════════════
-# ULTRADATA XLSX  READ / UPDATE
-# ══════════════════════════════════════════════════════════════
-
 def _read_pending_rows(xlsx_path: Path) -> List[Dict[str, str]]:
-    """Read ultradata.xlsx — return only rows where seo_status = 'pending'."""
     import openpyxl
     wb = openpyxl.load_workbook(str(xlsx_path))
     ws = wb.active
     if ws.max_row < 2:
         return []
-
     headers = [str(c.value or "").strip() for c in ws[1]]
-    idx     = {h: i for i, h in enumerate(headers)}
-
+    idx = {h: i for i, h in enumerate(headers)}
     needed = ["subject_name", "filename", "download_url", "preview_url"]
     for h in needed:
         if h not in idx:
             raise RuntimeError(f"ultradata.xlsx missing column: {h}")
-
     out = []
     for r in ws.iter_rows(min_row=2, values_only=True):
         def _v(col):
             return "" if col not in idx or r[idx[col]] is None else str(r[idx[col]]).strip()
-
-        status = _v("seo_status").lower()
-        if status == "completed":
+        if _v("seo_status").lower() == "completed":
             continue
-
-        filename     = _v("filename")
+        filename = _v("filename")
         subject_name = _v("subject_name")
         if not filename or not subject_name:
             continue
-
         out.append({
             "subject_name": subject_name,
             "filename":     filename,
@@ -1066,80 +732,62 @@ def _read_pending_rows(xlsx_path: Path) -> List[Dict[str, str]]:
             "subcategory":  _v("subcategory"),
             "date_added":   _v("date_added"),
         })
-
     return out
 
 
 def _mark_completed(xlsx_path: Path, completed_filenames: set) -> int:
-    """Mark seo_status = 'completed' for finished rows."""
     import openpyxl
     if not xlsx_path.exists() or not completed_filenames:
         return 0
-
     wb = openpyxl.load_workbook(str(xlsx_path))
     ws = wb.active
     if ws.max_row < 2:
         return 0
-
     headers = [str(c.value or "").strip() for c in ws[1]]
-
     if "seo_status" not in headers:
         seo_col = len(headers) + 1
         ws.cell(row=1, column=seo_col, value="seo_status")
-        headers.append("seo_status")
     else:
         seo_col = headers.index("seo_status") + 1
-
     if "filename" not in headers:
         return 0
     filename_col = headers.index("filename") + 1
-
     updated = 0
     for row in ws.iter_rows(min_row=2):
-        fn  = str(row[filename_col - 1].value or "").strip()
+        fn = str(row[filename_col - 1].value or "").strip()
         cell = row[seo_col - 1]
         if fn in completed_filenames:
             if str(cell.value or "").strip() != "completed":
                 cell.value = "completed"
                 updated += 1
-
     wb.save(str(xlsx_path))
     return updated
 
 
-# ══════════════════════════════════════════════════════════════
-# REPO 2  (clone / load / save / push)
-# ══════════════════════════════════════════════════════════════
-
 @dataclass
 class Repo2Config:
-    token:    str
-    slug:     str
+    token: str
+    slug: str
     data_dir: str = "data"
 
 
 def _clone_repo2(cfg: Repo2Config, workdir: Path) -> Path:
     repo_url = f"https://x-access-token:{cfg.token}@github.com/{cfg.slug}.git"
     if workdir.exists():
-        subprocess.run(["git", "pull", "--rebase", "--autostash"],
-                       cwd=str(workdir), check=False)
+        subprocess.run(["git", "pull", "--rebase", "--autostash"], cwd=str(workdir), check=False)
         return workdir
-    subprocess.run(["git", "clone", "--depth", "1", repo_url, str(workdir)],
-                   check=True)
+    subprocess.run(["git", "clone", "--depth", "1", repo_url, str(workdir)], check=True)
     return workdir
 
 
 def _load_existing_entries(repo2_dir: Path, data_dir: str) -> Tuple[Dict[str, Any], List[Path]]:
-    """Load all existing JSON entries. Returns (filename→entry dict, sorted file list)."""
     d = repo2_dir / data_dir
     d.mkdir(parents=True, exist_ok=True)
-
     files = sorted([p for p in d.glob("json*.json") if p.is_file()])
     if not files:
         f1 = d / "json1.json"
         f1.write_text("[]", encoding="utf-8")
         files = [f1]
-
     all_entries: Dict[str, Any] = {}
     for f in files:
         try:
@@ -1151,22 +799,15 @@ def _load_existing_entries(repo2_dir: Path, data_dir: str) -> Tuple[Dict[str, An
                         all_entries[fn] = e
         except Exception:
             continue
-
     return all_entries, files
 
 
-def _get_active_file(files: List[Path], repo2_dir: Path, data_dir: str,
-                     max_entries: int,
-                     file_entries: Dict[Path, List]) -> Path:
-    """Return the current target JSON file. Creates a new one if last is full."""
+def _get_active_file(files: List[Path], repo2_dir: Path, data_dir: str, max_entries: int, file_entries: Dict[Path, List]) -> Path:
     last = files[-1]
-    n    = len(file_entries.get(last, []))
-
+    n = len(file_entries.get(last, []))
     if n < max_entries:
         return last
-
-    # last is full — create next
-    m   = re.match(r"json(\d+)\.json$", last.name)
+    m = re.match(r"json(\d+)\.json$", last.name)
     nxt = (int(m.group(1)) + 1) if m else (len(files) + 1)
     newf = repo2_dir / data_dir / f"json{nxt}.json"
     newf.write_text("[]", encoding="utf-8")
@@ -1184,142 +825,70 @@ def _save_json_files(file_entries: Dict[Path, List]) -> None:
 
 
 def _git_setup(repo2_dir: Path) -> None:
-    """Configure git user once."""
-    subprocess.run(["git", "config", "user.name",  "github-actions[bot]"],
-                   cwd=str(repo2_dir), check=True)
-    subprocess.run(["git", "config", "user.email",
-                    "github-actions[bot]@users.noreply.github.com"],
-                   cwd=str(repo2_dir), check=True)
+    subprocess.run(["git", "config", "user.name", "github-actions[bot]"], cwd=str(repo2_dir), check=True)
+    subprocess.run(["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"], cwd=str(repo2_dir), check=True)
 
 
-def _commit_push_repo2(repo2_dir: Path, cfg: "Repo2Config", added: int,
-                        commit_msg: Optional[str] = None,
-                        file_entries: Optional[Dict] = None,
-                        max_retries: int = 3) -> None:
-    """
-    Commit + push with robust conflict recovery.
-
-    On push rejection (concurrent push from another run):
-      1. Abort any in-progress rebase
-      2. git fetch + reset --hard to remote HEAD
-      3. Re-save in-memory file_entries (json files) onto the fresh tree
-      4. Re-stage + re-commit + push
-    Retries up to max_retries times before raising.
-    """
+def _commit_push_repo2(repo2_dir: Path, cfg: "Repo2Config", added: int, commit_msg: Optional[str] = None, file_entries: Optional[Dict] = None, max_retries: int = 3) -> None:
     _git_setup(repo2_dir)
     msg = commit_msg or f"seo: add {added} entries [section2]"
-
     for attempt in range(1, max_retries + 1):
-        # Stage all changes
-        subprocess.run(["git", "add", cfg.data_dir],
-                        cwd=str(repo2_dir), check=True)
+        subprocess.run(["git", "add", cfg.data_dir], cwd=str(repo2_dir), check=True)
         xlsx_in_repo2 = repo2_dir / ULTRADATA_XLSX
         if xlsx_in_repo2.exists():
-            subprocess.run(["git", "add", ULTRADATA_XLSX],
-                            cwd=str(repo2_dir), check=True)
-
-        diff = subprocess.run(["git", "diff", "--staged", "--quiet"],
-                               cwd=str(repo2_dir))
-        if diff.returncode == 0:
+            subprocess.run(["git", "add", ULTRADATA_XLSX], cwd=str(repo2_dir), check=True)
+        if subprocess.run(["git", "diff", "--staged", "--quiet"], cwd=str(repo2_dir)).returncode == 0:
             print("  Repo2: nothing to commit — already up-to-date.")
             return
-
-        subprocess.run(["git", "commit", "-m", msg],
-                        cwd=str(repo2_dir), check=True)
-
-        # Fetch latest remote state
-        subprocess.run(["git", "fetch", "origin", "main"],
-                        cwd=str(repo2_dir), capture_output=True)
-
-        # Try to rebase on top of remote
-        rebase = subprocess.run(
-            ["git", "rebase", "origin/main"],
-            cwd=str(repo2_dir), capture_output=True, text=True
-        )
-
+        subprocess.run(["git", "commit", "-m", msg], cwd=str(repo2_dir), check=True)
+        subprocess.run(["git", "fetch", "origin", "main"], cwd=str(repo2_dir), capture_output=True)
+        rebase = subprocess.run(["git", "rebase", "origin/main"], cwd=str(repo2_dir), capture_output=True, text=True)
         if rebase.returncode != 0:
             print(f"  [WARN] Rebase conflict (attempt {attempt}/{max_retries}) — recovering ...")
-            # Abort the rebase cleanly
-            subprocess.run(["git", "rebase", "--abort"],
-                            cwd=str(repo2_dir), capture_output=True)
+            subprocess.run(["git", "rebase", "--abort"], cwd=str(repo2_dir), capture_output=True)
             if attempt >= max_retries:
-                raise RuntimeError(
-                    f"Repo2 push failed after {max_retries} retries — rebase conflict.\n"
-                    f"Rebase stderr:\n{rebase.stderr}"
-                )
-            # Reset to fresh remote state
-            subprocess.run(["git", "reset", "--hard", "origin/main"],
-                            cwd=str(repo2_dir), check=True)
-            # Re-save our in-memory SEO json files onto the fresh tree
+                raise RuntimeError(f"Repo2 push failed after {max_retries} retries")
+            subprocess.run(["git", "reset", "--hard", "origin/main"], cwd=str(repo2_dir), check=True)
             if file_entries:
                 _save_json_files(file_entries)
             time.sleep(3 * attempt)
-            continue  # retry commit+push
-
-        # Push
-        result = subprocess.run(["git", "push"],
-                                  cwd=str(repo2_dir),
-                                  capture_output=True, text=True)
+            continue
+        result = subprocess.run(["git", "push"], cwd=str(repo2_dir), capture_output=True, text=True)
         if result.returncode == 0:
             print(f"  Repo2: pushed {added} SEO entries ✓")
             return
-
         print(f"  [WARN] git push failed (attempt {attempt}/{max_retries}):\n{result.stderr}")
         if attempt >= max_retries:
-            raise RuntimeError("Repo2 push failed — check REPO2_TOKEN permissions.")
-
-        # Reset to remote and retry
-        subprocess.run(["git", "reset", "--hard", "origin/main"],
-                        cwd=str(repo2_dir), check=True)
+            raise RuntimeError("Repo2 push failed")
+        subprocess.run(["git", "reset", "--hard", "origin/main"], cwd=str(repo2_dir), check=True)
         if file_entries:
             _save_json_files(file_entries)
         time.sleep(3 * attempt)
 
 
-def _push_xlsx_rows_via_api(cfg: "Repo2Config", new_rows: List[Dict],
-                              commit_msg: str, max_retries: int = 3) -> None:
-    """
-    Push new xlsx rows directly via GitHub API — zero git operations, zero conflicts.
-
-    Uses read-SHA → append → PUT pattern.
-    On 409 conflict (concurrent push), re-fetches latest SHA + content and retries.
-    """
+def _push_xlsx_rows_via_api(cfg: "Repo2Config", new_rows: List[Dict], commit_msg: str, max_retries: int = 3) -> None:
     import requests
     import openpyxl
-
-    token   = cfg.token
-    slug    = cfg.slug          # e.g. "owner/ultrapng"
-    branch  = "main"
-    path    = ULTRADATA_XLSX
+    token = cfg.token
+    slug = cfg.slug
+    branch = "main"
+    path = ULTRADATA_XLSX
     api_url = f"https://api.github.com/repos/{slug}/contents/{path}"
-    headers = {
-        "Authorization": f"token {token}",
-        "Accept":        "application/vnd.github.v3+json",
-        "Content-Type":  "application/json",
-    }
+    headers = {"Authorization": f"token {token}", "Accept": "application/vnd.github.v3+json", "Content-Type": "application/json"}
+    HEADERS = ["date_added", "subject_name", "category", "subcategory", "filename", "png_file_id", "webp_file_id", "download_url", "preview_url", "seo_status"]
 
-    HEADERS = [
-        "date_added", "subject_name", "category", "subcategory",
-        "filename", "png_file_id", "webp_file_id",
-        "download_url", "preview_url", "seo_status",
-    ]
-
-    def _fetch_wb() -> Tuple[openpyxl.Workbook, str]:
-        """Fetch current xlsx from GitHub, return (workbook, sha)."""
-        r = requests.get(api_url, headers=headers,
-                          params={"ref": branch}, timeout=30)
+    def _fetch_wb():
+        r = requests.get(api_url, headers=headers, params={"ref": branch}, timeout=30)
         r.raise_for_status()
-        d     = r.json()
-        sha   = d["sha"]
-        raw   = base64.b64decode(d["content"].replace("\n", ""))
-        wb_   = openpyxl.load_workbook(io.BytesIO(raw))
+        d = r.json()
+        sha = d["sha"]
+        raw = base64.b64decode(d["content"].replace("\n", ""))
+        wb_ = openpyxl.load_workbook(io.BytesIO(raw))
         return wb_, sha
 
-    def _append_and_encode(wb_: openpyxl.Workbook) -> str:
+    def _append_and_encode(wb_):
         ws_ = wb_.active
-        # Ensure header
-        hdr = [ws_.cell(row=1, column=c).value
-               for c in range(1, ws_.max_column + 1)]
+        hdr = [ws_.cell(row=1, column=c).value for c in range(1, ws_.max_column + 1)]
         if not hdr or hdr[0] is None:
             ws_.append(HEADERS)
             hdr = HEADERS
@@ -1327,8 +896,7 @@ def _push_xlsx_rows_via_api(cfg: "Repo2Config", new_rows: List[Dict],
             if col_name not in hdr:
                 ws_.cell(row=1, column=ws_.max_column + 1, value=col_name)
                 hdr.append(col_name)
-        hdr = [ws_.cell(row=1, column=c).value
-               for c in range(1, ws_.max_column + 1)]
+        hdr = [ws_.cell(row=1, column=c).value for c in range(1, ws_.max_column + 1)]
         for row in new_rows:
             ws_.append([row.get(h, "") for h in hdr])
         buf = io.BytesIO()
@@ -1336,28 +904,18 @@ def _push_xlsx_rows_via_api(cfg: "Repo2Config", new_rows: List[Dict],
         return base64.b64encode(buf.getvalue()).decode()
 
     wb, sha = _fetch_wb()
-
     for attempt in range(1, max_retries + 1):
         encoded = _append_and_encode(wb)
-        body = {
-            "message": commit_msg,
-            "content": encoded,
-            "sha":     sha,
-            "branch":  branch,
-        }
+        body = {"message": commit_msg, "content": encoded, "sha": sha, "branch": branch}
         r = requests.put(api_url, headers=headers, json=body, timeout=90)
-
         if r.ok:
             print(f"  xlsx pushed via API (+{len(new_rows)} rows) ✓")
             return
-
         if r.status_code == 409 and attempt < max_retries:
-            # Concurrent push — re-fetch latest and retry
             print(f"  [WARN] xlsx API 409 conflict (attempt {attempt}) — re-fetching ...")
             time.sleep(3 * attempt)
             wb, sha = _fetch_wb()
             continue
-
         r.raise_for_status()
 
 
@@ -1374,9 +932,8 @@ def main() -> None:
         raise SystemExit("❌  Missing REPO2_TOKEN or REPO2_SLUG in environment")
 
     max_per_file     = int(os.environ.get("REPO2_MAX_PER_JSON", "200"))
-    checkpoint_every = 25   # push every 25 items for safety (vision is slower)
+    checkpoint_every = 25
 
-    # ── How many to process ──────────────────────────────────
     count_env = (os.environ.get("S2_COUNT", "") or "").strip()
     requested: int | None = None
     if count_env:
@@ -1388,40 +945,32 @@ def main() -> None:
             pass
 
     print("=" * 65)
-    print("  Section 2 — SEO JSON Builder  (V4.0 — Moondream Vision)")
+    print("  Section 2 — SEO JSON Builder  (V4.1 — Moondream Fixed)")
     print(f"  Requested count : {requested if requested else 'ALL pending'}")
     print(f"  Safety cap      : {INSTANT_CAP}")
     print(f"  Max per JSON    : {max_per_file}")
     print(f"  Vision model    : {MOONDREAM_MODEL_ID}@{MOONDREAM_REVISION}")
-    print(f"  Max run time    : {MAX_RUN_SECONDS // 3600}h "
-          f"{(MAX_RUN_SECONDS % 3600) // 60}m (then auto-restart)")
+    print(f"  Max run time    : {MAX_RUN_SECONDS // 3600}h {(MAX_RUN_SECONDS % 3600) // 60}m")
     print(f"  Drive PNG scan  : {os.environ.get('SCAN_DRIVE', 'true')}")
     print("=" * 65)
 
-    # ── STEP 1: Clone private ultrapng repo ──────────────────
     print("\n[Step 1] Cloning private ultrapng repo ...")
-    cfg       = Repo2Config(token=repo2_token, slug=repo2_slug)
+    cfg = Repo2Config(token=repo2_token, slug=repo2_slug)
     repo2_dir = _clone_repo2(cfg, root / "_repo2_work")
 
     xlsx = repo2_dir / ULTRADATA_XLSX
     if not xlsx.exists():
-        raise SystemExit(
-            f"❌  {ULTRADATA_XLSX} not found in {repo2_slug}.\n"
-            f"    Please push ultradata.xlsx to the root of that repo."
-        )
+        raise SystemExit(f"❌  {ULTRADATA_XLSX} not found in {repo2_slug}.")
 
-    # ── STEP 2: Scan Drive png_library_images ──────────────────
     print("\n[Step 2] Scanning Drive png_library_images for unmatched PNGs ...")
     new_from_drive = process_drive_png_library(repo2_dir, cfg)
     if new_from_drive > 0:
         print(f"  ✅  {new_from_drive} new entries added from Drive scan")
-        print("  Re-cloning repo to pick up updated ultradata.xlsx ...")
         import shutil
         shutil.rmtree(str(repo2_dir), ignore_errors=True)
         repo2_dir = _clone_repo2(cfg, root / "_repo2_work")
         xlsx = repo2_dir / ULTRADATA_XLSX
 
-    # ── STEP 3: Read pending rows ────────────────────────────
     print("\n[Step 3] Reading pending rows from ultradata.xlsx ...")
     pending = _read_pending_rows(xlsx)
     print(f"  Pending rows : {len(pending)}")
@@ -1430,9 +979,8 @@ def main() -> None:
         print("  ✅  Nothing pending — all done.")
         return
 
-    # Deduplicate by filename
     seen: set = set()
-    deduped   = []
+    deduped = []
     for r in pending:
         fn = r.get("filename", "")
         if fn and fn not in seen:
@@ -1440,7 +988,6 @@ def main() -> None:
             deduped.append(r)
     pending = deduped
 
-    # ── STEP 4: Load existing SEO from repo2 ─────────────────
     print("\n[Step 4] Loading existing SEO entries from repo2 ...")
     existing, files = _load_existing_entries(repo2_dir, cfg.data_dir)
     print(f"  Existing SEO entries : {len(existing)}")
@@ -1452,19 +999,16 @@ def main() -> None:
         print("  ✅  All pending rows already have SEO in repo2.")
         return
 
-    # ── STEP 4.5: Auto-install pyvips (THIS FIXES YOUR ERROR) ─────
-    print("\n[Step 4.5] Ensuring pyvips dependency for Moondream2 ...")
+    print("\n[Step 4.5] Ensuring pyvips + transformers compatibility for Moondream2 ...")
     _install_pyvips_if_needed()
+    _ensure_compatible_transformers()
 
-    # ── STEP 5: Decide count ─────────────────────────────────
     target = min(requested, len(todo)) if requested else len(todo)
     print(f"\n  ▶  Will generate SEO for up to {target} item(s) ...")
 
-    # ── STEP 6: Preload Moondream vision model ───────────────
     print("\n[Step 5] Preloading Moondream2 vision model ...")
     _load_moondream()
 
-    # ── STEP 7: Generate SEO ─────────────────────────────────
     print(f"\n[Step 6] Generating SEO with visual analysis ...\n")
 
     file_entries: Dict[Path, List] = {}
@@ -1475,26 +1019,22 @@ def main() -> None:
         except Exception:
             file_entries[f] = []
 
-    added                = 0
-    completed_filenames  : set = set()
-    pending_push         = 0
-    time_limit_hit       = False
+    added = 0
+    completed_filenames: set = set()
+    pending_push = 0
+    time_limit_hit = False
 
     for i, r in enumerate(todo, 1):
         if added >= target:
             break
-
-        # ── Time-limit check ────────────────────────────────
         elapsed = time.time() - _RUN_START
         if elapsed > MAX_RUN_SECONDS:
-            print(f"\n⏰  Time limit reached "
-                  f"({elapsed / 3600:.2f} h) — saving checkpoint ...")
+            print(f"\n⏰  Time limit reached ({elapsed / 3600:.2f} h) — saving checkpoint ...")
             time_limit_hit = True
             break
 
-        subject  = r["subject_name"]
+        subject = r["subject_name"]
         filename = r["filename"]
-
         print(f"  [{i}/{target}] {subject} ({filename}) ...", flush=True)
 
         try:
@@ -1503,21 +1043,14 @@ def main() -> None:
             print(f"    ✗ SKIP ({e})", flush=True)
             continue
 
-        # Build slug (no numbers from filename)
         clean_subj = _clean_subject(subject)
-        base_slug  = re.sub(r"[^a-z0-9]+", "-",
-                             clean_subj.lower()).strip("-") or "untitled"
-        slug       = base_slug   # clean slug — no number suffix
+        base_slug = re.sub(r"[^a-z0-9]+", "-", clean_subj.lower()).strip("-") or "untitled"
+        slug = base_slug
 
-        # webp preview URL
-        webp_fid     = r.get("webp_file_id", "")
-        webp_preview = (
-            f"https://lh3.googleusercontent.com/d/{webp_fid}=s800"
-            if webp_fid else r.get("preview_url", "")
-        )
+        webp_fid = r.get("webp_file_id", "")
+        webp_preview = f"https://lh3.googleusercontent.com/d/{webp_fid}=s800" if webp_fid else r.get("preview_url", "")
 
-        target_file = _get_active_file(files, repo2_dir, cfg.data_dir,
-                                       max_per_file, file_entries)
+        target_file = _get_active_file(files, repo2_dir, cfg.data_dir, max_per_file, file_entries)
         if target_file not in file_entries:
             file_entries[target_file] = []
 
@@ -1541,34 +1074,28 @@ def main() -> None:
         })
 
         completed_filenames.add(filename)
-        added       += 1
+        added += 1
         pending_push += 1
 
         kw = len([k for k in seo["description"].split(",") if k.strip()])
         elapsed_m = (time.time() - _RUN_START) / 60
-        print(f"    ✓  title={len(seo['title'])}c  kw={kw}  "
-              f"({elapsed_m:.1f} min elapsed)", flush=True)
+        print(f"    ✓  title={len(seo['title'])}c  kw={kw}  ({elapsed_m:.1f} min elapsed)", flush=True)
 
-        # Checkpoint: save + push every N items
         if pending_push >= checkpoint_every:
             print(f"\n  [Checkpoint] Saving {pending_push} entries to repo ...")
             _save_json_files(file_entries)
             _mark_completed(xlsx, completed_filenames)
-            _commit_push_repo2(repo2_dir, cfg, pending_push,
-                                file_entries=file_entries)
+            _commit_push_repo2(repo2_dir, cfg, pending_push, file_entries=file_entries)
             pending_push = 0
             print()
 
-    # ── STEP 8: Final save + push ────────────────────────────
     if pending_push > 0 or completed_filenames:
         print(f"\n[Step 7] Final save & push ({pending_push} remaining) ...")
         _save_json_files(file_entries)
         updated = _mark_completed(xlsx, completed_filenames)
         print(f"  ultradata.xlsx: {updated} row(s) marked completed")
-        _commit_push_repo2(repo2_dir, cfg, pending_push,
-                            file_entries=file_entries)
+        _commit_push_repo2(repo2_dir, cfg, pending_push, file_entries=file_entries)
 
-    # ── Summary ──────────────────────────────────────────────
     remaining = len(todo) - added
     total_elapsed = (time.time() - _RUN_START) / 60
 
@@ -1581,10 +1108,8 @@ def main() -> None:
         print(f"  Still pending     : {remaining}")
     print("=" * 65)
 
-    # ── Auto-restart if time limit hit and items remain ──────
     if time_limit_hit and remaining > 0:
-        print(f"\n[Auto-restart] Dispatching new workflow run for "
-              f"{remaining} pending items ...")
+        print(f"\n[Auto-restart] Dispatching new workflow run for {remaining} pending items ...")
         _trigger_self_restart(remaining)
 
 
