@@ -16,9 +16,17 @@ ULTRADATA_XLSX  = "ultradata.xlsx"
 WATERMARK_TEXT  = "www.ultrapng.com"
 INSTANT_CAP     = 2000   # safety cap — prevents accidental runaway
 
-# ── LOCAL MODEL SETTINGS ────────────────────────────────────────
-LOCAL_MODEL_ID = "Qwen/Qwen2.5-0.5B-Instruct"
-_local_pipe    = None   # module-level singleton — loaded once
+# ── VISION MODEL SETTINGS (Moondream2 — free, CPU, MIT licence) ──
+MOONDREAM_MODEL_ID  = "vikhyatk/moondream2"
+MOONDREAM_REVISION  = "2025-01-09"
+_moondream_model    = None   # singleton — loaded once
+_moondream_tokenizer= None
+
+# ── RUNTIME LIMIT ────────────────────────────────────────────────
+# Stop processing 10 min before GitHub Actions hard-kills the job,
+# save everything, then auto-restart a new run.
+MAX_RUN_SECONDS = 17_400   # 4 h 50 min  (job timeout = 5 h)
+_RUN_START      = time.time()   # set once at import time
 
 
 # ══════════════════════════════════════════════════════════════
@@ -605,112 +613,291 @@ def _repair_truncated_json(raw: str) -> str:
 
 
 # ══════════════════════════════════════════════════════════════
-# LOCAL SEO  — Qwen2.5-0.5B-Instruct (free, CPU, no API key)
+# VISION SEO  — Moondream2 (free, CPU, MIT, no API key needed)
+#   Flow: PNG bytes → Moondream visual description
+#         → smart subject cleaning → world-class SEO fields
 # ══════════════════════════════════════════════════════════════
 
-def _load_local_model():
-    """Load Qwen2.5-0.5B-Instruct once into module-level singleton."""
-    global _local_pipe
-    if _local_pipe is not None:
-        return _local_pipe
-    from transformers import pipeline
+# ── Vocabulary lists for extracting visual properties ────────
+
+_COLOR_WORDS = [
+    "red", "blue", "green", "yellow", "orange", "purple", "pink",
+    "white", "black", "brown", "golden", "silver", "gold", "grey", "gray",
+    "dark", "bright", "vibrant", "colorful", "multicolored",
+    "crimson", "scarlet", "violet", "indigo", "teal", "cyan", "magenta",
+    "lime", "beige", "ivory", "bronze", "rose", "coral", "turquoise",
+    "maroon", "navy", "olive", "peach", "lavender", "emerald", "amber",
+]
+
+_STYLE_WORDS = [
+    "realistic", "cartoon", "vector", "clipart", "3d", "flat", "minimal",
+    "watercolor", "digital", "illustrated", "hand-drawn", "artistic",
+    "detailed", "simple", "modern", "vintage", "cute", "elegant", "glossy",
+    "sketched", "painted", "stylized", "anime", "comic", "retro",
+]
+
+# Generic noise tokens to strip from filenames before building titles
+_FILENAME_NOISE = re.compile(
+    r"\b(hd|png|img|image|photo|pic|transparent|bg|nobg|free|dl|download"
+    r"|clipart|vector|stock|high|quality|resolution|res|ultra|4k|full)\b",
+    re.I,
+)
+
+
+def _clean_subject(raw: str) -> str:
+    """
+    Turn a raw filename stem into a clean, human-readable subject name.
+
+    Examples:
+        'Lemon_03'          → 'Lemon'
+        'Red_Rose_12'       → 'Red Rose'
+        'butterfly_hd_01'   → 'Butterfly'
+        'golden_crown_007'  → 'Golden Crown'
+    """
+    s = re.sub(r"[_\-]+", " ", raw.strip())      # underscores / dashes → spaces
+    s = _FILENAME_NOISE.sub(" ", s)              # strip noise words
+    s = re.sub(r"\s*\d+\s*$", "", s)             # trailing numbers
+    s = re.sub(r"^\d+\s*", "", s)                # leading numbers
+    s = re.sub(r"\s+", " ", s).strip()
+    return s.title() if s else raw.strip().title()
+
+
+def _load_moondream():
+    """Load Moondream2 vision model once (cached in module-level singletons)."""
+    global _moondream_model, _moondream_tokenizer
+    if _moondream_model is not None:
+        return _moondream_model, _moondream_tokenizer
+
+    from transformers import AutoModelForCausalLM, AutoTokenizer
     import torch
-    print(f"\n  [MODEL] Loading {LOCAL_MODEL_ID} ...", flush=True)
-    _local_pipe = pipeline(
-        "text-generation",
-        model=LOCAL_MODEL_ID,
-        device="cpu",
+
+    print(f"\n  [VISION] Loading {MOONDREAM_MODEL_ID} "
+          f"(revision={MOONDREAM_REVISION}) on CPU ...", flush=True)
+
+    _moondream_tokenizer = AutoTokenizer.from_pretrained(
+        MOONDREAM_MODEL_ID,
+        revision=MOONDREAM_REVISION,
+        trust_remote_code=True,
+    )
+    _moondream_model = AutoModelForCausalLM.from_pretrained(
+        MOONDREAM_MODEL_ID,
+        revision=MOONDREAM_REVISION,
+        trust_remote_code=True,
         torch_dtype=torch.float32,
-        max_new_tokens=1200,
+        low_cpu_mem_usage=True,
     )
-    print("  [MODEL] Loaded ✓\n", flush=True)
-    return _local_pipe
+    _moondream_model.eval()
+    print("  [VISION] Moondream2 loaded ✓\n", flush=True)
+    return _moondream_model, _moondream_tokenizer
 
 
-def _template_seo(subject: str) -> Dict[str, str]:
+def _moondream_describe(img_bytes: bytes, subject: str) -> str:
     """
-    100%-reliable template fallback — used when LLM output cannot be parsed.
-    Always returns well-formed SEO fields.
+    Use Moondream2 to visually describe the image.
+    Returns a rich description string, or "" on failure.
     """
-    s  = subject.strip()
-    sl = s.lower()
-    title     = f"{s} PNG Transparent Background — HD Image Free Download"
-    title     = title[:60]
-    h1        = f"{s} PNG on Transparent Background HD Quality Image"
-    meta_desc = (
-        f"Download high-quality {s} PNG with transparent background. "
-        f"Ideal for design, presentations and creative projects. HD, free."
-    )[:155]
-    alt_text  = f"{s} on transparent background high quality PNG"
-    tags      = (
-        f"{sl} png, {sl} transparent, {sl} hd, {sl} clipart, "
-        f"{sl} download, {sl} png free, {sl} background, {sl} image"
-    )
-    kws = [
-        f"{sl} png", f"{sl} transparent background", f"{sl} hd image",
-        f"{sl} photography", f"{sl} clipart", f"{sl} png download",
-        f"{sl} cutout", f"{sl} free download", f"{sl} high quality png",
-        f"{sl} vector", f"{sl} illustration", f"{sl} white background",
-        f"{sl} transparent png", f"free {sl} png", f"{sl} image",
-        f"{sl} photo", f"{sl} graphic", f"{sl} design", f"{sl} isolated png",
-        f"{sl} png clipart", f"{sl} hd photo", f"{sl} background free",
-        f"{sl} png image", f"{sl} png hd", f"{sl} stock photo",
-        f"{sl} digital art", f"{sl} png transparent", f"{sl} high resolution",
-        f"{sl} png file", f"{sl} creative design",
-    ]
-    return {
-        "title":       title,
-        "h1":          h1,
-        "meta_desc":   meta_desc,
-        "alt_text":    alt_text,
-        "tags":        tags,
-        "description": ", ".join(kws[:30]),
-    }
-
-
-def _parse_seo_output(content: str, subject: str) -> Dict[str, str]:
-    """Extract and validate a SEO JSON dict from raw model output."""
-    j0 = content.find("{")
-    j1 = content.rfind("}") + 1
-    if j0 == -1 or j1 == 0:
-        raise ValueError(f"No JSON object found in output: {content[:200]!r}")
-
-    raw = _clean_json_str(content[j0:j1])
     try:
-        data = json.loads(raw, strict=False)
-    except json.JSONDecodeError as e:
-        repaired = _repair_truncated_json(raw)
+        from PIL import Image as PILImage
+        model, tokenizer = _load_moondream()
+        image = PILImage.open(io.BytesIO(img_bytes)).convert("RGB")
+
+        question = (
+            f"This is a PNG image of '{subject}'. "
+            "Describe it in detail: specific colors, visual style "
+            "(realistic / cartoon / vector / clipart / 3D), "
+            "exact type or variety, and any distinctive features visible."
+        )
+
+        # Support both new (2025) and old Moondream API
+        desc = ""
         try:
-            data = json.loads(repaired, strict=False)
-        except json.JSONDecodeError:
-            raise ValueError(f"JSON parse failed: {e}") from e
+            # New API: model.query(image, question)["answer"]
+            result = model.query(image, question)
+            desc   = (result.get("answer", "") if isinstance(result, dict)
+                      else str(result)).strip()
+        except (AttributeError, TypeError):
+            # Old API: encode_image + answer_question
+            enc  = model.encode_image(image)
+            desc = model.answer_question(enc, question, tokenizer).strip()
 
-    def _str(val, fallback="") -> str:
-        if val is None:
-            return fallback
-        if isinstance(val, list):
-            return ", ".join(str(v).strip() for v in val if v)
-        return str(val).strip()
+        return desc
 
-    title     = _str(data.get("title"))
-    desc      = _str(data.get("description"))
-    h1        = _str(data.get("h1")) or title
-    meta_desc = _str(data.get("meta_desc"))
-    alt_text  = _str(data.get("alt_text")) or title
-    tags      = _str(data.get("tags"))
+    except Exception as exc:
+        print(f"    [VISION] describe error: {exc}", flush=True)
+        return ""
 
-    if not title or not desc:
-        raise ValueError("title or description is empty after parsing")
 
-    if len(meta_desc) > 155:
-        meta_desc = meta_desc[:152] + "..."
+def _fetch_image_for_vision(preview_url: str, download_url: str) -> Optional[bytes]:
+    """
+    Download image bytes for Moondream analysis.
+    Tries preview CDN URL first (fast, small), then Drive download URL.
+    Returns None if both fail.
+    """
+    import requests
+    headers = {"User-Agent": "UltraPNG-SEO-Bot/4.0"}
+    for url in [u for u in [preview_url, download_url] if u]:
+        try:
+            r = requests.get(url, timeout=30, headers=headers)
+            if r.ok and len(r.content) > 500:
+                return r.content
+        except Exception:
+            pass
+    return None
 
-    kw_count = len([k for k in desc.split(",") if k.strip()])
-    if kw_count < 20:
-        # Too few keywords — patch with template description
-        tmpl = _template_seo(subject)
-        desc = tmpl["description"]
-        print(f"\n    [WARN] Only {kw_count} keywords — patched with template", flush=True)
+
+def _extract_words_from_desc(visual_desc: str, wordlist: List[str]) -> List[str]:
+    """Return words from wordlist that appear as whole words in visual_desc."""
+    desc_lower = visual_desc.lower()
+    return [w for w in wordlist
+            if re.search(r"\b" + re.escape(w) + r"\b", desc_lower)]
+
+
+def _build_seo_from_vision(
+    clean_subject: str,
+    visual_desc:   str,
+    category:      str = "",
+    orig_subject:  str = "",
+) -> Dict[str, str]:
+    """
+    Build world-class SEO content from subject name + Moondream visual description.
+
+    Key principles:
+      • Titles read naturally — no numbers, no filename artefacts
+      • Every title is unique (6 rotating patterns, hash-seeded by filename)
+      • Keywords target real user intent (download, clipart, transparent, etc.)
+      • Meta description includes a visual snippet for relevance signals
+    """
+    s  = clean_subject or orig_subject.strip() or "Image"
+    sl = s.lower()
+
+    colors = _extract_words_from_desc(visual_desc, _COLOR_WORDS)
+    styles = _extract_words_from_desc(visual_desc, _STYLE_WORDS)
+    cat_sl = (category or "").lower().strip()
+
+    # ── Descriptive prefix from visual (e.g. "Bright Glossy") ──
+    pfx_parts: List[str] = []
+    if colors:
+        pfx_parts.append(colors[0].capitalize())
+    # Add style only if non-obvious
+    non_obvious_styles = [st for st in styles if st not in
+                          ("realistic", "detailed", "modern", "simple")]
+    if non_obvious_styles:
+        pfx_parts.append(non_obvious_styles[0].capitalize())
+    prefix = " ".join(pfx_parts)   # e.g. "Bright Cartoon"
+
+    # ── 6 rotating title patterns — unique per image ────────────
+    def t(a: str, b: str) -> str:
+        """Return a if prefix exists, else b (both capped at 60 chars)."""
+        return (a if prefix else b)[:60].strip()
+
+    title_patterns = [
+        t(f"{prefix} {s} PNG Transparent Background Free Download",
+          f"{s} PNG Transparent Background - Free HD Download"),
+        t(f"Download {prefix} {s} PNG - High Quality Transparent Image",
+          f"Download {s} PNG - Transparent Background HD Image"),
+        t(f"{s} Transparent PNG - {prefix} Isolated Image Free Download",
+          f"{s} Transparent PNG - Isolated Background Free Download"),
+        t(f"Free {prefix} {s} PNG Clipart - Transparent Background",
+          f"Free {s} PNG Clipart - Transparent HD Background"),
+        t(f"{s} PNG Image with Transparent Background - {prefix} Download",
+          f"{s} PNG Image with Transparent Background - HD Free"),
+        t(f"High Quality {prefix} {s} PNG - Transparent Background",
+          f"High Quality {s} PNG - Transparent Background Free"),
+    ]
+    # Use hash of original filename so the same image always gets the same pattern
+    title = title_patterns[abs(hash(orig_subject or s)) % len(title_patterns)]
+
+    # ── H1: longer and more descriptive ────────────────────────
+    if visual_desc and len(visual_desc) > 20:
+        snippet = visual_desc.split(".")[0][:55].strip()
+        h1 = f"{s} PNG - {snippet}"
+    elif prefix:
+        h1 = f"{prefix} {s} PNG Image with Transparent Background"
+    else:
+        h1 = f"{s} PNG Image with Transparent Background HD Quality"
+    h1 = h1[:80]
+
+    # ── Meta description (≤155 chars) ──────────────────────────
+    if visual_desc:
+        visual_snippet = visual_desc[:75].rstrip(" .,")
+        meta_desc = (
+            f"Download {sl} PNG with transparent background. "
+            f"{visual_snippet}. Free HD image for designers & projects."
+        )
+    else:
+        meta_desc = (
+            f"Download high-quality {sl} PNG with transparent background. "
+            f"Perfect for graphic design, presentations, and creative projects. "
+            f"Free HD download."
+        )
+    meta_desc = meta_desc[:155]
+
+    # ── Alt text ────────────────────────────────────────────────
+    if prefix:
+        alt_text = f"{prefix} {s} on transparent background - high quality PNG image"
+    else:
+        alt_text = f"{s} on transparent background - high resolution free PNG image"
+    alt_text = alt_text[:125]
+
+    # ── Tags (8-10) ─────────────────────────────────────────────
+    tag_parts = [f"{sl} png", f"{sl} transparent background", f"{sl} hd png"]
+    if colors:
+        tag_parts.append(f"{colors[0]} {sl}")
+    if styles:
+        tag_parts.append(f"{styles[0]} {sl} png")
+    if cat_sl and cat_sl != sl:
+        tag_parts.append(f"{cat_sl} png")
+    tag_parts += [f"{sl} clipart", f"free {sl} png", f"{sl} download"]
+    tags = ", ".join(tag_parts[:10])
+
+    # ── Keywords (30 diverse, intent-based) ─────────────────────
+    kws_raw = [
+        f"{sl} png",
+        f"{sl} transparent background",
+        f"{sl} hd image",
+        f"{sl} clipart",
+        f"free {sl} png",
+        f"{sl} png download",
+        f"{sl} cutout png",
+        f"transparent {sl} png",
+        f"{sl} high quality png",
+        f"{sl} isolated png",
+        f"{sl} png image",
+        f"{sl} background removed png",
+        f"{sl} digital art png",
+        f"{sl} transparent png free",
+        f"download {sl} png",
+        f"{sl} high resolution png",
+        f"{sl} png file free",
+        f"{sl} sticker png",
+        f"{sl} vector png",
+        f"free {sl} clipart png",
+        f"{sl} no background png",
+        f"{sl} png hd free download",
+        f"{sl} illustration png",
+        f"{sl} graphic design png",
+        f"png {sl} transparent free",
+    ]
+    # Visual-specific keywords
+    for c in colors[:2]:
+        kws_raw.append(f"{c} {sl} png")
+        kws_raw.append(f"{c} {sl} transparent background")
+    for st in styles[:1]:
+        kws_raw.append(f"{st} {sl} png")
+    if cat_sl and cat_sl != sl:
+        kws_raw.append(f"{cat_sl} {sl} png")
+        kws_raw.append(f"{sl} {cat_sl} transparent")
+
+    # Deduplicate + keep order
+    seen_kw: set = set()
+    kws_final: List[str] = []
+    for kw in kws_raw:
+        kw_n = re.sub(r"\s+", " ", kw.strip().lower())
+        if kw_n and kw_n not in seen_kw:
+            seen_kw.add(kw_n)
+            kws_final.append(kw_n)
+        if len(kws_final) >= 30:
+            break
 
     return {
         "title":       title,
@@ -718,75 +905,84 @@ def _parse_seo_output(content: str, subject: str) -> Dict[str, str]:
         "meta_desc":   meta_desc,
         "alt_text":    alt_text,
         "tags":        tags,
-        "description": desc,
+        "description": ", ".join(kws_final[:30]),
     }
 
 
-def _local_seo(subject_name: str, retries: int = 2) -> Dict[str, str]:
+def _vision_seo(row: Dict[str, str]) -> Dict[str, str]:
     """
-    Generate SEO JSON using local Qwen2.5-0.5B-Instruct (CPU, no API key).
-    Falls back to _template_seo() if the model output cannot be parsed.
+    Main SEO generation entry point.
+
+    1. Clean subject name  (remove numbers / underscores)
+    2. Download image bytes (preview CDN → Drive fallback)
+    3. Run Moondream2 → visual description
+    4. Build world-class SEO from visual + subject name
+
+    Falls back to enhanced template if image download or vision fails.
     """
-    subject = (subject_name or "").strip()
+    subject      = (row.get("subject_name") or "").strip()
+    preview_url  = row.get("preview_url",  "")
+    download_url = row.get("download_url", "")
+    category     = row.get("category",     "")
+
     if not subject:
-        raise RuntimeError("Missing subject_name")
+        raise RuntimeError("Missing subject_name in row")
 
-    pipe = _load_local_model()
+    clean_subj = _clean_subject(subject)
 
-    seo_prompt = f"""You are an SEO expert for UltraPNG, an image download website.
-Generate SEO content for a PNG image. Subject: "{subject}"
+    # Download image for visual analysis
+    img_bytes  = _fetch_image_for_vision(preview_url, download_url)
+    visual_desc = ""
+    if img_bytes:
+        visual_desc = _moondream_describe(img_bytes, clean_subj)
+        if visual_desc:
+            print(f"    👁  vision: {visual_desc[:80]!r}", flush=True)
+    else:
+        print(f"    ⚠  image download failed — using enhanced template", flush=True)
 
-Return ONLY a valid JSON object with EXACTLY these keys (no markdown, no extra text):
+    return _build_seo_from_vision(clean_subj, visual_desc, category, subject)
 
-{{
-  "title": "50-60 chars — include \\"{subject} PNG\\" and \\"transparent background\\" or \\"HD\\"",
-  "h1": "8-14 word descriptive heading",
-  "meta_desc": "under 155 chars — describe image + benefit. No \\"click here\\".",
-  "alt_text": "screen-reader description mentioning transparent background",
-  "tags": "8-10 comma-separated keywords",
-  "description": "exactly 30 comma-separated SEO keywords — all about \\"{subject}\\" with variations: png, transparent background, hd image, clipart, free download, vector, illustration, cutout, white background, high quality, hd photo, stock image, graphic, digital art, isolated"
-}}"""
 
-    messages = [
-        {
-            "role": "system",
-            "content": (
-                "You are an SEO expert. Always respond with a single valid JSON object. "
-                "No markdown fences. No preamble. No explanation. JSON only."
-            ),
-        },
-        {"role": "user", "content": seo_prompt},
-    ]
+# ── Auto-restart helper ──────────────────────────────────────────────────────
 
-    for attempt in range(1, retries + 1):
-        try:
-            output  = pipe(
-                messages,
-                max_new_tokens=1200,
-                temperature=0.3,
-                do_sample=True,
-                pad_token_id=pipe.tokenizer.eos_token_id,
-            )
-            # Qwen pipeline returns list-of-dicts; last entry is assistant reply
-            raw_out = output[0]["generated_text"]
-            content = (
-                raw_out[-1]["content"]
-                if isinstance(raw_out, list) and isinstance(raw_out[-1], dict)
-                else str(raw_out)
-            ).strip()
+def _trigger_self_restart(remaining: int,
+                           workflow_file: str = "section2_seo.yml") -> None:
+    """
+    Dispatch a new workflow run via GitHub API so processing continues
+    automatically after this run times out.
+    Requires GH_TOKEN (or REPO2_TOKEN) + GITHUB_REPOSITORY env vars.
+    """
+    import requests
+    repo     = os.environ.get("GITHUB_REPOSITORY", "").strip()
+    gh_token = (os.environ.get("GH_TOKEN") or
+                os.environ.get("REPO2_TOKEN", "")).strip()
+    ref      = os.environ.get("GITHUB_REF_NAME", "main").strip() or "main"
 
-            return _parse_seo_output(content, subject)
+    if not repo or not gh_token:
+        print("  ⚠  Cannot auto-restart: GITHUB_REPOSITORY or GH_TOKEN not set")
+        return
 
-        except Exception as e:
-            print(f"\n    [LOCAL] attempt {attempt}/{retries} failed: {e}", flush=True)
-            if attempt >= retries:
-                print(f"    [LOCAL] All attempts failed — using template for '{subject}'",
-                      flush=True)
-                return _template_seo(subject)
-            time.sleep(1)
-
-    # Should never reach here, but satisfy type-checker
-    return _template_seo(subject)
+    url = (f"https://api.github.com/repos/{repo}"
+           f"/actions/workflows/{workflow_file}/dispatches")
+    body: Dict[str, Any] = {
+        "ref": ref,
+        "inputs": {"count": "", "scan_drive": "false"},
+    }
+    try:
+        r = requests.post(
+            url,
+            headers={"Authorization": f"token {gh_token}",
+                     "Accept": "application/vnd.github.v3+json"},
+            json=body,
+            timeout=30,
+        )
+        if r.status_code in (204, 200):
+            print(f"  🔄  Auto-restart dispatched "
+                  f"({remaining} items still pending) ✓")
+        else:
+            print(f"  ⚠  Auto-restart failed: {r.status_code} — {r.text[:120]}")
+    except Exception as exc:
+        print(f"  ⚠  Auto-restart exception: {exc}")
 
 
 # ══════════════════════════════════════════════════════════════
@@ -1141,7 +1337,7 @@ def main() -> None:
         raise SystemExit("❌  Missing REPO2_TOKEN or REPO2_SLUG in environment")
 
     max_per_file     = int(os.environ.get("REPO2_MAX_PER_JSON", "200"))
-    checkpoint_every = 50   # push to repo every N items (crash safety)
+    checkpoint_every = 25   # push every 25 items for safety (vision is slower)
 
     # ── How many to process ──────────────────────────────────
     count_env = (os.environ.get("S2_COUNT", "") or "").strip()
@@ -1154,21 +1350,22 @@ def main() -> None:
         except Exception:
             pass
 
-    print("=" * 60)
-    print("  Section 2 — SEO JSON Builder  (V2.0)")
+    print("=" * 65)
+    print("  Section 2 — SEO JSON Builder  (V4.0 — Moondream Vision)")
     print(f"  Requested count : {requested if requested else 'ALL pending'}")
     print(f"  Safety cap      : {INSTANT_CAP}")
     print(f"  Max per JSON    : {max_per_file}")
-    print(f"  Model           : {LOCAL_MODEL_ID} (local, CPU, no API key)")
+    print(f"  Vision model    : {MOONDREAM_MODEL_ID}@{MOONDREAM_REVISION}")
+    print(f"  Max run time    : {MAX_RUN_SECONDS // 3600}h "
+          f"{(MAX_RUN_SECONDS % 3600) // 60}m (then auto-restart)")
     print(f"  Drive PNG scan  : {os.environ.get('SCAN_DRIVE', 'true')}")
-    print("=" * 60)
+    print("=" * 65)
 
     # ── STEP 1: Clone private ultrapng repo ──────────────────
     print("\n[Step 1] Cloning private ultrapng repo ...")
     cfg       = Repo2Config(token=repo2_token, slug=repo2_slug)
     repo2_dir = _clone_repo2(cfg, root / "_repo2_work")
 
-    # ultradata.xlsx lives in private ultrapng repo
     xlsx = repo2_dir / ULTRADATA_XLSX
     if not xlsx.exists():
         raise SystemExit(
@@ -1176,12 +1373,11 @@ def main() -> None:
             f"    Please push ultradata.xlsx to the root of that repo."
         )
 
-    # ── STEP 2 (NEW): Scan Drive png_library_images ──────────
+    # ── STEP 2: Scan Drive png_library_images ──────────────────
     print("\n[Step 2] Scanning Drive png_library_images for unmatched PNGs ...")
     new_from_drive = process_drive_png_library(repo2_dir, cfg)
     if new_from_drive > 0:
         print(f"  ✅  {new_from_drive} new entries added from Drive scan")
-        # Re-clone so we have the freshly pushed xlsx
         print("  Re-cloning repo to pick up updated ultradata.xlsx ...")
         import shutil
         shutil.rmtree(str(repo2_dir), ignore_errors=True)
@@ -1207,12 +1403,11 @@ def main() -> None:
             deduped.append(r)
     pending = deduped
 
-    # ── STEP 3: Load existing SEO from repo2 ────────────────
+    # ── STEP 4: Load existing SEO from repo2 ─────────────────
     print("\n[Step 4] Loading existing SEO entries from repo2 ...")
     existing, files = _load_existing_entries(repo2_dir, cfg.data_dir)
     print(f"  Existing SEO entries : {len(existing)}")
 
-    # Filter out already-done
     todo = [r for r in pending if r["filename"] not in existing]
     print(f"  Still to generate    : {len(todo)}")
 
@@ -1220,18 +1415,17 @@ def main() -> None:
         print("  ✅  All pending rows already have SEO in repo2.")
         return
 
-    # ── STEP 4: Decide count ─────────────────────────────────
+    # ── STEP 5: Decide count ─────────────────────────────────
     target = min(requested, len(todo)) if requested else len(todo)
-    print(f"\n  ▶  Will generate SEO for {target} item(s) ...")
+    print(f"\n  ▶  Will generate SEO for up to {target} item(s) ...")
 
-    # ── STEP 5: Preload local model ──────────────────────────
-    print("\n[Step 5] Preloading local SEO model ...")
-    _load_local_model()
+    # ── STEP 6: Preload Moondream vision model ───────────────
+    print("\n[Step 5] Preloading Moondream2 vision model ...")
+    _load_moondream()
 
-    # ── STEP 6: Generate SEO ─────────────────────────────────
-    print(f"\n[Step 6] Generating SEO ...\n")
+    # ── STEP 7: Generate SEO ─────────────────────────────────
+    print(f"\n[Step 6] Generating SEO with visual analysis ...\n")
 
-    # Pre-load file_entries from disk
     file_entries: Dict[Path, List] = {}
     for f in files:
         try:
@@ -1240,38 +1434,47 @@ def main() -> None:
         except Exception:
             file_entries[f] = []
 
-    added               = 0
-    completed_filenames : set = set()
-    pending_push        = 0
+    added                = 0
+    completed_filenames  : set = set()
+    pending_push         = 0
+    time_limit_hit       = False
 
     for i, r in enumerate(todo, 1):
         if added >= target:
             break
 
+        # ── Time-limit check ────────────────────────────────
+        elapsed = time.time() - _RUN_START
+        if elapsed > MAX_RUN_SECONDS:
+            print(f"\n⏰  Time limit reached "
+                  f"({elapsed / 3600:.2f} h) — saving checkpoint ...")
+            time_limit_hit = True
+            break
+
         subject  = r["subject_name"]
         filename = r["filename"]
 
-        print(f"  [{i}/{target}] {subject} ({filename}) ...", end=" ", flush=True)
+        print(f"  [{i}/{target}] {subject} ({filename}) ...", flush=True)
 
         try:
-            seo = _local_seo(subject)
+            seo = _vision_seo(r)
         except Exception as e:
-            print(f"✗ SKIP ({e})")
+            print(f"    ✗ SKIP ({e})", flush=True)
             continue
 
-        # Build slug
-        base_slug = re.sub(r"[^a-z0-9]+", "-", subject.lower()).strip("-") or "untitled"
-        fn_digits = re.sub(r"[^0-9]", "", filename)[-4:].zfill(4)
-        slug      = f"{base_slug}-{fn_digits}"
+        # Build slug (no numbers from filename)
+        clean_subj = _clean_subject(subject)
+        base_slug  = re.sub(r"[^a-z0-9]+", "-",
+                             clean_subj.lower()).strip("-") or "untitled"
+        slug       = base_slug   # clean slug — no number suffix
 
-        # webp preview URL — built from webp_file_id if available
+        # webp preview URL
         webp_fid     = r.get("webp_file_id", "")
         webp_preview = (
             f"https://lh3.googleusercontent.com/d/{webp_fid}=s800"
             if webp_fid else r.get("preview_url", "")
         )
 
-        # Choose target JSON file
         target_file = _get_active_file(files, repo2_dir, cfg.data_dir,
                                        max_per_file, file_entries)
         if target_file not in file_entries:
@@ -1301,7 +1504,9 @@ def main() -> None:
         pending_push += 1
 
         kw = len([k for k in seo["description"].split(",") if k.strip()])
-        print(f"✓  title={len(seo['title'])}c  kw={kw}", flush=True)
+        elapsed_m = (time.time() - _RUN_START) / 60
+        print(f"    ✓  title={len(seo['title'])}c  kw={kw}  "
+              f"({elapsed_m:.1f} min elapsed)", flush=True)
 
         # Checkpoint: save + push every N items
         if pending_push >= checkpoint_every:
@@ -1313,11 +1518,7 @@ def main() -> None:
             pending_push = 0
             print()
 
-        # Small pause between items to avoid CPU thermal throttling
-        if added < target:
-            time.sleep(0.5)
-
-    # ── STEP 6: Final save + push ────────────────────────────
+    # ── STEP 8: Final save + push ────────────────────────────
     if pending_push > 0 or completed_filenames:
         print(f"\n[Step 7] Final save & push ({pending_push} remaining) ...")
         _save_json_files(file_entries)
@@ -1327,14 +1528,23 @@ def main() -> None:
                             file_entries=file_entries)
 
     # ── Summary ──────────────────────────────────────────────
-    print("\n" + "=" * 60)
+    remaining = len(todo) - added
+    total_elapsed = (time.time() - _RUN_START) / 60
+
+    print("\n" + "=" * 65)
     print(f"  ✅  Section 2 complete")
     print(f"  Added this run    : {added}")
     print(f"  Total in repo2    : {len(existing) + added}")
-    remaining = len(todo) - added
+    print(f"  Elapsed time      : {total_elapsed:.1f} min")
     if remaining > 0:
-        print(f"  Still pending     : {remaining} (run again to continue)")
-    print("=" * 60)
+        print(f"  Still pending     : {remaining}")
+    print("=" * 65)
+
+    # ── Auto-restart if time limit hit and items remain ──────
+    if time_limit_hit and remaining > 0:
+        print(f"\n[Auto-restart] Dispatching new workflow run for "
+              f"{remaining} pending items ...")
+        _trigger_self_restart(remaining)
 
 
 if __name__ == "__main__":
