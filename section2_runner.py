@@ -16,52 +16,40 @@ ULTRADATA_XLSX  = "ultradata.xlsx"
 WATERMARK_TEXT  = "www.ultrapng.com"
 INSTANT_CAP     = 2000
 
-# ── Gemini replaces Moondream2 ─────────────────────────────────────────────
-# ⚠  gemini-2.0-flash: deprecated Feb 2026, shutdown June 2026 — migrating now
-# Free tier (April 2026):
-#   gemini-2.5-flash-lite  → 1000 RPD · 15 RPM  ← USED (best throughput)
-#   gemini-2.5-flash       →  250 RPD · 10 RPM  (fallback)
-#   gemini-2.5-pro         →  100 RPD ·  5 RPM  (heavy tasks only)
-GEMINI_MODEL   = "gemini-2.5-flash-lite"
-GEMINI_API_URL = (
-    f"https://generativelanguage.googleapis.com/v1beta/models/"
-    f"{GEMINI_MODEL}:generateContent"
-)
+# ── Florence-2-base replaces Gemini API ───────────────────────────────────
+# Microsoft Florence-2-base: 232M params · MIT license · runs on CPU
+# GitHub Actions free: 2-core Ubuntu · 7GB RAM · no API key · no rate limit
+# Speed: ~15-30s per image on CPU (vs 8 min for Moondream2)
+# Model: microsoft/Florence-2-base  (cached by actions/cache between runs)
+FLORENCE_MODEL_ID = "microsoft/Florence-2-base"
+FLORENCE_TASK     = "<DETAILED_CAPTION>"   # gives colors + style + details
 
 MAX_RUN_SECONDS = 17_400   # 4h50m
 _RUN_START      = time.time()
 
-# ── Rate-limit guard ──────────────────────────────────────────────────────
-# Flash-Lite: 15 RPM official, but Google enforces burst strictly.
-# FIX: enforce BOTH a sliding window AND a mandatory per-request spacing.
-# 6s gap = max 10/min effective rate → eliminates burst 429s completely.
-_GEMINI_WINDOW:       List[float] = []
-_GEMINI_MAX_PER_MIN = 10          # conservative — actual limit varies by account
-_GEMINI_MIN_SPACING = 6.0         # seconds between ANY two requests (anti-burst)
-_GEMINI_LAST_CALL   = 0.0         # timestamp of most recent call
+# ── Global model handles (loaded once per run, reused for all images) ──────
+_florence_model     = None
+_florence_processor = None
 
 
-def _gemini_rate_wait() -> None:
-    global _GEMINI_LAST_CALL
-    # 1) Enforce minimum spacing between consecutive requests (anti-burst)
-    gap = time.time() - _GEMINI_LAST_CALL
-    if gap < _GEMINI_MIN_SPACING:
-        time.sleep(_GEMINI_MIN_SPACING - gap)
-
-    # 2) Sliding-window guard: max _GEMINI_MAX_PER_MIN in the last 60 s
-    now    = time.time()
-    cutoff = now - 60.0
-    while _GEMINI_WINDOW and _GEMINI_WINDOW[0] < cutoff:
-        _GEMINI_WINDOW.pop(0)
-    if len(_GEMINI_WINDOW) >= _GEMINI_MAX_PER_MIN:
-        sleep_for = 61.0 - (now - _GEMINI_WINDOW[0])
-        if sleep_for > 0:
-            print(f"    [rate-limit] {sleep_for:.1f}s window pause "
-                  f"({_GEMINI_MAX_PER_MIN}/min cap) ...", flush=True)
-            time.sleep(sleep_for)
-
-    _GEMINI_LAST_CALL = time.time()
-    _GEMINI_WINDOW.append(_GEMINI_LAST_CALL)
+def _load_florence_model():
+    """Load Florence-2-base once at startup. Subsequent calls are instant."""
+    global _florence_model, _florence_processor
+    if _florence_model is not None:
+        return
+    import torch
+    from transformers import AutoProcessor, AutoModelForCausalLM
+    print(f"  [Florence-2] Loading {FLORENCE_MODEL_ID} (first time ~30s) ...",
+          flush=True)
+    _florence_processor = AutoProcessor.from_pretrained(
+        FLORENCE_MODEL_ID, trust_remote_code=True)
+    _florence_model = AutoModelForCausalLM.from_pretrained(
+        FLORENCE_MODEL_ID,
+        trust_remote_code=True,
+        torch_dtype=torch.float32,   # float32 for CPU stability
+    )
+    _florence_model.eval()
+    print("  [Florence-2] Model ready ✓", flush=True)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -488,8 +476,7 @@ def _today() -> str:
 
 
 # ══════════════════════════════════════════════════════════════
-# VISION SEO — Gemini 2.5 Flash-Lite (replaces retired 2.0 Flash)
-# Free tier: 1000 req/day · 15 RPM · 6s min spacing enforced
+# VISION SEO — Florence-2-base (local CPU, no API key)
 # ══════════════════════════════════════════════════════════════
 
 _COLOR_WORDS = [
@@ -524,76 +511,62 @@ def _clean_subject(raw: str) -> str:
     return s.title() if s else raw.strip().title()
 
 
-def _gemini_describe(img_bytes: bytes, subject: str) -> str:
+def _florence_describe(img_bytes: bytes, subject: str) -> str:
     """
-    Gemini 2.5 Flash-Lite vision API.
-    Free tier (April 2026): 1000 req/day · 15 RPM official.
-    Anti-burst: _gemini_rate_wait() enforces 6s min spacing (10 req/min effective).
-    Retry: reads Retry-After header, then exponential backoff with jitter.
+    Microsoft Florence-2-base local inference on CPU.
+    No API key · No rate limit · No cost · 15-30s per image on GitHub Actions CPU.
+    Uses DETAILED_CAPTION task which returns colors, style, and visual features.
+    Model is loaded once per run (_load_florence_model) and reused.
     """
-    import requests, random
+    import torch
+    from PIL import Image
 
-    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
-    if not api_key:
+    try:
+        _load_florence_model()
+    except Exception as exc:
+        print(f"    [Florence-2] model load error: {exc}", flush=True)
         return ""
 
-    _gemini_rate_wait()   # spacing + sliding-window guard
+    try:
+        image = Image.open(io.BytesIO(img_bytes)).convert("RGB")
 
-    mime = "image/png"
-    if img_bytes[:3] == b"\xff\xd8\xff":
-        mime = "image/jpeg"
-    elif img_bytes[:4] == b"RIFF" and img_bytes[8:12] == b"WEBP":
-        mime = "image/webp"
+        inputs = _florence_processor(
+            text=FLORENCE_TASK,
+            images=image,
+            return_tensors="pt",
+        )
 
-    prompt = (
-        f"This PNG shows \'{subject}\'. "
-        "In ONE short sentence (max 120 chars) describe: "
-        "main colors, visual style (realistic/cartoon/vector/clipart/3D), "
-        "and any distinctive features. Be factual and concise."
-    )
+        with torch.no_grad():
+            generated_ids = _florence_model.generate(
+                input_ids=inputs["input_ids"],
+                pixel_values=inputs["pixel_values"],
+                max_new_tokens=120,
+                num_beams=3,
+                early_stopping=True,
+            )
 
-    payload = {
-        "contents": [{"parts": [
-            {"inline_data": {"mime_type": mime,
-                             "data": base64.b64encode(img_bytes).decode()}},
-            {"text": prompt},
-        ]}],
-        "generationConfig": {"maxOutputTokens": 150, "temperature": 0.2},
-    }
+        raw_text = _florence_processor.batch_decode(
+            generated_ids, skip_special_tokens=False)[0]
 
-    url = f"{GEMINI_API_URL}?key={api_key}"
-    MAX_ATTEMPTS = 5
-    for attempt in range(1, MAX_ATTEMPTS + 1):
-        try:
-            r = requests.post(url, json=payload, timeout=30)
+        parsed = _florence_processor.post_process_generation(
+            raw_text,
+            task=FLORENCE_TASK,
+            image_size=(image.width, image.height),
+        )
+        desc = parsed.get(FLORENCE_TASK, "").strip()
+        # Trim to ~120 chars for SEO consistency
+        if len(desc) > 120:
+            desc = desc[:117].rsplit(" ", 1)[0] + "..."
+        return desc
 
-            if r.status_code == 429:
-                # Read Retry-After header first; fallback to exponential backoff
-                retry_after = r.headers.get("Retry-After") or r.headers.get("retry-after")
-                if retry_after:
-                    wait = float(retry_after) + 2
-                else:
-                    wait = min(15 * (2 ** (attempt - 1)), 120)  # 15→30→60→120
-                wait += random.uniform(1, 5)                     # jitter
-                print(f"    [Gemini] 429 (attempt {attempt}/{MAX_ATTEMPTS}) "
-                      f"— waiting {wait:.0f}s ...", flush=True)
-                time.sleep(wait)
-                _gemini_rate_wait()   # re-apply spacing after long sleep
-                continue
+    except Exception as exc:
+        print(f"    [Florence-2] inference error: {exc}", flush=True)
+        return ""
 
-            r.raise_for_status()
-            data = r.json()
-            text = (data.get("candidates", [{}])[0]
-                        .get("content", {})
-                        .get("parts", [{}])[0]
-                        .get("text", "")).strip()
-            return text
 
-        except Exception as exc:
-            print(f"    [Gemini] attempt {attempt} error: {exc}", flush=True)
-            if attempt < MAX_ATTEMPTS:
-                time.sleep(6 * attempt)
-    return ""
+# Keep old name as alias so _vision_seo still works
+def _gemini_describe(img_bytes: bytes, subject: str) -> str:
+    return _florence_describe(img_bytes, subject)
 
 def _fetch_image_for_vision(preview_url: str, download_url: str) -> Optional[bytes]:
     import requests
@@ -726,19 +699,17 @@ def _vision_seo(row: Dict[str, str]) -> Dict[str, str]:
     category     = row.get("category",     "")
     if not subject:
         raise RuntimeError("Missing subject_name in row")
-    clean_subj = _clean_subject(subject)
-    api_key    = os.environ.get("GEMINI_API_KEY", "").strip()
+    clean_subj  = _clean_subject(subject)
     visual_desc = ""
-    if api_key:
-        img_bytes = _fetch_image_for_vision(preview_url, download_url)
-        if img_bytes:
-            visual_desc = _gemini_describe(img_bytes, clean_subj)
-            if visual_desc:
-                print(f"    👁  vision: {visual_desc[:80]!r}", flush=True)
+    img_bytes   = _fetch_image_for_vision(preview_url, download_url)
+    if img_bytes:
+        visual_desc = _florence_describe(img_bytes, clean_subj)
+        if visual_desc:
+            print(f"    👁  vision: {visual_desc[:80]!r}", flush=True)
         else:
-            print(f"    ⚠  image download failed — template SEO", flush=True)
+            print(f"    ⚠  Florence-2 returned empty — template SEO", flush=True)
     else:
-        print(f"    ℹ  no GEMINI_API_KEY — template SEO", flush=True)
+        print(f"    ⚠  image download failed — template SEO", flush=True)
     return _build_seo_from_vision(clean_subj, visual_desc, category, subject)
 
 
@@ -1051,13 +1022,10 @@ def main() -> None:
         except Exception:
             pass
 
-    gemini_key  = os.environ.get("GEMINI_API_KEY", "").strip()
-    vision_mode = ("Gemini 2.5 Flash-Lite ✅ (free API, 1000/day, 6s spacing)"
-                   if gemini_key else
-                   "Template only ⚠️  (add GEMINI_API_KEY secret for vision)")
+    vision_mode = "Florence-2-base ✅ (local CPU · 15-30s/img · no API key · unlimited)"
 
     print("=" * 65)
-    print("  Section 2 — SEO JSON Builder  (V6.0 — Gemini 2.5 Flash-Lite)")
+    print("  Section 2 — SEO JSON Builder  (V6.0 — Florence-2-base Local Vision)")
     print(f"  Requested count : {requested if requested else 'ALL pending'}")
     print(f"  Safety cap      : {INSTANT_CAP}")
     print(f"  Max per JSON    : {max_per_file}")
@@ -1109,6 +1077,8 @@ def main() -> None:
         return
 
     target = min(requested, len(todo)) if requested else len(todo)
+    print(f"\n[Step 4b] Pre-loading Florence-2 model ...")
+    _load_florence_model()
     print(f"\n  ▶  Generating SEO for up to {target} item(s) ...\n"
           f"     (No model loading — Gemini API is instant!)\n")
 
