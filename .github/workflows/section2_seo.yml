@@ -1,16 +1,25 @@
 name: Section 2 - SEO JSON Builder
 
 # ─────────────────────────────────────────────────────────────────────────────
-# V5.0 — Gemini 2.0 Flash Vision (FREE API, ~5s per image)
+# V6.0 — Gemini 2.5 Flash-Lite Vision (FREE API, ~1s per image)
 #
-#   OLD (Moondream2 on CPU):  8 minutes per image
-#   NEW (Gemini Flash API):   5–10 seconds per image  ← 50–100x faster
+#   ⚠  gemini-2.0-flash was DEPRECATED Feb 2026 and RETIRED March 3, 2026
+#      Migrated to gemini-2.5-flash-lite (same speed, higher daily limit)
 #
-#   ✅ 100% free  — Gemini free tier: 1500 req/day, 15 req/min
+#   OLD (Moondream2 on CPU):      8 minutes per image
+#   V5  (Gemini 2.0 Flash API):   1–5 seconds — RETIRED March 2026
+#   NEW (Gemini 2.5 Flash-Lite):  ~1 second per image  ← current
+#
+#   ✅ 100% free  — Gemini free tier: 1000 req/day, 15 req/min (April 2026)
 #   ✅ Unlimited  — auto-restarts handle daily cap automatically
 #   ✅ Vision     — Gemini sees each PNG, writes accurate descriptive SEO
 #   ✅ No model   — zero download, zero GPU, zero CPU model loading
 #   ✅ Light deps — only pillow + openpyxl + requests (installs in <30s)
+#
+#   Model limits (free tier, April 2026):
+#     gemini-2.5-flash-lite  →  1000 RPD · 15 RPM  ← USED HERE (best)
+#     gemini-2.5-flash       →   250 RPD · 10 RPM  (fallback)
+#     gemini-2.5-pro         →   100 RPD ·  5 RPM  (heavy tasks only)
 #
 #   SETUP (one-time, 2 minutes):
 #     1. Go to  https://aistudio.google.com/app/apikey  (free, no card needed)
@@ -77,7 +86,7 @@ jobs:
           REPO2_SLUG:           ${{ secrets.REPO_2 }}
           REPO2_MAX_PER_JSON:   "200"
 
-          # ── Gemini Flash vision API (FREE — get key at aistudio.google.com)
+          # ── Gemini 2.5 Flash-Lite vision API (FREE — 1000 req/day — get key at aistudio.google.com)
           GEMINI_API_KEY:       ${{ secrets.GEMINI_API_KEY }}
 
           # ── Google Drive credentials (for png_library_images scan) ────────
@@ -116,12 +125,12 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
           echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
-          echo "| Vision model | Gemini 2.0 Flash (free API, ~5s/image) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Vision model | Gemini 2.5 Flash-Lite (free API, ~1s/image, 1000/day) |" >> $GITHUB_STEP_SUMMARY
           echo "| SEO strategy | Visual analysis → unique title + 30 keywords |" >> $GITHUB_STEP_SUMMARY
           echo "| SEO count | ${{ github.event.inputs.count || 'ALL pending' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Scan Drive | ${{ github.event.inputs.scan_drive || 'true' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Drive folder | ${{ vars.PNG_LIBRARY_FOLDER || 'png_library_images' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Preview repo | ${{ vars.PREVIEW_REPO || 'guruimageusha' }}/${{ vars.PREVIEW_FOLDER || 'preview_webp' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Gemini free tier | 1500 req/day · 15 req/min · no credit card |" >> $GITHUB_STEP_SUMMARY
+          echo "| Gemini free tier | 1000 req/day · 15 req/min · no credit card (Flash-Lite) |" >> $GITHUB_STEP_SUMMARY
           echo "| Job timeout | 5 hours (auto-restarts if still pending) |" >> $GITHUB_STEP_SUMMARY
           echo "| Triggered by | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
