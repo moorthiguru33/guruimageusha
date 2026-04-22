@@ -1,14 +1,21 @@
 name: Section 2 - SEO JSON Builder
 
 # ─────────────────────────────────────────────────────────────────────────────
-# V4.0 — Moondream2 Vision Model (free, MIT, CPU, no API key)
-#   • Sees each PNG image visually → world-class SEO titles + keywords
-#   • Titles like: "Bright Yellow Lemon PNG Transparent Background Free Download"
-#     (NOT: "Lemon_03 PNG HD TRANSPARENT PNG DOWNLOAD")
-#   • Runs 100 % free on ubuntu-latest CPU
-#   • Model cached after first run → fast subsequent runs
-#   • 5-hour job timeout → auto-restarts every run until all items done
-#   • Checkpoints every 25 items → zero data loss on failure
+# V5.0 — Gemini 2.0 Flash Vision (FREE API, ~5s per image)
+#
+#   OLD (Moondream2 on CPU):  8 minutes per image
+#   NEW (Gemini Flash API):   5–10 seconds per image  ← 50–100x faster
+#
+#   ✅ 100% free  — Gemini free tier: 1500 req/day, 15 req/min
+#   ✅ Unlimited  — auto-restarts handle daily cap automatically
+#   ✅ Vision     — Gemini sees each PNG, writes accurate descriptive SEO
+#   ✅ No model   — zero download, zero GPU, zero CPU model loading
+#   ✅ Light deps — only pillow + openpyxl + requests (installs in <30s)
+#
+#   SETUP (one-time, 2 minutes):
+#     1. Go to  https://aistudio.google.com/app/apikey  (free, no card needed)
+#     2. Click "Create API key"
+#     3. Add it as GitHub Actions secret named:  GEMINI_API_KEY
 # ─────────────────────────────────────────────────────────────────────────────
 
 on:
@@ -29,16 +36,16 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false   # never cancel a running SEO job
+  cancel-in-progress: false
 
 permissions:
   contents: write
-  actions:  write   # needed so the script can dispatch new workflow runs
+  actions:  write
 
 jobs:
   build-seo:
     runs-on: ubuntu-latest
-    timeout-minutes: 300   # 5-hour hard limit — script exits at 4h50m and auto-restarts
+    timeout-minutes: 300   # 5-hour hard limit — script exits at 4h50m
 
     steps:
       # ── 1. Checkout ────────────────────────────────────────────────────────
@@ -54,45 +61,24 @@ jobs:
         with:
           python-version: "3.11"
 
-      # ── 3. Dependencies ────────────────────────────────────────────────────
+      # ── 3. Dependencies ─────────────────────────────────────────────────
+      #    No torch. No transformers. No HuggingFace. No 1.9 GB download.
+      #    Installs in under 30 seconds.
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install \
-            openpyxl \
-            requests \
-            pillow \
-            "transformers>=4.40.0" \
-            "timm>=0.9.0" \
-            einops \
-            accelerate
-          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install openpyxl requests pillow
 
-      # ── 4. Restore Moondream2 model cache ──────────────────────────────────
-      #    First run  → cache MISS → downloads ~1.9 GB once → cached
-      #    Later runs → cache HIT  → loaded from disk instantly
-      - name: Restore Moondream2 model cache
-        id: hf-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/huggingface
-          key: hf-moondream2-2025-01-09-v1
-
-      - name: Show cache status
-        run: |
-          if [ "${{ steps.hf-cache.outputs.cache-hit }}" = "true" ]; then
-            echo "✅  Moondream2 cache HIT — no download needed"
-          else
-            echo "⬇️   Moondream2 cache MISS — downloading model (~1.9 GB)..."
-          fi
-
-      # ── 5. Run Section 2 ──────────────────────────────────────────────────
+      # ── 4. Run Section 2 ──────────────────────────────────────────────────
       - name: Run Section 2
         env:
-          # ── Private UltraPNG repo (ultradata.xlsx + SEO JSONs) ────────────
+          # ── Private UltraPNG repo ─────────────────────────────────────────
           REPO2_TOKEN:          ${{ secrets.REPO_2_TOKEN }}
           REPO2_SLUG:           ${{ secrets.REPO_2 }}
           REPO2_MAX_PER_JSON:   "200"
+
+          # ── Gemini Flash vision API (FREE — get key at aistudio.google.com)
+          GEMINI_API_KEY:       ${{ secrets.GEMINI_API_KEY }}
 
           # ── Google Drive credentials (for png_library_images scan) ────────
           GOOGLE_CLIENT_ID:     ${{ secrets.GOOGLE_CLIENT_ID }}
@@ -116,25 +102,13 @@ jobs:
           S2_COUNT:             ${{ github.event.inputs.count }}
           SCAN_DRIVE:           ${{ github.event.inputs.scan_drive || 'true' }}
 
-          # ── HuggingFace settings ───────────────────────────────────────────
-          HF_HUB_DISABLE_PROGRESS_BARS: "1"
-          TOKENIZERS_PARALLELISM:       "false"
-
-          # ── Auto-restart context (script uses these to dispatch itself) ────
+          # ── Auto-restart context ───────────────────────────────────────────
           GITHUB_REPOSITORY:    ${{ github.repository }}
           GITHUB_REF_NAME:      ${{ github.ref_name }}
 
         run: python section2_runner.py
 
-      # ── 6. Save Moondream2 model cache (always, even on failure) ──────────
-      - name: Save Moondream2 model cache
-        if: always()
-        uses: actions/cache/save@v4
-        with:
-          path: ~/.cache/huggingface
-          key: hf-moondream2-2025-01-09-v1
-
-      # ── 7. Summary ─────────────────────────────────────────────────────────
+      # ── 5. Summary ─────────────────────────────────────────────────────────
       - name: Job summary
         if: always()
         run: |
@@ -142,12 +116,12 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
           echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
-          echo "| Vision model | Moondream2 (vikhyatk/moondream2@2025-01-09) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Vision model | Gemini 2.0 Flash (free API, ~5s/image) |" >> $GITHUB_STEP_SUMMARY
           echo "| SEO strategy | Visual analysis → unique title + 30 keywords |" >> $GITHUB_STEP_SUMMARY
           echo "| SEO count | ${{ github.event.inputs.count || 'ALL pending' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Scan Drive | ${{ github.event.inputs.scan_drive || 'true' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Drive folder | ${{ vars.PNG_LIBRARY_FOLDER || 'png_library_images' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Preview repo | ${{ vars.PREVIEW_REPO || 'guruimageusha' }}/${{ vars.PREVIEW_FOLDER || 'preview_webp' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Model cache | ${{ steps.hf-cache.outputs.cache-hit == 'true' && 'HIT ✅' || 'MISS — downloaded this run' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Gemini free tier | 1500 req/day · 15 req/min · no credit card |" >> $GITHUB_STEP_SUMMARY
           echo "| Job timeout | 5 hours (auto-restarts if still pending) |" >> $GITHUB_STEP_SUMMARY
           echo "| Triggered by | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
