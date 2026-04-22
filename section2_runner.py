@@ -17,8 +17,11 @@ WATERMARK_TEXT  = "www.ultrapng.com"
 INSTANT_CAP     = 2000
 
 # ── Gemini replaces Moondream2 ─────────────────────────────────────────────
-# Free tier: 1500 req/day, 15 req/min, zero cost, no model download, ~1s/call
-GEMINI_MODEL   = "gemini-2.0-flash"
+# ⚠  gemini-2.0-flash was DEPRECATED Feb 2026 & RETIRED March 3, 2026 — DO NOT USE
+# Free tier (April 2026): gemini-2.5-flash-lite = 1000 req/day, 15 req/min
+# gemini-2.5-flash       = 250–500 req/day, 10 req/min  (fallback)
+# gemini-2.5-pro         = 100 req/day,     5  req/min  (heavy tasks only)
+GEMINI_MODEL   = "gemini-2.5-flash-lite"          # ← 1000 RPD free tier
 GEMINI_API_URL = (
     f"https://generativelanguage.googleapis.com/v1beta/models/"
     f"{GEMINI_MODEL}:generateContent"
@@ -27,9 +30,9 @@ GEMINI_API_URL = (
 MAX_RUN_SECONDS = 17_400   # 4h50m
 _RUN_START      = time.time()
 
-# ── Rate-limit guard: 14 req/min (free tier cap is 15/min) ────────────────
+# ── Rate-limit guard: 14 req/min (gemini-2.5-flash-lite cap is 15/min) ───
 _GEMINI_WINDOW: List[float] = []
-_GEMINI_MAX_PER_MIN = 14
+_GEMINI_MAX_PER_MIN = 14   # 1 below 15 RPM cap — safe margin
 
 
 def _gemini_rate_wait() -> None:
@@ -470,7 +473,8 @@ def _today() -> str:
 
 
 # ══════════════════════════════════════════════════════════════
-# VISION SEO — Gemini 2.0 Flash (replaces Moondream2)
+# VISION SEO — Gemini 2.5 Flash-Lite (replaces retired 2.0 Flash)
+# Free tier: 1000 req/day · 15 req/min · April 2026
 # ══════════════════════════════════════════════════════════════
 
 _COLOR_WORDS = [
@@ -507,7 +511,8 @@ def _clean_subject(raw: str) -> str:
 
 def _gemini_describe(img_bytes: bytes, subject: str) -> str:
     """
-    Gemini 2.0 Flash vision API — free tier: 1500/day, 15/min.
+    Gemini 2.5 Flash-Lite vision API — free tier: 1000 req/day, 15 req/min.
+    (gemini-2.0-flash retired March 3 2026 — migrated to 2.5-flash-lite)
     Returns a short 1-sentence visual description of the image.
     """
     import requests
@@ -1020,12 +1025,12 @@ def main() -> None:
             pass
 
     gemini_key  = os.environ.get("GEMINI_API_KEY", "").strip()
-    vision_mode = ("Gemini 2.0 Flash ✅ (free API, ~1s/image)"
+    vision_mode = ("Gemini 2.5 Flash-Lite ✅ (free API, ~1s/image, 1000/day)"
                    if gemini_key else
                    "Template only ⚠️  (add GEMINI_API_KEY secret for vision)")
 
     print("=" * 65)
-    print("  Section 2 — SEO JSON Builder  (V5.0 — Gemini Flash Vision)")
+    print("  Section 2 — SEO JSON Builder  (V6.0 — Gemini 2.5 Flash-Lite Vision)")
     print(f"  Requested count : {requested if requested else 'ALL pending'}")
     print(f"  Safety cap      : {INSTANT_CAP}")
     print(f"  Max per JSON    : {max_per_file}")
