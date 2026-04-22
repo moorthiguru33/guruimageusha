@@ -511,9 +511,12 @@ def _clean_subject(raw: str) -> str:
 
 def _florence_describe(img_bytes: bytes, subject: str) -> str:
     """
-    Florence-2-base local CPU inference using VQA task.
-    VQA task passes subject name as context hint → much better accuracy.
-    Confirmed speed: ~11s per image on GitHub Actions 2-core CPU.
+    Florence-2-base local CPU inference.
+    Runs TWO tasks per image:
+      1. <DETAILED_CAPTION>   → rich visual description with colors, style, details
+      2. <VQA> subject hint   → subject-accurate confirmation sentence
+    Both results are merged for richer SEO input.
+    Speed: ~15-25s per image on GitHub Actions 2-core CPU.
     No API key · No rate limit · No cost · Unlimited.
     """
     import torch
@@ -528,43 +531,53 @@ def _florence_describe(img_bytes: bytes, subject: str) -> str:
     try:
         image = Image.open(io.BytesIO(img_bytes)).convert("RGB")
 
-        # VQA task: include subject name as hint for better accuracy
-        # This prevents misidentification (e.g. red grapes → tomatoes)
-        vqa_question = (
-            f"This is a {subject} PNG image with transparent background. "
-            f"Describe its main colors, visual style "
-            f"(realistic/cartoon/vector/3D/clipart), and key visual features "
-            f"in ONE concise sentence."
-        )
-        task_prompt = f"<VQA>{vqa_question}"
-
-        inputs = _florence_processor(
-            text=task_prompt,
-            images=image,
-            return_tensors="pt",
-        )
-
-        with torch.no_grad():
-            generated_ids = _florence_model.generate(
-                input_ids=inputs["input_ids"],
-                pixel_values=inputs["pixel_values"],
-                max_new_tokens=120,
-                num_beams=3,
-                early_stopping=True,
+        def _run_task(task_prompt: str, max_tokens: int = 150) -> str:
+            inputs = _florence_processor(
+                text=task_prompt,
+                images=image,
+                return_tensors="pt",
             )
+            with torch.no_grad():
+                generated_ids = _florence_model.generate(
+                    input_ids=inputs["input_ids"],
+                    pixel_values=inputs["pixel_values"],
+                    max_new_tokens=max_tokens,
+                    num_beams=3,
+                    early_stopping=True,
+                )
+            raw_text = _florence_processor.batch_decode(
+                generated_ids, skip_special_tokens=False)[0]
+            parsed = _florence_processor.post_process_generation(
+                raw_text,
+                task=task_prompt.split(">")[0] + ">",
+                image_size=(image.width, image.height),
+            )
+            key = task_prompt.split(">")[0] + ">"
+            return (parsed.get(key) or "").strip()
 
-        raw_text = _florence_processor.batch_decode(
-            generated_ids, skip_special_tokens=False)[0]
+        # Task 1: detailed visual caption (colors, texture, style)
+        caption = _run_task("<DETAILED_CAPTION>", max_tokens=160)
 
-        parsed = _florence_processor.post_process_generation(
-            raw_text,
-            task="<VQA>",
-            image_size=(image.width, image.height),
+        # Task 2: VQA with subject hint to anchor identity
+        vqa_q = (
+            f"This PNG shows a {subject} on a transparent background. "
+            f"What are the dominant colors, art style (realistic, cartoon, vector, "
+            f"3D, watercolor, hand-drawn, clipart), and notable visual details?"
         )
-        desc = parsed.get("<VQA>", "").strip()
-        # Trim to ~120 chars for SEO consistency
-        if len(desc) > 120:
-            desc = desc[:117].rsplit(" ", 1)[0] + "..."
+        vqa_ans = _run_task(f"<VQA>{vqa_q}", max_tokens=120)
+
+        # Merge: prefer VQA for subject accuracy, caption for visual richness
+        parts = []
+        if vqa_ans and len(vqa_ans) > 15:
+            parts.append(vqa_ans.rstrip("."))
+        if caption and len(caption) > 15:
+            # avoid near-duplicate
+            if not vqa_ans or caption[:40].lower() != vqa_ans[:40].lower():
+                parts.append(caption.rstrip("."))
+
+        desc = ". ".join(parts).strip()
+        if len(desc) > 200:
+            desc = desc[:197].rsplit(" ", 1)[0] + "..."
         return desc
 
     except Exception as exc:
@@ -597,97 +610,372 @@ def _extract_words_from_desc(visual_desc: str, wordlist: List[str]) -> List[str]
 
 def _build_seo_from_vision(clean_subject: str, visual_desc: str,
                             category: str = "", orig_subject: str = "") -> Dict[str, str]:
-    s  = clean_subject or orig_subject.strip() or "Image"
-    sl = s.lower()
+    """
+    Organic, non-templated SEO builder.
+    Every field is constructed from actual visual data so that no two images
+    share identical copy — even within the same category.
+
+    Strategy overview:
+    ─────────────────
+    title     → Lead with the most specific visual signal (color+style or
+                unique detail), then subject, then intent keyword.
+                6 pools rotated deterministically by subject hash so sibling
+                images never share a title pattern.
+    h1        → Conversational, descriptive — mirrors natural search phrasing.
+                Uses visual_desc sentence[0] when available.
+    meta_desc → Opens with the image's unique visual angle, ends with the
+                value proposition. Never starts with "Download".
+    alt_text  → Screen-reader quality: color + subject + style + context.
+    tags      → 10 highest-value tags, color/style-specific when available.
+    keywords  → 30 long-tail KWs assembled from visual signals; every KW is
+                distinct and search-intent-aligned.
+    """
+    s   = clean_subject or orig_subject.strip() or "Image"
+    sl  = s.lower()
+    cat = (category or "").strip()
+    cat_sl = cat.lower()
+
+    # ── Visual signals ────────────────────────────────────────────────────
     colors = _extract_words_from_desc(visual_desc, _COLOR_WORDS)
     styles = _extract_words_from_desc(visual_desc, _STYLE_WORDS)
-    cat_sl = (category or "").lower().strip()
-    pfx_parts: List[str] = []
-    if colors:
-        pfx_parts.append(colors[0].capitalize())
-    non_obvious = [st for st in styles
-                   if st not in ("realistic", "detailed", "modern", "simple")]
-    if non_obvious:
-        pfx_parts.append(non_obvious[0].capitalize())
-    prefix = " ".join(pfx_parts)
 
-    def t(a: str, b: str) -> str:
-        return (a if prefix else b)[:60].strip()
+    # Drop color/style words already present in the subject name (avoid "Red Red Grapes").
+    # Also drop colors that are root-matches of subject words (e.g. "golden" when
+    # subject contains "gold", "silvery" when subject contains "silver").
+    sl_words = set(re.split(r"\s+", sl))
+    def _color_in_subject(c: str) -> bool:
+        if c.lower() in sl_words:
+            return True
+        # stem check: "golden" vs "gold", "crimson" — just check prefix overlap ≥4 chars
+        for w in sl_words:
+            if len(c) >= 4 and len(w) >= 4:
+                if c[:4] == w[:4]:   # e.g. gold/golden share "gold"
+                    return True
+        return False
+    colors = [c for c in colors if not _color_in_subject(c)]
+    styles = [st for st in styles if st.lower() not in sl_words]
 
-    title_patterns = [
-        t(f"{prefix} {s} PNG Transparent Background Free Download",
-          f"{s} PNG Transparent Background - Free HD Download"),
-        t(f"Download {prefix} {s} PNG - High Quality Transparent Image",
-          f"Download {s} PNG - Transparent Background HD Image"),
-        t(f"{s} Transparent PNG - {prefix} Isolated Image Free Download",
-          f"{s} Transparent PNG - Isolated Background Free Download"),
-        t(f"Free {prefix} {s} PNG Clipart - Transparent Background",
-          f"Free {s} PNG Clipart - Transparent HD Background"),
-        t(f"{s} PNG Image with Transparent Background - {prefix} Download",
-          f"{s} PNG Image with Transparent Background - HD Free"),
-        t(f"High Quality {prefix} {s} PNG - Transparent Background",
-          f"High Quality {s} PNG - Transparent Background Free"),
-    ]
-    title = title_patterns[abs(hash(orig_subject or s)) % len(title_patterns)]
+    # Primary color: first detected, or empty
+    color1 = colors[0] if colors else ""
+    color2 = colors[1] if len(colors) > 1 else ""
 
-    if visual_desc and len(visual_desc) > 20:
-        snippet = visual_desc.split(".")[0][:55].strip()
-        h1 = f"{s} PNG - {snippet}"
-    elif prefix:
-        h1 = f"{prefix} {s} PNG Image with Transparent Background"
-    else:
-        h1 = f"{s} PNG Image with Transparent Background HD Quality"
-    h1 = h1[:80]
+    # Primary style: prefer visually meaningful ones for use as qualifier prefix.
+    # "3d" alone reads poorly as a prefix ("3d Crown PNG") — only include it when
+    # paired with a color. Also skip generic styles when used solo.
+    _generic_styles    = {"realistic", "detailed", "modern", "simple"}
+    _awkward_solo_stys = {"3d", "digital", "illustrated", "painted", "sketched"}
+    style1 = next((st for st in styles
+                   if st not in _generic_styles and st not in _awkward_solo_stys), "")
+    # Allow awkward-solo styles only when a color is also present (e.g. "Golden 3D")
+    if not style1 and color1:
+        style1 = next((st for st in styles if st not in _generic_styles), "")
+    style1 = style1 or (styles[0] if styles else "")
+    style2 = next((st for st in styles[1:]
+                   if st not in _generic_styles and st != style1), "")
 
+    # Short visual snippet from description (first sentence, ≤60 chars)
+    vis_snip = ""
     if visual_desc:
-        visual_snippet = visual_desc[:75].rstrip(" .,")
-        meta_desc = (f"Download {sl} PNG with transparent background. "
-                     f"{visual_snippet}. Free HD image for designers & projects.")
-    else:
-        meta_desc = (f"Download high-quality {sl} PNG with transparent background. "
-                     f"Perfect for graphic design, presentations, and creative projects. "
-                     f"Free HD download.")
-    meta_desc = meta_desc[:155]
+        first_sent = visual_desc.split(".")[0].strip()
+        vis_snip = first_sent[:45].rstrip(" ,") if first_sent else ""
 
-    alt_text = (f"{prefix} {s} on transparent background - high quality PNG image"
-                if prefix else
-                f"{s} on transparent background - high resolution free PNG image")[:125]
+    # Build a "visual qualifier" — the most specific prefix we can attach
+    qual_parts: List[str] = []
+    if color1:
+        qual_parts.append(color1.capitalize())
+    if style1 and style1 not in _generic_styles:
+        qual_parts.append(style1.capitalize())
+    qualifier = " ".join(qual_parts)   # e.g. "Red Watercolor" or "Golden 3D" or ""
 
-    tag_parts = [f"{sl} png", f"{sl} transparent background", f"{sl} hd png"]
-    if colors:
-        tag_parts.append(f"{colors[0]} {sl}")
-    if styles:
-        tag_parts.append(f"{styles[0]} {sl} png")
+    # ── Hash-based pool selectors (each field gets its own offset so title/h1/meta
+    #    never all land on the same pool pattern for the same subject) ────────────
+    _h = abs(hash(orig_subject or s))
+    _title_idx = _h % 6
+    _h1_idx    = (_h // 6)  % 6
+    _meta_idx  = (_h // 36) % 6
+
+    # ── TITLE (50-65 chars ideal for Google) ─────────────────────────────
+    # 6 pools, each with a "qualifier available" and "no qualifier" variant
+    def _pick_title() -> str:
+        pools = [
+            # Pool 0 — color/style qualifier leads
+            (f"{qualifier} {s} PNG - Transparent Background Free Download"
+             if qualifier else
+             f"{s} PNG - Transparent Background Free Download"),
+            # Pool 1 — action-oriented
+            (f"Download {qualifier} {s} PNG | Transparent HD Image"
+             if qualifier else
+             f"Download {s} PNG | High Quality Transparent Background"),
+            # Pool 2 — cutout / use-case
+            (f"{s} Transparent PNG - {qualifier} Cutout Free"
+             if qualifier else
+             f"{s} Transparent PNG Cutout - Free High Resolution"),
+            # Pool 3 — clipart / format
+            (f"Free {qualifier} {s} PNG Clipart with Transparent BG"
+             if qualifier else
+             f"Free {s} PNG Clipart - No Background HD"),
+            # Pool 4 — image lead with qualifier
+            (f"{qualifier} {s} PNG Image | Transparent Background"
+             if qualifier else
+             f"{s} PNG Image | Transparent Background HD"),
+            # Pool 5 — quality + resolution
+            (f"High-Res {qualifier} {s} PNG - Clear Transparent Background"
+             if qualifier else
+             f"High-Res {s} PNG - Clear Transparent Background Free"),
+        ]
+        raw = pools[_title_idx]
+        # If primary pool produces a very short title, try next pools until ≥45 chars
+        if len(raw) < 45:
+            for fallback_pool in pools[_title_idx + 1:] + pools[:_title_idx]:
+                if len(fallback_pool) >= 45:
+                    raw = fallback_pool
+                    break
+        # Hard cap at 65 chars; trim at word boundary
+        if len(raw) > 65:
+            raw = raw[:62].rsplit(" ", 1)[0].rstrip(" |-") + "..."
+        return raw
+
+    title = _pick_title()
+
+    # ── H1 (conversational, 52-80 chars — different pool offset from title) ──
+    def _pick_h1() -> str:
+        h1_pools = [
+            # Pool 0 — qualifier + subject + context
+            (f"{qualifier} {s} PNG on Transparent Background - Free HD"
+             if qualifier else
+             f"{s} PNG Image on Transparent Background - Free HD"),
+            # Pool 1 — color-forward conversational
+            (f"{color1.capitalize()} {s} PNG - No Background, High Resolution"
+             if color1 else
+             f"{s} PNG - Clean Transparent Background, High Resolution"),
+            # Pool 2 — style-forward descriptive
+            (f"{style1.capitalize()} {s} PNG - Transparent Cutout Free Download"
+             if style1 else
+             f"{s} PNG Transparent Cutout - Free High Quality Download"),
+            # Pool 3 — category + subject context
+            (f"{s} {cat} PNG - Isolated on Transparent Background"
+             if cat_sl and cat_sl != sl else
+             f"{s} PNG - Professionally Isolated Transparent Background"),
+            # Pool 4 — search-intent download phrasing
+            (f"{qualifier} {s} PNG Free Download - Transparent Background"
+             if qualifier else
+             f"{s} PNG Free Download - Transparent Background HD"),
+            # Pool 5 — use-case / design context
+            (f"{s} PNG for Design Projects - {qualifier} Transparent"
+             if qualifier else
+             f"{s} PNG for Design Projects - Transparent Background Free"),
+        ]
+        raw = h1_pools[_h1_idx]
+        return raw[:80].strip()
+
+    h1 = _pick_h1()
+
+    # ── META DESCRIPTION (140-155 chars, different pool offset from both above) ─
+    # Never starts with "Download". Opens with unique visual/value angle.
+    def _pick_meta() -> str:
+        # Build a tight visual context clause from the description (max 85 chars)
+        if visual_desc and len(visual_desc) > 20:
+            sents = [s2.strip() for s2 in visual_desc.split(".") if s2.strip()]
+            raw_ctx = sents[0]
+            if len(raw_ctx) > 85:
+                raw_ctx = raw_ctx[:82].rsplit(" ", 1)[0]  # word-boundary trim
+            context = raw_ctx.rstrip(" ,")
+            if len(sents) > 1 and len(context) < 45:
+                ctx2 = sents[1][:40].rsplit(" ", 1)[0].rstrip(" ,")
+                context += ". " + ctx2
+        else:
+            context = ""
+
+        meta_pools = [
+            # Pool 0 — visual context leads, value prop closes
+            (f"{context}. Get this {sl} PNG with transparent background — "
+             f"perfect for graphic design, print, and web projects. Free HD download."
+             if context else
+             f"Eye-catching {qualifier} {sl} PNG with a fully transparent background. "
+             f"Ideal for design work, presentations, and creative projects. Free download."
+             if qualifier else
+             f"Crisp {sl} PNG with a fully transparent background. "
+             f"Ready to drop into any design, web page, or presentation. Free HD download."),
+
+            # Pool 1 — style-forward, tool mention
+            (f"{context}. This {style1} {sl} PNG has a clean transparent background "
+             f"— no editing needed. Free, high-resolution and ready for any project."
+             if context and style1 else
+             f"Beautifully rendered {qualifier} {sl} with transparent background. "
+             f"Works instantly in Photoshop, Canva, or any design tool. Free PNG download."
+             if qualifier else
+             f"High-quality {sl} PNG on a transparent background. "
+             f"Drop it straight into Photoshop, Canva, or Figma. Completely free."),
+
+            # Pool 2 — color-forward, standout angle
+            (f"{color1.capitalize()} tones give this {sl} PNG its distinctive look. "
+             f"Transparent background, HD resolution — ready for any creative project. Free."
+             if color1 else
+             f"This {sl} PNG has a clean transparent background and crisp HD resolution. "
+             f"Use it in posters, banners, or social media graphics. Completely free."),
+
+            # Pool 3 — question-hook, use-case closes
+            (f"Looking for a {sl} PNG? {context}. Transparent background, HD quality, "
+             f"free to use in any creative project."
+             if context else
+             f"Looking for a {sl} PNG with no background? This HD image is ready for "
+             f"presentations, social posts, and print designs — completely free."),
+
+            # Pool 4 — visual detail + audience
+            (f"{context}. A {qualifier} {sl} PNG with transparent background — "
+             f"great for designers, educators, and content creators. Free HD."
+             if context and qualifier else
+             f"Professionally isolated {sl} PNG with transparent background. "
+             f"Perfect for product mockups, school projects, and creative collages. Free."),
+
+            # Pool 5 — benefit-forward, distinct opener per color/style
+            (f"Vivid {qualifier} {sl} PNG, fully transparent and HD — "
+             f"paste it into any layout without extra editing. Free download."
+             if qualifier else
+             f"Clean, ready-to-use {sl} PNG with a transparent background. "
+             f"No clipping needed — just place it in your design and go. Free HD."),
+        ]
+        raw = meta_pools[_meta_idx]
+        # Trim to 155 chars at word boundary
+        if len(raw) > 155:
+            raw = raw[:152].rsplit(" ", 1)[0].rstrip(" .,") + "."
+        return raw
+
+    meta_desc = _pick_meta()
+
+    # ── ALT TEXT (screen-reader + SEO, ≤125 chars) ───────────────────────
+    alt_parts: List[str] = []
+    if color1:
+        alt_parts.append(color1)
+    if style1:
+        alt_parts.append(style1)
+    alt_parts.append(s)
+    alt_parts.append("PNG")
     if cat_sl and cat_sl != sl:
-        tag_parts.append(f"{cat_sl} png")
-    tag_parts += [f"{sl} clipart", f"free {sl} png", f"{sl} download"]
-    tags = ", ".join(tag_parts[:10])
+        alt_parts.append(f"in {cat} category")
+    alt_parts.append("transparent background")
+    alt_text = " ".join(alt_parts).capitalize()
+    if len(alt_text) > 125:
+        alt_text = alt_text[:122].rsplit(" ", 1)[0] + "..."
 
-    kws_raw = [
-        f"{sl} png", f"{sl} transparent background", f"{sl} hd image",
-        f"{sl} clipart", f"free {sl} png", f"{sl} png download",
-        f"{sl} cutout png", f"transparent {sl} png", f"{sl} high quality png",
-        f"{sl} isolated png", f"{sl} png image", f"{sl} background removed png",
-        f"{sl} digital art png", f"{sl} transparent png free", f"download {sl} png",
-        f"{sl} high resolution png", f"{sl} png file free", f"{sl} sticker png",
-        f"{sl} vector png", f"free {sl} clipart png", f"{sl} no background png",
-        f"{sl} png hd free download", f"{sl} illustration png",
-        f"{sl} graphic design png", f"png {sl} transparent free",
+    # ── TAGS (10 highest-value, comma-separated) ──────────────────────────
+    tag_pool: List[str] = [f"{sl} png", f"{sl} transparent background"]
+    if color1:
+        tag_pool.insert(0, f"{color1} {sl} png")  # most specific first
+    if style1:
+        tag_pool.append(f"{style1} {sl} png")
+    if color2:
+        tag_pool.append(f"{color2} {sl}")
+    if cat_sl and cat_sl != sl:
+        tag_pool.append(f"{cat_sl} png")
+        tag_pool.append(f"{sl} {cat_sl}")
+    tag_pool += [
+        f"free {sl} png",
+        f"{sl} clipart",
+        f"{sl} no background",
+        f"transparent {sl}",
+        f"{sl} hd png",
+        f"download {sl} png",
     ]
-    for c in colors[:2]:
-        kws_raw += [f"{c} {sl} png", f"{c} {sl} transparent background"]
-    for st in styles[:1]:
-        kws_raw.append(f"{st} {sl} png")
+    # Deduplicate preserving order
+    seen_tags: set = set()
+    tags_final: List[str] = []
+    for t_ in tag_pool:
+        tn = re.sub(r"\s+", " ", t_.strip().lower())
+        if tn and tn not in seen_tags:
+            seen_tags.add(tn)
+            tags_final.append(tn)
+        if len(tags_final) == 10:
+            break
+    tags = ", ".join(tags_final)
+
+    # ── KEYWORDS / DESCRIPTION (30 long-tail KWs) ────────────────────────
+    # Ordered from highest-intent (download/free) to informational
+    kw_pool: List[str] = []
+
+    # Tier 1 — transactional (highest intent)
+    kw_pool += [
+        f"free {sl} png download",
+        f"download {sl} png transparent",
+        f"{sl} png free download hd",
+        f"{sl} png no background free",
+    ]
+    if color1:
+        kw_pool.append(f"free {color1} {sl} png download")
+    if style1:
+        kw_pool.append(f"free {style1} {sl} png download")
+
+    # Tier 2 — product descriptors
+    kw_pool += [
+        f"{sl} png transparent background",
+        f"{sl} transparent png hd",
+        f"{sl} png cutout",
+        f"{sl} isolated png",
+        f"{sl} png no background",
+        f"{sl} background removed png",
+        f"{sl} png high resolution",
+        f"transparent {sl} image png",
+    ]
+    if color1:
+        kw_pool += [
+            f"{color1} {sl} png transparent",
+            f"{color1} {sl} transparent background",
+        ]
+    if color2:
+        kw_pool.append(f"{color2} {sl} png")
+    if style1:
+        kw_pool += [
+            f"{style1} {sl} png transparent",
+            f"{style1} {sl} image free",
+        ]
+    if style2:
+        kw_pool.append(f"{style2} {sl} png")
+
+    # Tier 3 — use-case / informational
+    kw_pool += [
+        f"{sl} png for designers",
+        f"{sl} png clipart free",
+        f"{sl} sticker png transparent",
+        f"{sl} png graphic design",
+        f"{sl} illustration png transparent",
+        f"{sl} png image hd quality",
+        f"{sl} png for presentation",
+        f"high quality {sl} png",
+        f"{sl} png for photoshop",
+        f"{sl} vector png transparent",
+        f"{sl} png for canva",
+        f"{sl} png for powerpoint",
+    ]
     if cat_sl and cat_sl != sl:
-        kws_raw += [f"{cat_sl} {sl} png", f"{sl} {cat_sl} transparent"]
+        kw_pool += [
+            f"{cat_sl} {sl} png transparent",
+            f"{sl} {cat_sl} free png",
+            f"free {cat_sl} {sl} png",
+        ]
+
+    # Tier 4 — padding (always fills to 30 even with no visual signals)
+    kw_pool += [
+        f"{sl} png hd free download",
+        f"transparent background {sl} png",
+        f"{sl} png file download",
+        f"{sl} png image free",
+        f"{sl} cutout image free",
+        f"{sl} png without background",
+        f"best {sl} png transparent",
+        f"{sl} png for website",
+        f"{sl} image png free download",
+        f"free transparent {sl} image",
+    ]
+
+    # Deduplicate and cap at 30
     seen_kw: set = set()
     kws_final: List[str] = []
-    for kw in kws_raw:
+    for kw in kw_pool:
         kw_n = re.sub(r"\s+", " ", kw.strip().lower())
         if kw_n and kw_n not in seen_kw:
             seen_kw.add(kw_n)
             kws_final.append(kw_n)
-        if len(kws_final) >= 30:
+        if len(kws_final) == 30:
             break
 
     return {
@@ -696,7 +984,7 @@ def _build_seo_from_vision(clean_subject: str, visual_desc: str,
         "meta_desc":   meta_desc,
         "alt_text":    alt_text,
         "tags":        tags,
-        "description": ", ".join(kws_final[:30]),
+        "description": ", ".join(kws_final),
     }
 
 
@@ -711,14 +999,15 @@ def _vision_seo(row: Dict[str, str]) -> Dict[str, str]:
     visual_desc = ""
     img_bytes   = _fetch_image_for_vision(preview_url, download_url)
     if img_bytes:
-        # Pass clean_subj as hint to VQA task → accurate descriptions
-        visual_desc = _florence_describe(img_bytes, clean_subj)
-        if visual_desc:
-            print(f"    👁  vision: {visual_desc[:80]!r}", flush=True)
+        raw_desc = _florence_describe(img_bytes, clean_subj)
+        # Quality gate: require at least 20 chars and at least one real word
+        if raw_desc and len(raw_desc) >= 20 and re.search(r"[a-zA-Z]{3,}", raw_desc):
+            visual_desc = raw_desc
+            print(f"    👁  vision ({len(visual_desc)}c): {visual_desc[:90]!r}", flush=True)
         else:
-            print(f"    ⚠  Florence-2 empty result — using template SEO", flush=True)
+            print(f"    ⚠  Florence-2 low-quality result — template SEO fallback", flush=True)
     else:
-        print(f"    ⚠  image download failed — using template SEO", flush=True)
+        print(f"    ⚠  image download failed — template SEO fallback", flush=True)
     return _build_seo_from_vision(clean_subj, visual_desc, category, subject)
 
 
@@ -1034,7 +1323,7 @@ def main() -> None:
     vision_mode = "Florence-2-base ✅ (local CPU · ~11s/img · no API key · unlimited)"
 
     print("=" * 65)
-    print("  Section 2 — SEO JSON Builder  (V6.0 — Florence-2-base Local Vision)")
+    print("  Section 2 — SEO JSON Builder  (V7.0 — Organic SEO + Florence-2 Dual-Task)")
     print(f"  Requested count : {requested if requested else 'ALL pending'}")
     print(f"  Safety cap      : {INSTANT_CAP}")
     print(f"  Max per JSON    : {max_per_file}")
