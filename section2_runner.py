@@ -17,11 +17,12 @@ WATERMARK_TEXT  = "www.ultrapng.com"
 INSTANT_CAP     = 2000
 
 # ── Gemini replaces Moondream2 ─────────────────────────────────────────────
-# ⚠  gemini-2.0-flash was DEPRECATED Feb 2026 & RETIRED March 3, 2026 — DO NOT USE
-# Free tier (April 2026): gemini-2.5-flash-lite = 1000 req/day, 15 req/min
-# gemini-2.5-flash       = 250–500 req/day, 10 req/min  (fallback)
-# gemini-2.5-pro         = 100 req/day,     5  req/min  (heavy tasks only)
-GEMINI_MODEL   = "gemini-2.5-flash-lite"          # ← 1000 RPD free tier
+# ⚠  gemini-2.0-flash: deprecated Feb 2026, shutdown June 2026 — migrating now
+# Free tier (April 2026):
+#   gemini-2.5-flash-lite  → 1000 RPD · 15 RPM  ← USED (best throughput)
+#   gemini-2.5-flash       →  250 RPD · 10 RPM  (fallback)
+#   gemini-2.5-pro         →  100 RPD ·  5 RPM  (heavy tasks only)
+GEMINI_MODEL   = "gemini-2.5-flash-lite"
 GEMINI_API_URL = (
     f"https://generativelanguage.googleapis.com/v1beta/models/"
     f"{GEMINI_MODEL}:generateContent"
@@ -30,23 +31,37 @@ GEMINI_API_URL = (
 MAX_RUN_SECONDS = 17_400   # 4h50m
 _RUN_START      = time.time()
 
-# ── Rate-limit guard: 14 req/min (gemini-2.5-flash-lite cap is 15/min) ───
-_GEMINI_WINDOW: List[float] = []
-_GEMINI_MAX_PER_MIN = 14   # 1 below 15 RPM cap — safe margin
+# ── Rate-limit guard ──────────────────────────────────────────────────────
+# Flash-Lite: 15 RPM official, but Google enforces burst strictly.
+# FIX: enforce BOTH a sliding window AND a mandatory per-request spacing.
+# 6s gap = max 10/min effective rate → eliminates burst 429s completely.
+_GEMINI_WINDOW:       List[float] = []
+_GEMINI_MAX_PER_MIN = 10          # conservative — actual limit varies by account
+_GEMINI_MIN_SPACING = 6.0         # seconds between ANY two requests (anti-burst)
+_GEMINI_LAST_CALL   = 0.0         # timestamp of most recent call
 
 
 def _gemini_rate_wait() -> None:
+    global _GEMINI_LAST_CALL
+    # 1) Enforce minimum spacing between consecutive requests (anti-burst)
+    gap = time.time() - _GEMINI_LAST_CALL
+    if gap < _GEMINI_MIN_SPACING:
+        time.sleep(_GEMINI_MIN_SPACING - gap)
+
+    # 2) Sliding-window guard: max _GEMINI_MAX_PER_MIN in the last 60 s
     now    = time.time()
     cutoff = now - 60.0
     while _GEMINI_WINDOW and _GEMINI_WINDOW[0] < cutoff:
         _GEMINI_WINDOW.pop(0)
     if len(_GEMINI_WINDOW) >= _GEMINI_MAX_PER_MIN:
-        sleep_for = 60.0 - (now - _GEMINI_WINDOW[0]) + 0.5
+        sleep_for = 61.0 - (now - _GEMINI_WINDOW[0])
         if sleep_for > 0:
-            print(f"    [rate-limit] {sleep_for:.1f}s pause (14/min cap) ...",
-                  flush=True)
+            print(f"    [rate-limit] {sleep_for:.1f}s window pause "
+                  f"({_GEMINI_MAX_PER_MIN}/min cap) ...", flush=True)
             time.sleep(sleep_for)
-    _GEMINI_WINDOW.append(time.time())
+
+    _GEMINI_LAST_CALL = time.time()
+    _GEMINI_WINDOW.append(_GEMINI_LAST_CALL)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -474,7 +489,7 @@ def _today() -> str:
 
 # ══════════════════════════════════════════════════════════════
 # VISION SEO — Gemini 2.5 Flash-Lite (replaces retired 2.0 Flash)
-# Free tier: 1000 req/day · 15 req/min · April 2026
+# Free tier: 1000 req/day · 15 RPM · 6s min spacing enforced
 # ══════════════════════════════════════════════════════════════
 
 _COLOR_WORDS = [
@@ -511,17 +526,18 @@ def _clean_subject(raw: str) -> str:
 
 def _gemini_describe(img_bytes: bytes, subject: str) -> str:
     """
-    Gemini 2.5 Flash-Lite vision API — free tier: 1000 req/day, 15 req/min.
-    (gemini-2.0-flash retired March 3 2026 — migrated to 2.5-flash-lite)
-    Returns a short 1-sentence visual description of the image.
+    Gemini 2.5 Flash-Lite vision API.
+    Free tier (April 2026): 1000 req/day · 15 RPM official.
+    Anti-burst: _gemini_rate_wait() enforces 6s min spacing (10 req/min effective).
+    Retry: reads Retry-After header, then exponential backoff with jitter.
     """
-    import requests
+    import requests, random
 
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
     if not api_key:
         return ""
 
-    _gemini_rate_wait()
+    _gemini_rate_wait()   # spacing + sliding-window guard
 
     mime = "image/png"
     if img_bytes[:3] == b"\xff\xd8\xff":
@@ -530,7 +546,7 @@ def _gemini_describe(img_bytes: bytes, subject: str) -> str:
         mime = "image/webp"
 
     prompt = (
-        f"This PNG shows '{subject}'. "
+        f"This PNG shows \'{subject}\'. "
         "In ONE short sentence (max 120 chars) describe: "
         "main colors, visual style (realistic/cartoon/vector/clipart/3D), "
         "and any distinctive features. Be factual and concise."
@@ -546,14 +562,25 @@ def _gemini_describe(img_bytes: bytes, subject: str) -> str:
     }
 
     url = f"{GEMINI_API_URL}?key={api_key}"
-    for attempt in range(1, 4):
+    MAX_ATTEMPTS = 5
+    for attempt in range(1, MAX_ATTEMPTS + 1):
         try:
             r = requests.post(url, json=payload, timeout=30)
+
             if r.status_code == 429:
-                wait = 20 * attempt
-                print(f"    [Gemini] 429 — waiting {wait}s ...", flush=True)
+                # Read Retry-After header first; fallback to exponential backoff
+                retry_after = r.headers.get("Retry-After") or r.headers.get("retry-after")
+                if retry_after:
+                    wait = float(retry_after) + 2
+                else:
+                    wait = min(15 * (2 ** (attempt - 1)), 120)  # 15→30→60→120
+                wait += random.uniform(1, 5)                     # jitter
+                print(f"    [Gemini] 429 (attempt {attempt}/{MAX_ATTEMPTS}) "
+                      f"— waiting {wait:.0f}s ...", flush=True)
                 time.sleep(wait)
+                _gemini_rate_wait()   # re-apply spacing after long sleep
                 continue
+
             r.raise_for_status()
             data = r.json()
             text = (data.get("candidates", [{}])[0]
@@ -561,12 +588,12 @@ def _gemini_describe(img_bytes: bytes, subject: str) -> str:
                         .get("parts", [{}])[0]
                         .get("text", "")).strip()
             return text
+
         except Exception as exc:
             print(f"    [Gemini] attempt {attempt} error: {exc}", flush=True)
-            if attempt < 3:
-                time.sleep(5 * attempt)
+            if attempt < MAX_ATTEMPTS:
+                time.sleep(6 * attempt)
     return ""
-
 
 def _fetch_image_for_vision(preview_url: str, download_url: str) -> Optional[bytes]:
     import requests
@@ -1025,12 +1052,12 @@ def main() -> None:
             pass
 
     gemini_key  = os.environ.get("GEMINI_API_KEY", "").strip()
-    vision_mode = ("Gemini 2.5 Flash-Lite ✅ (free API, ~1s/image, 1000/day)"
+    vision_mode = ("Gemini 2.5 Flash-Lite ✅ (free API, 1000/day, 6s spacing)"
                    if gemini_key else
                    "Template only ⚠️  (add GEMINI_API_KEY secret for vision)")
 
     print("=" * 65)
-    print("  Section 2 — SEO JSON Builder  (V6.0 — Gemini 2.5 Flash-Lite Vision)")
+    print("  Section 2 — SEO JSON Builder  (V6.0 — Gemini 2.5 Flash-Lite)")
     print(f"  Requested count : {requested if requested else 'ALL pending'}")
     print(f"  Safety cap      : {INSTANT_CAP}")
     print(f"  Max per JSON    : {max_per_file}")
