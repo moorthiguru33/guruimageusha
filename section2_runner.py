@@ -36,16 +36,16 @@ def _load_gemma_model():
     from transformers import AutoTokenizer, AutoModelForCausalLM
     print(f"  [Gemma] Loading {GEMMA_MODEL_ID} ...", flush=True)
 
-    hf_token = os.environ.get("HF_TOKEN")          # ← read Hugging Face token
+    hf_token = os.environ.get("HF_TOKEN")
     _gemma_tokenizer = AutoTokenizer.from_pretrained(
         GEMMA_MODEL_ID,
-        token=hf_token                             # ← pass token
+        token=hf_token
     )
     _gemma_model = AutoModelForCausalLM.from_pretrained(
         GEMMA_MODEL_ID,
         torch_dtype=torch.float32,
         device_map="cpu",
-        token=hf_token                             # ← pass token
+        token=hf_token
     )
     _gemma_model.eval()
     print("  [Gemma] Model ready ✓", flush=True)
@@ -479,37 +479,45 @@ def _clean_subject(raw: str) -> str:
     s = re.sub(r"\s+", " ", s).strip()
     return s.title() if s else raw.strip().title()
 
+def _extract_json(text: str) -> Optional[str]:
+    """Extract the first balanced JSON object from text."""
+    start = text.find('{')
+    if start == -1:
+        return None
+    count = 0
+    for i, ch in enumerate(text[start:], start):
+        if ch == '{':
+            count += 1
+        elif ch == '}':
+            count -= 1
+            if count == 0:
+                return text[start:i+1]
+    return None  # unbalanced
 
 def _gemma_generate_seo(clean_subject: str, category: str,
                         orig_subject: str) -> Dict[str, str]:
-    """
-    Use Gemma 3 1B to generate SEO fields from the subject + category.
-    Returns a dict with title, h1, meta_desc, alt_text, tags, description (comma‑separated keywords).
-    Falls back to a simple rule‑based builder if the model fails.
-    """
-    prompt = f"""You are an SEO expert. A PNG image exists with the subject "{clean_subject}". 
-The category is "{category}". The PNG has a transparent background and is free to download.
+    """Generate SEO fields using Gemma 3 1B from subject + category."""
+    prompt = f"""You are an SEO assistant. Output ONLY a JSON object (no extra text) for:
+Subject: {clean_subject}
+Category: {category}
 
-Generate a JSON object with the following keys:
-- title: an SEO-optimized page title (50-70 characters). Must contain the subject, "PNG", "Transparent", and a call to action like "Free Download".
-- h1: a friendly, conversational H1 heading (50-80 characters).
-- meta_desc: a meta description (140-160 characters) that includes the subject, mentions transparent background, and a benefit for designers.
-- alt_text: an alt attribute for the image (under 125 characters).
-- tags: exactly 10 relevant tags, comma-separated, such as "subject png, free subject png, ...".
-- keywords: exactly 30 long-tail keywords, comma-separated, covering free, transparent, high-quality, download, design uses, etc.
+Fields:
+- title: SEO page title (50-70 chars), must contain subject, "PNG", "Transparent", "Free Download".
+- h1: conversational H1 (50-80 chars).
+- meta_desc: meta description (140-160 chars), include transparent background benefit.
+- alt_text: alt attribute (under 125 chars).
+- tags: list of 10 relevant comma-separated tags.
+- keywords: list of exactly 30 comma-separated long-tail keywords.
 
-Return ONLY the JSON object, no extra commentary.
-Example JSON:
+Example:
 {{"title": "Golden Crown 3D Render PNG Transparent Background Free Download",
   "h1": "Golden Crown PNG on Transparent Background - Free HD Download",
   "meta_desc": "Get this stunning golden crown PNG with transparent background. Perfect for graphic design, banners, and social media. Free HD download.",
   "alt_text": "Golden crown 3D render PNG transparent background",
-  "tags": "golden crown png, crown transparent, free crown png, crown clipart, 3d crown png, crown image, golden crown transparent, crown no background, crown hd, royal crown png",
-  "keywords": "free golden crown png download, golden crown transparent png, crown png free download hd, golden crown png no background, golden crown clipart free, 3d crown png transparent, royal crown png transparent, golden crown image free, crown png for designers, crown png for canva, crown png for photoshop, transparent crown png high resolution, ... (list exactly 30 keywords)"
+  "tags": "golden crown png, crown transparent, free crown png, 3d crown png, crown clipart, crown image, royal crown png, crown no background, crown hd, golden crown transparent",
+  "keywords": "free golden crown png download, golden crown transparent png, ... (30 total)"
 }}
 
-Subject: {clean_subject}
-Category: {category}
 JSON:"""
 
     import torch
@@ -524,72 +532,77 @@ JSON:"""
         with torch.no_grad():
             outputs = _gemma_model.generate(
                 **inputs,
-                max_new_tokens=800,
-                temperature=0.7,
-                do_sample=True,
-                top_p=0.9,
+                max_new_tokens=600,
+                do_sample=False,      # greedy = fast, deterministic
             )
         raw_text = _gemma_tokenizer.decode(outputs[0], skip_special_tokens=True)
-        # Extract JSON part: find the first { and last }
-        start = raw_text.find('{')
-        end = raw_text.rfind('}')
-        if start == -1 or end == -1:
-            raise ValueError("No JSON object found in Gemma output")
-        json_str = raw_text[start:end+1]
+
+        # Extract only the first balanced JSON object
+        json_str = _extract_json(raw_text)
+        if not json_str:
+            raise ValueError("No balanced JSON found in Gemma output")
+
         data = json.loads(json_str)
-        # validate required keys
+
+        # Validate required keys
         required = ["title", "h1", "meta_desc", "alt_text", "tags", "keywords"]
         for k in required:
             if k not in data:
                 raise ValueError(f"Missing key {k} in Gemma output")
-        # Ensure keywords are exactly 30; if not, pad or truncate
+
+        # Ensure exactly 30 keywords
         kw_list = [kw.strip() for kw in data["keywords"].split(",") if kw.strip()]
         if len(kw_list) < 30:
-            # pad with generic ones
-            extras = [f"{clean_subject.lower()} png free download", 
-                      f"{clean_subject.lower()} transparent png hd",
-                      f"transparent {clean_subject.lower()} png",
-                      f"{clean_subject.lower()} png no background",
-                      f"{clean_subject.lower()} png cutout",
-                      f"{clean_subject.lower()} isolated png",
-                      f"{clean_subject.lower()} png high resolution",
-                      f"free {clean_subject.lower()} png download",
-                      f"download {clean_subject.lower()} png transparent",
-                      f"{clean_subject.lower()} png for designers",
-                      f"{clean_subject.lower()} png clipart free",
-                      f"{clean_subject.lower()} sticker png transparent",
-                      f"{clean_subject.lower()} illustration png transparent",
-                      f"{clean_subject.lower()} png image hd quality",
-                      f"high quality {clean_subject.lower()} png",
-                      f"{clean_subject.lower()} png for photoshop",
-                      f"{clean_subject.lower()} png for canva",
-                      f"{clean_subject.lower()} png for powerpoint",
-                      f"{clean_subject.lower()} png for website",
-                      f"{category.lower()} {clean_subject.lower()} png transparent",
-                      f"{clean_subject.lower()} {category.lower()} free png",
-                      f"free {category.lower()} {clean_subject.lower()} png",
-                      f"{clean_subject.lower()} png image free",
-                      f"{clean_subject.lower()} cutout image free",
-                      f"{clean_subject.lower()} png without background",
-                      f"best {clean_subject.lower()} png transparent",
-                      f"{clean_subject.lower()} image png free download",
-                      f"free transparent {clean_subject.lower()} image",
-                      f"{clean_subject.lower()} png hd free download",
-                      f"transparent background {clean_subject.lower()} png"]
+            # Generic fallback keywords (complete list)
+            extras = [
+                f"{clean_subject.lower()} png free download",
+                f"{clean_subject.lower()} transparent png hd",
+                f"transparent {clean_subject.lower()} png",
+                f"{clean_subject.lower()} png no background",
+                f"{clean_subject.lower()} png cutout",
+                f"{clean_subject.lower()} isolated png",
+                f"{clean_subject.lower()} png high resolution",
+                f"free {clean_subject.lower()} png download",
+                f"download {clean_subject.lower()} png transparent",
+                f"{clean_subject.lower()} png for designers",
+                f"{clean_subject.lower()} png clipart free",
+                f"{clean_subject.lower()} sticker png transparent",
+                f"{clean_subject.lower()} illustration png transparent",
+                f"{clean_subject.lower()} png image hd quality",
+                f"high quality {clean_subject.lower()} png",
+                f"{clean_subject.lower()} png for photoshop",
+                f"{clean_subject.lower()} png for canva",
+                f"{clean_subject.lower()} png for powerpoint",
+                f"{clean_subject.lower()} png for website",
+                f"{category.lower()} {clean_subject.lower()} png transparent",
+                f"{clean_subject.lower()} {category.lower()} free png",
+                f"free {category.lower()} {clean_subject.lower()} png",
+                f"{clean_subject.lower()} png image free",
+                f"{clean_subject.lower()} cutout image free",
+                f"{clean_subject.lower()} png without background",
+                f"best {clean_subject.lower()} png transparent",
+                f"{clean_subject.lower()} image png free download",
+                f"free transparent {clean_subject.lower()} image",
+                f"{clean_subject.lower()} png hd free download",
+                f"transparent background {clean_subject.lower()} png",
+            ]
             existing = set(kw_list)
             kw_list = kw_list + [w for w in extras if w not in existing]
             kw_list = kw_list[:30]
         elif len(kw_list) > 30:
             kw_list = kw_list[:30]
+
         data["keywords"] = ", ".join(kw_list)
+
         return {
             "title": data["title"],
             "h1": data["h1"],
             "meta_desc": data["meta_desc"],
             "alt_text": data["alt_text"],
             "tags": data["tags"],
-            "description": data["keywords"],  # use the comma-separated list
+            "description": data["keywords"],
         }
+
     except Exception as e:
         print(f"    [Gemma] Generation/parse error: {e} — using fallback SEO", flush=True)
         return _fallback_rule_seo(clean_subject, category, orig_subject)
