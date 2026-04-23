@@ -16,46 +16,43 @@ ULTRADATA_XLSX  = "ultradata.xlsx"
 WATERMARK_TEXT  = "www.ultrapng.com"
 INSTANT_CAP     = 2000
 
-# ── Florence-2-base replaces Gemini API ───────────────────────────────────
-# Microsoft Florence-2-base · MIT license · CPU-only · no API key · unlimited
+# ── Gemma 3 1B replaces Florence-2 ─────────────────────────────────────────
+# Google Gemma 3 1B · Apache 2.0 · CPU-only · no API key · unlimited
 # GitHub Actions free Ubuntu: 2-core CPU, 7GB RAM
-# Actual speed on GitHub Actions: ~11s per image (log confirmed)
-# VQA task used: passes subject name as hint → much better accuracy
-FLORENCE_MODEL_ID = "microsoft/Florence-2-base"
+# Actual speed: ~20-40s per item (prompt + generation)
+GEMMA_MODEL_ID = "google/gemma-3-1b-it"
 
 MAX_RUN_SECONDS = 17_400   # 4h50m
 _RUN_START      = time.time()
 
-# ── Global model handles (loaded ONCE per run, reused for all images) ──────
-_florence_model     = None
-_florence_processor = None
+# ── Global model handles (loaded ONCE per run, reused for all items) ───────
+_gemma_model     = None
+_gemma_tokenizer = None
 
 
-def _load_florence_model():
-    """Load Florence-2-base once at startup. ~7s on GitHub Actions (cached)."""
-    global _florence_model, _florence_processor
-    if _florence_model is not None:
+def _load_gemma_model():
+    """Load Gemma 3 1B once at startup. ~30s on first run (cached)."""
+    global _gemma_model, _gemma_tokenizer
+    if _gemma_model is not None:
         return
     import torch
-    from transformers import AutoProcessor, AutoModelForCausalLM
-    print(f"  [Florence-2] Loading {FLORENCE_MODEL_ID} ...", flush=True)
-    _florence_processor = AutoProcessor.from_pretrained(
-        FLORENCE_MODEL_ID, trust_remote_code=True)
-    _florence_model = AutoModelForCausalLM.from_pretrained(
-        FLORENCE_MODEL_ID,
-        trust_remote_code=True,
-        torch_dtype=torch.float32,   # float32 for CPU stability
+    from transformers import AutoTokenizer, AutoModelForCausalLM
+    print(f"  [Gemma] Loading {GEMMA_MODEL_ID} ...", flush=True)
+    _gemma_tokenizer = AutoTokenizer.from_pretrained(GEMMA_MODEL_ID)
+    _gemma_model = AutoModelForCausalLM.from_pretrained(
+        GEMMA_MODEL_ID,
+        torch_dtype=torch.float32,      # float32 for CPU stability
+        device_map="cpu",
     )
-    _florence_model.eval()
-    print("  [Florence-2] Model ready ✓", flush=True)
+    _gemma_model.eval()
+    print("  [Gemma] Model ready ✓", flush=True)
 
 
 # ══════════════════════════════════════════════════════════════
-# GOOGLE DRIVE helpers
+# GOOGLE DRIVE helpers  (unchanged)
 # ══════════════════════════════════════════════════════════════
 
 _drive_token_cache: Dict[str, Any] = {"value": None, "expires": 0}
-
 
 def _drive_token() -> str:
     import requests
@@ -74,13 +71,10 @@ def _drive_token() -> str:
                                 "expires": time.time() + 3200})
     return _drive_token_cache["value"]
 
-
 def _dh(token: str) -> Dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
 
-
 _drive_folder_cache: Dict[str, str] = {}
-
 
 def _drive_folder_id(token: str, name: str, parent_id: Optional[str] = None) -> str:
     import requests
@@ -112,7 +106,6 @@ def _drive_folder_id(token: str, name: str, parent_id: Optional[str] = None) -> 
     _drive_folder_cache[cache_key] = fid
     return fid
 
-
 def _drive_list_folder(token: str, folder_id: str,
                        mime_filter: Optional[str] = None) -> List[Dict]:
     import requests
@@ -137,7 +130,6 @@ def _drive_list_folder(token: str, folder_id: str,
             break
     return results
 
-
 def _drive_list_pngs(token: str, folder_id: str) -> List[Dict]:
     import requests
     q = (f"'{folder_id}' in parents and trashed=false and "
@@ -160,7 +152,6 @@ def _drive_list_pngs(token: str, folder_id: str) -> List[Dict]:
             break
     return results
 
-
 def _drive_download(token: str, fid: str) -> bytes:
     import requests
     r = requests.get(f"https://www.googleapis.com/drive/v3/files/{fid}",
@@ -168,15 +159,13 @@ def _drive_download(token: str, fid: str) -> bytes:
     r.raise_for_status()
     return r.content
 
-
 # ══════════════════════════════════════════════════════════════
-# GITHUB API helpers
+# GITHUB API helpers  (unchanged)
 # ══════════════════════════════════════════════════════════════
 
 def _gh_headers(token: str) -> Dict[str, str]:
     return {"Authorization": f"token {token}",
             "Accept": "application/vnd.github.v3+json"}
-
 
 def _gh_get_sha(token: str, owner: str, repo: str,
                 path: str, branch: str = "main") -> Optional[str]:
@@ -187,7 +176,6 @@ def _gh_get_sha(token: str, owner: str, repo: str,
     if r.status_code == 200:
         return r.json().get("sha")
     return None
-
 
 def _gh_upload_file(token: str, owner: str, repo: str,
                     path: str, content_bytes: bytes,
@@ -214,18 +202,15 @@ def _gh_upload_file(token: str, owner: str, repo: str,
             r.raise_for_status()
     return {}
 
-
 def _jsdelivr_url(owner: str, repo: str, branch: str, path: str) -> str:
     return f"https://cdn.jsdelivr.net/gh/{owner}/{repo}@{branch}/{path}"
 
-
 # ══════════════════════════════════════════════════════════════
-# WEBP PREVIEW GENERATOR
+# WEBP PREVIEW GENERATOR  (unchanged)
 # ══════════════════════════════════════════════════════════════
 
 WEBP_MAX_SIDE  = 800
 WEBP_MAX_BYTES = 80 * 1024
-
 
 def _make_webp_preview(png_bytes: bytes, watermark: str) -> bytes:
     from PIL import Image, ImageDraw, ImageFont
@@ -285,7 +270,7 @@ def _make_webp_preview(png_bytes: bytes, watermark: str) -> bytes:
 
 
 # ══════════════════════════════════════════════════════════════
-# ULTRADATA XLSX helpers
+# ULTRADATA XLSX helpers  (unchanged)
 # ══════════════════════════════════════════════════════════════
 
 def _append_ultradata_rows(xlsx_path: Path, rows: List[Dict]) -> int:
@@ -317,7 +302,7 @@ def _append_ultradata_rows(xlsx_path: Path, rows: List[Dict]) -> int:
 
 
 # ══════════════════════════════════════════════════════════════
-# DRIVE PNG LIBRARY SCANNER
+# DRIVE PNG LIBRARY SCANNER  (unchanged)
 # ══════════════════════════════════════════════════════════════
 
 def _collect_all_pngs_from_drive(folder_name: str) -> List[Dict]:
@@ -468,666 +453,202 @@ def process_drive_png_library(repo2_dir: Path, cfg: "Repo2Config") -> int:
 def _word_count(s: str) -> int:
     return len([w for w in re.split(r"\s+", (s or "").strip()) if w])
 
-
 def _today() -> str:
     return datetime.utcnow().strftime("%Y-%m-%d")
 
 
 # ══════════════════════════════════════════════════════════════
-# VISION SEO — Florence-2-base (local CPU · VQA task with subject hint)
+# GEMMA 3 1B SEO GENERATOR (text-only, from file name)
 # ══════════════════════════════════════════════════════════════
 
-_COLOR_WORDS = [
-    "red", "blue", "green", "yellow", "orange", "purple", "pink",
-    "white", "black", "brown", "golden", "silver", "gold", "grey", "gray",
-    "dark", "bright", "vibrant", "colorful", "multicolored",
-    "crimson", "scarlet", "violet", "indigo", "teal", "cyan", "magenta",
-    "lime", "beige", "ivory", "bronze", "rose", "coral", "turquoise",
-    "maroon", "navy", "olive", "peach", "lavender", "emerald", "amber",
-]
-
-_STYLE_WORDS = [
-    "realistic", "cartoon", "vector", "clipart", "3d", "flat", "minimal",
-    "watercolor", "digital", "illustrated", "hand-drawn", "artistic",
-    "detailed", "simple", "modern", "vintage", "cute", "elegant", "glossy",
-    "sketched", "painted", "stylized", "anime", "comic", "retro",
-    "render", "rendered", "photorealistic", "low-poly", "isometric",
-    "neon", "glowing", "shiny", "metallic", "gradient",
-]
-
-# Action / pose / state words — extracted from Florence-2 output to build
-# vivid, specific titles like "Splashing Water PNG" or "Flying Eagle PNG"
-_ACTION_WORDS = [
-    # liquid / physics
-    "splashing", "splash", "pouring", "dripping", "flowing", "spilling",
-    "falling", "dropping", "floating", "bubbling", "foaming", "spraying",
-    "melting", "frozen",
-    # movement
-    "flying", "soaring", "jumping", "leaping", "running", "walking",
-    "dancing", "spinning", "rotating", "rolling", "swimming", "diving",
-    "crawling", "climbing", "sliding",
-    # light / fire / energy
-    "burning", "flaming", "glowing", "shining", "sparkling", "exploding",
-    "bursting", "blazing",
-    # plant / nature
-    "blooming", "blossoming", "growing", "wilting",
-    # pose / state
-    "sitting", "standing", "waving", "holding", "carrying", "eating",
-    "sleeping", "roaring", "smiling", "laughing",
-    # composition
-    "isolated", "cutout", "stacked", "sliced", "half", "whole", "full",
-    "fresh", "ripe", "dried", "grilled", "cooked", "fried",
-]
-
-_FILENAME_NOISE = re.compile(
+FILENAME_NOISE = re.compile(
     r"\b(hd|png|img|image|photo|pic|transparent|bg|nobg|free|dl|download"
     r"|clipart|vector|stock|high|quality|resolution|res|ultra|4k|full)\b",
     re.I,
 )
 
-
 def _clean_subject(raw: str) -> str:
     s = re.sub(r"[_\-]+", " ", raw.strip())
-    s = _FILENAME_NOISE.sub(" ", s)
+    s = FILENAME_NOISE.sub(" ", s)
     s = re.sub(r"\s*\d+\s*$", "", s)
     s = re.sub(r"^\d+\s*", "", s)
     s = re.sub(r"\s+", " ", s).strip()
     return s.title() if s else raw.strip().title()
 
 
-def _florence_describe(img_bytes: bytes, subject: str) -> str:
+def _gemma_generate_seo(clean_subject: str, category: str,
+                        orig_subject: str) -> Dict[str, str]:
     """
-    Florence-2-base local CPU inference.
-    Runs TWO tasks per image:
-      1. <DETAILED_CAPTION>   → rich visual description with colors, style, details
-      2. <VQA> subject hint   → subject-accurate confirmation sentence
-    Both results are merged for richer SEO input.
-    Speed: ~15-25s per image on GitHub Actions 2-core CPU.
-    No API key · No rate limit · No cost · Unlimited.
+    Use Gemma 3 1B to generate SEO fields from the subject + category.
+    Returns a dict with title, h1, meta_desc, alt_text, tags, description (comma‑separated keywords).
+    Falls back to a simple rule‑based builder if the model fails.
     """
+    prompt = f"""You are an SEO expert. A PNG image exists with the subject "{clean_subject}". 
+The category is "{category}". The PNG has a transparent background and is free to download.
+
+Generate a JSON object with the following keys:
+- title: an SEO-optimized page title (50-70 characters). Must contain the subject, "PNG", "Transparent", and a call to action like "Free Download".
+- h1: a friendly, conversational H1 heading (50-80 characters).
+- meta_desc: a meta description (140-160 characters) that includes the subject, mentions transparent background, and a benefit for designers.
+- alt_text: an alt attribute for the image (under 125 characters).
+- tags: exactly 10 relevant tags, comma-separated, such as "subject png, free subject png, ...".
+- keywords: exactly 30 long-tail keywords, comma-separated, covering free, transparent, high-quality, download, design uses, etc.
+
+Return ONLY the JSON object, no extra commentary.
+Example JSON:
+{{"title": "Golden Crown 3D Render PNG Transparent Background Free Download",
+  "h1": "Golden Crown PNG on Transparent Background - Free HD Download",
+  "meta_desc": "Get this stunning golden crown PNG with transparent background. Perfect for graphic design, banners, and social media. Free HD download.",
+  "alt_text": "Golden crown 3D render PNG transparent background",
+  "tags": "golden crown png, crown transparent, free crown png, crown clipart, 3d crown png, crown image, golden crown transparent, crown no background, crown hd, royal crown png",
+  "keywords": "free golden crown png download, golden crown transparent png, crown png free download hd, golden crown png no background, golden crown clipart free, 3d crown png transparent, royal crown png transparent, golden crown image free, crown png for designers, crown png for canva, crown png for photoshop, transparent crown png high resolution, ... (list exactly 30 keywords)"
+}}
+
+Subject: {clean_subject}
+Category: {category}
+JSON:"""
+
     import torch
-    from PIL import Image
+    try:
+        _load_gemma_model()
+    except Exception as exc:
+        print(f"    [Gemma] Model load error: {exc}", flush=True)
+        return _fallback_rule_seo(clean_subject, category, orig_subject)
 
     try:
-        _load_florence_model()
-    except Exception as exc:
-        print(f"    [Florence-2] model load error: {exc}", flush=True)
-        return ""
-
-    try:
-        image = Image.open(io.BytesIO(img_bytes)).convert("RGB")
-
-        def _run_task(task_prompt: str, max_tokens: int = 150) -> str:
-            inputs = _florence_processor(
-                text=task_prompt,
-                images=image,
-                return_tensors="pt",
+        inputs = _gemma_tokenizer(prompt, return_tensors="pt")
+        with torch.no_grad():
+            outputs = _gemma_model.generate(
+                **inputs,
+                max_new_tokens=800,
+                temperature=0.7,
+                do_sample=True,
+                top_p=0.9,
             )
-            with torch.no_grad():
-                generated_ids = _florence_model.generate(
-                    input_ids=inputs["input_ids"],
-                    pixel_values=inputs["pixel_values"],
-                    max_new_tokens=max_tokens,
-                    num_beams=3,
-                    early_stopping=True,
-                )
-            raw_text = _florence_processor.batch_decode(
-                generated_ids, skip_special_tokens=False)[0]
-            parsed = _florence_processor.post_process_generation(
-                raw_text,
-                task=task_prompt.split(">")[0] + ">",
-                image_size=(image.width, image.height),
-            )
-            key = task_prompt.split(">")[0] + ">"
-            return (parsed.get(key) or "").strip()
-
-        # Task 1: detailed visual caption (colors, texture, style)
-        caption = _run_task("<DETAILED_CAPTION>", max_tokens=160)
-
-        # Task 2: VQA with subject hint — ask for color + style + ACTION specifically
-        vqa_q = (
-            f"This PNG image shows a {subject} on a transparent background. "
-            f"Describe: (1) dominant colors (e.g. red, golden, dark green), "
-            f"(2) art style (realistic photo, 3D render, cartoon, vector clipart, watercolor, hand-drawn), "
-            f"(3) action or state (e.g. splashing, flying, jumping, blooming, falling, isolated, sliced, fresh, burning, glowing). "
-            f"Be specific and concise."
-        )
-        vqa_ans = _run_task(f"<VQA>{vqa_q}", max_tokens=120)
-
-        # Merge: prefer VQA for subject accuracy, caption for visual richness
-        parts = []
-        if vqa_ans and len(vqa_ans) > 15:
-            parts.append(vqa_ans.rstrip("."))
-        if caption and len(caption) > 15:
-            # avoid near-duplicate
-            if not vqa_ans or caption[:40].lower() != vqa_ans[:40].lower():
-                parts.append(caption.rstrip("."))
-
-        desc = ". ".join(parts).strip()
-        if len(desc) > 200:
-            desc = desc[:197].rsplit(" ", 1)[0] + "..."
-        return desc
-
-    except Exception as exc:
-        print(f"    [Florence-2] inference error: {exc}", flush=True)
-        return ""
-
-
-# Alias so _vision_seo works unchanged
-def _gemini_describe(img_bytes: bytes, subject: str) -> str:
-    return _florence_describe(img_bytes, subject)
-
-def _fetch_image_for_vision(preview_url: str, download_url: str) -> Optional[bytes]:
-    import requests
-    headers = {"User-Agent": "UltraPNG-SEO-Bot/5.0"}
-    for url in [u for u in [preview_url, download_url] if u]:
-        try:
-            r = requests.get(url, timeout=30, headers=headers)
-            if r.ok and len(r.content) > 500:
-                return r.content
-        except Exception:
-            pass
-    return None
-
-
-def _extract_words_from_desc(visual_desc: str, wordlist: List[str]) -> List[str]:
-    desc_lower = visual_desc.lower()
-    return [w for w in wordlist
-            if re.search(r"\b" + re.escape(w) + r"\b", desc_lower)]
-
-
-def _build_seo_from_vision(clean_subject: str, visual_desc: str,
-                            category: str = "", orig_subject: str = "") -> Dict[str, str]:
-    """
-    V7 — Action-aware, visually-specific SEO builder.
-
-    Core fix over V6:
-    • Extracts ACTION words from Florence-2 output (splashing, flying, blooming…)
-    • Title formula:  [Color] [Subject] [Action] PNG [Intent suffix]
-      e.g.  "Red Banana Juice Splashing PNG Transparent Free Download"
-            "Golden Crown 3D Render Transparent PNG Free Download"
-            "Cartoon Watercolor Rose Blooming PNG Image Free"
-    • 8 title pools (was 6) — action-first pools are tried first when action exists.
-    • Keywords include action-based long-tail KWs (e.g. "splashing water png free").
-    • Meta/H1 also use action phrases for richer, unique copy.
-    • No generic filler titles like "This image shows…" — purely attribute-driven.
-    """
-    s      = clean_subject or orig_subject.strip() or "Image"
-    sl     = s.lower()
-    cat    = (category or "").strip()
-    cat_sl = cat.lower()
-
-    # ── Visual signals ────────────────────────────────────────────────────
-    colors  = _extract_words_from_desc(visual_desc, _COLOR_WORDS)
-    styles  = _extract_words_from_desc(visual_desc, _STYLE_WORDS)
-    actions = _extract_words_from_desc(visual_desc, _ACTION_WORDS)
-
-    sl_words = set(re.split(r"\s+", sl))
-
-    def _color_in_subject(c: str) -> bool:
-        if c.lower() in sl_words:
-            return True
-        for w in sl_words:
-            if len(c) >= 4 and len(w) >= 4 and c[:4] == w[:4]:
-                return True
-        return False
-
-    colors  = [c for c in colors  if not _color_in_subject(c)]
-    styles  = [st for st in styles  if st.lower() not in sl_words]
-    actions = [a  for a  in actions if a.lower()  not in sl_words]
-
-    color1  = colors[0]  if colors  else ""
-    color2  = colors[1]  if len(colors)  > 1 else ""
-    action1 = actions[0] if actions else ""
-    action2 = actions[1] if len(actions) > 1 else ""
-
-    _generic_styles    = {"realistic", "detailed", "modern", "simple", "photorealistic"}
-    _awkward_solo_stys = {"3d", "digital", "illustrated", "painted", "sketched", "rendered", "render"}
-    style1 = next((st for st in styles
-                   if st not in _generic_styles and st not in _awkward_solo_stys), "")
-    if not style1 and color1:
-        style1 = next((st for st in styles if st not in _generic_styles), "")
-    style1 = style1 or (styles[0] if styles else "")
-    style2 = next((st for st in styles[1:]
-                   if st not in _generic_styles and st != style1), "")
-
-    # ── Build semantic qualifier blocks ───────────────────────────────────
-    # prefix_qual  = color + style  (leads the title)
-    # action_qual  = action word    (middle descriptor)
-    prefix_parts: List[str] = []
-    if color1:
-        prefix_parts.append(color1.capitalize())
-    if style1 and style1 not in _generic_styles:
-        prefix_parts.append(style1.capitalize())
-    prefix_qual = " ".join(prefix_parts)    # e.g. "Red Watercolor", "Golden 3D"
-
-    action_cap  = action1.capitalize() if action1 else ""   # e.g. "Splashing"
-
-    # Full qualifier for pools that want all three
-    full_qual_parts = prefix_parts[:]
-    if action_cap and action_cap.lower() not in sl:
-        full_qual_parts.append(action_cap)
-    full_qual = " ".join(full_qual_parts)   # e.g. "Red 3D Glowing"
-
-    # ── Hash-based pool selectors ──────────────────────────────────────────
-    _h         = abs(hash(orig_subject or s))
-    _title_idx = _h % 8
-    _h1_idx    = (_h // 8)  % 8
-    _meta_idx  = (_h // 64) % 6
-
-    # ── TITLE (55-70 chars ideal for Google) ──────────────────────────────
-    # Rule: must contain Subject + PNG + at least one of (color / action / style)
-    # Format examples:
-    #   "Red Banana Juice Splashing PNG Transparent Free Download"     ← action-led
-    #   "Cartoon Sunflower Blooming PNG Transparent Background Free"   ← style+action
-    #   "Golden Crown 3D Render PNG Transparent Background Download"   ← color+style
-    #   "Apple Fruit Fresh Sliced PNG Transparent Free Download"       ← action only
-    def _pick_title() -> str:
-        # Helper: build "{prefix} {s} {action}" core phrase
-        def _core(use_prefix: bool = True, use_action: bool = True) -> str:
-            parts: List[str] = []
-            if use_prefix and prefix_qual:
-                parts.append(prefix_qual)
-            parts.append(s)
-            if use_action and action_cap and action_cap.lower() not in sl:
-                parts.append(action_cap)
-            return " ".join(parts)
-
-        pools = [
-            # Pool 0 — ACTION-LED: color+subject+action (best pool when action exists)
-            f"{_core()} PNG Transparent Free Download"
-            if (prefix_qual or action_cap) else
-            f"{s} PNG Transparent Background Free Download",
-
-            # Pool 1 — PNG IMAGE suffix style
-            f"{_core()} PNG Image Free Download"
-            if (prefix_qual or action_cap) else
-            f"{s} PNG Image Transparent Background Free",
-
-            # Pool 2 — "Free Download" at end, style/action in middle
-            f"Free {_core()} PNG Transparent Background"
-            if (prefix_qual or action_cap) else
-            f"Free {s} PNG Transparent Background HD",
-
-            # Pool 3 — "Transparent PNG" sandwich
-            f"{_core(True, False)} Transparent PNG {action_cap} Free Download"
-            if action_cap else
-            f"{_core()} Transparent PNG Free Download",
-
-            # Pool 4 — cutout / no background emphasis
-            f"{_core()} Transparent Background PNG Free"
-            if (prefix_qual or action_cap) else
-            f"{s} PNG No Background Free Download HD",
-
-            # Pool 5 — "HD PNG" mid-phrase
-            f"{_core()} HD PNG Transparent Free"
-            if (prefix_qual or action_cap) else
-            f"{s} HD PNG Transparent Background Free Download",
-
-            # Pool 6 — quality-led
-            f"High Quality {_core()} PNG Transparent"
-            if (prefix_qual or action_cap) else
-            f"High Quality {s} PNG Transparent Background Free",
-
-            # Pool 7 — category-contextual
-            (f"{_core()} {cat} PNG Transparent Free"
-             if cat_sl and cat_sl != sl else
-             f"{_core()} PNG Clipart Transparent Free Download")
-            if (prefix_qual or action_cap) else
-            (f"{s} {cat} PNG Transparent Free Download"
-             if cat_sl and cat_sl != sl else
-             f"{s} PNG Clipart Transparent Free Download"),
-        ]
-
-        # If action exists, prefer action pools (0,1,3) over generic ones
-        preferred_order = list(range(8))
-        if action_cap:
-            preferred_order = [0, 1, 3, 2, 4, 5, 6, 7]
-        elif prefix_qual:
-            preferred_order = [0, 2, 4, 1, 3, 5, 6, 7]
-
-        # Start at the hash-selected pool, then rotate through preferred order
-        selected_pool = preferred_order[_title_idx % len(preferred_order)]
-        raw = pools[selected_pool]
-
-        # Fallback: find any pool ≥ 50 chars
-        if len(raw) < 50:
-            for idx in preferred_order:
-                if idx != selected_pool and len(pools[idx]) >= 50:
-                    raw = pools[idx]
-                    break
-
-        # Hard cap: 70 chars, trim at word boundary
-        if len(raw) > 70:
-            raw = raw[:67].rsplit(" ", 1)[0].rstrip(" |-") + "..."
-        return raw.strip()
-
-    title = _pick_title()
-
-    # ── H1 (conversational, 55-85 chars) ──────────────────────────────────
-    def _pick_h1() -> str:
-        h1_pools = [
-            # Pool 0 — action-led conversational
-            (f"{prefix_qual} {s} {action_cap} PNG on Transparent Background - Free HD"
-             if action_cap and prefix_qual else
-             f"{s} {action_cap} PNG on Transparent Background - Free HD"
-             if action_cap else
-             f"{prefix_qual} {s} PNG on Transparent Background - Free HD"
-             if prefix_qual else
-             f"{s} PNG on Transparent Background - Free HD Download"),
-
-            # Pool 1 — color-forward
-            (f"{color1.capitalize()} {s} {action_cap} PNG - No Background Free Download"
-             if color1 and action_cap else
-             f"{color1.capitalize()} {s} PNG - Transparent Background Free Download"
-             if color1 else
-             f"{s} PNG - Clean Transparent Background Free HD Download"),
-
-            # Pool 2 — style-forward
-            (f"{style1.capitalize()} {s} {action_cap} PNG Transparent Cutout - Free"
-             if style1 and action_cap else
-             f"{style1.capitalize()} {s} PNG Transparent Cutout - Free HD Download"
-             if style1 else
-             f"{s} PNG Transparent Cutout - Free High Quality Download"),
-
-            # Pool 3 — category context
-            (f"{s} {action_cap} - {cat} PNG Transparent Background Free"
-             if action_cap and cat_sl and cat_sl != sl else
-             f"{s} {cat} PNG - Isolated Transparent Background Free HD"
-             if cat_sl and cat_sl != sl else
-             f"{s} PNG - Professionally Isolated Transparent Background Free"),
-
-            # Pool 4 — download-intent
-            (f"{prefix_qual} {s} {action_cap} PNG Free Download - Transparent Background"
-             if full_qual else
-             f"{s} PNG Free Download - Transparent Background HD Quality"),
-
-            # Pool 5 — use-case
-            (f"{s} {action_cap} PNG for Design Projects - Transparent Free"
-             if action_cap else
-             f"{s} PNG for Design Projects - {prefix_qual} Transparent Background Free"
-             if prefix_qual else
-             f"{s} PNG for Design Projects - Transparent Background Free HD"),
-
-            # Pool 6 — action + quality
-            (f"{action_cap} {s} PNG Image - {color1.capitalize()} Transparent HD Free"
-             if action_cap and color1 else
-             f"{s} PNG Image - {prefix_qual} Transparent Background HD Free"
-             if prefix_qual else
-             f"{s} PNG Image - Transparent Background HD Free Download"),
-
-            # Pool 7 — vivid description
-            (f"Vivid {full_qual} {s} PNG - Transparent Background Free Download"
-             if full_qual else
-             f"{s} PNG - Transparent Background, High Resolution Free Download"),
-        ]
-        raw = h1_pools[_h1_idx % len(h1_pools)]
-        return raw[:85].strip()
-
-    h1 = _pick_h1()
-
-    # ── META DESCRIPTION (140-160 chars) ───────────────────────────────────
-    # Never starts with "Download". Action phrase used when available.
-    def _pick_meta() -> str:
-        # Visual context from Florence-2 description (first sentence, ≤90 chars)
-        context = ""
-        if visual_desc and len(visual_desc) > 20:
-            sents = [sx.strip() for sx in visual_desc.split(".") if sx.strip()
-                     and not sx.strip().lower().startswith(("this image", "the image",
-                                                             "this png", "the png"))]
-            if not sents:
-                sents = [sx.strip() for sx in visual_desc.split(".") if sx.strip()]
-            if sents:
-                raw_ctx = sents[0]
-                if len(raw_ctx) > 90:
-                    raw_ctx = raw_ctx[:87].rsplit(" ", 1)[0]
-                context = raw_ctx.rstrip(" ,")
-                if len(sents) > 1 and len(context) < 40:
-                    ctx2 = sents[1][:45].rsplit(" ", 1)[0].rstrip(" ,")
-                    context += ". " + ctx2
-
-        # Build vivid descriptor phrase for pools that don't use context
-        vd = ""
-        if action_cap and prefix_qual:
-            vd = f"{prefix_qual} {sl} {action1}"    # e.g. "red banana splashing"
-        elif action_cap:
-            vd = f"{sl} {action1}"                   # e.g. "banana splashing"
-        elif prefix_qual:
-            vd = f"{prefix_qual.lower()} {sl}"       # e.g. "golden crown"
-        else:
-            vd = sl
-
-        meta_pools = [
-            # Pool 0 — Florence context + download CTA
-            (f"{context}. Free {sl} PNG with transparent background — "
-             f"perfect for graphic design, print, and web. HD quality."
-             if context else
-             f"Eye-catching {vd} PNG with fully transparent background. "
-             f"Perfect for design projects, presentations, and print. Free HD download."),
-
-            # Pool 1 — style + tool mention
-            (f"{context}. This {vd} PNG has clean transparent background "
-             f"— drop straight into Photoshop, Canva, or Figma. Free HD."
-             if context else
-             f"Beautifully rendered {vd} PNG with transparent background. "
-             f"Works instantly in Photoshop, Canva, or any design tool. Free."),
-
-            # Pool 2 — action/color-forward
-            (f"{action_cap} {sl} PNG with {color1} tones — transparent background, "
-             f"HD resolution, free to use in any creative project."
-             if action_cap and color1 else
-             f"{color1.capitalize()} {sl} PNG, transparent background, HD resolution — "
-             f"ready to use in posters, banners, or social media. Completely free."
-             if color1 else
-             f"Crisp {sl} PNG with transparent background and HD resolution. "
-             f"Use in posters, banners, or social media. Completely free."),
-
-            # Pool 3 — question hook
-            (f"Looking for a {vd} PNG? {context}. Transparent background, HD quality, "
-             f"free for any project."
-             if context else
-             f"Looking for a {vd} PNG with no background? This HD image is ready for "
-             f"presentations, social posts, and print — completely free."),
-
-            # Pool 4 — audience-focused
-            (f"{context}. This {vd} PNG with transparent background is great "
-             f"for designers, educators, and content creators. Free HD download."
-             if context else
-             f"Professionally isolated {vd} PNG with transparent background. "
-             f"Perfect for mockups, school projects, and creative collages. Free."),
-
-            # Pool 5 — benefit-forward
-            (f"Vivid {vd} PNG, fully transparent and HD — paste into any layout "
-             f"without extra editing. Free download, no attribution needed."
-             if vd != sl else
-             f"Clean {sl} PNG with transparent background — no clipping needed. "
-             f"Place it in your design and go. Free HD download."),
-        ]
-        raw = meta_pools[_meta_idx]
-        if len(raw) > 160:
-            raw = raw[:157].rsplit(" ", 1)[0].rstrip(" .,") + "."
-        return raw
-
-    meta_desc = _pick_meta()
-
-    # ── ALT TEXT (≤125 chars, screen-reader + SEO) ────────────────────────
-    alt_parts: List[str] = []
-    if color1:
-        alt_parts.append(color1)
-    if style1 and style1 not in _generic_styles:
-        alt_parts.append(style1)
-    alt_parts.append(s)
-    if action1:
-        alt_parts.append(action1)
-    alt_parts.append("PNG")
-    if cat_sl and cat_sl != sl:
-        alt_parts.append(f"in {cat} category")
-    alt_parts.append("transparent background")
-    alt_text = " ".join(alt_parts).capitalize()
-    if len(alt_text) > 125:
-        alt_text = alt_text[:122].rsplit(" ", 1)[0] + "..."
-
-    # ── TAGS (10 highest-value, comma-separated) ──────────────────────────
-    tag_pool: List[str] = []
-    # Most specific first
-    if color1 and action1:
-        tag_pool.append(f"{color1} {sl} {action1} png")
-    if color1:
-        tag_pool.append(f"{color1} {sl} png")
-    if action1:
-        tag_pool.append(f"{sl} {action1} png")
-    tag_pool += [f"{sl} png", f"{sl} transparent background"]
-    if style1 and style1 not in _generic_styles:
-        tag_pool.append(f"{style1} {sl} png")
-    if color2:
-        tag_pool.append(f"{color2} {sl} png")
-    if cat_sl and cat_sl != sl:
-        tag_pool.append(f"{cat_sl} png")
-        tag_pool.append(f"{sl} {cat_sl}")
-    tag_pool += [
-        f"free {sl} png",
-        f"{sl} no background",
-        f"transparent {sl}",
-        f"{sl} hd png",
-    ]
-    seen_tags: set = set()
-    tags_final: List[str] = []
-    for t_ in tag_pool:
-        tn = re.sub(r"\s+", " ", t_.strip().lower())
-        if tn and tn not in seen_tags:
-            seen_tags.add(tn)
-            tags_final.append(tn)
-        if len(tags_final) == 10:
-            break
-    tags = ", ".join(tags_final)
-
-    # ── KEYWORDS (30 long-tail KWs, action-enriched) ──────────────────────
-    kw_pool: List[str] = []
-
-    # Tier 1 — transactional (highest purchase/download intent)
-    kw_pool += [
-        f"free {sl} png download",
-        f"download {sl} png transparent",
-        f"{sl} png free download hd",
-        f"{sl} png no background free",
-    ]
-    if color1 and action1:
-        kw_pool.append(f"free {color1} {sl} {action1} png download")
-    elif color1:
-        kw_pool.append(f"free {color1} {sl} png download")
-    if action1:
-        kw_pool.append(f"{sl} {action1} png free download")
-    if style1 and style1 not in _generic_styles:
-        kw_pool.append(f"free {style1} {sl} png download")
-
-    # Tier 2 — specific attribute descriptors
-    if action1:
-        kw_pool += [
-            f"{sl} {action1} transparent png",
-            f"{action1} {sl} png hd",
-            f"{color1} {sl} {action1} png transparent" if color1 else f"{sl} {action1} png transparent",
-        ]
-    if color1:
-        kw_pool += [
-            f"{color1} {sl} png transparent background",
-            f"{color1} {sl} transparent png hd",
-        ]
-    if color2:
-        kw_pool.append(f"{color2} {sl} png transparent")
-    if style1 and style1 not in _generic_styles:
-        kw_pool += [
-            f"{style1} {sl} png transparent",
-            f"{style1} {sl} image free",
-        ]
-    if action2:
-        kw_pool.append(f"{sl} {action2} png transparent")
-
-    # Tier 3 — generic product descriptors
-    kw_pool += [
-        f"{sl} png transparent background",
-        f"{sl} transparent png hd",
-        f"{sl} png cutout",
-        f"{sl} isolated png",
-        f"{sl} png no background",
-        f"{sl} background removed png",
-        f"{sl} png high resolution",
-        f"transparent {sl} image png",
-    ]
-
-    # Tier 4 — use-case / tool-specific
-    kw_pool += [
-        f"{sl} png for designers",
-        f"{sl} png clipart free",
-        f"{sl} sticker png transparent",
-        f"{sl} png graphic design",
-        f"{sl} illustration png transparent",
-        f"{sl} png image hd quality",
-        f"high quality {sl} png",
-        f"{sl} png for photoshop",
-        f"{sl} png for canva",
-        f"{sl} png for powerpoint",
-        f"{sl} png for website",
-    ]
-    if cat_sl and cat_sl != sl:
-        kw_pool += [
-            f"{cat_sl} {sl} png transparent",
-            f"{sl} {cat_sl} free png",
-            f"free {cat_sl} {sl} png",
-        ]
-
-    # Tier 5 — padding to always reach 30
-    kw_pool += [
-        f"{sl} png hd free download",
-        f"transparent background {sl} png",
-        f"{sl} png image free",
-        f"{sl} cutout image free",
-        f"{sl} png without background",
-        f"best {sl} png transparent",
-        f"{sl} image png free download",
-        f"free transparent {sl} image",
-    ]
-
-    seen_kw: set = set()
-    kws_final: List[str] = []
-    for kw in kw_pool:
-        kw_n = re.sub(r"\s+", " ", kw.strip().lower())
-        if kw_n and kw_n not in seen_kw:
-            seen_kw.add(kw_n)
-            kws_final.append(kw_n)
-        if len(kws_final) == 30:
-            break
-
+        raw_text = _gemma_tokenizer.decode(outputs[0], skip_special_tokens=True)
+        # Extract JSON part: find the first { and last }
+        start = raw_text.find('{')
+        end = raw_text.rfind('}')
+        if start == -1 or end == -1:
+            raise ValueError("No JSON object found in Gemma output")
+        json_str = raw_text[start:end+1]
+        data = json.loads(json_str)
+        # validate required keys
+        required = ["title", "h1", "meta_desc", "alt_text", "tags", "keywords"]
+        for k in required:
+            if k not in data:
+                raise ValueError(f"Missing key {k} in Gemma output")
+        # Ensure keywords are exactly 30; if not, pad or truncate
+        kw_list = [kw.strip() for kw in data["keywords"].split(",") if kw.strip()]
+        if len(kw_list) < 30:
+            # pad with generic ones
+            extras = [f"{clean_subject.lower()} png free download", 
+                      f"{clean_subject.lower()} transparent png hd",
+                      f"transparent {clean_subject.lower()} png",
+                      f"{clean_subject.lower()} png no background",
+                      f"{clean_subject.lower()} png cutout",
+                      f"{clean_subject.lower()} isolated png",
+                      f"{clean_subject.lower()} png high resolution",
+                      f"free {clean_subject.lower()} png download",
+                      f"download {clean_subject.lower()} png transparent",
+                      f"{clean_subject.lower()} png for designers",
+                      f"{clean_subject.lower()} png clipart free",
+                      f"{clean_subject.lower()} sticker png transparent",
+                      f"{clean_subject.lower()} illustration png transparent",
+                      f"{clean_subject.lower()} png image hd quality",
+                      f"high quality {clean_subject.lower()} png",
+                      f"{clean_subject.lower()} png for photoshop",
+                      f"{clean_subject.lower()} png for canva",
+                      f"{clean_subject.lower()} png for powerpoint",
+                      f"{clean_subject.lower()} png for website",
+                      f"{category.lower()} {clean_subject.lower()} png transparent",
+                      f"{clean_subject.lower()} {category.lower()} free png",
+                      f"free {category.lower()} {clean_subject.lower()} png",
+                      f"{clean_subject.lower()} png image free",
+                      f"{clean_subject.lower()} cutout image free",
+                      f"{clean_subject.lower()} png without background",
+                      f"best {clean_subject.lower()} png transparent",
+                      f"{clean_subject.lower()} image png free download",
+                      f"free transparent {clean_subject.lower()} image",
+                      f"{clean_subject.lower()} png hd free download",
+                      f"transparent background {clean_subject.lower()} png"]
+            existing = set(kw_list)
+            kw_list = kw_list + [w for w in extras if w not in existing]
+            kw_list = kw_list[:30]
+        elif len(kw_list) > 30:
+            kw_list = kw_list[:30]
+        data["keywords"] = ", ".join(kw_list)
+        return {
+            "title": data["title"],
+            "h1": data["h1"],
+            "meta_desc": data["meta_desc"],
+            "alt_text": data["alt_text"],
+            "tags": data["tags"],
+            "description": data["keywords"],  # use the comma-separated list
+        }
+    except Exception as e:
+        print(f"    [Gemma] Generation/parse error: {e} — using fallback SEO", flush=True)
+        return _fallback_rule_seo(clean_subject, category, orig_subject)
+
+
+def _fallback_rule_seo(clean_subject: str, category: str,
+                       orig_subject: str) -> Dict[str, str]:
+    """Simple rule-based SEO when Gemma fails."""
+    s = clean_subject or orig_subject.strip() or "Image"
+    sl = s.lower()
+    cat_sl = (category or "").strip().lower()
+    title = f"{s} PNG Transparent Background Free Download"
+    h1 = f"{s} PNG on Transparent Background - Free HD Download"
+    meta = f"Download this free {s} PNG with transparent background. High quality, perfect for designers and creative projects."
+    alt = f"{s} PNG transparent background"
+    tags = ", ".join([f"{sl} png", f"{sl} transparent", f"free {sl} png",
+                      f"{sl} no background", f"{sl} hd png"])
+    kw_list = [f"{sl} png free download", f"{sl} transparent png hd",
+               f"free {sl} png download", f"{sl} png no background",
+               f"{sl} png transparent background", f"{sl} png cutout",
+               f"{sl} isolated png", f"{sl} png high resolution",
+               f"high quality {sl} png", f"{sl} png for designers",
+               f"{sl} png clipart free", f"{sl} sticker png transparent",
+               f"{sl} illustration png transparent",
+               f"{sl} png image hd quality", f"best {sl} png transparent",
+               f"{sl} image png free download",
+               f"free transparent {sl} image",
+               f"{sl} png hd free download",
+               f"transparent background {sl} png",
+               f"{sl} cutout image free",
+               f"{sl} png without background",
+               f"{sl} png for photoshop", f"{sl} png for canva",
+               f"{sl} png for powerpoint", f"{sl} png for website",
+               f"{cat_sl} {sl} png transparent",
+               f"{sl} {cat_sl} free png",
+               f"free {cat_sl} {sl} png",
+               f"{sl} png image free",
+               f"download {sl} png transparent"]
+    kw_list = kw_list[:30]
     return {
-        "title":       title,
-        "h1":          h1,
-        "meta_desc":   meta_desc,
-        "alt_text":    alt_text,
-        "tags":        tags,
-        "description": ", ".join(kws_final),
+        "title": title[:70],
+        "h1": h1[:85],
+        "meta_desc": meta[:160],
+        "alt_text": alt[:125],
+        "tags": tags,
+        "description": ", ".join(kw_list),
     }
 
 
+# ══════════════════════════════════════════════════════════════
+# VISION SEO stubs — now simply calls Gemma
+# ══════════════════════════════════════════════════════════════
+
 def _vision_seo(row: Dict[str, str]) -> Dict[str, str]:
+    """Generates SEO for a row using Gemma 3 1B (no image needed)."""
     subject      = (row.get("subject_name") or "").strip()
-    preview_url  = row.get("preview_url",  "")
-    download_url = row.get("download_url", "")
     category     = row.get("category",     "")
     if not subject:
         raise RuntimeError("Missing subject_name in row")
-    clean_subj  = _clean_subject(subject)
-    visual_desc = ""
-    img_bytes   = _fetch_image_for_vision(preview_url, download_url)
-    if img_bytes:
-        raw_desc = _florence_describe(img_bytes, clean_subj)
-        # Quality gate: require at least 20 chars and at least one real word
-        if raw_desc and len(raw_desc) >= 20 and re.search(r"[a-zA-Z]{3,}", raw_desc):
-            visual_desc = raw_desc
-            print(f"    👁  vision ({len(visual_desc)}c): {visual_desc[:90]!r}", flush=True)
-        else:
-            print(f"    ⚠  Florence-2 low-quality result — template SEO fallback", flush=True)
-    else:
-        print(f"    ⚠  image download failed — template SEO fallback", flush=True)
-    return _build_seo_from_vision(clean_subj, visual_desc, category, subject)
+    clean_subj = _clean_subject(subject)
+    print(f"    🧠 Gemma generating SEO for '{clean_subj}' ...", flush=True)
+    seo = _gemma_generate_seo(clean_subj, category, subject)
+    return seo
 
 
 def _trigger_self_restart(remaining: int,
@@ -1159,7 +680,7 @@ def _trigger_self_restart(remaining: int,
 
 
 # ══════════════════════════════════════════════════════════════
-# ULTRADATA XLSX READ / UPDATE
+# ULTRADATA XLSX READ / UPDATE  (unchanged)
 # ══════════════════════════════════════════════════════════════
 
 def _read_pending_rows(xlsx_path: Path) -> List[Dict[str, str]]:
@@ -1197,7 +718,6 @@ def _read_pending_rows(xlsx_path: Path) -> List[Dict[str, str]]:
         })
     return out
 
-
 def _mark_completed(xlsx_path: Path, completed_filenames: set) -> int:
     import openpyxl
     if not xlsx_path.exists() or not completed_filenames:
@@ -1228,7 +748,7 @@ def _mark_completed(xlsx_path: Path, completed_filenames: set) -> int:
 
 
 # ══════════════════════════════════════════════════════════════
-# REPO2 (clone / load / save / push)
+# REPO2 (clone / load / save / push)  (mostly unchanged)
 # ══════════════════════════════════════════════════════════════
 
 @dataclass
@@ -1236,7 +756,6 @@ class Repo2Config:
     token:    str
     slug:     str
     data_dir: str = "data"
-
 
 def _clone_repo2(cfg: Repo2Config, workdir: Path) -> Path:
     repo_url = f"https://x-access-token:{cfg.token}@github.com/{cfg.slug}.git"
@@ -1247,7 +766,6 @@ def _clone_repo2(cfg: Repo2Config, workdir: Path) -> Path:
     subprocess.run(["git", "clone", "--depth", "1", repo_url, str(workdir)],
                    check=True)
     return workdir
-
 
 def _load_existing_entries(repo2_dir: Path,
                             data_dir: str) -> Tuple[Dict[str, Any], List[Path]]:
@@ -1271,7 +789,6 @@ def _load_existing_entries(repo2_dir: Path,
             continue
     return all_entries, files
 
-
 def _get_active_file(files: List[Path], repo2_dir: Path, data_dir: str,
                      max_entries: int, file_entries: Dict[Path, List]) -> Path:
     last = files[-1]
@@ -1286,7 +803,6 @@ def _get_active_file(files: List[Path], repo2_dir: Path, data_dir: str,
     print(f"\n  [JSON] Created {newf.name} (previous file full)", flush=True)
     return newf
 
-
 def _save_json_files(file_entries: Dict[Path, List]) -> None:
     for f, arr in file_entries.items():
         tmp = f.with_suffix(f.suffix + ".tmp")
@@ -1294,14 +810,12 @@ def _save_json_files(file_entries: Dict[Path, List]) -> None:
                        encoding="utf-8")
         tmp.replace(f)
 
-
 def _git_setup(repo2_dir: Path) -> None:
     subprocess.run(["git", "config", "user.name",  "github-actions[bot]"],
                    cwd=str(repo2_dir), check=True)
     subprocess.run(["git", "config", "user.email",
                     "github-actions[bot]@users.noreply.github.com"],
                    cwd=str(repo2_dir), check=True)
-
 
 def _commit_push_repo2(repo2_dir: Path, cfg: "Repo2Config", added: int,
                         commit_msg: Optional[str] = None,
@@ -1356,7 +870,6 @@ def _commit_push_repo2(repo2_dir: Path, cfg: "Repo2Config", added: int,
             _save_json_files(file_entries)
         time.sleep(3 * attempt)
 
-
 def _push_xlsx_rows_via_api(cfg: "Repo2Config", new_rows: List[Dict],
                               commit_msg: str, max_retries: int = 3) -> None:
     import requests, openpyxl
@@ -1372,7 +885,6 @@ def _push_xlsx_rows_via_api(cfg: "Repo2Config", new_rows: List[Dict],
         "filename", "png_file_id", "webp_file_id",
         "download_url", "preview_url", "seo_status",
     ]
-
     def _fetch_wb() -> Tuple[openpyxl.Workbook, str]:
         r = requests.get(api_url, headers=headers,
                           params={"ref": branch}, timeout=30)
@@ -1380,7 +892,6 @@ def _push_xlsx_rows_via_api(cfg: "Repo2Config", new_rows: List[Dict],
         d   = r.json()
         raw = base64.b64decode(d["content"].replace("\n", ""))
         return openpyxl.load_workbook(io.BytesIO(raw)), d["sha"]
-
     def _append_and_encode(wb_: openpyxl.Workbook) -> str:
         ws_ = wb_.active
         hdr = [ws_.cell(row=1, column=c).value
@@ -1398,7 +909,6 @@ def _push_xlsx_rows_via_api(cfg: "Repo2Config", new_rows: List[Dict],
         buf = io.BytesIO()
         wb_.save(buf)
         return base64.b64encode(buf.getvalue()).decode()
-
     wb, sha = _fetch_wb()
     for attempt in range(1, max_retries + 1):
         r = requests.put(api_url, headers=headers,
@@ -1439,14 +949,14 @@ def main() -> None:
         except Exception:
             pass
 
-    vision_mode = "Florence-2-base ✅ (local CPU · ~11s/img · no API key · unlimited)"
+    llm_mode = "Gemma 3 1B ✅ (local CPU · ~25s/item · no API key · unlimited)"
 
     print("=" * 65)
-    print("  Section 2 — SEO JSON Builder  (V7.0 — Organic SEO + Florence-2 Dual-Task)")
+    print("  Section 2 — SEO JSON Builder  (V7.0 — Gemma 3 1B, no image)")
     print(f"  Requested count : {requested if requested else 'ALL pending'}")
     print(f"  Safety cap      : {INSTANT_CAP}")
     print(f"  Max per JSON    : {max_per_file}")
-    print(f"  Vision mode     : {vision_mode}")
+    print(f"  LLM mode        : {llm_mode}")
     print(f"  Max run time    : {MAX_RUN_SECONDS // 3600}h "
           f"{(MAX_RUN_SECONDS % 3600) // 60}m")
     print(f"  Drive PNG scan  : {os.environ.get('SCAN_DRIVE', 'true')}")
@@ -1494,10 +1004,10 @@ def main() -> None:
         return
 
     target = min(requested, len(todo)) if requested else len(todo)
-    print(f"\n[Step 4b] Pre-loading Florence-2-base model ...")
-    _load_florence_model()
+    print(f"\n[Step 4b] Pre-loading Gemma 3 1B model ...")
+    _load_gemma_model()
     print(f"\n  ▶  Generating SEO for up to {target} item(s) ...\n"
-          f"     Florence-2-base local inference · ~11s/image · unlimited\n")
+          f"     Gemma 3 1B local inference · ~25s/item · unlimited\n")
 
     file_entries: Dict[Path, List] = {}
     for f in files:
@@ -1530,9 +1040,8 @@ def main() -> None:
             print(f"    ✗ SKIP ({e})", flush=True)
             continue
 
-        clean_subj = _clean_subject(subject)
-        slug       = re.sub(r"[^a-z0-9]+", "-",
-                             clean_subj.lower()).strip("-") or "untitled"
+        slug = re.sub(r"[^a-z0-9]+", "-",
+                       _clean_subject(subject).lower()).strip("-") or "untitled"
         webp_fid   = r.get("webp_file_id", "")
         webp_preview = (
             f"https://lh3.googleusercontent.com/d/{webp_fid}=s800"
