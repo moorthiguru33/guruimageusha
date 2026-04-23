@@ -17,7 +17,7 @@ name: Section 2 - SEO JSON Builder
 #   • Per item    : ~20‑40s (prompt + generation)
 #   • Per 5h run  : ~450‑900 items (auto‑restart handles the rest)
 #
-#   SETUP: No secrets needed! Just run the workflow.
+#   SETUP: Requires HF_TOKEN secret for gated model access.
 # ─────────────────────────────────────────────────────────────────────────────
 
 on:
@@ -96,6 +96,7 @@ jobs:
           SCAN_DRIVE:           ${{ github.event.inputs.scan_drive || 'true' }}
 
           HF_HOME:              /home/runner/.cache/huggingface
+          HF_TOKEN:             ${{ secrets.HF_TOKEN }}       # ← essential for gated model
 
           GITHUB_REPOSITORY:    ${{ github.repository }}
           GITHUB_REF_NAME:      ${{ github.ref_name }}
