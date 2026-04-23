@@ -491,6 +491,32 @@ _STYLE_WORDS = [
     "watercolor", "digital", "illustrated", "hand-drawn", "artistic",
     "detailed", "simple", "modern", "vintage", "cute", "elegant", "glossy",
     "sketched", "painted", "stylized", "anime", "comic", "retro",
+    "render", "rendered", "photorealistic", "low-poly", "isometric",
+    "neon", "glowing", "shiny", "metallic", "gradient",
+]
+
+# Action / pose / state words — extracted from Florence-2 output to build
+# vivid, specific titles like "Splashing Water PNG" or "Flying Eagle PNG"
+_ACTION_WORDS = [
+    # liquid / physics
+    "splashing", "splash", "pouring", "dripping", "flowing", "spilling",
+    "falling", "dropping", "floating", "bubbling", "foaming", "spraying",
+    "melting", "frozen",
+    # movement
+    "flying", "soaring", "jumping", "leaping", "running", "walking",
+    "dancing", "spinning", "rotating", "rolling", "swimming", "diving",
+    "crawling", "climbing", "sliding",
+    # light / fire / energy
+    "burning", "flaming", "glowing", "shining", "sparkling", "exploding",
+    "bursting", "blazing",
+    # plant / nature
+    "blooming", "blossoming", "growing", "wilting",
+    # pose / state
+    "sitting", "standing", "waving", "holding", "carrying", "eating",
+    "sleeping", "roaring", "smiling", "laughing",
+    # composition
+    "isolated", "cutout", "stacked", "sliced", "half", "whole", "full",
+    "fresh", "ripe", "dried", "grilled", "cooked", "fried",
 ]
 
 _FILENAME_NOISE = re.compile(
@@ -558,11 +584,13 @@ def _florence_describe(img_bytes: bytes, subject: str) -> str:
         # Task 1: detailed visual caption (colors, texture, style)
         caption = _run_task("<DETAILED_CAPTION>", max_tokens=160)
 
-        # Task 2: VQA with subject hint to anchor identity
+        # Task 2: VQA with subject hint — ask for color + style + ACTION specifically
         vqa_q = (
-            f"This PNG shows a {subject} on a transparent background. "
-            f"What are the dominant colors, art style (realistic, cartoon, vector, "
-            f"3D, watercolor, hand-drawn, clipart), and notable visual details?"
+            f"This PNG image shows a {subject} on a transparent background. "
+            f"Describe: (1) dominant colors (e.g. red, golden, dark green), "
+            f"(2) art style (realistic photo, 3D render, cartoon, vector clipart, watercolor, hand-drawn), "
+            f"(3) action or state (e.g. splashing, flying, jumping, blooming, falling, isolated, sliced, fresh, burning, glowing). "
+            f"Be specific and concise."
         )
         vqa_ans = _run_task(f"<VQA>{vqa_q}", max_tokens=120)
 
@@ -611,245 +639,326 @@ def _extract_words_from_desc(visual_desc: str, wordlist: List[str]) -> List[str]
 def _build_seo_from_vision(clean_subject: str, visual_desc: str,
                             category: str = "", orig_subject: str = "") -> Dict[str, str]:
     """
-    Organic, non-templated SEO builder.
-    Every field is constructed from actual visual data so that no two images
-    share identical copy — even within the same category.
+    V7 — Action-aware, visually-specific SEO builder.
 
-    Strategy overview:
-    ─────────────────
-    title     → Lead with the most specific visual signal (color+style or
-                unique detail), then subject, then intent keyword.
-                6 pools rotated deterministically by subject hash so sibling
-                images never share a title pattern.
-    h1        → Conversational, descriptive — mirrors natural search phrasing.
-                Uses visual_desc sentence[0] when available.
-    meta_desc → Opens with the image's unique visual angle, ends with the
-                value proposition. Never starts with "Download".
-    alt_text  → Screen-reader quality: color + subject + style + context.
-    tags      → 10 highest-value tags, color/style-specific when available.
-    keywords  → 30 long-tail KWs assembled from visual signals; every KW is
-                distinct and search-intent-aligned.
+    Core fix over V6:
+    • Extracts ACTION words from Florence-2 output (splashing, flying, blooming…)
+    • Title formula:  [Color] [Subject] [Action] PNG [Intent suffix]
+      e.g.  "Red Banana Juice Splashing PNG Transparent Free Download"
+            "Golden Crown 3D Render Transparent PNG Free Download"
+            "Cartoon Watercolor Rose Blooming PNG Image Free"
+    • 8 title pools (was 6) — action-first pools are tried first when action exists.
+    • Keywords include action-based long-tail KWs (e.g. "splashing water png free").
+    • Meta/H1 also use action phrases for richer, unique copy.
+    • No generic filler titles like "This image shows…" — purely attribute-driven.
     """
-    s   = clean_subject or orig_subject.strip() or "Image"
-    sl  = s.lower()
-    cat = (category or "").strip()
+    s      = clean_subject or orig_subject.strip() or "Image"
+    sl     = s.lower()
+    cat    = (category or "").strip()
     cat_sl = cat.lower()
 
     # ── Visual signals ────────────────────────────────────────────────────
-    colors = _extract_words_from_desc(visual_desc, _COLOR_WORDS)
-    styles = _extract_words_from_desc(visual_desc, _STYLE_WORDS)
+    colors  = _extract_words_from_desc(visual_desc, _COLOR_WORDS)
+    styles  = _extract_words_from_desc(visual_desc, _STYLE_WORDS)
+    actions = _extract_words_from_desc(visual_desc, _ACTION_WORDS)
 
-    # Drop color/style words already present in the subject name (avoid "Red Red Grapes").
-    # Also drop colors that are root-matches of subject words (e.g. "golden" when
-    # subject contains "gold", "silvery" when subject contains "silver").
     sl_words = set(re.split(r"\s+", sl))
+
     def _color_in_subject(c: str) -> bool:
         if c.lower() in sl_words:
             return True
-        # stem check: "golden" vs "gold", "crimson" — just check prefix overlap ≥4 chars
         for w in sl_words:
-            if len(c) >= 4 and len(w) >= 4:
-                if c[:4] == w[:4]:   # e.g. gold/golden share "gold"
-                    return True
+            if len(c) >= 4 and len(w) >= 4 and c[:4] == w[:4]:
+                return True
         return False
-    colors = [c for c in colors if not _color_in_subject(c)]
-    styles = [st for st in styles if st.lower() not in sl_words]
 
-    # Primary color: first detected, or empty
-    color1 = colors[0] if colors else ""
-    color2 = colors[1] if len(colors) > 1 else ""
+    colors  = [c for c in colors  if not _color_in_subject(c)]
+    styles  = [st for st in styles  if st.lower() not in sl_words]
+    actions = [a  for a  in actions if a.lower()  not in sl_words]
 
-    # Primary style: prefer visually meaningful ones for use as qualifier prefix.
-    # "3d" alone reads poorly as a prefix ("3d Crown PNG") — only include it when
-    # paired with a color. Also skip generic styles when used solo.
-    _generic_styles    = {"realistic", "detailed", "modern", "simple"}
-    _awkward_solo_stys = {"3d", "digital", "illustrated", "painted", "sketched"}
+    color1  = colors[0]  if colors  else ""
+    color2  = colors[1]  if len(colors)  > 1 else ""
+    action1 = actions[0] if actions else ""
+    action2 = actions[1] if len(actions) > 1 else ""
+
+    _generic_styles    = {"realistic", "detailed", "modern", "simple", "photorealistic"}
+    _awkward_solo_stys = {"3d", "digital", "illustrated", "painted", "sketched", "rendered", "render"}
     style1 = next((st for st in styles
                    if st not in _generic_styles and st not in _awkward_solo_stys), "")
-    # Allow awkward-solo styles only when a color is also present (e.g. "Golden 3D")
     if not style1 and color1:
         style1 = next((st for st in styles if st not in _generic_styles), "")
     style1 = style1 or (styles[0] if styles else "")
     style2 = next((st for st in styles[1:]
                    if st not in _generic_styles and st != style1), "")
 
-    # Short visual snippet from description (first sentence, ≤60 chars)
-    vis_snip = ""
-    if visual_desc:
-        first_sent = visual_desc.split(".")[0].strip()
-        vis_snip = first_sent[:45].rstrip(" ,") if first_sent else ""
-
-    # Build a "visual qualifier" — the most specific prefix we can attach
-    qual_parts: List[str] = []
+    # ── Build semantic qualifier blocks ───────────────────────────────────
+    # prefix_qual  = color + style  (leads the title)
+    # action_qual  = action word    (middle descriptor)
+    prefix_parts: List[str] = []
     if color1:
-        qual_parts.append(color1.capitalize())
+        prefix_parts.append(color1.capitalize())
     if style1 and style1 not in _generic_styles:
-        qual_parts.append(style1.capitalize())
-    qualifier = " ".join(qual_parts)   # e.g. "Red Watercolor" or "Golden 3D" or ""
+        prefix_parts.append(style1.capitalize())
+    prefix_qual = " ".join(prefix_parts)    # e.g. "Red Watercolor", "Golden 3D"
 
-    # ── Hash-based pool selectors (each field gets its own offset so title/h1/meta
-    #    never all land on the same pool pattern for the same subject) ────────────
-    _h = abs(hash(orig_subject or s))
-    _title_idx = _h % 6
-    _h1_idx    = (_h // 6)  % 6
-    _meta_idx  = (_h // 36) % 6
+    action_cap  = action1.capitalize() if action1 else ""   # e.g. "Splashing"
 
-    # ── TITLE (50-65 chars ideal for Google) ─────────────────────────────
-    # 6 pools, each with a "qualifier available" and "no qualifier" variant
+    # Full qualifier for pools that want all three
+    full_qual_parts = prefix_parts[:]
+    if action_cap and action_cap.lower() not in sl:
+        full_qual_parts.append(action_cap)
+    full_qual = " ".join(full_qual_parts)   # e.g. "Red 3D Glowing"
+
+    # ── Hash-based pool selectors ──────────────────────────────────────────
+    _h         = abs(hash(orig_subject or s))
+    _title_idx = _h % 8
+    _h1_idx    = (_h // 8)  % 8
+    _meta_idx  = (_h // 64) % 6
+
+    # ── TITLE (55-70 chars ideal for Google) ──────────────────────────────
+    # Rule: must contain Subject + PNG + at least one of (color / action / style)
+    # Format examples:
+    #   "Red Banana Juice Splashing PNG Transparent Free Download"     ← action-led
+    #   "Cartoon Sunflower Blooming PNG Transparent Background Free"   ← style+action
+    #   "Golden Crown 3D Render PNG Transparent Background Download"   ← color+style
+    #   "Apple Fruit Fresh Sliced PNG Transparent Free Download"       ← action only
     def _pick_title() -> str:
+        # Helper: build "{prefix} {s} {action}" core phrase
+        def _core(use_prefix: bool = True, use_action: bool = True) -> str:
+            parts: List[str] = []
+            if use_prefix and prefix_qual:
+                parts.append(prefix_qual)
+            parts.append(s)
+            if use_action and action_cap and action_cap.lower() not in sl:
+                parts.append(action_cap)
+            return " ".join(parts)
+
         pools = [
-            # Pool 0 — color/style qualifier leads
-            (f"{qualifier} {s} PNG - Transparent Background Free Download"
-             if qualifier else
-             f"{s} PNG - Transparent Background Free Download"),
-            # Pool 1 — action-oriented
-            (f"Download {qualifier} {s} PNG | Transparent HD Image"
-             if qualifier else
-             f"Download {s} PNG | High Quality Transparent Background"),
-            # Pool 2 — cutout / use-case
-            (f"{s} Transparent PNG - {qualifier} Cutout Free"
-             if qualifier else
-             f"{s} Transparent PNG Cutout - Free High Resolution"),
-            # Pool 3 — clipart / format
-            (f"Free {qualifier} {s} PNG Clipart with Transparent BG"
-             if qualifier else
-             f"Free {s} PNG Clipart - No Background HD"),
-            # Pool 4 — image lead with qualifier
-            (f"{qualifier} {s} PNG Image | Transparent Background"
-             if qualifier else
-             f"{s} PNG Image | Transparent Background HD"),
-            # Pool 5 — quality + resolution
-            (f"High-Res {qualifier} {s} PNG - Clear Transparent Background"
-             if qualifier else
-             f"High-Res {s} PNG - Clear Transparent Background Free"),
+            # Pool 0 — ACTION-LED: color+subject+action (best pool when action exists)
+            f"{_core()} PNG Transparent Free Download"
+            if (prefix_qual or action_cap) else
+            f"{s} PNG Transparent Background Free Download",
+
+            # Pool 1 — PNG IMAGE suffix style
+            f"{_core()} PNG Image Free Download"
+            if (prefix_qual or action_cap) else
+            f"{s} PNG Image Transparent Background Free",
+
+            # Pool 2 — "Free Download" at end, style/action in middle
+            f"Free {_core()} PNG Transparent Background"
+            if (prefix_qual or action_cap) else
+            f"Free {s} PNG Transparent Background HD",
+
+            # Pool 3 — "Transparent PNG" sandwich
+            f"{_core(True, False)} Transparent PNG {action_cap} Free Download"
+            if action_cap else
+            f"{_core()} Transparent PNG Free Download",
+
+            # Pool 4 — cutout / no background emphasis
+            f"{_core()} Transparent Background PNG Free"
+            if (prefix_qual or action_cap) else
+            f"{s} PNG No Background Free Download HD",
+
+            # Pool 5 — "HD PNG" mid-phrase
+            f"{_core()} HD PNG Transparent Free"
+            if (prefix_qual or action_cap) else
+            f"{s} HD PNG Transparent Background Free Download",
+
+            # Pool 6 — quality-led
+            f"High Quality {_core()} PNG Transparent"
+            if (prefix_qual or action_cap) else
+            f"High Quality {s} PNG Transparent Background Free",
+
+            # Pool 7 — category-contextual
+            (f"{_core()} {cat} PNG Transparent Free"
+             if cat_sl and cat_sl != sl else
+             f"{_core()} PNG Clipart Transparent Free Download")
+            if (prefix_qual or action_cap) else
+            (f"{s} {cat} PNG Transparent Free Download"
+             if cat_sl and cat_sl != sl else
+             f"{s} PNG Clipart Transparent Free Download"),
         ]
-        raw = pools[_title_idx]
-        # If primary pool produces a very short title, try next pools until ≥45 chars
-        if len(raw) < 45:
-            for fallback_pool in pools[_title_idx + 1:] + pools[:_title_idx]:
-                if len(fallback_pool) >= 45:
-                    raw = fallback_pool
+
+        # If action exists, prefer action pools (0,1,3) over generic ones
+        preferred_order = list(range(8))
+        if action_cap:
+            preferred_order = [0, 1, 3, 2, 4, 5, 6, 7]
+        elif prefix_qual:
+            preferred_order = [0, 2, 4, 1, 3, 5, 6, 7]
+
+        # Start at the hash-selected pool, then rotate through preferred order
+        selected_pool = preferred_order[_title_idx % len(preferred_order)]
+        raw = pools[selected_pool]
+
+        # Fallback: find any pool ≥ 50 chars
+        if len(raw) < 50:
+            for idx in preferred_order:
+                if idx != selected_pool and len(pools[idx]) >= 50:
+                    raw = pools[idx]
                     break
-        # Hard cap at 65 chars; trim at word boundary
-        if len(raw) > 65:
-            raw = raw[:62].rsplit(" ", 1)[0].rstrip(" |-") + "..."
-        return raw
+
+        # Hard cap: 70 chars, trim at word boundary
+        if len(raw) > 70:
+            raw = raw[:67].rsplit(" ", 1)[0].rstrip(" |-") + "..."
+        return raw.strip()
 
     title = _pick_title()
 
-    # ── H1 (conversational, 52-80 chars — different pool offset from title) ──
+    # ── H1 (conversational, 55-85 chars) ──────────────────────────────────
     def _pick_h1() -> str:
         h1_pools = [
-            # Pool 0 — qualifier + subject + context
-            (f"{qualifier} {s} PNG on Transparent Background - Free HD"
-             if qualifier else
-             f"{s} PNG Image on Transparent Background - Free HD"),
-            # Pool 1 — color-forward conversational
-            (f"{color1.capitalize()} {s} PNG - No Background, High Resolution"
+            # Pool 0 — action-led conversational
+            (f"{prefix_qual} {s} {action_cap} PNG on Transparent Background - Free HD"
+             if action_cap and prefix_qual else
+             f"{s} {action_cap} PNG on Transparent Background - Free HD"
+             if action_cap else
+             f"{prefix_qual} {s} PNG on Transparent Background - Free HD"
+             if prefix_qual else
+             f"{s} PNG on Transparent Background - Free HD Download"),
+
+            # Pool 1 — color-forward
+            (f"{color1.capitalize()} {s} {action_cap} PNG - No Background Free Download"
+             if color1 and action_cap else
+             f"{color1.capitalize()} {s} PNG - Transparent Background Free Download"
              if color1 else
-             f"{s} PNG - Clean Transparent Background, High Resolution"),
-            # Pool 2 — style-forward descriptive
-            (f"{style1.capitalize()} {s} PNG - Transparent Cutout Free Download"
+             f"{s} PNG - Clean Transparent Background Free HD Download"),
+
+            # Pool 2 — style-forward
+            (f"{style1.capitalize()} {s} {action_cap} PNG Transparent Cutout - Free"
+             if style1 and action_cap else
+             f"{style1.capitalize()} {s} PNG Transparent Cutout - Free HD Download"
              if style1 else
              f"{s} PNG Transparent Cutout - Free High Quality Download"),
-            # Pool 3 — category + subject context
-            (f"{s} {cat} PNG - Isolated on Transparent Background"
+
+            # Pool 3 — category context
+            (f"{s} {action_cap} - {cat} PNG Transparent Background Free"
+             if action_cap and cat_sl and cat_sl != sl else
+             f"{s} {cat} PNG - Isolated Transparent Background Free HD"
              if cat_sl and cat_sl != sl else
-             f"{s} PNG - Professionally Isolated Transparent Background"),
-            # Pool 4 — search-intent download phrasing
-            (f"{qualifier} {s} PNG Free Download - Transparent Background"
-             if qualifier else
-             f"{s} PNG Free Download - Transparent Background HD"),
-            # Pool 5 — use-case / design context
-            (f"{s} PNG for Design Projects - {qualifier} Transparent"
-             if qualifier else
-             f"{s} PNG for Design Projects - Transparent Background Free"),
+             f"{s} PNG - Professionally Isolated Transparent Background Free"),
+
+            # Pool 4 — download-intent
+            (f"{prefix_qual} {s} {action_cap} PNG Free Download - Transparent Background"
+             if full_qual else
+             f"{s} PNG Free Download - Transparent Background HD Quality"),
+
+            # Pool 5 — use-case
+            (f"{s} {action_cap} PNG for Design Projects - Transparent Free"
+             if action_cap else
+             f"{s} PNG for Design Projects - {prefix_qual} Transparent Background Free"
+             if prefix_qual else
+             f"{s} PNG for Design Projects - Transparent Background Free HD"),
+
+            # Pool 6 — action + quality
+            (f"{action_cap} {s} PNG Image - {color1.capitalize()} Transparent HD Free"
+             if action_cap and color1 else
+             f"{s} PNG Image - {prefix_qual} Transparent Background HD Free"
+             if prefix_qual else
+             f"{s} PNG Image - Transparent Background HD Free Download"),
+
+            # Pool 7 — vivid description
+            (f"Vivid {full_qual} {s} PNG - Transparent Background Free Download"
+             if full_qual else
+             f"{s} PNG - Transparent Background, High Resolution Free Download"),
         ]
-        raw = h1_pools[_h1_idx]
-        return raw[:80].strip()
+        raw = h1_pools[_h1_idx % len(h1_pools)]
+        return raw[:85].strip()
 
     h1 = _pick_h1()
 
-    # ── META DESCRIPTION (140-155 chars, different pool offset from both above) ─
-    # Never starts with "Download". Opens with unique visual/value angle.
+    # ── META DESCRIPTION (140-160 chars) ───────────────────────────────────
+    # Never starts with "Download". Action phrase used when available.
     def _pick_meta() -> str:
-        # Build a tight visual context clause from the description (max 85 chars)
+        # Visual context from Florence-2 description (first sentence, ≤90 chars)
+        context = ""
         if visual_desc and len(visual_desc) > 20:
-            sents = [s2.strip() for s2 in visual_desc.split(".") if s2.strip()]
-            raw_ctx = sents[0]
-            if len(raw_ctx) > 85:
-                raw_ctx = raw_ctx[:82].rsplit(" ", 1)[0]  # word-boundary trim
-            context = raw_ctx.rstrip(" ,")
-            if len(sents) > 1 and len(context) < 45:
-                ctx2 = sents[1][:40].rsplit(" ", 1)[0].rstrip(" ,")
-                context += ". " + ctx2
+            sents = [sx.strip() for sx in visual_desc.split(".") if sx.strip()
+                     and not sx.strip().lower().startswith(("this image", "the image",
+                                                             "this png", "the png"))]
+            if not sents:
+                sents = [sx.strip() for sx in visual_desc.split(".") if sx.strip()]
+            if sents:
+                raw_ctx = sents[0]
+                if len(raw_ctx) > 90:
+                    raw_ctx = raw_ctx[:87].rsplit(" ", 1)[0]
+                context = raw_ctx.rstrip(" ,")
+                if len(sents) > 1 and len(context) < 40:
+                    ctx2 = sents[1][:45].rsplit(" ", 1)[0].rstrip(" ,")
+                    context += ". " + ctx2
+
+        # Build vivid descriptor phrase for pools that don't use context
+        vd = ""
+        if action_cap and prefix_qual:
+            vd = f"{prefix_qual} {sl} {action1}"    # e.g. "red banana splashing"
+        elif action_cap:
+            vd = f"{sl} {action1}"                   # e.g. "banana splashing"
+        elif prefix_qual:
+            vd = f"{prefix_qual.lower()} {sl}"       # e.g. "golden crown"
         else:
-            context = ""
+            vd = sl
 
         meta_pools = [
-            # Pool 0 — visual context leads, value prop closes
-            (f"{context}. Get this {sl} PNG with transparent background — "
-             f"perfect for graphic design, print, and web projects. Free HD download."
+            # Pool 0 — Florence context + download CTA
+            (f"{context}. Free {sl} PNG with transparent background — "
+             f"perfect for graphic design, print, and web. HD quality."
              if context else
-             f"Eye-catching {qualifier} {sl} PNG with a fully transparent background. "
-             f"Ideal for design work, presentations, and creative projects. Free download."
-             if qualifier else
-             f"Crisp {sl} PNG with a fully transparent background. "
-             f"Ready to drop into any design, web page, or presentation. Free HD download."),
+             f"Eye-catching {vd} PNG with fully transparent background. "
+             f"Perfect for design projects, presentations, and print. Free HD download."),
 
-            # Pool 1 — style-forward, tool mention
-            (f"{context}. This {style1} {sl} PNG has a clean transparent background "
-             f"— no editing needed. Free, high-resolution and ready for any project."
-             if context and style1 else
-             f"Beautifully rendered {qualifier} {sl} with transparent background. "
-             f"Works instantly in Photoshop, Canva, or any design tool. Free PNG download."
-             if qualifier else
-             f"High-quality {sl} PNG on a transparent background. "
-             f"Drop it straight into Photoshop, Canva, or Figma. Completely free."),
+            # Pool 1 — style + tool mention
+            (f"{context}. This {vd} PNG has clean transparent background "
+             f"— drop straight into Photoshop, Canva, or Figma. Free HD."
+             if context else
+             f"Beautifully rendered {vd} PNG with transparent background. "
+             f"Works instantly in Photoshop, Canva, or any design tool. Free."),
 
-            # Pool 2 — color-forward, standout angle
-            (f"{color1.capitalize()} tones give this {sl} PNG its distinctive look. "
-             f"Transparent background, HD resolution — ready for any creative project. Free."
+            # Pool 2 — action/color-forward
+            (f"{action_cap} {sl} PNG with {color1} tones — transparent background, "
+             f"HD resolution, free to use in any creative project."
+             if action_cap and color1 else
+             f"{color1.capitalize()} {sl} PNG, transparent background, HD resolution — "
+             f"ready to use in posters, banners, or social media. Completely free."
              if color1 else
-             f"This {sl} PNG has a clean transparent background and crisp HD resolution. "
-             f"Use it in posters, banners, or social media graphics. Completely free."),
+             f"Crisp {sl} PNG with transparent background and HD resolution. "
+             f"Use in posters, banners, or social media. Completely free."),
 
-            # Pool 3 — question-hook, use-case closes
-            (f"Looking for a {sl} PNG? {context}. Transparent background, HD quality, "
-             f"free to use in any creative project."
+            # Pool 3 — question hook
+            (f"Looking for a {vd} PNG? {context}. Transparent background, HD quality, "
+             f"free for any project."
              if context else
-             f"Looking for a {sl} PNG with no background? This HD image is ready for "
-             f"presentations, social posts, and print designs — completely free."),
+             f"Looking for a {vd} PNG with no background? This HD image is ready for "
+             f"presentations, social posts, and print — completely free."),
 
-            # Pool 4 — visual detail + audience
-            (f"{context}. A {qualifier} {sl} PNG with transparent background — "
-             f"great for designers, educators, and content creators. Free HD."
-             if context and qualifier else
-             f"Professionally isolated {sl} PNG with transparent background. "
-             f"Perfect for product mockups, school projects, and creative collages. Free."),
+            # Pool 4 — audience-focused
+            (f"{context}. This {vd} PNG with transparent background is great "
+             f"for designers, educators, and content creators. Free HD download."
+             if context else
+             f"Professionally isolated {vd} PNG with transparent background. "
+             f"Perfect for mockups, school projects, and creative collages. Free."),
 
-            # Pool 5 — benefit-forward, distinct opener per color/style
-            (f"Vivid {qualifier} {sl} PNG, fully transparent and HD — "
-             f"paste it into any layout without extra editing. Free download."
-             if qualifier else
-             f"Clean, ready-to-use {sl} PNG with a transparent background. "
-             f"No clipping needed — just place it in your design and go. Free HD."),
+            # Pool 5 — benefit-forward
+            (f"Vivid {vd} PNG, fully transparent and HD — paste into any layout "
+             f"without extra editing. Free download, no attribution needed."
+             if vd != sl else
+             f"Clean {sl} PNG with transparent background — no clipping needed. "
+             f"Place it in your design and go. Free HD download."),
         ]
         raw = meta_pools[_meta_idx]
-        # Trim to 155 chars at word boundary
-        if len(raw) > 155:
-            raw = raw[:152].rsplit(" ", 1)[0].rstrip(" .,") + "."
+        if len(raw) > 160:
+            raw = raw[:157].rsplit(" ", 1)[0].rstrip(" .,") + "."
         return raw
 
     meta_desc = _pick_meta()
 
-    # ── ALT TEXT (screen-reader + SEO, ≤125 chars) ───────────────────────
+    # ── ALT TEXT (≤125 chars, screen-reader + SEO) ────────────────────────
     alt_parts: List[str] = []
     if color1:
         alt_parts.append(color1)
-    if style1:
+    if style1 and style1 not in _generic_styles:
         alt_parts.append(style1)
     alt_parts.append(s)
+    if action1:
+        alt_parts.append(action1)
     alt_parts.append("PNG")
     if cat_sl and cat_sl != sl:
         alt_parts.append(f"in {cat} category")
@@ -859,25 +968,28 @@ def _build_seo_from_vision(clean_subject: str, visual_desc: str,
         alt_text = alt_text[:122].rsplit(" ", 1)[0] + "..."
 
     # ── TAGS (10 highest-value, comma-separated) ──────────────────────────
-    tag_pool: List[str] = [f"{sl} png", f"{sl} transparent background"]
+    tag_pool: List[str] = []
+    # Most specific first
+    if color1 and action1:
+        tag_pool.append(f"{color1} {sl} {action1} png")
     if color1:
-        tag_pool.insert(0, f"{color1} {sl} png")  # most specific first
-    if style1:
+        tag_pool.append(f"{color1} {sl} png")
+    if action1:
+        tag_pool.append(f"{sl} {action1} png")
+    tag_pool += [f"{sl} png", f"{sl} transparent background"]
+    if style1 and style1 not in _generic_styles:
         tag_pool.append(f"{style1} {sl} png")
     if color2:
-        tag_pool.append(f"{color2} {sl}")
+        tag_pool.append(f"{color2} {sl} png")
     if cat_sl and cat_sl != sl:
         tag_pool.append(f"{cat_sl} png")
         tag_pool.append(f"{sl} {cat_sl}")
     tag_pool += [
         f"free {sl} png",
-        f"{sl} clipart",
         f"{sl} no background",
         f"transparent {sl}",
         f"{sl} hd png",
-        f"download {sl} png",
     ]
-    # Deduplicate preserving order
     seen_tags: set = set()
     tags_final: List[str] = []
     for t_ in tag_pool:
@@ -889,23 +1001,48 @@ def _build_seo_from_vision(clean_subject: str, visual_desc: str,
             break
     tags = ", ".join(tags_final)
 
-    # ── KEYWORDS / DESCRIPTION (30 long-tail KWs) ────────────────────────
-    # Ordered from highest-intent (download/free) to informational
+    # ── KEYWORDS (30 long-tail KWs, action-enriched) ──────────────────────
     kw_pool: List[str] = []
 
-    # Tier 1 — transactional (highest intent)
+    # Tier 1 — transactional (highest purchase/download intent)
     kw_pool += [
         f"free {sl} png download",
         f"download {sl} png transparent",
         f"{sl} png free download hd",
         f"{sl} png no background free",
     ]
-    if color1:
+    if color1 and action1:
+        kw_pool.append(f"free {color1} {sl} {action1} png download")
+    elif color1:
         kw_pool.append(f"free {color1} {sl} png download")
-    if style1:
+    if action1:
+        kw_pool.append(f"{sl} {action1} png free download")
+    if style1 and style1 not in _generic_styles:
         kw_pool.append(f"free {style1} {sl} png download")
 
-    # Tier 2 — product descriptors
+    # Tier 2 — specific attribute descriptors
+    if action1:
+        kw_pool += [
+            f"{sl} {action1} transparent png",
+            f"{action1} {sl} png hd",
+            f"{color1} {sl} {action1} png transparent" if color1 else f"{sl} {action1} png transparent",
+        ]
+    if color1:
+        kw_pool += [
+            f"{color1} {sl} png transparent background",
+            f"{color1} {sl} transparent png hd",
+        ]
+    if color2:
+        kw_pool.append(f"{color2} {sl} png transparent")
+    if style1 and style1 not in _generic_styles:
+        kw_pool += [
+            f"{style1} {sl} png transparent",
+            f"{style1} {sl} image free",
+        ]
+    if action2:
+        kw_pool.append(f"{sl} {action2} png transparent")
+
+    # Tier 3 — generic product descriptors
     kw_pool += [
         f"{sl} png transparent background",
         f"{sl} transparent png hd",
@@ -916,22 +1053,8 @@ def _build_seo_from_vision(clean_subject: str, visual_desc: str,
         f"{sl} png high resolution",
         f"transparent {sl} image png",
     ]
-    if color1:
-        kw_pool += [
-            f"{color1} {sl} png transparent",
-            f"{color1} {sl} transparent background",
-        ]
-    if color2:
-        kw_pool.append(f"{color2} {sl} png")
-    if style1:
-        kw_pool += [
-            f"{style1} {sl} png transparent",
-            f"{style1} {sl} image free",
-        ]
-    if style2:
-        kw_pool.append(f"{style2} {sl} png")
 
-    # Tier 3 — use-case / informational
+    # Tier 4 — use-case / tool-specific
     kw_pool += [
         f"{sl} png for designers",
         f"{sl} png clipart free",
@@ -939,12 +1062,11 @@ def _build_seo_from_vision(clean_subject: str, visual_desc: str,
         f"{sl} png graphic design",
         f"{sl} illustration png transparent",
         f"{sl} png image hd quality",
-        f"{sl} png for presentation",
         f"high quality {sl} png",
         f"{sl} png for photoshop",
-        f"{sl} vector png transparent",
         f"{sl} png for canva",
         f"{sl} png for powerpoint",
+        f"{sl} png for website",
     ]
     if cat_sl and cat_sl != sl:
         kw_pool += [
@@ -953,21 +1075,18 @@ def _build_seo_from_vision(clean_subject: str, visual_desc: str,
             f"free {cat_sl} {sl} png",
         ]
 
-    # Tier 4 — padding (always fills to 30 even with no visual signals)
+    # Tier 5 — padding to always reach 30
     kw_pool += [
         f"{sl} png hd free download",
         f"transparent background {sl} png",
-        f"{sl} png file download",
         f"{sl} png image free",
         f"{sl} cutout image free",
         f"{sl} png without background",
         f"best {sl} png transparent",
-        f"{sl} png for website",
         f"{sl} image png free download",
         f"free transparent {sl} image",
     ]
 
-    # Deduplicate and cap at 30
     seen_kw: set = set()
     kws_final: List[str] = []
     for kw in kw_pool:
