@@ -17,9 +17,6 @@ WATERMARK_TEXT  = "www.ultrapng.com"
 INSTANT_CAP     = 2000
 
 # ── Gemma 3 1B replaces Florence-2 ─────────────────────────────────────────
-# Google Gemma 3 1B · Apache 2.0 · CPU-only · no API key · unlimited
-# GitHub Actions free Ubuntu: 2-core CPU, 7GB RAM
-# Actual speed: ~20-40s per item (prompt + generation)
 GEMMA_MODEL_ID = "google/gemma-3-1b-it"
 
 MAX_RUN_SECONDS = 17_400   # 4h50m
@@ -38,11 +35,17 @@ def _load_gemma_model():
     import torch
     from transformers import AutoTokenizer, AutoModelForCausalLM
     print(f"  [Gemma] Loading {GEMMA_MODEL_ID} ...", flush=True)
-    _gemma_tokenizer = AutoTokenizer.from_pretrained(GEMMA_MODEL_ID)
+
+    hf_token = os.environ.get("HF_TOKEN")          # ← read Hugging Face token
+    _gemma_tokenizer = AutoTokenizer.from_pretrained(
+        GEMMA_MODEL_ID,
+        token=hf_token                             # ← pass token
+    )
     _gemma_model = AutoModelForCausalLM.from_pretrained(
         GEMMA_MODEL_ID,
-        torch_dtype=torch.float32,      # float32 for CPU stability
+        torch_dtype=torch.float32,
         device_map="cpu",
+        token=hf_token                             # ← pass token
     )
     _gemma_model.eval()
     print("  [Gemma] Model ready ✓", flush=True)
@@ -160,7 +163,7 @@ def _drive_download(token: str, fid: str) -> bytes:
     return r.content
 
 # ══════════════════════════════════════════════════════════════
-# GITHUB API helpers  (unchanged)
+# GITHUB API helpers
 # ══════════════════════════════════════════════════════════════
 
 def _gh_headers(token: str) -> Dict[str, str]:
@@ -205,8 +208,9 @@ def _gh_upload_file(token: str, owner: str, repo: str,
 def _jsdelivr_url(owner: str, repo: str, branch: str, path: str) -> str:
     return f"https://cdn.jsdelivr.net/gh/{owner}/{repo}@{branch}/{path}"
 
+
 # ══════════════════════════════════════════════════════════════
-# WEBP PREVIEW GENERATOR  (unchanged)
+# WEBP PREVIEW GENERATOR
 # ══════════════════════════════════════════════════════════════
 
 WEBP_MAX_SIDE  = 800
@@ -270,7 +274,7 @@ def _make_webp_preview(png_bytes: bytes, watermark: str) -> bytes:
 
 
 # ══════════════════════════════════════════════════════════════
-# ULTRADATA XLSX helpers  (unchanged)
+# ULTRADATA XLSX helpers
 # ══════════════════════════════════════════════════════════════
 
 def _append_ultradata_rows(xlsx_path: Path, rows: List[Dict]) -> int:
@@ -302,7 +306,7 @@ def _append_ultradata_rows(xlsx_path: Path, rows: List[Dict]) -> int:
 
 
 # ══════════════════════════════════════════════════════════════
-# DRIVE PNG LIBRARY SCANNER  (unchanged)
+# DRIVE PNG LIBRARY SCANNER
 # ══════════════════════════════════════════════════════════════
 
 def _collect_all_pngs_from_drive(folder_name: str) -> List[Dict]:
@@ -680,7 +684,7 @@ def _trigger_self_restart(remaining: int,
 
 
 # ══════════════════════════════════════════════════════════════
-# ULTRADATA XLSX READ / UPDATE  (unchanged)
+# ULTRADATA XLSX READ / UPDATE
 # ══════════════════════════════════════════════════════════════
 
 def _read_pending_rows(xlsx_path: Path) -> List[Dict[str, str]]:
@@ -748,7 +752,7 @@ def _mark_completed(xlsx_path: Path, completed_filenames: set) -> int:
 
 
 # ══════════════════════════════════════════════════════════════
-# REPO2 (clone / load / save / push)  (mostly unchanged)
+# REPO2 (clone / load / save / push)
 # ══════════════════════════════════════════════════════════════
 
 @dataclass
