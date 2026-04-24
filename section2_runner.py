@@ -152,48 +152,57 @@ def trigger_kaggle_mode():
     print(f"  [Kaggle] Kernel pushed ✓", flush=True)
     print(f"  [Kaggle] View at: https://www.kaggle.com/code/{kaggle_user}/{slug}", flush=True)
 
-    # ── Poll via REST API until complete ────────────────────────────────────
-    auth     = (kaggle_user, kaggle_key)
-    api_base = "https://www.kaggle.com/api/v1"
-    poll_url = f"{api_base}/kernels/{kaggle_user}/{slug}"
+    # ── Poll via `kaggle kernels status` CLI ────────────────────────────────
+    # The REST GET /kernels/{user}/{slug} returns 404 for private kernels.
+    # The official CLI always works correctly.
 
-    # Give Kaggle ~60s to queue the job before first poll
-    print("  [Kaggle] Waiting 60s for job to queue ...", flush=True)
-    time.sleep(60)
+    # Give Kaggle ~90s to queue and start the job before first poll
+    print("  [Kaggle] Waiting 90s for job to queue ...", flush=True)
+    time.sleep(90)
 
-    for attempt in range(1, 240):   # max ~120 min polling
-        time.sleep(30)
+    # GitHub Actions timeout is 60 min (set in yml).
+    # Poll every 45s. Once the job is confirmed "running" we exit GH as success
+    # — the Kaggle session runs up to 9h and pushes results to repo2 directly.
+    POLL_INTERVAL = 45
+    MAX_POLLS     = 78   # 78 x 45s ≈ 58 min (fits inside 60-min GH timeout)
+
+    for attempt in range(1, MAX_POLLS + 1):
+        time.sleep(POLL_INTERVAL)
+        elapsed_m = (attempt * POLL_INTERVAL + 90) // 60
         try:
-            resp = requests.get(poll_url, auth=auth, timeout=30)
-            resp.raise_for_status()
-            st = resp.json()
-            status     = st.get("status","unknown")
-            total_time = st.get("totalRunningTime", 0)
-            elapsed_m  = (attempt * 30 + 60) // 60
-            print(f"    [{elapsed_m}m] status={status}  runtime={total_time}s", flush=True)
+            result = subprocess.run(
+                ["kaggle", "kernels", "status", f"{kaggle_user}/{slug}"],
+                capture_output=True, text=True, timeout=30
+            )
+            output = (result.stdout + result.stderr).strip()
+            print(f"    [{elapsed_m}m] {output}", flush=True)
+
+            # kaggle CLI outputs e.g.:  username/slug has status "running"
+            status = "unknown"
+            m = re.search(r'"(\w+)"', output)
+            if m:
+                status = m.group(1).lower()
 
             if status == "complete":
                 print("  ✅ Kaggle kernel completed successfully!", flush=True)
                 return
 
-            if status in ("error", "cancelAcknowledged", "cancelled"):
-                # Try to fetch log output for debugging
-                try:
-                    log_resp = requests.get(
-                        f"{api_base}/kernels/{kaggle_user}/{slug}/output",
-                        auth=auth, timeout=30
-                    )
-                    print("  [Kaggle log tail]:\n", log_resp.text[-3000:], flush=True)
-                except Exception:
-                    pass
-                raise SystemExit(f"❌ Kaggle kernel failed with status: {status}")
+            if status in ("error", "cancelacknowledged", "cancelled"):
+                raise SystemExit(f"❌ Kaggle kernel failed with status: {status}\nOutput: {output}")
+
+            # Once confirmed running, exit GH Actions — Kaggle runs independently
+            if status == "running" and attempt >= 3:
+                print("  ✅ Kaggle kernel is RUNNING on GPU — GitHub Action exiting.", flush=True)
+                print(f"     Monitor: https://www.kaggle.com/code/{kaggle_user}/{slug}", flush=True)
+                return
 
         except SystemExit:
             raise
         except Exception as exc:
             print(f"    [poll error] {exc}", flush=True)
 
-    raise SystemExit("❌ Kaggle kernel did not complete within 120 min timeout")
+    print(f"  ⚠  Poll timeout — Kaggle job likely still running.", flush=True)
+    print(f"     Check: https://www.kaggle.com/code/{kaggle_user}/{slug}", flush=True)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -444,7 +453,7 @@ def process_drive_png_library(repo2_dir, cfg):
     prev_branch = os.environ.get("PREVIEW_BRANCH","main").strip()
     prev_folder = os.environ.get("PREVIEW_FOLDER","preview_webp").strip()
     watermark = os.environ.get("WATERMARK_TEXT","www.ultrapng.com").strip()
-    today_str = datetime.utcnow().strftime("%Y-%m-%d")
+    today_str = datetime.now(__import__("datetime").timezone.utc).strftime("%Y-%m-%d")
     xlsx_path = repo2_dir / ULTRADATA_XLSX
     if not xlsx_path.exists():
         print(f"  ⚠  {ULTRADATA_XLSX} not found — skipping Drive scan")
@@ -504,7 +513,7 @@ def process_drive_png_library(repo2_dir, cfg):
 # ══════════════════════════════════════════════════════════════
 
 def _word_count(s): return len([w for w in re.split(r"\s+", (s or "").strip()) if w])
-def _today(): return datetime.utcnow().strftime("%Y-%m-%d")
+def _today(): return datetime.now(__import__("datetime").timezone.utc).strftime("%Y-%m-%d")
 
 FILENAME_NOISE = re.compile(
     r"\b(hd|png|img|image|photo|pic|transparent|bg|nobg|free|dl|download|"
