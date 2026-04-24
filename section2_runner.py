@@ -65,13 +65,13 @@ def _cuda_cap():
     return (0, 0)
 _major, _minor = _cuda_cap()
 if _major < 7:
-    print(f"[setup] GPU sm_{_major}{_minor} needs CUDA 11.x PyTorch — reinstalling ...", flush=True)
+    print(f"[setup] GPU sm_{{_major}}{{_minor}} needs CUDA 11.x PyTorch — reinstalling ...", flush=True)
     _sp.check_call([_sys.executable, "-m", "pip", "install", "-q", "--force-reinstall",
         "torch==2.1.2+cu118", "torchvision==0.16.2+cu118",
         "--index-url", "https://download.pytorch.org/whl/cu118"])
     print("[setup] PyTorch cu118 installed ✓", flush=True)
 else:
-    print(f"[setup] GPU sm_{_major}{_minor} — PyTorch already compatible ✓", flush=True)
+    print(f"[setup] GPU sm_{{_major}}{{_minor}} — PyTorch already compatible ✓", flush=True)
 
 # ── install dependencies ─────────────────────────────────────
 subprocess.check_call([sys.executable, "-m", "pip", "install", "-q",
