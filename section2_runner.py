@@ -53,8 +53,7 @@ import os, subprocess, sys
 
 # ── install dependencies ─────────────────────────────────────
 subprocess.check_call([sys.executable, "-m", "pip", "install", "-q",
-    "transformers>=4.37", "accelerate", "torch", "torchvision",
-    "salesforce-lavis", "openpyxl", "requests", "pillow"])
+    "transformers>=4.37", "accelerate", "openpyxl", "requests", "pillow"])
 
 # ── download runner script from GitHub repo ──────────────────
 import requests as _req
@@ -554,11 +553,19 @@ def _load_blip2():
     model_id = "Salesforce/blip2-opt-2.7b"   # Apache 2.0, ~5.5GB, fits on T4
     print(f"  [BLIP-2] Loading {model_id} on GPU ...", flush=True)
     _blip2_processor = Blip2Processor.from_pretrained(model_id)
-    _blip2_model = Blip2ForConditionalGeneration.from_pretrained(
-        model_id,
-        torch_dtype=torch.float16,
-        device_map="auto"        # auto-places on GPU
-    )
+    # Use float16 only when CUDA is confirmed available; fall back to float32 on CPU.
+    # Avoid device_map="auto" which can trigger the salesforce-lavis CUDA binary
+    # conflict — instead place directly on cuda:0 via explicit .to() call.
+    if torch.cuda.is_available():
+        _blip2_model = Blip2ForConditionalGeneration.from_pretrained(
+            model_id,
+            torch_dtype=torch.float16,
+        ).to("cuda")
+    else:
+        _blip2_model = Blip2ForConditionalGeneration.from_pretrained(
+            model_id,
+            torch_dtype=torch.float32,
+        )
     _blip2_model.eval()
     print("  [BLIP-2] Model ready ✓", flush=True)
 
@@ -579,8 +586,10 @@ def _blip2_caption(image_bytes: bytes) -> str:
         "Question: What is the main subject of this image? Answer:",
     ]
     captions = []
+    device = next(_blip2_model.parameters()).device
+    dtype  = next(_blip2_model.parameters()).dtype
     for prompt in prompts:
-        inputs = _blip2_processor(images=img, text=prompt, return_tensors="pt").to(_blip2_model.device, torch.float16)
+        inputs = _blip2_processor(images=img, text=prompt, return_tensors="pt").to(device, dtype)
         with torch.no_grad():
             out = _blip2_model.generate(
                 **inputs,
