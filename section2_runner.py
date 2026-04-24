@@ -63,13 +63,18 @@ import os, subprocess, sys
 # accelerate is required for GPU-accelerated transformers pipelines.
 # torch is pre-installed on Kaggle; listed here for safety.
 subprocess.check_call([sys.executable, "-m", "pip", "install", "-q",
-    "transformers>=4.37", "accelerate>=0.26", "openpyxl", "requests", "pillow"])
+    "transformers>=4.37", "accelerate>=0.26", "sentencepiece", "openpyxl", "requests", "pillow"])
 print("[setup] Dependencies installed ✓", flush=True)
 
-# ── confirm GPU availability ─────────────────────────────────
+# ── confirm GPU + capability ─────────────────────────────────
 import torch as _torch
 if _torch.cuda.is_available():
-    print(f"[setup] GPU detected: {{_torch.cuda.get_device_name(0)}} ✓", flush=True)
+    _cap = _torch.cuda.get_device_capability(0)
+    _name = _torch.cuda.get_device_name(0)
+    if _cap[0] >= 7:
+        print(f"[setup] GPU ready: {{_name}} (sm_{{_cap[0]}}{{_cap[1]}}) — will use CUDA ✓", flush=True)
+    else:
+        print(f"[setup] GPU {{_name}} (sm_{{_cap[0]}}{{_cap[1]}}) found but needs sm_70+ — will use CPU", flush=True)
 else:
     print("[setup] No GPU detected — will run on CPU", flush=True)
 
@@ -557,52 +562,84 @@ def _extract_json(text):
 
 # ══════════════════════════════════════════════════════════════
 # VIT-GPT2 VISION MODEL  — nlpconnect/vit-gpt2-image-captioning
-# Apache 2.0 · 330 MB · auto-selects GPU (CUDA) or CPU at runtime
-# Works on every Kaggle machine: P100 (sm_60), T4, CPU-only
-# GPU speed: ~0.05-0.15s per image (P100/T4)
-# CPU speed: ~0.3s per image
-# No HF token · No CUDA config needed — torch.cuda.is_available() handles it
+# Apache 2.0 · 330 MB · direct model loading (no pipeline API)
+#
+# WHY direct loading instead of pipeline("image-to-text", ...):
+#   Newer transformers (≥4.45 on Kaggle Python 3.12) removed the
+#   "image-to-text" pipeline task name. Direct loading via
+#   VisionEncoderDecoderModel works on ALL transformers versions.
+#
+# WHY CUDA capability check:
+#   torch.cuda.is_available() returns True for P100 (sm_60) but
+#   current Kaggle PyTorch builds require sm_70+. We verify the
+#   actual device capability before assigning device=cuda.
+#   Falls back to CPU gracefully — still ~0.3s/image on CPU.
+#   On T4/A100 (sm_75+): GPU is used → ~0.05-0.15s/image.
 # ══════════════════════════════════════════════════════════════
 
-_vitgpt2_pipeline = None
-_vitgpt2_device_name = "CPU"
+_vitgpt2_model     = None
+_vitgpt2_processor = None
+_vitgpt2_tokenizer = None
+_vitgpt2_torch_device = None
+_vitgpt2_device_name  = "CPU"
 
 def _load_vitgpt2():
-    global _vitgpt2_pipeline, _vitgpt2_device_name
-    if _vitgpt2_pipeline is not None:
+    global _vitgpt2_model, _vitgpt2_processor, _vitgpt2_tokenizer
+    global _vitgpt2_torch_device, _vitgpt2_device_name
+    if _vitgpt2_model is not None:
         return
+
     import torch
-    from transformers import pipeline
-    model_id = "nlpconnect/vit-gpt2-image-captioning"  # Apache 2.0, 330MB
+    from transformers import VisionEncoderDecoderModel, ViTImageProcessor, AutoTokenizer
 
-    # Auto-detect GPU — use it if available, fall back to CPU gracefully
+    model_id = "nlpconnect/vit-gpt2-image-captioning"
+
+    # ── CUDA capability guard ─────────────────────────────────────────────
+    # is_available() can return True for sm_60 (P100) even when PyTorch
+    # was compiled only for sm_70+. Check actual compute capability first.
+    cuda_ok = False
     if torch.cuda.is_available():
-        device = 0
-        _vitgpt2_device_name = torch.cuda.get_device_name(0)
+        cap_major, cap_minor = torch.cuda.get_device_capability(0)
+        gpu_name = torch.cuda.get_device_name(0)
+        if cap_major >= 7:
+            cuda_ok = True
+            _vitgpt2_device_name = gpu_name
+            print(f"  [ViT-GPT2] GPU: {gpu_name} (sm_{cap_major}{cap_minor}) — CUDA OK ✓", flush=True)
+        else:
+            print(
+                f"  [ViT-GPT2] GPU: {gpu_name} (sm_{cap_major}{cap_minor}) — "
+                f"this PyTorch needs sm_70+. Falling back to CPU.", flush=True
+            )
+            _vitgpt2_device_name = f"CPU (sm_{cap_major}{cap_minor} incompatible)"
     else:
-        device = -1
-        _vitgpt2_device_name = "CPU"
+        print("  [ViT-GPT2] No CUDA device found — using CPU.", flush=True)
 
-    print(f"  [ViT-GPT2] Loading {model_id} on {_vitgpt2_device_name} ...", flush=True)
-    _vitgpt2_pipeline = pipeline(
-        "image-to-text",
-        model=model_id,
-        device=device,
-        max_new_tokens=50,
-    )
+    _vitgpt2_torch_device = torch.device("cuda" if cuda_ok else "cpu")
+
+    print(f"  [ViT-GPT2] Loading {model_id} on {_vitgpt2_torch_device} ...", flush=True)
+    _vitgpt2_processor = ViTImageProcessor.from_pretrained(model_id)
+    _vitgpt2_tokenizer = AutoTokenizer.from_pretrained(model_id)
+    _vitgpt2_model = VisionEncoderDecoderModel.from_pretrained(model_id)
+    _vitgpt2_model.to(_vitgpt2_torch_device)
+    _vitgpt2_model.eval()
     print(f"  [ViT-GPT2] Model ready on {_vitgpt2_device_name} ✓", flush=True)
 
 
 def _vitgpt2_caption(image_bytes: bytes) -> str:
     """
     Returns a visual caption using ViT-GPT2.
-    Pure CPU, ~0.3s per image, zero CUDA dependency.
+    Uses GPU when sm_70+ CUDA is available, otherwise CPU.
+    Direct model inference — no pipeline() call needed.
     """
+    import torch
     from PIL import Image
     _load_vitgpt2()
     img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-    results = _vitgpt2_pipeline(img)
-    caption = results[0].get("generated_text", "").strip() if results else ""
+    pixel_values = _vitgpt2_processor(images=[img], return_tensors="pt").pixel_values
+    pixel_values = pixel_values.to(_vitgpt2_torch_device)
+    with torch.no_grad():
+        output_ids = _vitgpt2_model.generate(pixel_values, max_new_tokens=50)
+    caption = _vitgpt2_tokenizer.decode(output_ids[0], skip_special_tokens=True).strip()
     return caption
 
 
