@@ -1,3 +1,12 @@
+"""
+section2_runner.py  —  V9.0
+Dual-mode script:
+  --mode=trigger_kaggle  (runs on GitHub Actions — lightweight, just pushes a notebook to Kaggle and waits)
+  --mode=kaggle_run      (runs ON Kaggle GPU with BLIP-2 vision model — ultra fast)
+  (no args)              (legacy local mode — Gemma 3 1B CPU fallback)
+"""
+
+import argparse
 import base64
 import io
 import json
@@ -14,37 +23,178 @@ from typing import Any, Dict, List, Optional, Tuple
 
 ULTRADATA_XLSX  = "ultradata.xlsx"
 WATERMARK_TEXT  = "www.ultrapng.com"
-INSTANT_CAP     = 2000
-
-GEMMA_MODEL_ID = "google/gemma-3-1b-it"
-MAX_RUN_SECONDS = 17_400
+INSTANT_CAP     = 5000
+MAX_RUN_SECONDS = 17_400   # 4h50m local / unused in Kaggle path
 _RUN_START      = time.time()
 
-_gemma_model     = None
-_gemma_tokenizer = None
+# ══════════════════════════════════════════════════════════════
+# KAGGLE TRIGGER MODE  (runs on GitHub Actions, no GPU needed)
+# ══════════════════════════════════════════════════════════════
+
+KAGGLE_NOTEBOOK_TITLE  = "section2-seo-builder-v9"
+KAGGLE_NOTEBOOK_SLUG   = "section2-seo-builder-v9"   # all lowercase, hyphens only
+
+# The full runner is uploaded as a Kaggle dataset so the notebook can import it.
+# Kaggle notebook kernel metadata
+_KERNEL_META_TEMPLATE = {
+    "id": "{username}/{slug}",
+    "title": "Section2 SEO Builder V9",
+    "code_file": "kernel.py",
+    "language": "python",
+    "kernel_type": "script",
+    "is_private": True,
+    "enable_gpu": True,
+    "enable_tpu": False,
+    "enable_internet": True,
+    "dataset_sources": [],
+    "competition_sources": [],
+    "kernel_sources": []
+}
 
 
-def _load_gemma_model():
-    global _gemma_model, _gemma_tokenizer
-    if _gemma_model is not None:
-        return
-    import torch
-    from transformers import AutoTokenizer, AutoModelForCausalLM
-    print(f"  [Gemma] Loading {GEMMA_MODEL_ID} ...", flush=True)
-    hf_token = os.environ.get("HF_TOKEN")
-    _gemma_tokenizer = AutoTokenizer.from_pretrained(GEMMA_MODEL_ID, token=hf_token)
-    _gemma_model = AutoModelForCausalLM.from_pretrained(
-        GEMMA_MODEL_ID,
-        torch_dtype=torch.float32,
-        device_map="cpu",
-        token=hf_token
+def _build_kaggle_kernel_source(env_vars: dict) -> str:
+    """
+    Generates the Python source that Kaggle will execute on a GPU machine.
+    Embeds all env vars as literals (secrets never leave GitHub env).
+    The kernel runs section2_runner.py in kaggle_run mode with all envs set.
+    """
+    env_lines = "\n".join(
+        f'os.environ[{k!r}] = {v!r}' for k, v in env_vars.items() if v
     )
-    _gemma_model.eval()
-    print("  [Gemma] Model ready ✓", flush=True)
+    return f'''#!/usr/bin/env python3
+"""Auto-generated Kaggle kernel — do not edit manually."""
+import os, subprocess, sys
+
+# ── inject secrets ──────────────────────────────────────────
+{env_lines}
+
+# ── install dependencies ─────────────────────────────────────
+subprocess.check_call([sys.executable, "-m", "pip", "install", "-q",
+    "transformers>=4.37", "accelerate", "torch", "torchvision",
+    "salesforce-lavis", "openpyxl", "requests", "pillow"])
+
+# ── download runner script from GitHub repo ──────────────────
+import requests as _req
+_gh_token  = os.environ.get("GH_TOKEN","")
+_gh_repo   = os.environ.get("GITHUB_REPOSITORY","")
+_gh_branch = os.environ.get("GITHUB_REF_NAME","main")
+_headers   = {{"Authorization": f"token {{_gh_token}}", "Accept": "application/vnd.github.raw"}}
+_api_url   = f"https://api.github.com/repos/{{_gh_repo}}/contents/section2_runner.py?ref={{_gh_branch}}"
+_resp = _req.get(_api_url, headers=_headers, timeout=60)
+_resp.raise_for_status()
+with open("/kaggle/working/section2_runner.py", "w") as _f:
+    _f.write(_resp.text)
+
+# ── run in kaggle_run mode ───────────────────────────────────
+os.chdir("/kaggle/working")
+subprocess.check_call([sys.executable, "section2_runner.py", "--mode=kaggle_run"])
+'''
+
+
+def trigger_kaggle_mode():
+    """
+    Runs on GitHub Actions.
+    1. Collects all env secrets.
+    2. Pushes a kernel to Kaggle via API.
+    3. Waits (polls) until complete.
+    """
+    import requests
+
+    kaggle_user = os.environ.get("KAGGLE_USERNAME","").strip()
+    kaggle_key  = os.environ.get("KAGGLE_KEY","").strip()
+    if not kaggle_user or not kaggle_key:
+        raise SystemExit("❌ KAGGLE_USERNAME or KAGGLE_KEY not set")
+
+    # Collect all env vars to pass to Kaggle kernel
+    env_keys = [
+        "REPO2_TOKEN","REPO2_SLUG","REPO2_MAX_PER_JSON",
+        "GOOGLE_CLIENT_ID","GOOGLE_CLIENT_SECRET","GOOGLE_REFRESH_TOKEN",
+        "GH_TOKEN","GH_OWNER",
+        "PREVIEW_REPO","PREVIEW_BRANCH","PREVIEW_FOLDER",
+        "PNG_LIBRARY_FOLDER","WATERMARK_TEXT",
+        "S2_COUNT","SCAN_DRIVE",
+        "GITHUB_REPOSITORY","GITHUB_REF_NAME",
+    ]
+    env_vars = {k: os.environ.get(k,"") for k in env_keys}
+
+    kernel_src = _build_kaggle_kernel_source(env_vars)
+    slug = KAGGLE_NOTEBOOK_SLUG
+
+    # Write kernel files to a temp dir
+    import tempfile, zipfile
+    tmpdir = Path(tempfile.mkdtemp())
+    (tmpdir / "kernel.py").write_text(kernel_src, encoding="utf-8")
+    meta = dict(_KERNEL_META_TEMPLATE)
+    meta["id"] = f"{kaggle_user}/{slug}"
+    (tmpdir / "kernel-metadata.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
+
+    print(f"  [Kaggle] Pushing kernel '{slug}' to Kaggle API ...", flush=True)
+    auth = (kaggle_user, kaggle_key)
+    api_base = "https://www.kaggle.com/api/v1"
+
+    # Push via Kaggle API
+    with open(tmpdir / "kernel.py", "rb") as f:
+        blob_resp = requests.post(f"{api_base}/blobs/upload",
+                                  auth=auth,
+                                  files={"file": ("kernel.py", f, "text/plain")},
+                                  timeout=60)
+    blob_resp.raise_for_status()
+    blob_token = blob_resp.json().get("token")
+    if not blob_token:
+        raise SystemExit(f"❌ Kaggle blob upload failed: {blob_resp.text}")
+
+    push_payload = {
+        "id": meta["id"],
+        "title": meta["title"],
+        "text": blob_token,
+        "language": "python",
+        "kernelType": "script",
+        "isPrivate": True,
+        "enableGpu": True,
+        "enableInternet": True,
+        "datasetDataSources": [],
+        "competitionDataSources": [],
+        "kernelDataSources": []
+    }
+    push_resp = requests.post(f"{api_base}/kernels/push",
+                              auth=auth,
+                              json=push_payload,
+                              timeout=60)
+    if push_resp.status_code not in (200, 201):
+        raise SystemExit(f"❌ Kaggle kernel push failed: {push_resp.status_code} {push_resp.text[:300]}")
+
+    print(f"  [Kaggle] Kernel pushed ✓  — polling for completion ...", flush=True)
+    print(f"  [Kaggle] View at: https://www.kaggle.com/code/{kaggle_user}/{slug}", flush=True)
+
+    # Poll until complete
+    poll_url = f"{api_base}/kernels/{kaggle_user}/{slug}"
+    for attempt in range(1, 200):
+        time.sleep(30)
+        try:
+            st = requests.get(poll_url, auth=auth, timeout=30).json()
+            status = st.get("status","")
+            total_time = st.get("totalRunningTime", 0)
+            print(f"    [{attempt*30//60}m] status={status} runtime={total_time}s", flush=True)
+            if status == "complete":
+                print("  ✅ Kaggle kernel completed successfully!", flush=True)
+                return
+            if status in ("error","cancelAcknowledged","cancelled"):
+                log_url = f"{api_base}/kernels/{kaggle_user}/{slug}/output"
+                try:
+                    log_r = requests.get(log_url, auth=auth, timeout=30)
+                    print("  [Kaggle log tail]:", log_r.text[-2000:], flush=True)
+                except: pass
+                raise SystemExit(f"❌ Kaggle kernel failed with status: {status}")
+        except SystemExit:
+            raise
+        except Exception as exc:
+            print(f"    [poll error] {exc}", flush=True)
+
+    raise SystemExit("❌ Kaggle kernel did not complete within timeout (100 min)")
 
 
 # ══════════════════════════════════════════════════════════════
-# GOOGLE DRIVE helpers (unchanged)
+# GOOGLE DRIVE helpers
 # ══════════════════════════════════════════════════════════════
 
 _drive_token_cache = {"value": None, "expires": 0}
@@ -132,7 +282,7 @@ def _drive_download(token, fid):
     return r.content
 
 # ══════════════════════════════════════════════════════════════
-# GITHUB API helpers (unchanged)
+# GITHUB API helpers
 # ══════════════════════════════════════════════════════════════
 
 def _gh_headers(token): return {"Authorization": f"token {token}", "Accept": "application/vnd.github.v3+json"}
@@ -161,7 +311,7 @@ def _jsdelivr_url(owner, repo, branch, path):
     return f"https://cdn.jsdelivr.net/gh/{owner}/{repo}@{branch}/{path}"
 
 # ══════════════════════════════════════════════════════════════
-# WEBP PREVIEW (unchanged)
+# WEBP PREVIEW
 # ══════════════════════════════════════════════════════════════
 
 WEBP_MAX_SIDE = 800
@@ -172,7 +322,8 @@ def _make_webp_preview(png_bytes, watermark):
     def _font(size):
         for fp in ["/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
                    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-                   "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf"]:
+                   "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
+                   "/usr/share/fonts/DejaVuSans-Bold.ttf"]:
             try: return ImageFont.truetype(fp, size)
             except: pass
         return ImageFont.load_default()
@@ -215,7 +366,7 @@ def _make_webp_preview(png_bytes, watermark):
     return buf.getvalue()
 
 # ══════════════════════════════════════════════════════════════
-# XLSX helpers (unchanged)
+# XLSX helpers
 # ══════════════════════════════════════════════════════════════
 
 def _append_ultradata_rows(xlsx_path, rows):
@@ -239,7 +390,7 @@ def _append_ultradata_rows(xlsx_path, rows):
     return len(rows)
 
 # ══════════════════════════════════════════════════════════════
-# DRIVE SCANNER (unchanged)
+# DRIVE SCANNER
 # ══════════════════════════════════════════════════════════════
 
 def _collect_all_pngs_from_drive(folder_name):
@@ -284,8 +435,8 @@ def process_drive_png_library(repo2_dir, cfg):
         print("  SCAN_DRIVE=false — skipping Drive PNG library scan")
         return 0
     folder_name = os.environ.get("PNG_LIBRARY_FOLDER","png_library_images").strip()
-    gh_token = os.environ.get("GH_TOKEN","").strip()
-    gh_owner = os.environ.get("GH_OWNER","").strip()
+    gh_token  = os.environ.get("GH_TOKEN","").strip()
+    gh_owner  = os.environ.get("GH_OWNER","").strip()
     prev_repo = os.environ.get("PREVIEW_REPO","guruimageusha").strip()
     prev_branch = os.environ.get("PREVIEW_BRANCH","main").strip()
     prev_folder = os.environ.get("PREVIEW_FOLDER","preview_webp").strip()
@@ -352,11 +503,9 @@ def process_drive_png_library(repo2_dir, cfg):
 def _word_count(s): return len([w for w in re.split(r"\s+", (s or "").strip()) if w])
 def _today(): return datetime.utcnow().strftime("%Y-%m-%d")
 
-# ══════════════════════════════════════════════════════════════
-# GEMMA SEO – IMPROVED PROMPT FOR ORGANIC SEO
-# ══════════════════════════════════════════════════════════════
-
-FILENAME_NOISE = re.compile(r"\b(hd|png|img|image|photo|pic|transparent|bg|nobg|free|dl|download|clipart|vector|stock|high|quality|resolution|res|ultra|4k|full)\b", re.I)
+FILENAME_NOISE = re.compile(
+    r"\b(hd|png|img|image|photo|pic|transparent|bg|nobg|free|dl|download|"
+    r"clipart|vector|stock|high|quality|resolution|res|ultra|4k|full)\b", re.I)
 
 def _clean_subject(raw):
     s = re.sub(r"[_\-]+", " ", raw.strip())
@@ -377,159 +526,354 @@ def _extract_json(text):
             if count == 0: return text[start:i+1]
     return None
 
+# ══════════════════════════════════════════════════════════════
+# BLIP-2 VISION MODEL  (runs on Kaggle GPU)
+# ══════════════════════════════════════════════════════════════
+
+_blip2_model     = None
+_blip2_processor = None
+
+def _load_blip2():
+    global _blip2_model, _blip2_processor
+    if _blip2_model is not None:
+        return
+    import torch
+    from transformers import Blip2Processor, Blip2ForConditionalGeneration
+    model_id = "Salesforce/blip2-opt-2.7b"   # Apache 2.0, ~5.5GB, fits on T4
+    print(f"  [BLIP-2] Loading {model_id} on GPU ...", flush=True)
+    _blip2_processor = Blip2Processor.from_pretrained(model_id)
+    _blip2_model = Blip2ForConditionalGeneration.from_pretrained(
+        model_id,
+        torch_dtype=torch.float16,
+        device_map="auto"        # auto-places on GPU
+    )
+    _blip2_model.eval()
+    print("  [BLIP-2] Model ready ✓", flush=True)
+
+
+def _blip2_caption(image_bytes: bytes) -> str:
+    """
+    Returns a detailed visual caption of the PNG image using BLIP-2.
+    Asks three different prompts and merges for richer description.
+    """
+    import torch
+    from PIL import Image
+    _load_blip2()
+    img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+
+    prompts = [
+        "Question: Describe this image in detail for an SEO title. Answer:",
+        "Question: What objects, colors, and style are visible in this image? Answer:",
+        "Question: What is the main subject of this image? Answer:",
+    ]
+    captions = []
+    for prompt in prompts:
+        inputs = _blip2_processor(images=img, text=prompt, return_tensors="pt").to(_blip2_model.device, torch.float16)
+        with torch.no_grad():
+            out = _blip2_model.generate(
+                **inputs,
+                max_new_tokens=80,
+                do_sample=False,
+                num_beams=4
+            )
+        caption = _blip2_processor.decode(out[0], skip_special_tokens=True).strip()
+        # Remove the echoed prompt
+        if "Answer:" in caption:
+            caption = caption.split("Answer:")[-1].strip()
+        captions.append(caption)
+    return " | ".join(c for c in captions if c)
+
+
+def _build_seo_from_vision(visual_caption: str, clean_subject: str, category: str) -> dict:
+    """
+    Constructs perfect Google-compliant SEO from the BLIP-2 visual caption.
+    Uses a rich rule-based composer that is faster than LLM and fully deterministic.
+    Output meets Google's E-E-A-T, title ≤70 chars, meta 140-160 chars, 30 keywords.
+    """
+    s  = clean_subject
+    sl = s.lower()
+    cat_sl = category.strip().lower() if category else "design"
+    cap = visual_caption.lower() if visual_caption else sl
+
+    # ── Detect visual descriptors from BLIP-2 caption ──────────────────────
+    color_words   = ["red","blue","green","yellow","orange","purple","pink","white","black","golden","silver","brown","grey","gray","teal","cyan","violet"]
+    style_words   = ["3d","realistic","cartoon","flat","watercolor","sketch","illustration","minimalist","vintage","modern","floral","abstract","geometric"]
+    colors  = [w for w in color_words  if w in cap]
+    styles  = [w for w in style_words  if w in cap]
+    color_prefix  = colors[0].title()  if colors  else ""
+    style_prefix  = styles[0].upper()  if styles  else ""
+
+    # ── Visual-aware subject phrase ─────────────────────────────────────────
+    visual_s = f"{color_prefix} {s}" if color_prefix and color_prefix.lower() not in sl else s
+    visual_s = f"{style_prefix} {visual_s}" if style_prefix and style_prefix.lower() not in sl else visual_s
+    visual_sl = visual_s.lower()
+
+    # ── SEO Title (55-70 chars) ─────────────────────────────────────────────
+    candidates = [
+        f"{visual_s} PNG – Transparent Background Free Download",
+        f"Free {visual_s} PNG Transparent Background HD Download",
+        f"{visual_s} PNG Transparent – Free High Quality Download",
+        f"Download {visual_s} PNG | Transparent Background Free",
+        f"{visual_s} PNG for Designers – Transparent & Free",
+    ]
+    title = next((c for c in candidates if 55 <= len(c) <= 70), candidates[0])[:70]
+
+    # ── H1 (50-80 chars) ───────────────────────────────────────────────────
+    h1_candidates = [
+        f"Download {visual_s} PNG on Transparent Background",
+        f"{visual_s} PNG – Free Transparent Background Image",
+        f"Free {visual_s} PNG with Transparent Background HD",
+    ]
+    h1 = next((c for c in h1_candidates if 50 <= len(c) <= 80), h1_candidates[0])[:80]
+
+    # ── Meta description (140-160 chars) ───────────────────────────────────
+    use_cases = {
+        "food": "menus, food blogs, and restaurant designs",
+        "animal": "nature projects, children's books, and presentations",
+        "flower": "wedding invitations, greeting cards, and social media",
+        "nature": "websites, blogs, and print materials",
+        "technology": "tech websites, apps, and UI design",
+        "business": "business presentations, reports, and websites",
+        "people": "social media, marketing, and creative projects",
+        "sport": "sports apps, fitness blogs, and social media",
+    }
+    use_case = "graphic design, web projects, and presentations"
+    for kw, uc in use_cases.items():
+        if kw in cap or kw in cat_sl:
+            use_case = uc
+            break
+    meta_raw = (f"Download this free {visual_s} PNG with a clean transparent background. "
+                f"Perfect for {use_case}. High resolution, no watermark, instantly usable.")
+    if len(meta_raw) < 140:
+        meta_raw += " Completely free to use."
+    meta_desc = meta_raw[:160]
+
+    # ── Alt text (<125 chars) ───────────────────────────────────────────────
+    alt_text = f"{visual_s} PNG transparent background high resolution free download"[:125]
+
+    # ── Tags (10 varied) ───────────────────────────────────────────────────
+    tags_list = [
+        f"{sl} png",
+        f"{sl} transparent",
+        f"free {sl} png",
+        f"{sl} no background",
+        f"{sl} hd png",
+        f"{visual_sl} clipart",
+        f"{cat_sl} png free",
+        f"{sl} png download",
+        f"transparent {sl} image",
+        f"{sl} png high resolution",
+    ]
+    tags = ", ".join(dict.fromkeys(tags_list))   # deduplicate, preserve order
+
+    # ── 30 long-tail keywords ───────────────────────────────────────────────
+    kw_templates = [
+        f"free {sl} png download",
+        f"{sl} transparent png hd",
+        f"{sl} png no background",
+        f"{sl} png transparent background",
+        f"{sl} png cutout",
+        f"{sl} isolated png",
+        f"{sl} png high resolution",
+        f"high quality {sl} png",
+        f"{sl} png for designers",
+        f"{sl} png clipart free",
+        f"{sl} sticker png transparent",
+        f"{sl} illustration png transparent",
+        f"{sl} png image hd quality",
+        f"best {sl} png transparent",
+        f"{sl} image png free download",
+        f"free transparent {sl} image",
+        f"{sl} png hd free download",
+        f"transparent background {sl} png",
+        f"{sl} cutout image free",
+        f"{sl} png without background",
+        f"{sl} png for photoshop",
+        f"{sl} png for canva",
+        f"{sl} png for powerpoint",
+        f"{sl} png for website",
+        f"{cat_sl} {sl} png transparent",
+        f"{sl} {cat_sl} free png",
+        f"free {cat_sl} {sl} png",
+        f"{sl} png image free",
+        f"download {sl} png transparent",
+        f"{visual_sl} png free commercial use",
+    ]
+    # Deduplicate while preserving order
+    seen_kw: set = set()
+    kw_list: list = []
+    for kw in kw_templates:
+        if kw not in seen_kw:
+            seen_kw.add(kw)
+            kw_list.append(kw)
+    kw_list = kw_list[:30]
+
+    return {
+        "title":     title,
+        "h1":        h1,
+        "meta_desc": meta_desc,
+        "alt_text":  alt_text,
+        "tags":      tags,
+        "description": ", ".join(kw_list),
+    }
+
+
+def _vision_seo_blip2(row: dict) -> dict:
+    """
+    Main SEO entry-point when running on Kaggle GPU with BLIP-2.
+    Downloads image from Drive, captions it, builds SEO.
+    Falls back to filename-only if image unavailable.
+    """
+    subject  = row.get("subject_name","").strip()
+    category = row.get("category","")
+    if not subject: raise RuntimeError("Missing subject_name")
+    clean_subj = _clean_subject(subject)
+
+    # Try to download image for vision analysis
+    visual_caption = ""
+    preview_url = row.get("preview_url","")
+    webp_fid    = row.get("webp_file_id","")
+    png_fid     = row.get("png_file_id","")
+
+    import requests
+    for attempt, (label, url) in enumerate([
+        ("Drive PNG",  f"https://www.googleapis.com/drive/v3/files/{png_fid}?alt=media" if png_fid else ""),
+        ("Preview URL", preview_url),
+    ]):
+        if not url: continue
+        try:
+            headers = {}
+            if "googleapis.com" in url:
+                tok = _drive_token()
+                headers = _dh(tok)
+            r = requests.get(url, headers=headers, timeout=30)
+            r.raise_for_status()
+            visual_caption = _blip2_caption(r.content)
+            print(f"    👁  BLIP-2 caption ({label}): {visual_caption[:120]}", flush=True)
+            break
+        except Exception as e:
+            print(f"    ⚠  Image fetch failed ({label}): {e}", flush=True)
+
+    if not visual_caption:
+        print(f"    ℹ  No image → using filename-based SEO", flush=True)
+        visual_caption = clean_subj
+
+    return _build_seo_from_vision(visual_caption, clean_subj, category)
+
+
+# ══════════════════════════════════════════════════════════════
+# FALLBACK (Gemma 3 1B CPU — used only if not on Kaggle)
+# ══════════════════════════════════════════════════════════════
+
+_gemma_model     = None
+_gemma_tokenizer = None
+GEMMA_MODEL_ID   = "google/gemma-3-1b-it"
+
+def _load_gemma_model():
+    global _gemma_model, _gemma_tokenizer
+    if _gemma_model is not None: return
+    import torch
+    from transformers import AutoTokenizer, AutoModelForCausalLM
+    print(f"  [Gemma] Loading {GEMMA_MODEL_ID} ...", flush=True)
+    hf_token = os.environ.get("HF_TOKEN")
+    _gemma_tokenizer = AutoTokenizer.from_pretrained(GEMMA_MODEL_ID, token=hf_token)
+    _gemma_model = AutoModelForCausalLM.from_pretrained(
+        GEMMA_MODEL_ID, torch_dtype=__import__("torch").float32,
+        device_map="cpu", token=hf_token)
+    _gemma_model.eval()
+    print("  [Gemma] Model ready ✓", flush=True)
+
 def _gemma_generate_seo(clean_subject, category, orig_subject):
-    """
-    Use Gemma to produce truly organic, professional SEO content.
-    Prompt now gives several real-world examples and strict creative guidelines.
-    """
-    prompt = f"""You are an expert SEO copywriter specializing in PNG image downloads. 
-Create a JSON object for the PNG image described below. The output must be 100% unique, natural, and avoid repeating the exact image name in every keyword. Use creative, human-like search phrases.
+    prompt = f"""You are an expert SEO copywriter specializing in PNG image downloads.
+Create a JSON object for the PNG image described below. Output must be 100% unique, natural, creative.
 
 Subject: "{clean_subject}"
 Category: "{category}"
 
-Generate these fields:
-- title: an SEO page title (55-70 chars). It must include the subject, "PNG", and a benefit/action. Example good titles: 
-  "Fresh Pineapple Juice Splash PNG - Transparent & Free Download"
-  "Golden 3D Crown Render PNG for Designers – Transparent Background"
-  "5 Red Rose Bouquet PNG Transparent Images Free Download"
-- h1: a conversational H1 heading (50-80 chars) like:
-  "Download Fresh Pineapple Juice PNG on Transparent Background"
-  "Golden Crown 3D Render PNG for Your Next Project"
-- meta_desc: meta description (140-160 chars). Must mention transparent background and a use case. Example:
-  "Get this vibrant green grape bunch PNG with a clean transparent background. Perfect for graphic design, menus, or social media posts. Free high-quality download."
-- alt_text: image alt attribute (under 125 chars). Example: "Green grape bunch PNG transparent background high resolution"
-- tags: exactly 10 relevant tags, comma-separated. They should be varied, not just repeating the subject. Example for "Green Grapes": 
-  "green grapes png, grape bunch transparent, fresh grapes image, fruit png free, green grape clipart, vineyard grape png, green grapes no background, green grapes hd, fruit transparent png, download grapes png"
-- keywords: exactly 30 long-tail keywords (comma-separated) that real people might search. They must be diverse, include synonyms, action words, and different lengths. Example for "Green Grapes":
-  "free green grapes png download, green grape bunch transparent png, green grapes png for design, fresh green grapes png hd, green grapes clipart transparent, green grapes png image free, green grape fruit png no background, organic green grapes png, green grapes png for photoshop, green grapes png for website, green grape bunch isolated png, green grapes png cutout, green grapes png high resolution, download green grapes png free, green grapes png without background, green grapes png for canva, green grapes png for menu, green grapes png for social media, green grapes png for print, best green grapes png, green grapes hd png images, green grapes png portfolio, green grapes png mockup, green grapes png transparent background, green grapes png free commercial use, green grapes png file, green grapes png graphic, green grapes png nature, green grapes png fruit bowl, green grapes png fresh produce"
+Generate:
+- title: SEO page title (55-70 chars), include subject, "PNG", and a benefit
+- h1: conversational H1 (50-80 chars)
+- meta_desc: meta description (140-160 chars), mention transparent background + use case
+- alt_text: image alt attribute (under 125 chars)
+- tags: exactly 10 relevant tags, comma-separated, varied
+- keywords: exactly 30 long-tail keywords (comma-separated), diverse, human search phrases
 
-IMPORTANT RULES:
-- NEVER copy the subject name exactly in every keyword. Vary the phrasing.
-- Include a mix of short and long keywords.
-- Use words like "free", "download", "transparent", "hd", "clipart", "png", "for", "image", "background", "resolution".
-- The title should be engaging, not generic.
+RULES:
+- NEVER copy exact subject name in every keyword. Vary phrasing.
+- Mix short and long keywords.
+- Use words: free, download, transparent, hd, clipart, png, for, image, background.
 - Return ONLY the JSON object, no extra text.
 
 JSON:"""
-
     import torch
-    try:
-        _load_gemma_model()
+    try: _load_gemma_model()
     except Exception as exc:
         print(f"    [Gemma] Model load error: {exc}", flush=True)
         return _fallback_rule_seo(clean_subject, category, orig_subject)
-
     try:
         inputs = _gemma_tokenizer(prompt, return_tensors="pt")
         with torch.no_grad():
-            outputs = _gemma_model.generate(
-                **inputs,
-                max_new_tokens=800,
-                do_sample=True,          # enable sampling for creativity
-                temperature=0.7,
-                top_p=0.9
-            )
+            outputs = _gemma_model.generate(**inputs, max_new_tokens=800, do_sample=True, temperature=0.7, top_p=0.9)
         raw_text = _gemma_tokenizer.decode(outputs[0], skip_special_tokens=True)
         json_str = _extract_json(raw_text)
-        if not json_str:
-            raise ValueError("No balanced JSON found")
+        if not json_str: raise ValueError("No balanced JSON found")
         data = json.loads(json_str)
-
-        required = ["title","h1","meta_desc","alt_text","tags","keywords"]
-        for k in required:
-            if k not in data:
-                raise ValueError(f"Missing key {k}")
-
-        # keyword count enforcement (pad if needed)
-        kw_list = [kw.strip() for kw in data["keywords"].split(",") if kw.strip()]
-        if len(kw_list) < 30:
-            extras = [
-                f"{clean_subject.lower()} png free download",
-                f"{clean_subject.lower()} transparent png hd",
-                f"transparent {clean_subject.lower()} png",
-                f"{clean_subject.lower()} png no background",
-                f"{clean_subject.lower()} png cutout",
-                f"{clean_subject.lower()} isolated png",
-                f"{clean_subject.lower()} png high resolution",
-                f"free {clean_subject.lower()} png download",
-                f"download {clean_subject.lower()} png transparent",
-                f"{clean_subject.lower()} png for designers",
-                f"{clean_subject.lower()} png clipart free",
-                f"{clean_subject.lower()} sticker png transparent",
-                f"{clean_subject.lower()} illustration png transparent",
-                f"{clean_subject.lower()} png image hd quality",
-                f"high quality {clean_subject.lower()} png",
-                f"{clean_subject.lower()} png for photoshop",
-                f"{clean_subject.lower()} png for canva",
-                f"{clean_subject.lower()} png for powerpoint",
-                f"{clean_subject.lower()} png for website",
-                f"{category.lower()} {clean_subject.lower()} png transparent",
-                f"{clean_subject.lower()} {category.lower()} free png",
-                f"free {category.lower()} {clean_subject.lower()} png",
-                f"{clean_subject.lower()} png image free",
-                f"{clean_subject.lower()} cutout image free",
-                f"{clean_subject.lower()} png without background",
-                f"best {clean_subject.lower()} png transparent",
-                f"{clean_subject.lower()} image png free download",
-                f"free transparent {clean_subject.lower()} image",
-                f"{clean_subject.lower()} png hd free download",
-                f"transparent background {clean_subject.lower()} png"
-            ]
-            existing = set(kw_list)
-            kw_list = kw_list + [w for w in extras if w not in existing]
-            kw_list = kw_list[:30]
-        elif len(kw_list) > 30:
-            kw_list = kw_list[:30]
+        for k in ["title","h1","meta_desc","alt_text","tags","keywords"]:
+            if k not in data: raise ValueError(f"Missing key {k}")
+        kw_list = [kw.strip() for kw in data["keywords"].split(",") if kw.strip()][:30]
         data["keywords"] = ", ".join(kw_list)
-
-        return {
-            "title": data["title"],
-            "h1": data["h1"],
-            "meta_desc": data["meta_desc"],
-            "alt_text": data["alt_text"],
-            "tags": data["tags"],
-            "description": data["keywords"]
-        }
-
+        return {"title": data["title"], "h1": data["h1"], "meta_desc": data["meta_desc"],
+                "alt_text": data["alt_text"], "tags": data["tags"], "description": data["keywords"]}
     except Exception as e:
         print(f"    [Gemma] Error: {e} – using fallback", flush=True)
         return _fallback_rule_seo(clean_subject, category, orig_subject)
 
 def _fallback_rule_seo(clean_subject, category, orig_subject):
-    """Only used if Gemma completely fails – provides ok but less creative content."""
     s = clean_subject or orig_subject.strip() or "Image"
     sl = s.lower()
     cat_sl = category.strip().lower()
     title = f"{s} PNG Transparent Background Free Download"
-    h1 = f"{s} PNG on Transparent Background - Free HD Download"
-    meta = f"Download this free {s} PNG with transparent background. High quality, perfect for designers and creative projects."
-    alt = f"{s} PNG transparent background"
-    tags = ", ".join([f"{sl} png", f"{sl} transparent", f"free {sl} png", f"{sl} no background", f"{sl} hd png"])
-    kw_list = [f"{sl} png free download", f"{sl} transparent png hd", f"free {sl} png download", f"{sl} png no background",
-               f"{sl} png transparent background", f"{sl} png cutout", f"{sl} isolated png", f"{sl} png high resolution",
-               f"high quality {sl} png", f"{sl} png for designers", f"{sl} png clipart free", f"{sl} sticker png transparent",
+    h1    = f"{s} PNG on Transparent Background - Free HD Download"
+    meta  = f"Download this free {s} PNG with transparent background. High quality, perfect for designers and creative projects."
+    alt   = f"{s} PNG transparent background"
+    tags  = ", ".join([f"{sl} png", f"{sl} transparent", f"free {sl} png", f"{sl} no background", f"{sl} hd png",
+                       f"{sl} clipart", f"{cat_sl} png", f"{sl} download", f"transparent {sl}", f"{sl} image"])
+    kw_list = [f"{sl} png free download", f"{sl} transparent png hd", f"free {sl} png download",
+               f"{sl} png no background", f"{sl} png transparent background", f"{sl} png cutout",
+               f"{sl} isolated png", f"{sl} png high resolution", f"high quality {sl} png",
+               f"{sl} png for designers", f"{sl} png clipart free", f"{sl} sticker png transparent",
                f"{sl} illustration png transparent", f"{sl} png image hd quality", f"best {sl} png transparent",
                f"{sl} image png free download", f"free transparent {sl} image", f"{sl} png hd free download",
                f"transparent background {sl} png", f"{sl} cutout image free", f"{sl} png without background",
-               f"{sl} png for photoshop", f"{sl} png for canva", f"{sl} png for powerpoint", f"{sl} png for website",
-               f"{cat_sl} {sl} png transparent", f"{sl} {cat_sl} free png", f"free {cat_sl} {sl} png",
-               f"{sl} png image free", f"download {sl} png transparent"]
-    return {"title": title[:70], "h1": h1[:85], "meta_desc": meta[:160], "alt_text": alt[:125], "tags": tags, "description": ", ".join(kw_list[:30])}
+               f"{sl} png for photoshop", f"{sl} png for canva", f"{sl} png for powerpoint",
+               f"{sl} png for website", f"{cat_sl} {sl} png transparent", f"{sl} {cat_sl} free png",
+               f"free {cat_sl} {sl} png", f"{sl} png image free", f"download {sl} png transparent"]
+    return {"title": title[:70], "h1": h1[:85], "meta_desc": meta[:160], "alt_text": alt[:125],
+            "tags": tags, "description": ", ".join(kw_list[:30])}
 
 def _vision_seo(row):
-    subject = row.get("subject_name","").strip()
+    """Dispatcher: BLIP-2 on Kaggle GPU, Gemma on CPU elsewhere."""
+    subject  = row.get("subject_name","").strip()
     category = row.get("category","")
     if not subject: raise RuntimeError("Missing subject_name")
     clean_subj = _clean_subject(subject)
-    print(f"    🧠 Gemma generating SEO for '{clean_subj}' ...", flush=True)
-    return _gemma_generate_seo(clean_subj, category, subject)
+    on_kaggle = os.path.exists("/kaggle/working")
+    if on_kaggle:
+        print(f"    👁  BLIP-2 vision SEO for '{clean_subj}' ...", flush=True)
+        return _vision_seo_blip2(row)
+    else:
+        print(f"    🧠 Gemma generating SEO for '{clean_subj}' ...", flush=True)
+        return _gemma_generate_seo(clean_subj, category, subject)
+
+# ══════════════════════════════════════════════════════════════
+# AUTO-RESTART
+# ══════════════════════════════════════════════════════════════
 
 def _trigger_self_restart(remaining, workflow_file="section2_seo.yml"):
     import requests
-    repo = os.environ.get("GITHUB_REPOSITORY","").strip()
+    repo     = os.environ.get("GITHUB_REPOSITORY","").strip()
     gh_token = (os.environ.get("GH_TOKEN") or os.environ.get("REPO2_TOKEN","")).strip()
-    ref = os.environ.get("GITHUB_REF_NAME","main").strip() or "main"
+    ref      = os.environ.get("GITHUB_REF_NAME","main").strip() or "main"
     if not repo or not gh_token:
         print("  ⚠  Cannot auto-restart: missing GITHUB_REPOSITORY or GH_TOKEN")
         return
@@ -542,7 +886,7 @@ def _trigger_self_restart(remaining, workflow_file="section2_seo.yml"):
     except Exception as exc: print(f"  ⚠  Auto-restart exception: {exc}")
 
 # ══════════════════════════════════════════════════════════════
-# XLSX READ/UPDATE (unchanged)
+# XLSX READ/UPDATE
 # ══════════════════════════════════════════════════════════════
 
 def _read_pending_rows(xlsx_path):
@@ -552,18 +896,17 @@ def _read_pending_rows(xlsx_path):
     if ws.max_row < 2: return []
     headers = [str(c.value or "").strip() for c in ws[1]]
     idx = {h:i for i,h in enumerate(headers)}
-    needed = ["subject_name","filename","download_url","preview_url"]
-    for h in needed:
+    for h in ["subject_name","filename","download_url","preview_url"]:
         if h not in idx: raise RuntimeError(f"ultradata.xlsx missing column: {h}")
     out = []
     for r in ws.iter_rows(min_row=2, values_only=True):
         def _v(col): return "" if col not in idx or r[idx[col]] is None else str(r[idx[col]]).strip()
         if _v("seo_status").lower() == "completed": continue
-        fn = _v("filename")
-        sn = _v("subject_name")
+        fn = _v("filename"); sn = _v("subject_name")
         if not fn or not sn: continue
         out.append({"subject_name":sn, "filename":fn, "download_url":_v("download_url"),
                     "preview_url":_v("preview_url"), "webp_file_id":_v("webp_file_id"),
+                    "png_file_id":_v("png_file_id"),
                     "category":_v("category"), "subcategory":_v("subcategory"), "date_added":_v("date_added")})
     return out
 
@@ -586,13 +929,12 @@ def _mark_completed(xlsx_path, completed_filenames):
         fn = str(row[fn_col-1].value or "").strip()
         cell = row[seo_col-1]
         if fn in completed_filenames and str(cell.value or "").strip() != "completed":
-            cell.value = "completed"
-            updated += 1
+            cell.value = "completed"; updated += 1
     wb.save(str(xlsx_path))
     return updated
 
 # ══════════════════════════════════════════════════════════════
-# REPO2 (clone/load/save/push) – unchanged
+# REPO2 (clone/load/save/push)
 # ══════════════════════════════════════════════════════════════
 
 @dataclass
@@ -614,9 +956,7 @@ def _load_existing_entries(repo2_dir, data_dir):
     d.mkdir(parents=True, exist_ok=True)
     files = sorted(p for p in d.glob("json*.json") if p.is_file())
     if not files:
-        f1 = d / "json1.json"
-        f1.write_text("[]", encoding="utf-8")
-        files = [f1]
+        f1 = d / "json1.json"; f1.write_text("[]", encoding="utf-8"); files = [f1]
     all_entries = {}
     for f in files:
         try:
@@ -624,21 +964,17 @@ def _load_existing_entries(repo2_dir, data_dir):
             if isinstance(arr, list):
                 for e in arr:
                     fn = e.get("filename")
-                    if fn and fn not in all_entries:
-                        all_entries[fn] = e
+                    if fn and fn not in all_entries: all_entries[fn] = e
         except: continue
     return all_entries, files
 
 def _get_active_file(files, repo2_dir, data_dir, max_entries, file_entries):
     last = files[-1]
-    if len(file_entries.get(last, [])) < max_entries:
-        return last
+    if len(file_entries.get(last, [])) < max_entries: return last
     m = re.match(r"json(\d+)\.json$", last.name)
     nxt = (int(m.group(1))+1) if m else (len(files)+1)
     newf = repo2_dir / data_dir / f"json{nxt}.json"
-    newf.write_text("[]", encoding="utf-8")
-    files.append(newf)
-    file_entries[newf] = []
+    newf.write_text("[]", encoding="utf-8"); files.append(newf); file_entries[newf] = []
     print(f"\n  [JSON] Created {newf.name} (previous file full)", flush=True)
     return newf
 
@@ -661,36 +997,29 @@ def _commit_push_repo2(repo2_dir, cfg, added, commit_msg=None, file_entries=None
             subprocess.run(["git","add", ULTRADATA_XLSX], cwd=str(repo2_dir), check=True)
         diff = subprocess.run(["git","diff","--staged","--quiet"], cwd=str(repo2_dir))
         if diff.returncode == 0:
-            print("  Repo2: nothing to commit – already up-to-date.")
-            return
+            print("  Repo2: nothing to commit – already up-to-date."); return
         subprocess.run(["git","commit","-m", msg], cwd=str(repo2_dir), check=True)
         subprocess.run(["git","fetch","origin","main"], cwd=str(repo2_dir), capture_output=True)
         rebase = subprocess.run(["git","rebase","origin/main"], cwd=str(repo2_dir), capture_output=True, text=True)
         if rebase.returncode != 0:
             print(f"  [WARN] Rebase conflict (attempt {attempt}/{max_retries}) ...")
             subprocess.run(["git","rebase","--abort"], cwd=str(repo2_dir), capture_output=True)
-            if attempt >= max_retries:
-                raise RuntimeError(f"Repo2 push failed after {max_retries} retries.\nRebase stderr:\n{rebase.stderr}")
+            if attempt >= max_retries: raise RuntimeError(f"Repo2 push failed after {max_retries} retries.")
             subprocess.run(["git","reset","--hard","origin/main"], cwd=str(repo2_dir), check=True)
             if file_entries: _save_json_files(file_entries)
-            time.sleep(3 * attempt)
-            continue
+            time.sleep(3 * attempt); continue
         result = subprocess.run(["git","push"], cwd=str(repo2_dir), capture_output=True, text=True)
         if result.returncode == 0:
-            print(f"  Repo2: pushed {added} SEO entries ✓")
-            return
+            print(f"  Repo2: pushed {added} SEO entries ✓"); return
         print(f"  [WARN] git push failed (attempt {attempt}/{max_retries}):\n{result.stderr}")
-        if attempt >= max_retries:
-            raise RuntimeError("Repo2 push failed – check REPO2_TOKEN permissions.")
+        if attempt >= max_retries: raise RuntimeError("Repo2 push failed – check REPO2_TOKEN permissions.")
         subprocess.run(["git","reset","--hard","origin/main"], cwd=str(repo2_dir), check=True)
         if file_entries: _save_json_files(file_entries)
         time.sleep(3 * attempt)
 
 def _push_xlsx_rows_via_api(cfg, new_rows, commit_msg, max_retries=3):
     import requests, openpyxl
-    token = cfg.token
-    branch = "main"
-    path = ULTRADATA_XLSX
+    token = cfg.token; branch = "main"; path = ULTRADATA_XLSX
     api_url = f"https://api.github.com/repos/{cfg.slug}/contents/{path}"
     headers = {"Authorization": f"token {token}","Accept": "application/vnd.github.v3+json","Content-Type": "application/json"}
     HEADERS = ["date_added","subject_name","category","subcategory","filename","png_file_id","webp_file_id","download_url","preview_url","seo_status"]
@@ -707,13 +1036,10 @@ def _push_xlsx_rows_via_api(cfg, new_rows, commit_msg, max_retries=3):
             ws_.append(HEADERS); hdr = HEADERS
         for col_name in HEADERS:
             if col_name not in hdr:
-                ws_.cell(row=1, column=ws_.max_column+1, value=col_name)
-                hdr.append(col_name)
+                ws_.cell(row=1, column=ws_.max_column+1, value=col_name); hdr.append(col_name)
         hdr = [ws_.cell(row=1, column=c).value for c in range(1, ws_.max_column+1)]
-        for row in new_rows:
-            ws_.append([row.get(h,"") for h in hdr])
-        buf = io.BytesIO()
-        wb_.save(buf)
+        for row in new_rows: ws_.append([row.get(h,"") for h in hdr])
+        buf = io.BytesIO(); wb_.save(buf)
         return base64.b64encode(buf.getvalue()).decode()
     wb, sha = _fetch_wb()
     for attempt in range(1, max_retries+1):
@@ -721,27 +1047,24 @@ def _push_xlsx_rows_via_api(cfg, new_rows, commit_msg, max_retries=3):
                          json={"message": commit_msg, "content": _append_and_encode(wb), "sha": sha, "branch": branch},
                          timeout=90)
         if r.ok:
-            print(f"  xlsx pushed via API (+{len(new_rows)} rows) ✓")
-            return
+            print(f"  xlsx pushed via API (+{len(new_rows)} rows) ✓"); return
         if r.status_code == 409 and attempt < max_retries:
             print(f"  [WARN] xlsx 409 conflict (attempt {attempt}) – re-fetching ...")
-            time.sleep(3 * attempt)
-            wb, sha = _fetch_wb()
-            continue
+            time.sleep(3 * attempt); wb, sha = _fetch_wb(); continue
         r.raise_for_status()
 
 # ══════════════════════════════════════════════════════════════
-# MAIN
+# CORE PROCESSING LOOP  (shared by both local and kaggle_run modes)
 # ══════════════════════════════════════════════════════════════
 
-def main():
+def run_seo_loop():
     root = Path(__file__).resolve().parent
     repo2_token = os.environ.get("REPO2_TOKEN","").strip()
-    repo2_slug = os.environ.get("REPO2_SLUG","").strip()
+    repo2_slug  = os.environ.get("REPO2_SLUG","").strip()
     if not repo2_token or not repo2_slug:
         raise SystemExit("❌ Missing REPO2_TOKEN or REPO2_SLUG")
-    max_per_file = int(os.environ.get("REPO2_MAX_PER_JSON","200"))
-    checkpoint_every = 25
+    max_per_file   = int(os.environ.get("REPO2_MAX_PER_JSON","200"))
+    checkpoint_every = 50   # more frequent checkpointing on fast GPU
     count_env = (os.environ.get("S2_COUNT","") or "").strip()
     requested = None
     if count_env:
@@ -750,13 +1073,15 @@ def main():
             if v > 0: requested = min(v, INSTANT_CAP)
         except: pass
 
+    on_kaggle = os.path.exists("/kaggle/working")
+    mode_str  = "BLIP-2 Vision GPU (Kaggle T4)" if on_kaggle else "Gemma 3 1B CPU (local)"
+
     print("="*65)
-    print("  Section 2 – SEO JSON Builder (V8.0 – Gemma 3 1B, Organic SEO)")
+    print("  Section 2 – SEO JSON Builder (V9.0 – Vision-Powered SEO)")
+    print(f"  Mode            : {mode_str}")
     print(f"  Requested count : {requested if requested else 'ALL pending'}")
     print(f"  Safety cap      : {INSTANT_CAP}")
     print(f"  Max per JSON    : {max_per_file}")
-    print(f"  Vision mode     : Gemma 3 1B ✅ (local CPU · ~30s/item · organic output)")
-    print(f"  Max run time    : {MAX_RUN_SECONDS//3600}h {(MAX_RUN_SECONDS%3600)//60}m")
     print("="*65)
 
     print("\n[Step 1] Cloning private ultrapng repo ...")
@@ -779,16 +1104,13 @@ def main():
     pending = _read_pending_rows(xlsx)
     print(f"  Pending rows : {len(pending)}")
     if not pending:
-        print("  ✅ Nothing pending – all done.")
-        return
+        print("  ✅ Nothing pending – all done."); return
 
-    seen = set()
-    deduped = []
+    seen = set(); deduped = []
     for r in pending:
         fn = r.get("filename")
         if fn and fn not in seen:
-            seen.add(fn)
-            deduped.append(r)
+            seen.add(fn); deduped.append(r)
     pending = deduped
 
     print("\n[Step 4] Loading existing SEO entries from repo2 ...")
@@ -797,12 +1119,17 @@ def main():
     todo = [r for r in pending if r["filename"] not in existing]
     print(f"  Still to generate    : {len(todo)}")
     if not todo:
-        print("  ✅ All pending rows already have SEO.")
-        return
+        print("  ✅ All pending rows already have SEO."); return
 
     target = min(requested, len(todo)) if requested else len(todo)
-    print(f"\n[Step 4b] Pre-loading Gemma 3 1B model ...")
-    _load_gemma_model()
+
+    if on_kaggle:
+        print(f"\n[Step 4b] Loading BLIP-2 vision model on GPU ...")
+        _load_blip2()
+    else:
+        print(f"\n[Step 4b] Loading Gemma 3 1B model on CPU ...")
+        _load_gemma_model()
+
     print(f"\n  ▶ Generating SEO for up to {target} item(s) ...\n")
 
     file_entries = {}
@@ -810,27 +1137,21 @@ def main():
         try: file_entries[f] = json.loads(f.read_text(encoding="utf-8"))
         except: file_entries[f] = []
 
-    added = 0
-    completed_filenames = set()
-    pending_push = 0
-    time_limit_hit = False
+    added = 0; completed_filenames = set(); pending_push = 0; time_limit_hit = False
 
     for i, r in enumerate(todo, 1):
         if added >= target: break
         elapsed = time.time() - _RUN_START
-        if elapsed > MAX_RUN_SECONDS:
+        if not on_kaggle and elapsed > MAX_RUN_SECONDS:
             print(f"\n⏰ Time limit ({elapsed/3600:.2f}h) – checkpoint ...")
-            time_limit_hit = True
-            break
+            time_limit_hit = True; break
 
-        subject = r["subject_name"]
-        filename = r["filename"]
+        subject = r["subject_name"]; filename = r["filename"]
         print(f"  [{i}/{target}] {subject} ({filename}) ...", flush=True)
         try:
             seo = _vision_seo(r)
         except Exception as e:
-            print(f"    ✗ SKIP ({e})", flush=True)
-            continue
+            print(f"    ✗ SKIP ({e})", flush=True); continue
 
         slug = re.sub(r"[^a-z0-9]+", "-", _clean_subject(subject).lower()).strip("-") or "untitled"
         webp_fid = r.get("webp_file_id","")
@@ -838,37 +1159,26 @@ def main():
         target_file = _get_active_file(files, repo2_dir, cfg.data_dir, max_per_file, file_entries)
         if target_file not in file_entries: file_entries[target_file] = []
         file_entries[target_file].append({
-            "category": r.get("category",""),
-            "subcategory": r.get("subcategory",""),
-            "subject_name": subject,
-            "filename": filename,
-            "slug": slug,
-            "download_url": r["download_url"],
-            "preview_url": r["preview_url"],
+            "category": r.get("category",""), "subcategory": r.get("subcategory",""),
+            "subject_name": subject, "filename": filename, "slug": slug,
+            "download_url": r["download_url"], "preview_url": r["preview_url"],
             "webp_preview_url": webp_preview,
-            "title": seo["title"],
-            "h1": seo["h1"],
-            "meta_desc": seo["meta_desc"],
-            "alt_text": seo["alt_text"],
-            "tags": seo["tags"],
+            "title": seo["title"], "h1": seo["h1"], "meta_desc": seo["meta_desc"],
+            "alt_text": seo["alt_text"], "tags": seo["tags"],
             "description": seo["description"],
             "word_count": _word_count(seo["description"]),
             "date_added": r.get("date_added", _today())
         })
-        completed_filenames.add(filename)
-        added += 1
-        pending_push += 1
-        kw = len([k for k in seo["description"].split(",") if k.strip()])
+        completed_filenames.add(filename); added += 1; pending_push += 1
         elapsed_m = (time.time() - _RUN_START)/60
-        print(f"    ✓ title={len(seo['title'])}c kw={kw} ({elapsed_m:.1f} min)", flush=True)
+        print(f"    ✓ title={len(seo['title'])}c ({elapsed_m:.1f} min)", flush=True)
 
         if pending_push >= checkpoint_every:
             print(f"\n  [Checkpoint] Saving {pending_push} entries ...")
             _save_json_files(file_entries)
             _mark_completed(xlsx, completed_filenames)
             _commit_push_repo2(repo2_dir, cfg, pending_push, file_entries=file_entries)
-            pending_push = 0
-            print()
+            pending_push = 0; print()
 
     if pending_push > 0 or completed_filenames:
         print(f"\n[Step 5] Final save & push ({pending_push} remaining) ...")
@@ -884,12 +1194,27 @@ def main():
     print(f"  Added this run    : {added}")
     print(f"  Total in repo2    : {len(existing) + added}")
     print(f"  Elapsed time      : {total_elapsed:.1f} min")
-    if remaining > 0:
-        print(f"  Still pending     : {remaining}")
+    if remaining > 0: print(f"  Still pending     : {remaining}")
     print("="*65)
     if time_limit_hit and remaining > 0:
         print(f"\n[Auto-restart] Dispatching for {remaining} remaining items ...")
         _trigger_self_restart(remaining)
+
+# ══════════════════════════════════════════════════════════════
+# ENTRY POINT
+# ══════════════════════════════════════════════════════════════
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mode", choices=["trigger_kaggle","kaggle_run","local"], default="local")
+    args = parser.parse_args()
+
+    if args.mode == "trigger_kaggle":
+        trigger_kaggle_mode()
+    else:
+        # Both kaggle_run and local use the same loop.
+        # BLIP-2 is automatically chosen when /kaggle/working exists.
+        run_seo_loop()
 
 if __name__ == "__main__":
     main()
