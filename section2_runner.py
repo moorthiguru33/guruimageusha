@@ -2,7 +2,7 @@
 section2_runner.py  —  V9.0
 Dual-mode script:
   --mode=trigger_kaggle  (runs on GitHub Actions — lightweight, just pushes a notebook to Kaggle and waits)
-  --mode=kaggle_run      (runs ON Kaggle GPU with BLIP-2 vision model — ultra fast)
+  --mode=kaggle_run      (runs ON Kaggle with BLIP-1 vision model — ultra fast)
   (no args)              (legacy local mode — Gemma 3 1B CPU fallback)
 """
 
@@ -51,31 +51,11 @@ import os, subprocess, sys
 # ── inject secrets ──────────────────────────────────────────
 {env_lines}
 
-# ── reinstall PyTorch compatible with the assigned GPU ───────
-# Kaggle may assign a P100 (sm_60) which requires CUDA 11.x builds,
-# but the pre-installed PyTorch only supports sm_70+. Detect and fix.
-import subprocess as _sp, sys as _sys
-def _cuda_cap():
-    try:
-        import torch
-        if torch.cuda.is_available():
-            return torch.cuda.get_device_capability(0)
-    except Exception:
-        pass
-    return (0, 0)
-_major, _minor = _cuda_cap()
-if _major < 7:
-    print(f"[setup] GPU sm_{{_major}}{{_minor}} needs CUDA 11.x PyTorch — reinstalling ...", flush=True)
-    _sp.check_call([_sys.executable, "-m", "pip", "install", "-q", "--force-reinstall",
-        "torch==2.1.2+cu118", "torchvision==0.16.2+cu118",
-        "--index-url", "https://download.pytorch.org/whl/cu118"])
-    print("[setup] PyTorch cu118 installed ✓", flush=True)
-else:
-    print(f"[setup] GPU sm_{{_major}}{{_minor}} — PyTorch already compatible ✓", flush=True)
-
 # ── install dependencies ─────────────────────────────────────
+# BLIP-1 runs on CPU — no GPU reinstall needed, works on any Kaggle machine.
 subprocess.check_call([sys.executable, "-m", "pip", "install", "-q",
-    "transformers>=4.37", "accelerate", "openpyxl", "requests", "pillow"])
+    "transformers>=4.37", "openpyxl", "requests", "pillow"])
+print("[setup] Dependencies installed ✓", flush=True)
 
 # ── download runner script from GitHub repo ──────────────────
 import requests as _req
@@ -560,84 +540,83 @@ def _extract_json(text):
     return None
 
 # ══════════════════════════════════════════════════════════════
-# BLIP-2 VISION MODEL  (runs on Kaggle GPU)
+# BLIP-1 VISION MODEL  (runs on Kaggle — CPU compatible, ~900MB)
+# Salesforce/blip-image-captioning-large — Apache 2.0, ultra fast
+# Works on P100 (sm_60), T4, CPU — no GPU version issues ever.
 # ══════════════════════════════════════════════════════════════
 
-_blip2_model     = None
-_blip2_processor = None
+_blip_model     = None
+_blip_processor = None
 
-def _load_blip2():
-    global _blip2_model, _blip2_processor
-    if _blip2_model is not None:
+def _load_blip():
+    global _blip_model, _blip_processor
+    if _blip_model is not None:
         return
     import torch
-    from transformers import Blip2Processor, Blip2ForConditionalGeneration
-    model_id = "Salesforce/blip2-opt-2.7b"   # Apache 2.0, ~5.5GB, fits on T4/P100
-
-    # Check if the GPU's compute capability is actually supported by the
-    # installed PyTorch. P100 = sm_60; modern PyTorch needs sm_70+.
+    from transformers import BlipProcessor, BlipForConditionalGeneration
+    model_id = "Salesforce/blip-image-captioning-large"  # Apache 2.0, ~900MB
+    print(f"  [BLIP] Loading {model_id} ...", flush=True)
+    _blip_processor = BlipProcessor.from_pretrained(model_id)
+    # Auto-use GPU if available and compatible, else CPU
     use_cuda = False
     if torch.cuda.is_available():
-        major, _ = torch.cuda.get_device_capability(0)
-        if major >= 7:
-            use_cuda = True
-        else:
-            print(f"  [BLIP-2] ⚠  GPU sm_{major}x not supported by this PyTorch — using CPU", flush=True)
-
-    print(f"  [BLIP-2] Loading {model_id} on {'GPU' if use_cuda else 'CPU'} ...", flush=True)
-    _blip2_processor = Blip2Processor.from_pretrained(model_id)
-    if use_cuda:
-        _blip2_model = Blip2ForConditionalGeneration.from_pretrained(
-            model_id,
-            torch_dtype=torch.float16,
-        ).to("cuda")
-    else:
-        _blip2_model = Blip2ForConditionalGeneration.from_pretrained(
-            model_id,
-            torch_dtype=torch.float32,
-        )
-    _blip2_model.eval()
-    print("  [BLIP-2] Model ready ✓", flush=True)
+        try:
+            major, _ = torch.cuda.get_device_capability(0)
+            if major >= 7:
+                use_cuda = True
+        except Exception:
+            pass
+    device = "cuda" if use_cuda else "cpu"
+    dtype  = torch.float16 if use_cuda else torch.float32
+    _blip_model = BlipForConditionalGeneration.from_pretrained(
+        model_id, torch_dtype=dtype
+    ).to(device)
+    _blip_model.eval()
+    print(f"  [BLIP] Model ready on {device.upper()} ✓", flush=True)
 
 
-def _blip2_caption(image_bytes: bytes) -> str:
+def _blip_caption(image_bytes: bytes) -> str:
     """
-    Returns a detailed visual caption of the PNG image using BLIP-2.
-    Asks three different prompts and merges for richer description.
+    Returns a rich visual caption using BLIP-1 large.
+    Runs 3 prompts and merges for SEO richness.
+    ~0.5-1s per image on CPU, ~0.1s on GPU.
     """
     import torch
     from PIL import Image
-    _load_blip2()
+    _load_blip()
     img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    device = next(_blip_model.parameters()).device
+    dtype  = next(_blip_model.parameters()).dtype
 
     prompts = [
-        "Question: Describe this image in detail for an SEO title. Answer:",
-        "Question: What objects, colors, and style are visible in this image? Answer:",
-        "Question: What is the main subject of this image? Answer:",
+        "a photo of",
+        "the main subject of this image is",
+        "this image shows",
     ]
     captions = []
-    device = next(_blip2_model.parameters()).device
-    dtype  = next(_blip2_model.parameters()).dtype
     for prompt in prompts:
-        inputs = _blip2_processor(images=img, text=prompt, return_tensors="pt").to(device, dtype)
+        inputs = _blip_processor(img, prompt, return_tensors="pt").to(device, dtype)
         with torch.no_grad():
-            out = _blip2_model.generate(
+            out = _blip_model.generate(
                 **inputs,
-                max_new_tokens=80,
+                max_new_tokens=60,
+                num_beams=4,
                 do_sample=False,
-                num_beams=4
             )
-        caption = _blip2_processor.decode(out[0], skip_special_tokens=True).strip()
-        # Remove the echoed prompt
-        if "Answer:" in caption:
-            caption = caption.split("Answer:")[-1].strip()
-        captions.append(caption)
-    return " | ".join(c for c in captions if c)
+        caption = _blip_processor.decode(out[0], skip_special_tokens=True).strip()
+        # Strip the echoed prompt prefix
+        for pfx in prompts:
+            if caption.lower().startswith(pfx.lower()):
+                caption = caption[len(pfx):].strip()
+                break
+        if caption:
+            captions.append(caption)
+    return " | ".join(captions) if captions else ""
 
 
 def _build_seo_from_vision(visual_caption: str, clean_subject: str, category: str) -> dict:
     """
-    Constructs perfect Google-compliant SEO from the BLIP-2 visual caption.
+    Constructs perfect Google-compliant SEO from the BLIP-1 visual caption.
     Uses a rich rule-based composer that is faster than LLM and fully deterministic.
     Output meets Google's E-E-A-T, title ≤70 chars, meta 140-160 chars, 30 keywords.
     """
@@ -646,7 +625,7 @@ def _build_seo_from_vision(visual_caption: str, clean_subject: str, category: st
     cat_sl = category.strip().lower() if category else "design"
     cap = visual_caption.lower() if visual_caption else sl
 
-    # ── Detect visual descriptors from BLIP-2 caption ──────────────────────
+    # ── Detect visual descriptors from BLIP-1 caption ──────────────────────
     color_words   = ["red","blue","green","yellow","orange","purple","pink","white","black","golden","silver","brown","grey","gray","teal","cyan","violet"]
     style_words   = ["3d","realistic","cartoon","flat","watercolor","sketch","illustration","minimalist","vintage","modern","floral","abstract","geometric"]
     colors  = [w for w in color_words  if w in cap]
@@ -769,9 +748,9 @@ def _build_seo_from_vision(visual_caption: str, clean_subject: str, category: st
     }
 
 
-def _vision_seo_blip2(row: dict) -> dict:
+def _vision_seo_blip1(row: dict) -> dict:
     """
-    Main SEO entry-point when running on Kaggle GPU with BLIP-2.
+    Main SEO entry-point when running on Kaggle with BLIP-1.
     Downloads image from Drive, captions it, builds SEO.
     Falls back to filename-only if image unavailable.
     """
@@ -780,17 +759,16 @@ def _vision_seo_blip2(row: dict) -> dict:
     if not subject: raise RuntimeError("Missing subject_name")
     clean_subj = _clean_subject(subject)
 
-    # Try to download image for vision analysis
     visual_caption = ""
     preview_url = row.get("preview_url","")
     webp_fid    = row.get("webp_file_id","")
     png_fid     = row.get("png_file_id","")
 
     import requests
-    for attempt, (label, url) in enumerate([
+    for label, url in [
         ("Drive PNG",  f"https://www.googleapis.com/drive/v3/files/{png_fid}?alt=media" if png_fid else ""),
         ("Preview URL", preview_url),
-    ]):
+    ]:
         if not url: continue
         try:
             headers = {}
@@ -799,8 +777,8 @@ def _vision_seo_blip2(row: dict) -> dict:
                 headers = _dh(tok)
             r = requests.get(url, headers=headers, timeout=30)
             r.raise_for_status()
-            visual_caption = _blip2_caption(r.content)
-            print(f"    👁  BLIP-2 caption ({label}): {visual_caption[:120]}", flush=True)
+            visual_caption = _blip_caption(r.content)
+            print(f"    👁  BLIP caption ({label}): {visual_caption[:120]}", flush=True)
             break
         except Exception as e:
             print(f"    ⚠  Image fetch failed ({label}): {e}", flush=True)
@@ -903,15 +881,15 @@ def _fallback_rule_seo(clean_subject, category, orig_subject):
             "tags": tags, "description": ", ".join(kw_list[:30])}
 
 def _vision_seo(row):
-    """Dispatcher: BLIP-2 on Kaggle GPU, Gemma on CPU elsewhere."""
+    """Dispatcher: BLIP-1 on Kaggle, Gemma on CPU elsewhere."""
     subject  = row.get("subject_name","").strip()
     category = row.get("category","")
     if not subject: raise RuntimeError("Missing subject_name")
     clean_subj = _clean_subject(subject)
     on_kaggle = os.path.exists("/kaggle/working")
     if on_kaggle:
-        print(f"    👁  BLIP-2 vision SEO for '{clean_subj}' ...", flush=True)
-        return _vision_seo_blip2(row)
+        print(f"    👁  BLIP vision SEO for '{clean_subj}' ...", flush=True)
+        return _vision_seo_blip1(row)
     else:
         print(f"    🧠 Gemma generating SEO for '{clean_subj}' ...", flush=True)
         return _gemma_generate_seo(clean_subj, category, subject)
@@ -1128,14 +1106,17 @@ def run_seo_loop():
     if on_kaggle:
         import torch
         if torch.cuda.is_available():
-            major, _ = torch.cuda.get_device_capability(0)
-            gpu_name = torch.cuda.get_device_name(0)
-            if major >= 7:
-                mode_str = f"BLIP-2 Vision GPU ({gpu_name})"
-            else:
-                mode_str = f"BLIP-2 Vision CPU (GPU {gpu_name} sm_{major}x incompatible — CPU fallback)"
+            try:
+                major, _ = torch.cuda.get_device_capability(0)
+                gpu_name = torch.cuda.get_device_name(0)
+                if major >= 7:
+                    mode_str = f"BLIP-1 Vision GPU ({gpu_name})"
+                else:
+                    mode_str = f"BLIP-1 Vision CPU ({gpu_name} sm_{major}x — CPU fallback)"
+            except Exception:
+                mode_str = "BLIP-1 Vision CPU (GPU error)"
         else:
-            mode_str = "BLIP-2 Vision CPU (no GPU detected)"
+            mode_str = "BLIP-1 Vision CPU (no GPU)"
     else:
         mode_str = "Gemma 3 1B CPU (local)"
 
@@ -1187,8 +1168,8 @@ def run_seo_loop():
     target = min(requested, len(todo)) if requested else len(todo)
 
     if on_kaggle:
-        print(f"\n[Step 4b] Loading BLIP-2 vision model on GPU ...")
-        _load_blip2()
+        print(f"\n[Step 4b] Loading BLIP-1 vision model ...")
+        _load_blip()
     else:
         print(f"\n[Step 4b] Loading Gemma 3 1B model on CPU ...")
         _load_gemma_model()
@@ -1276,7 +1257,7 @@ def main():
         trigger_kaggle_mode()
     else:
         # Both kaggle_run and local use the same loop.
-        # BLIP-2 is automatically chosen when /kaggle/working exists.
+        # BLIP-1 is automatically chosen when /kaggle/working exists.
         run_seo_loop()
 
 if __name__ == "__main__":
