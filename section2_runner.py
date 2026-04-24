@@ -34,23 +34,6 @@ _RUN_START      = time.time()
 KAGGLE_NOTEBOOK_TITLE  = "section2-seo-builder-v9"
 KAGGLE_NOTEBOOK_SLUG   = "section2-seo-builder-v9"   # all lowercase, hyphens only
 
-# The full runner is uploaded as a Kaggle dataset so the notebook can import it.
-# Kaggle notebook kernel metadata
-_KERNEL_META_TEMPLATE = {
-    "id": "{username}/{slug}",
-    "title": "Section2 SEO Builder V9",
-    "code_file": "kernel.py",
-    "language": "python",
-    "kernel_type": "script",
-    "is_private": True,
-    "enable_gpu": True,
-    "enable_tpu": False,
-    "enable_internet": True,
-    "dataset_sources": [],
-    "competition_sources": [],
-    "kernel_sources": []
-}
-
 
 def _build_kaggle_kernel_source(env_vars: dict) -> str:
     """
@@ -95,8 +78,14 @@ def trigger_kaggle_mode():
     """
     Runs on GitHub Actions.
     1. Collects all env secrets.
-    2. Pushes a kernel to Kaggle via API.
-    3. Waits (polls) until complete.
+    2. Writes a kernel folder (kernel.py + kernel-metadata.json).
+    3. Pushes via `kaggle kernels push` CLI (correct, official method).
+    4. Polls via Kaggle REST API until complete or error.
+
+    WHY CLI push instead of raw blob API:
+      The /blobs/upload endpoint requires a specific undocumented binary protocol.
+      The official `kaggle kernels push` CLI handles this correctly and is already
+      installed in the GitHub Actions step.
     """
     import requests
 
@@ -105,7 +94,7 @@ def trigger_kaggle_mode():
     if not kaggle_user or not kaggle_key:
         raise SystemExit("❌ KAGGLE_USERNAME or KAGGLE_KEY not set")
 
-    # Collect all env vars to pass to Kaggle kernel
+    # Collect all env vars to embed into the Kaggle kernel source
     env_keys = [
         "REPO2_TOKEN","REPO2_SLUG","REPO2_MAX_PER_JSON",
         "GOOGLE_CLIENT_ID","GOOGLE_CLIENT_SECRET","GOOGLE_REFRESH_TOKEN",
@@ -120,77 +109,91 @@ def trigger_kaggle_mode():
     kernel_src = _build_kaggle_kernel_source(env_vars)
     slug = KAGGLE_NOTEBOOK_SLUG
 
-    # Write kernel files to a temp dir
-    import tempfile, zipfile
-    tmpdir = Path(tempfile.mkdtemp())
+    # ── Write kernel push folder ─────────────────────────────────────────────
+    import tempfile
+    tmpdir = Path(tempfile.mkdtemp()) / slug
+    tmpdir.mkdir(parents=True, exist_ok=True)
     (tmpdir / "kernel.py").write_text(kernel_src, encoding="utf-8")
-    meta = dict(_KERNEL_META_TEMPLATE)
-    meta["id"] = f"{kaggle_user}/{slug}"
+
+    meta = {
+        "id": f"{kaggle_user}/{slug}",
+        "title": "Section2 SEO Builder V9",
+        "code_file": "kernel.py",
+        "language": "python",
+        "kernel_type": "script",
+        "is_private": True,
+        "enable_gpu": True,
+        "enable_tpu": False,
+        "enable_internet": True,
+        "dataset_sources": [],
+        "competition_sources": [],
+        "kernel_sources": []
+    }
     (tmpdir / "kernel-metadata.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
-    print(f"  [Kaggle] Pushing kernel '{slug}' to Kaggle API ...", flush=True)
-    auth = (kaggle_user, kaggle_key)
-    api_base = "https://www.kaggle.com/api/v1"
+    # ── Ensure ~/.kaggle/kaggle.json exists (already written by yml step) ───
+    kaggle_cfg = Path.home() / ".kaggle" / "kaggle.json"
+    if not kaggle_cfg.exists():
+        kaggle_cfg.parent.mkdir(parents=True, exist_ok=True)
+        kaggle_cfg.write_text(json.dumps({"username": kaggle_user, "key": kaggle_key}))
+        kaggle_cfg.chmod(0o600)
 
-    # Push via Kaggle API
-    with open(tmpdir / "kernel.py", "rb") as f:
-        blob_resp = requests.post(f"{api_base}/blobs/upload",
-                                  auth=auth,
-                                  files={"file": ("kernel.py", f, "text/plain")},
-                                  timeout=60)
-    blob_resp.raise_for_status()
-    blob_token = blob_resp.json().get("token")
-    if not blob_token:
-        raise SystemExit(f"❌ Kaggle blob upload failed: {blob_resp.text}")
+    # ── Push kernel via CLI ──────────────────────────────────────────────────
+    print(f"  [Kaggle] Pushing kernel '{slug}' via kaggle CLI ...", flush=True)
+    result = subprocess.run(
+        ["kaggle", "kernels", "push", "-p", str(tmpdir)],
+        capture_output=True, text=True
+    )
+    print(result.stdout.strip(), flush=True)
+    if result.returncode != 0:
+        print(result.stderr.strip(), flush=True)
+        raise SystemExit(f"❌ kaggle kernels push failed (exit {result.returncode})")
 
-    push_payload = {
-        "id": meta["id"],
-        "title": meta["title"],
-        "text": blob_token,
-        "language": "python",
-        "kernelType": "script",
-        "isPrivate": True,
-        "enableGpu": True,
-        "enableInternet": True,
-        "datasetDataSources": [],
-        "competitionDataSources": [],
-        "kernelDataSources": []
-    }
-    push_resp = requests.post(f"{api_base}/kernels/push",
-                              auth=auth,
-                              json=push_payload,
-                              timeout=60)
-    if push_resp.status_code not in (200, 201):
-        raise SystemExit(f"❌ Kaggle kernel push failed: {push_resp.status_code} {push_resp.text[:300]}")
-
-    print(f"  [Kaggle] Kernel pushed ✓  — polling for completion ...", flush=True)
+    print(f"  [Kaggle] Kernel pushed ✓", flush=True)
     print(f"  [Kaggle] View at: https://www.kaggle.com/code/{kaggle_user}/{slug}", flush=True)
 
-    # Poll until complete
+    # ── Poll via REST API until complete ────────────────────────────────────
+    auth     = (kaggle_user, kaggle_key)
+    api_base = "https://www.kaggle.com/api/v1"
     poll_url = f"{api_base}/kernels/{kaggle_user}/{slug}"
-    for attempt in range(1, 200):
+
+    # Give Kaggle ~60s to queue the job before first poll
+    print("  [Kaggle] Waiting 60s for job to queue ...", flush=True)
+    time.sleep(60)
+
+    for attempt in range(1, 240):   # max ~120 min polling
         time.sleep(30)
         try:
-            st = requests.get(poll_url, auth=auth, timeout=30).json()
-            status = st.get("status","")
+            resp = requests.get(poll_url, auth=auth, timeout=30)
+            resp.raise_for_status()
+            st = resp.json()
+            status     = st.get("status","unknown")
             total_time = st.get("totalRunningTime", 0)
-            print(f"    [{attempt*30//60}m] status={status} runtime={total_time}s", flush=True)
+            elapsed_m  = (attempt * 30 + 60) // 60
+            print(f"    [{elapsed_m}m] status={status}  runtime={total_time}s", flush=True)
+
             if status == "complete":
                 print("  ✅ Kaggle kernel completed successfully!", flush=True)
                 return
-            if status in ("error","cancelAcknowledged","cancelled"):
-                log_url = f"{api_base}/kernels/{kaggle_user}/{slug}/output"
+
+            if status in ("error", "cancelAcknowledged", "cancelled"):
+                # Try to fetch log output for debugging
                 try:
-                    log_r = requests.get(log_url, auth=auth, timeout=30)
-                    print("  [Kaggle log tail]:", log_r.text[-2000:], flush=True)
-                except: pass
+                    log_resp = requests.get(
+                        f"{api_base}/kernels/{kaggle_user}/{slug}/output",
+                        auth=auth, timeout=30
+                    )
+                    print("  [Kaggle log tail]:\n", log_resp.text[-3000:], flush=True)
+                except Exception:
+                    pass
                 raise SystemExit(f"❌ Kaggle kernel failed with status: {status}")
+
         except SystemExit:
             raise
         except Exception as exc:
             print(f"    [poll error] {exc}", flush=True)
 
-    raise SystemExit("❌ Kaggle kernel did not complete within timeout (100 min)")
+    raise SystemExit("❌ Kaggle kernel did not complete within 120 min timeout")
 
 
 # ══════════════════════════════════════════════════════════════
