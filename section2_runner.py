@@ -51,6 +51,28 @@ import os, subprocess, sys
 # ── inject secrets ──────────────────────────────────────────
 {env_lines}
 
+# ── reinstall PyTorch compatible with the assigned GPU ───────
+# Kaggle may assign a P100 (sm_60) which requires CUDA 11.x builds,
+# but the pre-installed PyTorch only supports sm_70+. Detect and fix.
+import subprocess as _sp, sys as _sys
+def _cuda_cap():
+    try:
+        import torch
+        if torch.cuda.is_available():
+            return torch.cuda.get_device_capability(0)
+    except Exception:
+        pass
+    return (0, 0)
+_major, _minor = _cuda_cap()
+if _major < 7:
+    print(f"[setup] GPU sm_{_major}{_minor} needs CUDA 11.x PyTorch — reinstalling ...", flush=True)
+    _sp.check_call([_sys.executable, "-m", "pip", "install", "-q", "--force-reinstall",
+        "torch==2.1.2+cu118", "torchvision==0.16.2+cu118",
+        "--index-url", "https://download.pytorch.org/whl/cu118"])
+    print("[setup] PyTorch cu118 installed ✓", flush=True)
+else:
+    print(f"[setup] GPU sm_{_major}{_minor} — PyTorch already compatible ✓", flush=True)
+
 # ── install dependencies ─────────────────────────────────────
 subprocess.check_call([sys.executable, "-m", "pip", "install", "-q",
     "transformers>=4.37", "accelerate", "openpyxl", "requests", "pillow"])
@@ -550,13 +572,21 @@ def _load_blip2():
         return
     import torch
     from transformers import Blip2Processor, Blip2ForConditionalGeneration
-    model_id = "Salesforce/blip2-opt-2.7b"   # Apache 2.0, ~5.5GB, fits on T4
-    print(f"  [BLIP-2] Loading {model_id} on GPU ...", flush=True)
-    _blip2_processor = Blip2Processor.from_pretrained(model_id)
-    # Use float16 only when CUDA is confirmed available; fall back to float32 on CPU.
-    # Avoid device_map="auto" which can trigger the salesforce-lavis CUDA binary
-    # conflict — instead place directly on cuda:0 via explicit .to() call.
+    model_id = "Salesforce/blip2-opt-2.7b"   # Apache 2.0, ~5.5GB, fits on T4/P100
+
+    # Check if the GPU's compute capability is actually supported by the
+    # installed PyTorch. P100 = sm_60; modern PyTorch needs sm_70+.
+    use_cuda = False
     if torch.cuda.is_available():
+        major, _ = torch.cuda.get_device_capability(0)
+        if major >= 7:
+            use_cuda = True
+        else:
+            print(f"  [BLIP-2] ⚠  GPU sm_{major}x not supported by this PyTorch — using CPU", flush=True)
+
+    print(f"  [BLIP-2] Loading {model_id} on {'GPU' if use_cuda else 'CPU'} ...", flush=True)
+    _blip2_processor = Blip2Processor.from_pretrained(model_id)
+    if use_cuda:
         _blip2_model = Blip2ForConditionalGeneration.from_pretrained(
             model_id,
             torch_dtype=torch.float16,
@@ -1095,7 +1125,19 @@ def run_seo_loop():
         except: pass
 
     on_kaggle = os.path.exists("/kaggle/working")
-    mode_str  = "BLIP-2 Vision GPU (Kaggle T4)" if on_kaggle else "Gemma 3 1B CPU (local)"
+    if on_kaggle:
+        import torch
+        if torch.cuda.is_available():
+            major, _ = torch.cuda.get_device_capability(0)
+            gpu_name = torch.cuda.get_device_name(0)
+            if major >= 7:
+                mode_str = f"BLIP-2 Vision GPU ({gpu_name})"
+            else:
+                mode_str = f"BLIP-2 Vision CPU (GPU {gpu_name} sm_{major}x incompatible — CPU fallback)"
+        else:
+            mode_str = "BLIP-2 Vision CPU (no GPU detected)"
+    else:
+        mode_str = "Gemma 3 1B CPU (local)"
 
     print("="*65)
     print("  Section 2 – SEO JSON Builder (V9.0 – Vision-Powered SEO)")
