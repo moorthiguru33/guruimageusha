@@ -352,8 +352,12 @@ async function loadCategories() {
   }
 }
 
+let currentPage = 1;
+let maxPages = 1;
+
 // Fetch Posts
-async function fetchPosts() {
+async function fetchPosts(page = 1) {
+  currentPage = page;
   const topic = categorySelect.value;
   const query = searchInput.value.trim();
 
@@ -363,14 +367,29 @@ async function fetchPosts() {
   if (totalCategoryCount) totalCategoryCount.textContent = 'Loading designs...';
 
   try {
-    const res = await fetch(`/api/posts?topic=${encodeURIComponent(topic)}&query=${encodeURIComponent(query)}`);
+    const res = await fetch(`/api/posts?topic=${encodeURIComponent(topic)}&query=${encodeURIComponent(query)}&page=${page}`);
     const data = await res.json();
     loadingState.style.display = 'none';
 
     if (data.success && data.posts && data.posts.length > 0) {
       currentPosts = data.posts;
+      maxPages = data.maxPages || 1;
+      currentPage = data.page || page;
+
       if (countAllEl) countAllEl.textContent = currentPosts.length;
-      if (totalCategoryCount) totalCategoryCount.textContent = `${currentPosts.length} Designs Loaded`;
+      if (totalCategoryCount) {
+        totalCategoryCount.textContent = `${data.totalCategoryCount || currentPosts.length} Designs Total`;
+      }
+
+      const curPageEl = document.getElementById('currentPageNum');
+      const totPageEl = document.getElementById('totalPageNum');
+      const prevBtn = document.getElementById('btnPrevPage');
+      const nextBtn = document.getElementById('btnNextPage');
+      if (curPageEl) curPageEl.textContent = currentPage;
+      if (totPageEl) totPageEl.textContent = maxPages;
+      if (prevBtn) prevBtn.disabled = currentPage <= 1;
+      if (nextBtn) nextBtn.disabled = currentPage >= maxPages;
+
       renderPosts(currentPosts);
     } else {
       currentPosts = [];
@@ -459,12 +478,32 @@ function updateSelectionUI() {
   if (btnStartPipelineGithub) btnStartPipelineGithub.disabled = disabled;
 }
 
-// Category & Search Listeners
-categorySelect.addEventListener('change', () => fetchPosts());
-btnSearch.addEventListener('click', () => fetchPosts());
+// Category & Search Listeners (Reset to Page 1)
+categorySelect.addEventListener('change', () => fetchPosts(1));
+btnSearch.addEventListener('click', () => fetchPosts(1));
 searchInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') fetchPosts();
+  if (e.key === 'Enter') fetchPosts(1);
 });
+
+// Pagination Listeners
+const btnPrevPage = document.getElementById('btnPrevPage');
+const btnNextPage = document.getElementById('btnNextPage');
+if (btnPrevPage) {
+  btnPrevPage.addEventListener('click', () => {
+    if (currentPage > 1) {
+      fetchPosts(currentPage - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+}
+if (btnNextPage) {
+  btnNextPage.addEventListener('click', () => {
+    if (currentPage < maxPages) {
+      fetchPosts(currentPage + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+}
 
 // Select All visible
 if (btnSelectAll) {

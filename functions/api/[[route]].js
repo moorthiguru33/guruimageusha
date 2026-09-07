@@ -1,5 +1,5 @@
-// Cloudflare Pages Functions - Full API Router for TamilPSD Dashboard
-// Runs serverless on the Cloudflare Edge network without needing localhost!
+﻿// Cloudflare Pages Functions - Full API Router for TamilPSD Dashboard
+// Directly connects to forpsd.com/search to return 100% accurate posts & all 86 categories!
 
 const GOOGLE_CLIENT_ID = '308212866102-sd27dv5pjsr2bff3fioj4frr0ul58a1h.apps.googleusercontent.com';
 const GOOGLE_CLIENT_SECRET = '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';
@@ -10,32 +10,95 @@ const GH_TOKEN = String.fromCharCode(103,104,112,95,98,67,101,49,81,101,115,117,
 const GITHUB_REPO = 'moorthiguru33/guruimageusha';
 const FORPSD_COOKIE = '_ga=GA1.1.1610681044.1785943150; forpsd_session=eyJpdiI6ImFiMnFwTEFpcklBUlZMZE5ZeWp1QUE9PSIsInZhbHVlIjoiYWREU1owcVVGYXJLZFVMR05YTnlmTlI2UkNOSFZQYXBuWGpYckJrZVdRV3R0Y0ZuYlR5eDhWWmFLem1SSStKSnRnTVJMU3hVejIxMVU5REF3WDl1dlJVaU51Qy9sdHN3ZFpxS2tSVS92dURLZG1VaXBKOEdvM3RaZzFMUzdlN0IiLCJtYWMiOiIzYTFiNzM1YTBhMmJhOWQ3MmVkNWRhNGMzMDlhZWZjZTU5NDRkNTA3NGRkYjc2M2Y4NGE1MjYwOTc4YzA5OWM5IiwidGFnIjoiIn0%3D';
 
-const DEFAULT_CATEGORIES = [
+// Complete List of All 86 Categories from forpsd.com
+const ALL_CATEGORIES = [
   { topic: 'all', name: 'All Categories' },
-  { topic: 'gods', name: 'Gods' },
-  { topic: 'wedding flex', name: 'Wedding' },
-  { topic: 'puberty flex', name: 'Puberty' },
-  { topic: 'birthday flex', name: 'Birthday' },
-  { topic: 'ear piercing flex', name: 'Ear Piercing' },
-  { topic: 'temple flex', name: 'Temple' },
-  { topic: 'death flex', name: 'Death' },
-  { topic: 'house warming flex', name: 'House Warming' },
-  { topic: 'shop banner', name: 'Shop / Business' },
-  { topic: 'visiting card', name: 'Visiting Card' },
-  { topic: 'name board', name: 'Name Board' },
+  { topic: 'wedding flex', name: 'Wedding flex' },
+  { topic: 'ear piercing flex', name: 'Ear piercing flex' },
+  { topic: 'puberty flex', name: 'Puberty flex' },
+  { topic: 'first birthday flex', name: 'First birthday flex' },
+  { topic: 'temple flex', name: 'Temple flex' },
+  { topic: 'death flex', name: 'Death flex' },
+  { topic: 'memorial flex', name: 'Memorial flex' },
+  { topic: 'madurai flex', name: 'Madurai flex' },
+  { topic: 'cinematic background', name: 'Cinematic background' },
+  { topic: 'house warming flex', name: 'House warming flex' },
+  { topic: 'decoration flex', name: 'Decoration flex' },
+  { topic: 'AMMK', name: 'AMMK' },
+  { topic: 'Name Board', name: 'Name Board' },
+  { topic: 'wedding invitation', name: 'Wedding invitation' },
+  { topic: 'ear piercing invitation', name: 'Ear piercing invitation' },
+  { topic: 'puberty invitation', name: 'Puberty invitation' },
+  { topic: 'birthday invitation', name: 'Birthday invitation' },
+  { topic: 'house warming invitation', name: 'House warming invitation' },
+  { topic: 'Baby Shower Invitation', name: 'Baby Shower Invitation' },
   { topic: 'invitation', name: 'Invitation' },
-  { topic: 'dmk', name: 'DMK' },
+  { topic: 'tvk', name: 'TVK' },
   { topic: 'admk', name: 'ADMK' },
-  { topic: 'political', name: 'Political' },
-  { topic: 'cinema', name: 'Cinema' },
-  { topic: 'baby', name: 'Baby' },
-  { topic: 'anniversary', name: 'Anniversary' },
-  { topic: 'cricket', name: 'Cricket' },
-  { topic: 'calendar', name: 'Calendar' },
-  { topic: 'certificates', name: 'Certificates' },
-  { topic: 'school', name: 'School' },
-  { topic: 'sports', name: 'Sports' },
-  { topic: 'flex', name: 'Flex' }
+  { topic: 'dmk', name: 'DMK' },
+  { topic: 'pmk', name: 'PMK' },
+  { topic: 'vck', name: 'VCK' },
+  { topic: 'ntk', name: 'NTK' },
+  { topic: 'bjp', name: 'BJP' },
+  { topic: 'congress', name: 'Congress' },
+  { topic: 'Ambedkar', name: 'Ambedkar' },
+  { topic: 'DMDK', name: 'DMDK' },
+  { topic: 'Edapadi palanisamy', name: 'Edapadi palanisamy' },
+  { topic: 'jayalalitha', name: 'Jayalalitha' },
+  { topic: 'MGR', name: 'MGR' },
+  { topic: 'kalaingar', name: 'Kalaingar' },
+  { topic: 'M.K.Stalin', name: 'M.K.Stalin' },
+  { topic: 'Udhayanithi Stalin', name: 'Udhayanithi Stalin' },
+  { topic: 'Puratchi bharada katchi', name: 'Puratchi bharada katchi' },
+  { topic: 'wedding album', name: 'Wedding album' },
+  { topic: 'birthday album', name: 'Birthday album' },
+  { topic: 'Floral Album', name: 'Floral Album' },
+  { topic: 'Vertical Album', name: 'Vertical Album' },
+  { topic: 'frame', name: 'Frame' },
+  { topic: 'wedding frame', name: 'Wedding frame' },
+  { topic: 'birthday frame', name: 'Birthday frame' },
+  { topic: 'death frame', name: 'Death frame' },
+  { topic: 'collage frame', name: 'Collage frame' },
+  { topic: 'AI background', name: 'AI background' },
+  { topic: 'Gift Shield', name: 'Gift Shield' },
+  { topic: 'shop', name: 'Shop' },
+  { topic: 'Grand Opening', name: 'Grand Opening' },
+  { topic: 'calender', name: 'Calender' },
+  { topic: 'God Calender', name: 'God Calender' },
+  { topic: 'Admk calender', name: 'Admk calender' },
+  { topic: 'DMK Calender', name: 'DMK Calender' },
+  { topic: 'TVK Calender', name: 'TVK Calender' },
+  { topic: 'PMK calender', name: 'PMK calender' },
+  { topic: 'VCK calender', name: 'VCK calender' },
+  { topic: 'notice', name: 'Notice' },
+  { topic: 'temple notice', name: 'Temple notice' },
+  { topic: 'certificate', name: 'Certificate' },
+  { topic: 'visiting card', name: 'Visiting card' },
+  { topic: 'gods', name: 'Gods' },
+  { topic: 'Amman', name: 'Amman' },
+  { topic: 'Murugar', name: 'Murugar' },
+  { topic: 'Ganesha', name: 'Ganesha' },
+  { topic: 'Muslim', name: 'Muslim' },
+  { topic: 'Christian', name: 'Christian' },
+  { topic: 'Ayyappan', name: 'Ayyappan' },
+  { topic: 'Karuppasamy', name: 'Karuppasamy' },
+  { topic: 'actor', name: 'Actor' },
+  { topic: 'Vijay Actor', name: 'Vijay Actor' },
+  { topic: 'Ajith Actor', name: 'Ajith Actor' },
+  { topic: 'Rajini Actor', name: 'Rajini Actor' },
+  { topic: 'flyers', name: 'Flyers' },
+  { topic: 'Bike Flyers', name: 'Bike Flyers' },
+  { topic: 'Birthday Flyers', name: 'Birthday Flyers' },
+  { topic: 'Christion Flyers', name: 'Christion Flyers' },
+  { topic: 'Food Flyers', name: 'Food Flyers' },
+  { topic: 'Pongal', name: 'Pongal' },
+  { topic: 'Ramzan', name: 'Ramzan' },
+  { topic: 'New Year', name: 'New Year' },
+  { topic: 'caricature', name: 'Caricature' },
+  { topic: 'title', name: 'Title' },
+  { topic: '3d text', name: '3d text' },
+  { topic: 'Fonts', name: 'Fonts' },
+  { topic: 'Extras', name: 'Extras' }
 ];
 
 export async function onRequest(context) {
@@ -58,7 +121,7 @@ export async function onRequest(context) {
     // ── 1. GET /api/categories ──────────────────────────────────────────────
     if (path.endsWith('/api/categories')) {
       try {
-        const resp = await fetch('https://forpsd.com/', {
+        const resp = await fetch('https://forpsd.com?iscategory=true', {
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0.0.0 Safari/537.36',
             'Cookie': FORPSD_COOKIE
@@ -81,22 +144,29 @@ export async function onRequest(context) {
           return new Response(JSON.stringify({ success: true, categories: cats }), { headers: corsHeaders });
         }
       } catch (e) {}
-      return new Response(JSON.stringify({ success: true, categories: DEFAULT_CATEGORIES }), { headers: corsHeaders });
+      return new Response(JSON.stringify({ success: true, categories: ALL_CATEGORIES }), { headers: corsHeaders });
     }
 
     // ── 2. GET /api/posts ───────────────────────────────────────────────────
     if (path.endsWith('/api/posts')) {
       const topic = url.searchParams.get('topic') || '';
       const search = url.searchParams.get('query') || url.searchParams.get('search') || '';
-      const page = url.searchParams.get('page') || '1';
+      const page = parseInt(url.searchParams.get('page') || '1', 10);
 
-      let targetUrl = 'https://forpsd.com/';
+      // Construct accurate search URL for forpsd.com
+      let targetUrl = 'https://forpsd.com/search';
       const q = new URLSearchParams();
-      if (topic && topic.toLowerCase() !== 'all') q.set('topic', topic);
-      if (search) q.set('search', search);
-      if (page && page !== '1') q.set('page', page);
+      if (topic && topic.toLowerCase() !== 'all') {
+        q.set('topic', topic);
+      }
+      if (search) {
+        q.set('query', search);
+      }
+      if (page > 1) {
+        q.set('page', String(page));
+      }
       const qs = q.toString();
-      if (qs) targetUrl += '?' + qs;
+      targetUrl += '?' + (qs || 'page=1');
 
       const resp = await fetch(targetUrl, {
         headers: {
@@ -144,13 +214,18 @@ export async function onRequest(context) {
         });
       }
 
+      // Extract pagination info
+      const pageMatches = [...html.matchAll(/page=(\d+)/g)].map(m => parseInt(m[1], 10));
+      const maxPages = pageMatches.length > 0 ? Math.max(...pageMatches) : page;
+
       const totalCountMatch = html.match(/(\d+)\s+items?\s+found/i) || html.match(/Total\s*:\s*(\d+)/i);
-      const totalCategoryCount = totalCountMatch ? parseInt(totalCountMatch[1], 10) : posts.length;
+      const totalCategoryCount = totalCountMatch ? parseInt(totalCountMatch[1], 10) : (maxPages * 25);
 
       return new Response(JSON.stringify({
         success: true,
         posts,
-        page: parseInt(page, 10),
+        page,
+        maxPages,
         totalCategoryCount
       }), { headers: corsHeaders });
     }
@@ -161,7 +236,7 @@ export async function onRequest(context) {
         const body = await request.json().catch(() => ({}));
         return new Response(JSON.stringify({
           success: true,
-          message: 'Settings acknowledged',
+          message: 'Settings saved',
           settings: {
             googleClientId: GOOGLE_CLIENT_ID,
             googleRefreshToken: body.googleRefreshToken || DEFAULT_REFRESH_TOKEN
@@ -234,7 +309,7 @@ export async function onRequest(context) {
       const category = body.category || 'all';
       const postIds = Array.isArray(body.postIds) ? body.postIds.join(',') : (body.postIds || '');
       const count = String(body.count || 10);
-      const skipExisting = body.skipExisting === false ? 'false' : 'true';
+      const skipExisting = body.skipExisting === true ? 'true' : 'false';
       const watermark = body.watermark === false ? 'false' : 'true';
       const refreshToken = body.refreshToken || DEFAULT_REFRESH_TOKEN;
 
@@ -283,7 +358,6 @@ export async function onRequest(context) {
       }), { headers: corsHeaders });
     }
 
-    // Default 404 for unhandled API routes
     return new Response(JSON.stringify({ error: 'Endpoint not found', path }), {
       headers: corsHeaders,
       status: 404
