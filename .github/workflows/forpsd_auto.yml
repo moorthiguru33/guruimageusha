@@ -1,0 +1,136 @@
+name: ⚡ TamilPSD Cloud Automation Pipeline
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TamilPSD Automated Processing Pipeline
+# Runs in GitHub Actions: Scrapes, Downloads, WebP Conversion, R2 Upload,
+# Google Drive Upload, and updates designs.xlsx and data/designs.json in repo.
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  workflow_dispatch:
+    inputs:
+      category:
+        description: "Category / Topic to process (e.g. Gods, Wedding, Puberty, Birthday, DMK, all)"
+        required: false
+        default: "all"
+      post_ids:
+        description: "Specific Post IDs to process (comma-separated, e.g. 6562, 6563)"
+        required: false
+        default: ""
+      count:
+        description: "Max number of new designs to process (e.g. 5, 10, 25, 50)"
+        required: false
+        default: "10"
+      skip_existing:
+        description: "Skip designs already in designs.xlsx"
+        required: false
+        type: boolean
+        default: false
+      watermark:
+        description: "Add watermark to preview images (www.tamilpsd.in)"
+        required: false
+        type: boolean
+        default: true
+      refresh_token:
+        description: "Google OAuth Refresh Token (optional override from dashboard)"
+        required: false
+        default: ""
+
+  repository_dispatch:
+    types: [run-tamilpsd-pipeline]
+
+permissions:
+  contents: write
+
+jobs:
+  run-pipeline:
+    name: Process TamilPSD Designs
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      # ── 1. Checkout Repository ─────────────────────────────────────────────
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ── 2. Setup Node.js ───────────────────────────────────────────────────
+      - name: 🟢 Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # ── 3. Setup Python ────────────────────────────────────────────────────
+      - name: 🐍 Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # ── 4. Install System & Python Dependencies ───────────────────────────
+      - name: 📦 Install 7-Zip & Python Dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq p7zip-full fonts-dejavu-core fonts-liberation
+          pip install Pillow psd-tools openpyxl --quiet
+
+      # ── 5. Install Node Dependencies ───────────────────────────────────────
+      - name: 📦 Install Node Packages
+        working-directory: forpsd_tool
+        run: npm install
+
+      # ── 6. Run TamilPSD Automation Pipeline ────────────────────────────────
+      - name: 🚀 Execute TamilPSD Automation Runner
+        env:
+          # Cloudflare R2 Credentials
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID || 'f111f0309c0fd852152da1211830b227' }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID || 'd7439f9e3821e919c26bdeadd6534e2b' }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY || '625278c8869080a9330fc1cd7ccd366ae6fc6d66b229443d1bc79d9f4bd2fe0b' }}
+          R2_BUCKET_NAME: ${{ vars.R2_BUCKET_NAME || 'tamilpsd' }}
+          R2_CDN_BASE: ${{ vars.R2_CDN_BASE || 'https://cdn.tamilpsd.in' }}
+
+          # Google Drive Credentials
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID || '308212866102-sd27dv5pjsr2bff3fioj4frr0ul58a1h.apps.googleusercontent.com' }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET || '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' }}
+          GOOGLE_REFRESH_TOKEN: ${{ github.event.inputs.refresh_token || github.event.client_payload.refresh_token || secrets.GOOGLE_REFRESH_TOKEN }}
+          GOOGLE_DRIVE_FOLDER_ID: ${{ vars.GOOGLE_DRIVE_FOLDER_ID || '1zjkSHn8vpJ7ZL5Pd62EpYxL-OW3LWLHu' }}
+
+          # Optional ForPSD Cookie & Watermark
+          FORPSD_COOKIE: ${{ secrets.FORPSD_COOKIE }}
+          WATERMARK_TEXT: ${{ vars.WATERMARK_TEXT || 'www.tamilpsd.in' }}
+          WATERMARK_ENABLED: ${{ github.event.inputs.watermark || 'true' }}
+
+          # GitHub Config
+          GH_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          GITHUB_REPO: ${{ github.repository || 'moorthiguru33/guruimageusha' }}
+
+        run: |
+          CATEGORY="${{ github.event.inputs.category || github.event.client_payload.category || 'all' }}"
+          IDS="${{ github.event.inputs.post_ids || github.event.client_payload.post_ids || '' }}"
+          COUNT="${{ github.event.inputs.count || github.event.client_payload.count || '10' }}"
+          SKIP="${{ github.event.inputs.skip_existing == 'true' || github.event.client_payload.skip_existing == true }}"
+
+          node forpsd_tool/runner.js \
+            --category "$CATEGORY" \
+            --ids "$IDS" \
+            --count "$COUNT" \
+            --skip-existing "$SKIP"
+
+      # ── 7. Commit and Push Updated Excel & JSON ────────────────────────────
+      - name: 📤 Push Updated designs.xlsx & designs.json
+        run: |
+          git config user.name "TamilPSD Auto Bot"
+          git config user.email "bot@tamilpsd.in"
+
+          # Stage Excel and JSON files
+          git add forpsd_tool/designs.xlsx 2>/dev/null || true
+          git add data/designs.json 2>/dev/null || true
+
+          if git diff --staged --quiet; then
+            echo "✅ No new designs to commit. Repository is already up to date."
+          else
+            TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M UTC')
+            git commit -m "⚡ Auto-update: designs.xlsx [skip ci] ($TIMESTAMP)"
+            git push origin main
+            echo "✅ Successfully committed and pushed updated designs.xlsx to GitHub!"
+          fi
