@@ -8,6 +8,3 @@ forpsd_tool/settings.json
 __pycache__/
 *.pyc
 *.bak
-
-# Optional workflow requiring PAT workflow scope
-.github/workflows/forpsd_auto.yml

@@ -13,12 +13,15 @@ const cleaner = require('./services/cleaner');
 
 // Parse CLI Arguments
 const args = process.argv.slice(2);
-function getArg(flag, def = '') {
-  const idx = args.indexOf(flag);
-  if (idx !== -1 && idx + 1 < args.length) return args[idx + 1];
+function getArg(flag, def = null) {
   const prefix = flag + '=';
   const found = args.find(a => a.startsWith(prefix));
-  return found ? found.slice(prefix.length) : def;
+  if (found) return found.slice(prefix.length);
+  const idx = args.indexOf(flag);
+  if (idx !== -1 && idx + 1 < args.length && !args[idx + 1].startsWith('-')) {
+    return args[idx + 1];
+  }
+  return def;
 }
 
 const hasFlag = (flag) => args.includes(flag);
@@ -31,7 +34,7 @@ Options:
   --category, -c <name>    Category to process (e.g. Gods, Wedding, Puberty, Birthday, all) [default: all]
   --ids <id1,id2,...>      Specific comma-separated post IDs to process
   --count, -n <number>     Max number of new items to process [default: 10]
-  --skip-existing          Skip items already in designs.xlsx [default: true]
+  --skip-existing [val]    Skip items already in designs.xlsx (true/false) [default: true for categories, false for specific IDs]
   --no-skip                Do not skip items already in designs.xlsx
   --force                  Force re-download and re-upload even if in designs.xlsx
   --watermark <text>       Watermark text [default: www.tamilpsd.in]
@@ -41,9 +44,22 @@ Options:
 }
 
 const category = getArg('--category', getArg('-c', process.env.RUN_CATEGORY || 'all'));
-const idsInput = getArg('--ids', process.env.RUN_IDS || '');
+const idsInput = getArg('--ids', process.env.RUN_IDS || '') || '';
 const countLimit = parseInt(getArg('--count', getArg('-n', process.env.RUN_COUNT || '10')), 10);
-const skipExisting = hasFlag('--skip-existing') || process.env.RUN_SKIP_EXISTING === 'true'; // Default to false
+
+const skipArg = getArg('--skip-existing', null);
+let skipExisting;
+if (skipArg !== null) {
+  skipExisting = (skipArg === 'true' || skipArg === '1');
+} else if (hasFlag('--no-skip')) {
+  skipExisting = false;
+} else if (hasFlag('--skip-existing')) {
+  skipExisting = true;
+} else if (idsInput.trim()) {
+  skipExisting = false; // specific IDs requested default to processing
+} else {
+  skipExisting = process.env.RUN_SKIP_EXISTING ? process.env.RUN_SKIP_EXISTING === 'true' : true;
+}
 const forceReupload = hasFlag('--force');
 
 async function main() {
