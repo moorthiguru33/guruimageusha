@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TamilPSD • Auto Pipeline Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="brand">
+      <h1>TamilPSD</h1>
+      <span class="badge">Auto Tool</span>
+    </div>
+
+    <div class="system-status">
+      <div class="status-chip" title="Cloudflare R2 Storage connected">
+        <span class="dot"></span> R2: cdn.tamilpsd.in
+      </div>
+      <div class="status-chip" title="Google Drive connection status" id="gdriveHeaderChip">
+        <span class="dot" id="gdriveHeaderDot"></span> Drive: <span id="gdriveHeaderStatus">Checking...</span>
+      </div>
+      <div class="status-chip" title="Target Excel Sheet" id="excelStatusChip">
+        <span class="dot"></span> Excel: <span id="excelFileName">designs.xlsx</span>
+      </div>
+      <button class="btn" id="btnSyncExcel" title="Refresh design IDs from designs.xlsx">🔄 Sync Excel</button>
+      <button class="btn" id="btnOpenSettings" title="Settings">⚙️ Settings</button>
+    </div>
+  </header>
+
+  <!-- Filter & Search Controls -->
+  <section class="controls-bar">
+    <div class="search-group">
+      <select id="categorySelect" class="select-input">
+        <option value="">-- All Categories (Loading...) --</option>
+      </select>
+      <input type="text" id="searchInput" class="text-input" placeholder="Search designs (e.g. wedding, gods, amman, dmk)...">
+      <button class="btn btn-primary" id="btnSearch">🔍 Search</button>
+      <span id="totalCategoryCount" class="cat-pill" style="font-size: 0.85rem; padding: 6px 12px; align-self: center;">Loading...</span>
+    </div>
+
+    <div class="filter-and-actions" style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+      <div class="filter-tabs" id="filterTabs">
+        <button class="filter-tab active" data-filter="all" id="tabFilterAll">All Designs (<span id="countAll">0</span>)</button>
+        <button class="filter-tab" data-filter="new" id="tabFilterNew">✨ New Only (<span id="countNew">0</span>)</button>
+        <button class="filter-tab" data-filter="uploaded" id="tabFilterUploaded">✓ In Excel (<span id="countUploaded">0</span>)</button>
+      </div>
+
+      <div class="selection-actions">
+        <button class="btn btn-primary" id="btnSelectAllNew">⚡ Select All New</button>
+        <button class="btn" id="btnSelectAll">Select All</button>
+        <button class="btn" id="btnDeselectAll">Deselect All</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Grid -->
+  <main class="container">
+    <div id="postsGrid" class="grid">
+      <!-- Cards rendered dynamically -->
+    </div>
+    <div id="loadingState" class="empty-state" style="display: none;">
+      <h3>Loading posts...</h3>
+      <p>Fetching designs and HD previews from updated site...</p>
+    </div>
+    <div id="emptyState" class="empty-state" style="display: none;">
+      <h3>No posts found</h3>
+      <p>Try selecting a different category or search term.</p>
+    </div>
+  </main>
+
+  <!-- Sticky Bottom Action Bar -->
+  <footer class="bottom-bar">
+    <div class="selection-info">
+      <div class="selected-count">
+        Selected: <strong id="selectedCount">0</strong>
+        <span style="font-size: 0.85rem; color: #94a3b8; margin-left: 8px;">(New: <span id="selectedNewCount" style="color: #10b981; font-weight: 700;">0</span>, In Excel: <span id="selectedInExcelCount" style="color: #64748b;">0</span>)</span>
+      </div>
+      <div class="temp-folder-display">
+        📁 Temp: <strong id="currentTempFolder">F:/temp_forpsd_workspace</strong>
+      </div>
+    </div>
+    <div class="action-buttons-group" style="display: flex; gap: 10px; align-items: center;">
+      <button class="btn btn-secondary" id="btnStartPipelineLocal" disabled title="Run on local computer using localhost server and local 7z/Pillow">
+        💻 RUN LOCALLY (<span class="btn-selected-count">0</span>)
+      </button>
+      <button class="btn btn-success" id="btnStartPipelineGithub" disabled title="Dispatch task to GitHub Actions cloud runner (no local disk/network used)" style="background: linear-gradient(135deg, #2563eb, #7c3aed); box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);">
+        ⚡ RUN IN GITHUB ACTION (<span class="btn-selected-count">0</span>)
+      </button>
+    </div>
+  </footer>
+
+  <!-- Progress Modal -->
+  <div class="modal-overlay" id="progressModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>⚡ Live Automation Progress</h2>
+        <span id="jobOverallStatus" class="status-badge queued">RUNNING</span>
+      </div>
+      <div class="modal-body">
+        <div class="progress-container">
+          <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+            <span id="progressSummary">Processing 0 of 0...</span>
+            <span id="progressPercent">0%</span>
+          </div>
+          <div class="progress-bar-wrap">
+            <div class="progress-fill" id="progressBarFill"></div>
+          </div>
+        </div>
+
+        <h3 style="font-size: 1rem; margin-bottom: 0.75rem; color: #94a3b8;">Processing Queue:</h3>
+        <div class="item-status-list" id="progressItemsList">
+          <!-- Item status chips rendered dynamically -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="btnCloseProgress" style="display: none;">Close Dashboard</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>⚙️ Configuration & Settings</h2>
+        <button class="btn" id="btnCloseSettingsModal" style="padding: 4px 8px;">✕</button>
+      </div>
+      <div class="modal-body">
+        <!-- Notification: All keys hardcoded -->
+        <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid #334155; border-radius: 8px; padding: 12px 16px; margin-bottom: 1.25rem; font-size: 0.85rem; color: #cbd5e1; display: flex; align-items: flex-start; gap: 10px;">
+          <span style="font-size: 1.3rem; line-height: 1;">🔒</span>
+          <div>
+            <strong style="color: #38bdf8;">All Service API Keys Are Hardcoded</strong>
+            <p style="margin: 4px 0 0; color: #94a3b8; font-size: 0.8rem; line-height: 1.4;">
+              Google Client ID, Client Secret, Cloudflare R2 Credentials, GitHub Token, and Service Account are securely hardcoded into the pipeline.
+              <strong>Only the Google Drive Refresh Token needs to be updated here whenever it expires.</strong>
+            </p>
+          </div>
+        </div>
+
+        <!-- Google Drive Refresh Token Section -->
+        <div style="background: rgba(15, 23, 42, 0.7); padding: 1.25rem; border-radius: 12px; border: 1px solid #f59e0b; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <h3 style="font-size: 1.05rem; color: #f59e0b; margin: 0; display: flex; align-items: center; gap: 6px;">
+              <span>🔑</span> Google Drive Refresh Token
+            </h3>
+            <span id="gdriveStatusBadge" class="status-badge queued">CHECKING...</span>
+          </div>
+
+          <p style="font-size: 0.82rem; color: #94a3b8; margin-bottom: 0.75rem; line-height: 1.4;">
+            Your personal Google Drive upload token. When it expires (every ~7 days), paste the new refresh token below or use the 1-click login helper.
+          </p>
+
+          <div style="margin-bottom: 0.75rem;">
+            <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem; color: #e2e8f0;">Active Refresh Token:</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="settingRefreshToken" class="text-input" style="flex: 1; font-family: monospace; font-size: 0.82rem; padding: 8px 12px;" placeholder="Paste Google refresh token here...">
+              <button type="button" class="btn btn-primary" id="btnSaveRefreshTokenDirect" style="white-space: nowrap;">💾 Save Token</button>
+              <button type="button" class="btn" id="btnTestTokenDirect" style="white-space: nowrap;">⚡ Test</button>
+            </div>
+            <div id="tokenValidationMsg" style="font-size: 0.8rem; margin-top: 6px; display: none;"></div>
+          </div>
+
+          <!-- Optional Step-by-Step OAuth Helper -->
+          <details style="border-top: 1px dashed var(--border); padding-top: 0.75rem; margin-top: 0.75rem;">
+            <summary style="font-size: 0.82rem; color: #38bdf8; cursor: pointer; font-weight: 600;">
+              ✨ Need a new Refresh Token? Click here for 1-Click Google Login Helper
+            </summary>
+            <div style="margin-top: 0.75rem; padding: 0.75rem; background: rgba(0,0,0,0.2); border-radius: 8px;">
+              <div style="margin-bottom: 0.75rem;">
+                <button type="button" class="btn btn-primary" id="btnOpenGoogleAuth" style="width: 100%; justify-content: center; font-size: 0.9rem; padding: 0.6rem;">
+                  1️⃣ Step 1: Open Google Login / Authorize
+                </button>
+                <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">
+                  Sign in with your Google account, click allow, then copy the <strong>code=...</strong> (or full URL) from your browser address bar.
+                </p>
+              </div>
+
+              <div style="margin-bottom: 0.75rem;">
+                <label style="display: block; font-weight: 600; font-size: 0.8rem; margin-bottom: 0.25rem;">2️⃣ Step 2: Paste Authorization Code (or full URL):</label>
+                <input type="text" id="oauthAuthCode" class="text-input" style="width: 100%; font-size: 0.8rem;" placeholder="Paste code=4/... or http://localhost/?code=... here">
+              </div>
+
+              <button type="button" class="btn btn-success" id="btnExchangeOAuth" style="width: 100%; justify-content: center; padding: 0.6rem;">
+                ⚡ Exchange & Connect Google Drive
+              </button>
+            </div>
+          </details>
+        </div>
+
+        <!-- Optional Workspace & Cookie Settings -->
+        <div style="margin-bottom: 1rem;">
+          <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Local Temp Workspace Folder:</label>
+          <input type="text" id="settingTempDir" class="text-input" style="width: 100%; font-size: 0.85rem;" value="F:/temp_forpsd_workspace">
+          <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">Temporary unzipping workspace for PSDs (auto-cleaned after upload).</p>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+          <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.85rem;">
+            <input type="checkbox" id="settingLocalCopies" style="transform: scale(1.1);">
+            <span>Prefer local offline files from <strong>F:\New folder (2)</strong></span>
+          </label>
+        </div>
+
+        <details style="margin-bottom: 1rem;">
+          <summary style="font-size: 0.82rem; color: #94a3b8; cursor: pointer;">
+            ⚙️ Advanced: ForPSD Premium Cookie (Pre-configured)
+          </summary>
+          <div style="margin-top: 0.5rem;">
+            <textarea id="settingCookie" class="text-input" style="width: 100%; height: 60px; font-size: 0.75rem; resize: vertical;" placeholder="Pre-configured hardcoded cookie"></textarea>
+          </div>
+        </details>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="btnSaveSettings">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

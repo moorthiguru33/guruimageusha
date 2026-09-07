@@ -1,0 +1,10 @@
+﻿# Dependencies
+forpsd_tool/node_modules/
+
+# Local dashboard settings with active tokens
+forpsd_tool/settings.json
+
+# Python cache & temporary files
+__pycache__/
+*.pyc
+*.bak
