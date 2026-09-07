@@ -1,4 +1,4 @@
-﻿# Dependencies
+# Dependencies
 forpsd_tool/node_modules/
 
 # Local dashboard settings with active tokens
@@ -8,3 +8,6 @@ forpsd_tool/settings.json
 __pycache__/
 *.pyc
 *.bak
+
+# Optional workflow requiring PAT workflow scope
+.github/workflows/forpsd_auto.yml
