@@ -89,7 +89,8 @@ function parsePostsFromHtml(html, activeTopic = '') {
 
     // Download URL token
     const dlMatch = part.match(/_startDl\((?:'|"|&#39;|&quot;)(https:\/\/forpsd\.com\/download\/[^'"&;\s]+)/i) ||
-                    part.match(/https:\/\/forpsd\.com\/download\/[a-zA-Z0-9+/=]+/i);
+                    part.match(/<a[^>]*href=["'](https:\/\/forpsd\.com\/download\/[^"'\s]+)["']/i) ||
+                    part.match(/https:\/\/forpsd\.com\/download\/[a-zA-Z0-9+/=_-]{10,}/i);
     const downloadTokenUrl = dlMatch ? (dlMatch[1] || dlMatch[0]) : '';
 
     // Upload Date
@@ -225,9 +226,28 @@ async function getPosts(topic = '', query = '', page = 1, fetchAll = true) {
   return allPosts;
 }
 
+async function getPostById(id) {
+  const settings = config.getSettings();
+  const cleanId = String(id).trim();
+  try {
+    const url = `https://forpsd.com/search?query=${encodeURIComponent(cleanId)}`;
+    const html = await fetchHtml(url, settings.forpsdCookie);
+    const posts = parsePostsFromHtml(html, '');
+    const found = posts.find(p => String(p.id).toLowerCase() === cleanId.toLowerCase());
+    if (found) return found;
+    const partial = posts.find(p => p.fileName && p.fileName.includes(cleanId));
+    if (partial) return partial;
+    if (posts.length > 0) return posts[0];
+  } catch (err) {
+    console.warn(`Error fetching post details for #${cleanId}:`, err.message);
+  }
+  return null;
+}
+
 module.exports = {
   getCategories,
   getPosts,
+  getPostById,
   parseCategoriesFromHtml,
   parsePostsFromHtml
 };

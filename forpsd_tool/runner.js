@@ -86,15 +86,26 @@ async function main() {
     const ids = idsInput.split(',').map(s => s.trim()).filter(Boolean);
     console.log(`🔍 Processing ${ids.length} specific IDs: ${ids.join(', ')}`);
     for (const id of ids) {
-      const formattedName = postFormatter.getFormattedDesignId(id);
-      candidatePosts.push({
-        id,
-        fileName: formattedName,
-        title: formattedName,
-        category: 'Design',
-        downloadTokenUrl: `https://forpsd.com/download/${id}`,
-        previewUrl: ''
-      });
+      console.log(`🔎 Resolving live details from ForPSD for ID #${id}...`);
+      const livePost = await scraper.getPostById(id);
+      if (livePost && livePost.downloadTokenUrl) {
+        console.log(`✅ Found post #${id}: "${livePost.fileName}" (Download URL resolved)`);
+        candidatePosts.push(livePost);
+      } else if (livePost) {
+        console.log(`⚠️ Found post #${id}: "${livePost.fileName}"`);
+        candidatePosts.push(livePost);
+      } else {
+        const formattedName = postFormatter.getFormattedDesignId(id);
+        console.log(`⚠️ Post #${id} could not be found via search, queueing with default title.`);
+        candidatePosts.push({
+          id,
+          fileName: formattedName,
+          title: formattedName,
+          category: 'Design',
+          downloadTokenUrl: '',
+          previewUrl: ''
+        });
+      }
     }
   } else {
     const topic = category.toLowerCase() === 'all' ? '' : category;

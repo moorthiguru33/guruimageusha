@@ -233,6 +233,9 @@ btnSaveSettings.addEventListener('click', async () => {
       useLocalCopies: settingLocalCopies.checked,
       googleRefreshToken: settingRefreshToken ? settingRefreshToken.value.trim() : ''
     };
+    if (settingCookie && settingCookie.value.trim()) {
+      localStorage.setItem('tamilpsd_forpsd_cookie', settingCookie.value.trim());
+    }
     const res = await fetch('/api/settings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -599,6 +602,7 @@ if (btnStartPipelineGithub) {
 
     try {
       const tokenToSend = localStorage.getItem('tamilpsd_refresh_token') || (settingRefreshToken ? settingRefreshToken.value : '');
+      const cookieToSend = localStorage.getItem('tamilpsd_forpsd_cookie') || (settingCookie ? settingCookie.value : '');
       const res = await fetch('/api/github/dispatch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -607,7 +611,8 @@ if (btnStartPipelineGithub) {
           category: categorySelect.value || 'all',
           count: ids.length,
           skipExisting: false,
-          refreshToken: tokenToSend
+          refreshToken: tokenToSend,
+          forpsdCookie: cookieToSend
         })
       });
       const data = await res.json();

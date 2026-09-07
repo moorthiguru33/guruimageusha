@@ -165,11 +165,40 @@ async function processDownload(post, customTempDir = '') {
   }
 
   if (!downloaded) {
-    if (!post.downloadTokenUrl) {
-      throw new Error(`No download token URL available for post ${postId}.`);
+    let dlUrl = post.downloadTokenUrl;
+    // Check if dlUrl is empty or is an unencrypted URL like https://forpsd.com/download/1790
+    if (!dlUrl || dlUrl.match(/\/download\/\d+$/i)) {
+      console.log(`🔎 Download token not encrypted. Resolving real token from ForPSD for post #${postId}...`);
+      const scraper = require('./scraper');
+      const resolved = await scraper.getPostById(postId);
+      if (resolved && resolved.downloadTokenUrl && !resolved.downloadTokenUrl.match(/\/download\/\d+$/i)) {
+        dlUrl = resolved.downloadTokenUrl;
+        post.downloadTokenUrl = dlUrl;
+        if (resolved.fileName) post.fileName = resolved.fileName;
+        if (resolved.title) post.title = resolved.title;
+        console.log(`✅ Resolved live download token for #${postId}`);
+      }
     }
-    console.log(`Downloading from ${post.downloadTokenUrl}...`);
-    await downloadFile(post.downloadTokenUrl, archivePath, settings.forpsdCookie);
+
+    if (!dlUrl) {
+      throw new Error(`No download token URL available for post #${postId}.`);
+    }
+
+    console.log(`Downloading from ${dlUrl}...`);
+    try {
+      await downloadFile(dlUrl, archivePath, settings.forpsdCookie);
+    } catch (err) {
+      // If failed with HTTP 500 or expired token, attempt to refresh token and retry
+      console.warn(`Download failed (${err.message}). Attempting to refresh token from ForPSD...`);
+      const scraper = require('./scraper');
+      const fresh = await scraper.getPostById(postId);
+      if (fresh && fresh.downloadTokenUrl && fresh.downloadTokenUrl !== dlUrl) {
+        console.log(`Retrying download with fresh token: ${fresh.downloadTokenUrl}...`);
+        await downloadFile(fresh.downloadTokenUrl, archivePath, settings.forpsdCookie);
+      } else {
+        throw err;
+      }
+    }
   }
 
   // Extract with 7-Zip (or direct format handler)

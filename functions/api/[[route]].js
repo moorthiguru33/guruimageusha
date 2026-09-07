@@ -1,4 +1,4 @@
-﻿// Cloudflare Pages Functions - Full API Router for TamilPSD Dashboard
+// Cloudflare Pages Functions - Full API Router for TamilPSD Dashboard
 // Directly connects to forpsd.com/search to return 100% accurate posts & all 86 categories!
 
 const GOOGLE_CLIENT_ID = '308212866102-sd27dv5pjsr2bff3fioj4frr0ul58a1h.apps.googleusercontent.com';
@@ -203,13 +203,18 @@ export async function onRequest(context) {
         const dateMatch = part.match(/File uploaded\s*:\s*([0-9.]+)/i);
         const uploadDate = dateMatch ? dateMatch[1] : '';
 
+        const dlMatch = part.match(/_startDl\((?:'|"|&#39;|&quot;)(https:\/\/forpsd\.com\/download\/[^'"&;\s]+)/i) ||
+                        part.match(/<a[^>]*href=["'](https:\/\/forpsd\.com\/download\/[^"'\s]+)["']/i) ||
+                        part.match(/https:\/\/forpsd\.com\/download\/[a-zA-Z0-9+/=_-]{10,}/i);
+        const downloadTokenUrl = dlMatch ? (dlMatch[1] || dlMatch[0]) : '';
+
         posts.push({
           id,
           fileName,
           title: fileName,
           category: topic || 'Design',
           previewUrl,
-          downloadTokenUrl: `https://forpsd.com/download/${id}`,
+          downloadTokenUrl,
           uploadDate
         });
       }
@@ -312,6 +317,7 @@ export async function onRequest(context) {
       const skipExisting = body.skipExisting === true ? 'true' : 'false';
       const watermark = body.watermark === false ? 'false' : 'true';
       const refreshToken = body.refreshToken || DEFAULT_REFRESH_TOKEN;
+      const forpsdCookie = body.forpsdCookie || FORPSD_COOKIE;
 
       const ghRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/forpsd_auto.yml/dispatches`, {
         method: 'POST',
