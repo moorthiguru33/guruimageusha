@@ -22,10 +22,6 @@
       <div class="status-chip" title="Google Drive connection status" id="gdriveHeaderChip">
         <span class="dot" id="gdriveHeaderDot"></span> Drive: <span id="gdriveHeaderStatus">Checking...</span>
       </div>
-      <div class="status-chip" title="Target Excel Sheet" id="excelStatusChip">
-        <span class="dot"></span> Excel: <span id="excelFileName">designs.xlsx</span>
-      </div>
-      <button class="btn" id="btnSyncExcel" title="Refresh design IDs from designs.xlsx">🔄 Sync Excel</button>
       <button class="btn" id="btnOpenSettings" title="Settings">⚙️ Settings</button>
     </div>
   </header>
@@ -38,20 +34,16 @@
       </select>
       <input type="text" id="searchInput" class="text-input" placeholder="Search designs (e.g. wedding, gods, amman, dmk)...">
       <button class="btn btn-primary" id="btnSearch">🔍 Search</button>
-      <span id="totalCategoryCount" class="cat-pill" style="font-size: 0.85rem; padding: 6px 12px; align-self: center;">Loading...</span>
+      <span id="totalCategoryCount" class="cat-pill" style="font-size: 0.85rem; padding: 6px 12px; align-self: center;">Loading designs...</span>
     </div>
 
     <div class="filter-and-actions" style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
-      <div class="filter-tabs" id="filterTabs">
-        <button class="filter-tab active" data-filter="all" id="tabFilterAll">All Designs (<span id="countAll">0</span>)</button>
-        <button class="filter-tab" data-filter="new" id="tabFilterNew">✨ New Only (<span id="countNew">0</span>)</button>
-        <button class="filter-tab" data-filter="uploaded" id="tabFilterUploaded">✓ In Excel (<span id="countUploaded">0</span>)</button>
-      </div>
-
-      <div class="selection-actions">
-        <button class="btn btn-primary" id="btnSelectAllNew">⚡ Select All New</button>
-        <button class="btn" id="btnSelectAll">Select All</button>
+      <div class="selection-actions" style="display: flex; gap: 10px; align-items: center;">
+        <button class="btn btn-primary" id="btnSelectAll">⚡ Select All (<span id="countAll">0</span>)</button>
         <button class="btn" id="btnDeselectAll">Deselect All</button>
+      </div>
+      <div style="font-size: 0.95rem; color: #94a3b8;">
+        Selected: <strong id="selectedHeaderCount" style="color: #38bdf8; font-size: 1.15rem;">0</strong> designs
       </div>
     </div>
   </section>
@@ -63,7 +55,7 @@
     </div>
     <div id="loadingState" class="empty-state" style="display: none;">
       <h3>Loading posts...</h3>
-      <p>Fetching designs and HD previews from updated site...</p>
+      <p>Fetching designs and HD previews from site...</p>
     </div>
     <div id="emptyState" class="empty-state" style="display: none;">
       <h3>No posts found</h3>
@@ -75,8 +67,7 @@
   <footer class="bottom-bar">
     <div class="selection-info">
       <div class="selected-count">
-        Selected: <strong id="selectedCount">0</strong>
-        <span style="font-size: 0.85rem; color: #94a3b8; margin-left: 8px;">(New: <span id="selectedNewCount" style="color: #10b981; font-weight: 700;">0</span>, In Excel: <span id="selectedInExcelCount" style="color: #64748b;">0</span>)</span>
+        Selected: <strong id="selectedCount">0</strong> designs
       </div>
       <div class="temp-folder-display">
         📁 Temp: <strong id="currentTempFolder">F:/temp_forpsd_workspace</strong>

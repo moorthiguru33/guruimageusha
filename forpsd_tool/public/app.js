@@ -61,37 +61,12 @@ const gdriveHeaderStatus = document.getElementById('gdriveHeaderStatus');
 const gdriveHeaderChip = document.getElementById('gdriveHeaderChip');
 const gdriveHeaderDot = document.getElementById('gdriveHeaderDot');
 
-let existingIdsSet = new Set();
-
-async function loadExistingIds() {
-  try {
-    const candidates = ['/existing_ids.json', 'existing_ids.json', '/forpsd_tool/public/existing_ids.json'];
-    for (const c of candidates) {
-      try {
-        const res = await fetch(c);
-        if (res.ok) {
-          const arr = await res.json();
-          if (Array.isArray(arr)) {
-            existingIdsSet = new Set(arr.map(String));
-            console.log(`Loaded ${existingIdsSet.size} existing IDs from ${c}`);
-            return;
-          }
-        }
-      } catch (err) {}
-    }
-  } catch (e) {
-    console.warn('Could not load existing IDs:', e);
-  }
-}
-
 // Initialize
 window.addEventListener('DOMContentLoaded', async () => {
-  await loadExistingIds();
   await loadSettings();
   await loadCategories();
   await fetchPosts();
   initEventStream();
-  initFilterTabs();
 });
 
 // Load Settings
@@ -394,16 +369,12 @@ async function fetchPosts() {
 
     if (data.success && data.posts && data.posts.length > 0) {
       currentPosts = data.posts;
-      if (existingIdsSet && existingIdsSet.size > 0) {
-        currentPosts.forEach(p => {
-          p.inExcel = existingIdsSet.has(String(p.id));
-        });
-      }
-      updateFilterCounters();
-      renderFilteredPosts();
+      if (countAllEl) countAllEl.textContent = currentPosts.length;
+      if (totalCategoryCount) totalCategoryCount.textContent = `${currentPosts.length} Designs Loaded`;
+      renderPosts(currentPosts);
     } else {
       currentPosts = [];
-      updateFilterCounters();
+      if (countAllEl) countAllEl.textContent = '0';
       if (totalCategoryCount) totalCategoryCount.textContent = '0 Designs';
       emptyState.style.display = 'block';
     }
@@ -416,54 +387,13 @@ async function fetchPosts() {
   updateSelectionUI();
 }
 
-function updateFilterCounters() {
-  const total = currentPosts.length;
-  const inExcelCount = currentPosts.filter(p => p.inExcel).length;
-  const newCount = total - inExcelCount;
-
-  if (countAllEl) countAllEl.textContent = total;
-  if (countNewEl) countNewEl.textContent = newCount;
-  if (countUploadedEl) countUploadedEl.textContent = inExcelCount;
-  if (totalCategoryCount) totalCategoryCount.textContent = `${total} Designs (${newCount} New, ${inExcelCount} In Excel)`;
-}
-
-function initFilterTabs() {
-  const tabs = [tabFilterAll, tabFilterNew, tabFilterUploaded];
-  tabs.forEach(tab => {
-    if (!tab) return;
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => t && t.classList.remove('active'));
-      tab.classList.add('active');
-      activeFilter = tab.getAttribute('data-filter') || 'all';
-      renderFilteredPosts();
-    });
-  });
-}
-
-function renderFilteredPosts() {
-  let filtered = currentPosts;
-  if (activeFilter === 'new') {
-    filtered = currentPosts.filter(p => !p.inExcel);
-  } else if (activeFilter === 'uploaded') {
-    filtered = currentPosts.filter(p => p.inExcel);
-  }
-
-  if (filtered.length === 0) {
-    postsGrid.innerHTML = '';
-    emptyState.style.display = 'block';
-  } else {
-    emptyState.style.display = 'none';
-    renderPosts(filtered);
-  }
-}
-
-// Render Posts Grid
+// Render Posts Grid - Shows ALL Designs
 function renderPosts(posts) {
   postsGrid.innerHTML = '';
   posts.forEach(post => {
     const isSelected = selectedPosts.has(post.id);
     const card = document.createElement('div');
-    card.className = `post-card ${isSelected ? 'selected' : ''} ${post.inExcel ? 'in-excel' : ''}`;
+    card.className = `post-card ${isSelected ? 'selected' : ''}`;
     card.dataset.id = post.id;
 
     const thumbSrc = post.previewUrl || 'https://via.placeholder.com/300x200?text=Preview+Image';
@@ -472,23 +402,31 @@ function renderPosts(posts) {
       <div class="card-thumb-wrap">
         <img class="card-thumb" src="${thumbSrc}" alt="${post.title}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x200?text=Image+Not+Found'">
         <input type="checkbox" class="card-checkbox" ${isSelected ? 'checked' : ''}>
-        ${post.inExcel ? '<span class="badge-excel" style="position:absolute;bottom:6px;left:6px;background:#059669;color:#fff;font-size:0.7rem;font-weight:700;padding:2px 6px;border-radius:4px;box-shadow:0 2px 4px rgba(0,0,0,0.4);">✓ IN EXCEL</span>' : ''}
+        <span style="position:absolute;top:8px;left:8px;background:rgba(15,23,42,0.85);color:#38bdf8;font-size:0.75rem;font-weight:700;padding:2px 8px;border-radius:4px;border:1px solid #334155;">#${post.id}</span>
       </div>
       <div class="card-body">
         <h4 class="card-title" title="${post.title}">${post.title}</h4>
         <div class="card-meta">
-          <span class="cat-pill">${post.category}</span>
-          <span>ID: #${post.id}</span>
+          <span class="cat-pill">${post.category || 'Design'}</span>
+          <span style="color:#64748b;font-size:0.75rem;">${post.uploadDate || ''}</span>
         </div>
       </div>
     `;
 
     // Click handler to toggle selection
     card.addEventListener('click', (e) => {
+      if (e.target.classList.contains('card-checkbox')) return;
       toggleSelect(post.id);
       const cb = card.querySelector('.card-checkbox');
       if (cb) cb.checked = selectedPosts.has(post.id);
     });
+
+    const cb = card.querySelector('.card-checkbox');
+    if (cb) {
+      cb.addEventListener('change', () => {
+        toggleSelect(post.id);
+      });
+    }
 
     postsGrid.appendChild(card);
   });
@@ -509,21 +447,10 @@ function toggleSelect(id) {
 
 function updateSelectionUI() {
   const totalSel = selectedPosts.size;
-  let newSel = 0;
-  let inExcelSel = 0;
-
-  selectedPosts.forEach(id => {
-    const post = currentPosts.find(p => String(p.id) === String(id));
-    if (post && post.inExcel) {
-      inExcelSel++;
-    } else {
-      newSel++;
-    }
-  });
 
   if (selectedCountEl) selectedCountEl.textContent = totalSel;
-  if (selectedNewCountEl) selectedNewCountEl.textContent = newSel;
-  if (selectedInExcelCountEl) selectedInExcelCountEl.textContent = inExcelSel;
+  const headerCountEl = document.getElementById('selectedHeaderCount');
+  if (headerCountEl) headerCountEl.textContent = totalSel;
 
   btnSelectedCountEls.forEach(el => el.textContent = totalSel);
 
@@ -539,52 +466,32 @@ searchInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') fetchPosts();
 });
 
-// Select All New (Skips items already in Excel!)
-if (btnSelectAllNew) {
-  btnSelectAllNew.addEventListener('click', () => {
-    currentPosts.forEach(p => {
-      if (!p.inExcel) {
-        selectedPosts.add(p.id);
-      }
-    });
+// Select All visible
+if (btnSelectAll) {
+  btnSelectAll.addEventListener('click', () => {
+    currentPosts.forEach(p => selectedPosts.add(p.id));
     document.querySelectorAll('.post-card').forEach(card => {
-      const id = card.dataset.id;
-      const isSel = selectedPosts.has(id);
-      card.classList.toggle('selected', isSel);
+      card.classList.add('selected');
       const cb = card.querySelector('.card-checkbox');
-      if (cb) cb.checked = isSel;
+      if (cb) cb.checked = true;
     });
     updateSelectionUI();
   });
 }
 
-// Select All visible
-btnSelectAll.addEventListener('click', () => {
-  let targetList = currentPosts;
-  if (activeFilter === 'new') targetList = currentPosts.filter(p => !p.inExcel);
-  else if (activeFilter === 'uploaded') targetList = currentPosts.filter(p => p.inExcel);
-
-  targetList.forEach(p => selectedPosts.add(p.id));
-  document.querySelectorAll('.post-card').forEach(card => {
-    const id = card.dataset.id;
-    const isSel = selectedPosts.has(id);
-    card.classList.toggle('selected', isSel);
-    const cb = card.querySelector('.card-checkbox');
-    if (cb) cb.checked = isSel;
-  });
-  updateSelectionUI();
-});
-
 // Deselect All
-btnDeselectAll.addEventListener('click', () => {
-  selectedPosts.clear();
-  document.querySelectorAll('.post-card').forEach(card => {
-    card.classList.remove('selected');
-    const cb = card.querySelector('.card-checkbox');
-    if (cb) cb.checked = false;
+if (btnDeselectAll) {
+  btnDeselectAll.addEventListener('click', () => {
+    selectedPosts.clear();
+    document.querySelectorAll('.post-card').forEach(card => {
+      card.classList.remove('selected');
+      const cb = card.querySelector('.card-checkbox');
+      if (cb) cb.checked = false;
+    });
+    updateSelectionUI();
   });
-  updateSelectionUI();
-});
+}
+
 
 // Start Pipeline Execution (Localhost)
 if (btnStartPipelineLocal) {
